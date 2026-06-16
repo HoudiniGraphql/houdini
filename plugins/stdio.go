@@ -27,13 +27,14 @@ type StdioInbound struct {
 
 // StdioRegister is written to stdout once on startup.
 type StdioRegister struct {
-	Type           string   `json:"type"` // always "register"
-	Name           string   `json:"name"`
-	Hooks          []string `json:"hooks"`
-	Order          string   `json:"order"`
-	IncludeRuntime any      `json:"includeRuntime,omitempty"`
-	ConfigModule   any      `json:"configModule,omitempty"`
-	ClientPlugins  any      `json:"clientPlugins,omitempty"`
+	Type                 string   `json:"type"` // always "register"
+	Name                 string   `json:"name"`
+	Hooks                []string `json:"hooks"`
+	Order                string   `json:"order"`
+	IncludeRuntime       any      `json:"includeRuntime,omitempty"`
+	IncludeStaticRuntime any      `json:"includeStaticRuntime,omitempty"`
+	ConfigModule         any      `json:"configModule,omitempty"`
+	ClientPlugins        any      `json:"clientPlugins,omitempty"`
 }
 
 // StdioResponse is written to stdout in reply to a "request" message.
@@ -172,6 +173,15 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 		includeRuntime = rt
 	}
 
+	var includeStaticRuntime any
+	if sr, ok := plugin.(StaticRuntime); ok {
+		rt, err := sr.StaticRuntime(ctx)
+		if err != nil {
+			return err
+		}
+		includeStaticRuntime = rt
+	}
+
 	var configModule any
 	if cfg, ok := plugin.(Config); ok {
 		mod, err := cfg.Config(ctx)
@@ -195,13 +205,14 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 	}
 
 	if err := writeStdio(StdioRegister{
-		Type:           "register",
-		Name:           cmp(pluginKey, plugin.Name()),
-		Hooks:          hooks,
-		Order:          string(plugin.Order()),
-		IncludeRuntime: includeRuntime,
-		ConfigModule:   configModule,
-		ClientPlugins:  clientPlugins,
+		Type:                 "register",
+		Name:                 cmp(pluginKey, plugin.Name()),
+		Hooks:                hooks,
+		Order:                string(plugin.Order()),
+		IncludeRuntime:       includeRuntime,
+		IncludeStaticRuntime: includeStaticRuntime,
+		ConfigModule:         configModule,
+		ClientPlugins:        clientPlugins,
 	}); err != nil {
 		return err
 	}

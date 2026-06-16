@@ -18,6 +18,7 @@ declare global {
 	namespace App {
 		interface Session {}
 		interface Metadata {}
+		interface GraphQLErrorExtensions {}
 		interface Stuff {
 			inputs: {
 				init: boolean
@@ -142,7 +143,15 @@ export type FetchContext = {
 	session: App.Session | null
 }
 
-type Filter = { [key: string]: string | boolean | number }
+export type FilterValue =
+	| string
+	| boolean
+	| number
+	| null
+	| readonly FilterValue[]
+	| { [key: string]: FilterValue }
+
+export type Filter = { [key: string]: FilterValue }
 
 export type ListWhen = {
 	must?: Filter
@@ -167,16 +176,25 @@ export const DataSource = {
 export type DataSources = ValuesOf<typeof DataSource>
 
 export type MutationOperation = {
-	action: 'insert' | 'remove' | 'delete' | 'toggle'
+	action: 'insert' | 'remove' | 'delete' | 'toggle' | 'upsert'
 	list?: string
 	type?: string
 	parentID?: {
 		kind: string
 		value: string
 	}
+	listID?: {
+		kind: string
+		value: string
+	}
 	position?: 'first' | 'last'
 	target?: 'all'
-	when?: ListWhen
+	// when conditions are encoded as filter nodes so that variable references
+	// can be resolved when the operation is applied
+	when?: {
+		must?: Record<string, ListFilter>
+		must_not?: Record<string, ListFilter>
+	}
 }
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
@@ -204,6 +222,14 @@ export type LoadingSpec =
 	| { kind: 'continue'; list?: { depth: number; count: number } }
 	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
 
+export type ListFilter =
+	| {
+			kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Enum' | 'Variable'
+			value: string | number | boolean
+	  }
+	| { kind: 'Object'; value: Record<string, ListFilter> }
+	| { kind: 'List'; value: readonly ListFilter[] }
+
 export type SubscriptionSelection = Readonly<{
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
@@ -220,18 +246,13 @@ export type SubscriptionSelection = Readonly<{
 				name: string
 				connection: boolean
 				type: string
+				includeListID?: boolean
 			}
 			loading?: LoadingSpec
 			directives?: readonly { name: string; arguments: ValueMap }[]
 			updates?: readonly string[]
 			visible?: boolean
-			filters?: Record<
-				string,
-				{
-					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
-					value: string | number | boolean
-				}
-			>
+			filters?: Record<string, ListFilter>
 			selection?: SubscriptionSelection
 			abstract?: boolean
 			// If set, this is an abstract type with at least one abstract field made non-nullable by
@@ -257,10 +278,22 @@ export type SubscriptionSelection = Readonly<{
 	}
 }>
 
+// the cache communicates with subscribers using tagged messages so that
+// it can push more than just new data (for example, asking the document
+// to refetch itself)
+export type CacheMessage<_Data = any> =
+	| {
+			kind: 'update'
+			data: _Data
+	  }
+	| {
+			kind: 'refetch'
+	  }
+
 export type SubscriptionSpec = Readonly<{
 	rootType: string
 	selection: SubscriptionSelection
-	set: (data: any) => void
+	onMessage: (message: CacheMessage) => void
 	parentID?: string
 	variables?: () => any
 }>
@@ -270,9 +303,16 @@ export type FetchQueryResult<_Data> = {
 	source: DataSources | null
 }
 
+export type GraphQLError = {
+	message: string
+	locations?: readonly { line: number; column: number }[]
+	path?: readonly (string | number)[]
+	extensions?: App.GraphQLErrorExtensions
+}
+
 export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undefined> = {
 	data: _Data | null
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 	fetching: boolean
 	partial: boolean
 	stale: boolean
@@ -282,11 +322,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
-	errors:
-		| {
-				message: string
-		  }[]
-		| null
+	errors: GraphQLError[] | null
 }
 
 export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]

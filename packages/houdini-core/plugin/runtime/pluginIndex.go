@@ -32,7 +32,7 @@ func GeneratePluginIndex(
 	}
 
 	// write the file contents
-	err = afero.WriteFile(fs, indexPath, []byte(content), 0o644)
+	err = plugins.WriteFile(fs, indexPath, []byte(content), 0o644)
 	if err != nil {
 		return err
 	}

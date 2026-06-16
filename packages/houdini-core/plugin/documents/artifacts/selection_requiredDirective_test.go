@@ -162,19 +162,16 @@ query TestQuery($id: ID!) {
                                                 "type": "String",
                                                 "keyRaw": "name",
                                                 "nullable": true,
-                                                "visible": true,
                                             },
                                         },
                                     },
 
                                     "abstract": true,
-                                    "visible": true,
                                 },
                                 "name": {
                                     "type": "String",
                                     "keyRaw": "name",
                                     "nullable": true,
-                                    "visible": true,
                                 },
                             },
                             "Legend": {
@@ -190,7 +187,6 @@ query TestQuery($id: ID!) {
                                     "type": "String",
                                     "keyRaw": "name",
                                     "nullable": true,
-                                    "visible": true,
                                 },
                             },
                         },

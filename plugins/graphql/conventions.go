@@ -20,6 +20,10 @@ const AllListsDirective = "allLists"
 
 const ParentIDDirective = "parentID"
 
+const IncludeListIDDirective = "includeListID"
+
+const ListIDDirective = "listID"
+
 const WhenDirective = "when"
 
 const WhenNotDirective = "when_not"
@@ -38,6 +42,10 @@ const LoadingDirective = "loading"
 
 const RequiredDirective = "required"
 
+const IncludeDirective = "include"
+
+const SkipDirective = "skip"
+
 const ComponentFieldDirective = "componentField"
 
 const RuntimeScalarDirective = "__houdini__runtimeScalar"
@@ -49,6 +57,10 @@ const ListOperationSuffixRemove = "_remove"
 const ListOperationSuffixToggle = "_toggle"
 
 const ListOperationSuffixDelete = "_delete"
+
+const ListOperationSuffixUpsert = "_upsert"
+
+const ListOperationSuffixUpdate = "_update"
 
 const PaginationModeInfinite = "Infinite"
 

@@ -13,25 +13,6 @@ please open an issue or discussion on GitHub so we can try to figure out if ther
 is something that Houdini could be doing better. This should be considered an advanced
 escape hatch for one-off situations.
 
-## Enabling the API
-
-This API is currently considered experimental and while we refine it, we might need
-to dramatically change it overall shape. Until it's ready, we want to reserve the ability
-to break its API on any minor version. We understand this is not technically semantic versioning
-but ultimately it will let us refine the API against real applications and lead to a better solution
-faster.
-
-In order to acknowledge this, you will need to enable the `imperativeCache` flag in your config file:
-
-```javascript title="houdini.config.js"
-export default {
-    // ...
-	features: {
-		imperativeCache: true,
-	}
-}
-```
-
 ## Records
 
 The primary unit of the cache api is the `Record`. It acts as a proxy for interacting with entities in Houdini's cache
@@ -257,6 +238,22 @@ const user = cache.get('User', { id: '1' })
 
 user.delete()
 ```
+
+## Refreshing Records
+
+If you want to reload a record's values from your API (for example, after a mutation
+that you know changed data on the server), you can use the `refresh` method. Every
+document whose data contains the record will refetch itself over the network —
+including documents that only include the record through a fragment spread:
+
+```typescript
+const user = cache.get('User', { id: '1' })
+
+user.refresh()
+```
+
+Unlike `markStale` (which waits for the next fetch to reload the data), `refresh`
+triggers the network requests immediately.
 
 ## Lists
 

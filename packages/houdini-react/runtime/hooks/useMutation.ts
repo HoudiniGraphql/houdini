@@ -25,7 +25,7 @@ export function useMutation<
 	artifact,
 }: {
 	artifact: MutationArtifact
-}): [boolean, MutationHandler<_Result, _Input, _Optimistic>] {
+}): [MutationHandler<_Result, _Input, _Optimistic>, boolean] {
 	// build the live document we'll use to send values
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 
@@ -62,7 +62,7 @@ export function useMutation<
 		}
 	}
 
-	return [pending, mutate]
+	return [mutate, pending]
 }
 
 export class RuntimeGraphQLError extends Error {

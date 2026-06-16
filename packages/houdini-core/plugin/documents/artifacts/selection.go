@@ -58,7 +58,7 @@ func writeSelectionDocument(
 	}
 
 	// write the file to disk
-	err = afero.WriteFile(fs, artifactPath, []byte(artifact), 0644)
+	err = plugins.WriteFile(fs, artifactPath, []byte(artifact), 0644)
 	if err != nil {
 		return "", err
 	}
@@ -877,17 +877,23 @@ func stringifySelection(
 %s}`, resultBuilder.String(), indent)
 }
 
-func keyField(field *collected.Selection, paginatedMode *string) string {
+func keyField(field *collected.Selection, paginatedMode *string, _ string) string {
+	// Pagination args are stripped and ::paginated suffix applied only for Infinite mode,
+	// where all pages accumulate under one stable key.
+	// SinglePage pagination (both query and fragment) uses distinct per-cursor cache keys
+	// so the cache can serve back-navigation without a network request.
+	useStableKey := paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite
+	isSinglePage := paginatedMode != nil && *paginatedMode == graphql.PaginationModeSinglePage
+
 	if len(field.Arguments) == 0 {
 		paginationSuffix := ""
-		if paginatedMode != nil {
+		if useStableKey {
 			paginationSuffix = "::paginated"
 		}
 		return `"` + *field.Alias + paginationSuffix + `"`
 	}
 
-	// if we are generating the key for a paginated field then we need to strip away
-	// the pagination arguments
+	// strip pagination args when using a stable key
 	args := []*collected.Argument{}
 	for _, arg := range field.Arguments {
 		paginationArgs := map[string]bool{
@@ -898,18 +904,52 @@ func keyField(field *collected.Selection, paginatedMode *string) string {
 			"limit":  true,
 			"offset": true,
 		}
-		if _, ok := paginationArgs[arg.Name]; ok && paginatedMode != nil &&
-			*paginatedMode == graphql.PaginationModeInfinite {
+		if _, ok := paginationArgs[arg.Name]; ok && useStableKey {
 			continue
 		}
 
-		// if we got this far then we can add the arg
 		a := *arg
 		args = append(args, &a)
 	}
 
+	// For SinglePage, the initial parent query and the pagination query must share the same
+	// cache key for the first page so backward navigation finds the cached data.
+	// The pagination query always includes all four cursor args; expand the parent query's
+	// key to match by adding any missing cursor args as null in canonical order
+	// (first, after, last, before) followed by the remaining user-defined args.
+	if isSinglePage {
+		cursorNames := []string{"first", "after", "last", "before"}
+		existing := map[string]*collected.Argument{}
+		for _, arg := range args {
+			existing[arg.Name] = arg
+		}
+
+		var ordered []*collected.Argument
+		for _, name := range cursorNames {
+			if arg, ok := existing[name]; ok {
+				ordered = append(ordered, arg)
+			} else {
+				// missing cursor arg — add it as null so the key matches the pagination query
+				ordered = append(ordered, &collected.Argument{Name: name, Value: nil})
+			}
+		}
+		for _, arg := range args {
+			isCursor := false
+			for _, name := range cursorNames {
+				if arg.Name == name {
+					isCursor = true
+					break
+				}
+			}
+			if !isCursor {
+				ordered = append(ordered, arg)
+			}
+		}
+		args = ordered
+	}
+
 	paginationSuffix := ""
-	if paginatedMode != nil {
+	if useStableKey {
 		paginationSuffix = "::paginated"
 	}
 
@@ -941,16 +981,21 @@ func stringifyFieldSelection(
 
 	// figure out the pagination state
 	var paginatedMode *string
+	paginatedTargetType := "Query"
 	if selection.List != nil {
 		if selection.List.Paginated {
 			paginatedMode = &selection.List.Mode
+			paginatedTargetType = selection.List.TargetType
 		}
 		updates = []string{}
-		if selection.List.SupportsForward {
-			updates = append(updates, "append")
-		}
-		if selection.List.SupportsBackward {
-			updates = append(updates, "prepend")
+		// SinglePage pagination uses replace semantics — never accumulate edges
+		if !selection.List.Paginated || selection.List.Mode != graphql.PaginationModeSinglePage {
+			if selection.List.SupportsForward {
+				updates = append(updates, "append")
+			}
+			if selection.List.SupportsBackward {
+				updates = append(updates, "prepend")
+			}
 		}
 
 		// @paginate always wins over @list when both appear in the same document
@@ -1004,9 +1049,13 @@ func stringifyFieldSelection(
 	hasRequiredDirective := false
 	hasLoading := forceLoading
 	loadingCount := 3
+	includeListID := false
 
 	for _, directive := range selection.Directives {
 		switch directive.Name {
+		case graphql.IncludeListIDDirective:
+			includeListID = true
+			continue
 		case graphql.OptimisticKeyDirective:
 			optimisticKey = fmt.Sprintf(`
 %s"optimisticKey": true,`, indent4)
@@ -1208,12 +1257,17 @@ func stringifyFieldSelection(
 	list := ""
 	filters := ""
 	if selection.List != nil && selection.List.Name != "" {
+		includeListIDStr := ""
+		if includeListID {
+			includeListIDStr = fmt.Sprintf(`,
+%s"includeListID": true`, indent5)
+		}
 		// we need to record the list specification
 		list = fmt.Sprintf(`
 %s"list": {
 %s"name": "%s",
 %s"connection": %v,
-%s"type": "%s"
+%s"type": "%s"%s
 %s},`,
 			indent4,
 			indent5,
@@ -1222,20 +1276,14 @@ func stringifyFieldSelection(
 			selection.List.Connection,
 			indent5,
 			selection.List.Type,
+			includeListIDStr,
 			indent4,
 		)
 
 		// we also need to record which filters are currently being applied to the list field
 		for _, arg := range selection.Arguments {
-			value := stringifyValue(arg.Value, map[string]bool{})
-			if arg.Value.Kind == "Variable" {
-				value = `"` + arg.Value.Raw + `"`
-			}
 			filters += fmt.Sprintf(`
-%s"%s": {
-%s"kind": "%s",
-%s"value": %s
-%s},`, indent5, arg.Name, indent6, arg.Value.Kind, indent6, value, indent5)
+%s"%s": %s,`, indent5, arg.Name, serializeListFilter(arg.Value, level+4))
 		}
 
 		if filters != "" {
@@ -1278,7 +1326,7 @@ func stringifyFieldSelection(
 		indent4,
 		selection.FieldType,
 		indent4,
-		keyField(selection, paginatedMode),
+		keyField(selection, paginatedMode, paginatedTargetType),
 		updateStr,
 		nullable,
 		directives,
@@ -1407,11 +1455,17 @@ func stringifyOperations(
 
 %s"parentID": %s`, indent5, operation.ParentID)
 		}
+		listID := ""
+		if operation.ListID != "" {
+			listID = fmt.Sprintf(`,
+
+%s"listID": %s`, indent5, operation.ListID)
+		}
 
 		fmt.Fprintf(&operationStringBuilder, `{
-%s"action": "%s"%s%s%s%s%s%s
+%s"action": "%s"%s%s%s%s%s%s%s
 %s},
-`, indent5, operation.Action, list, typ, position, target, when, parentID, indent4)
+`, indent5, operation.Action, list, typ, position, target, when, parentID, listID, indent4)
 
 	}
 	if operationStringBuilder.Len() > 0 {
@@ -1436,6 +1490,8 @@ func extractOperation(
 	when := ""
 	// along with a parentID specification
 	parentID := ""
+	// along with a listID specification (raw cache key, bypasses id(type,value) lookup)
+	listID := ""
 	for _, directive := range selection.Directives {
 		switch directive.Name {
 		// if we encounter a when directive
@@ -1448,7 +1504,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					stringifyValue(arg.Value, map[string]bool{}),
+					serializeListFilter(arg.Value, level+1),
 				)
 			}
 			when += fmt.Sprintf(`
@@ -1465,7 +1521,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					stringifyValue(arg.Value, map[string]bool{}),
+					serializeListFilter(arg.Value, level+1),
 				)
 			}
 			when += fmt.Sprintf(`
@@ -1475,6 +1531,9 @@ func extractOperation(
 			// parentID directive
 		case graphql.ParentIDDirective:
 			parentID = serializeFragmentArgument(directive.Arguments[0].Value, level-1)
+		// listID directive — raw cache key, bypasses the id(type, value) lookup
+		case graphql.ListIDDirective:
+			listID = serializeFragmentArgument(directive.Arguments[0].Value, level-1)
 		}
 	}
 
@@ -1492,6 +1551,7 @@ func extractOperation(
 					Action:   "delete",
 					When:     when,
 					ParentID: parentID,
+					ListID:   listID,
 				}
 			}
 		}
@@ -1522,6 +1582,9 @@ func extractOperation(
 		case strings.Contains(selection.FieldName, graphql.ListOperationSuffixToggle):
 			listName = stripSuffix(selection.FieldName, graphql.ListOperationSuffixToggle)
 			action = "toggle"
+		case strings.Contains(selection.FieldName, graphql.ListOperationSuffixUpsert):
+			listName = stripSuffix(selection.FieldName, graphql.ListOperationSuffixUpsert)
+			action = "upsert"
 
 		default:
 			// the fragment doesn't end in one of the magic prefixes
@@ -1552,6 +1615,7 @@ func extractOperation(
 			Target:   target,
 			When:     when,
 			ParentID: parentID,
+			ListID:   listID,
 		}
 	}
 
@@ -1566,6 +1630,7 @@ type CollectedOperation struct {
 	Type     string
 	When     string
 	ParentID string
+	ListID   string
 }
 
 func stripSuffix(s string, suffix string) string {
@@ -1573,6 +1638,52 @@ func stripSuffix(s string, suffix string) string {
 		return s[:i]
 	}
 	return s
+}
+
+// serializeListFilter generates the {kind, value} entry for an argument applied
+// to a @list field. object and list values nest their children as filter entries
+// so that variable references stay structured instead of being printed as raw
+// graphql text (which isn't valid javascript)
+func serializeListFilter(value *collected.ArgumentValue, level int) string {
+	indent0 := strings.Repeat(spacing, level)
+	indent1 := strings.Repeat(spacing, level+1)
+
+	serialized := ""
+	switch value.Kind {
+	case "Variable":
+		serialized = fmt.Sprintf("%q", value.Raw)
+	case "Object":
+		indent2 := strings.Repeat(spacing, level+2)
+		fields := ""
+		for i, child := range value.Children {
+			if i > 0 {
+				fields += ","
+			}
+			fields += fmt.Sprintf(
+				"\n%s%q: %s",
+				indent2,
+				child.Name,
+				serializeListFilter(child.Value, level+2),
+			)
+		}
+		serialized = fmt.Sprintf("{%s\n%s}", fields, indent1)
+	case "List":
+		values := ""
+		for i, child := range value.Children {
+			if i > 0 {
+				values += ", "
+			}
+			values += serializeListFilter(child.Value, level+1)
+		}
+		serialized = "[" + values + "]"
+	default:
+		serialized = stringifyValue(value, map[string]bool{})
+	}
+
+	return fmt.Sprintf(`{
+%s"kind": "%s",
+%s"value": %s
+%s}`, indent1, value.Kind, indent1, serialized, indent0)
 }
 
 func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {

@@ -4,6 +4,7 @@ import { testConfigFile } from '../../../test/index.js'
 import type { SubscriptionSelection } from '../../types.js'
 import { RefetchUpdateMode } from '../../types.js'
 import { Cache } from '../index.js'
+import { opaqueListID } from '../lists.js'
 
 const config = testConfigFile()
 
@@ -259,7 +260,7 @@ test('append in list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -279,18 +280,21 @@ test('append in list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+				],
+			},
 		},
 	})
 })
@@ -364,7 +368,7 @@ test('prepend in list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -384,18 +388,21 @@ test('prepend in list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -505,7 +512,7 @@ test('remove from connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -517,18 +524,21 @@ test('remove from connection', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -644,7 +654,7 @@ test('element removed from list can be added back', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -676,25 +686,28 @@ test('element removed from list can be added back', () => {
 	})
 
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane2',
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -798,7 +811,7 @@ test('append in connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -818,25 +831,28 @@ test('append in connection', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -1692,7 +1708,7 @@ test('append in connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -1712,27 +1728,30 @@ test('append in connection', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						__typename: 'UserEdge',
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						__typename: 'UserEdge',
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -1871,7 +1890,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -1985,25 +2004,28 @@ test('inserting data with an update overwrites a record inserted with list.appen
 
 	// make sure the duplicate has been removed
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -2116,7 +2138,7 @@ test('list filter - must_not positive', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2139,18 +2161,21 @@ test('list filter - must_not positive', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -2230,7 +2255,7 @@ test('list filter - must_not negative', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2330,7 +2355,7 @@ test('list filter - must positive', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2353,18 +2378,21 @@ test('list filter - must positive', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -2444,7 +2472,7 @@ test('list filter - must negative', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2466,6 +2494,137 @@ test('list filter - must negative', () => {
 		})
 
 	// make sure we got the new value
+	expect(set).not.toHaveBeenCalled()
+})
+
+test('list filter - object value with nested variable', () => {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								filter: {
+									kind: 'Object',
+									value: {
+										name: {
+											kind: 'Variable',
+											value: 'value',
+										},
+									},
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		variables: { value: 'bar' },
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			onMessage: (msg) => {
+				if (msg.kind === 'update') set(msg.data)
+			},
+			selection,
+		},
+		{ value: 'bar' }
+	)
+
+	const insert = (id: string, name: string) =>
+		cache
+			.list('All_Users')
+			.when({ must: { filter: { name } } })
+			.prepend({
+				selection: {
+					fields: {
+						id: { visible: true, type: 'ID', keyRaw: 'id' },
+						firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+					},
+				},
+				data: {
+					id,
+					firstName: 'mary',
+				},
+			})
+
+	// a when condition that matches the resolved object filter applies
+	insert('3', 'bar')
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+
+	// one that doesn't match is skipped
+	set.mockClear()
+	insert('4', 'not-bar')
 	expect(set).not.toHaveBeenCalled()
 })
 
@@ -2538,7 +2697,7 @@ test('remove from list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2550,9 +2709,12 @@ test('remove from list', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
 		},
 	})
 
@@ -2629,7 +2791,7 @@ test('delete node', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2642,9 +2804,12 @@ test('delete node', () => {
 
 	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
 		},
 	})
 
@@ -2750,7 +2915,7 @@ test('delete node from connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2763,10 +2928,13 @@ test('delete node from connection', () => {
 
 	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [],
+				},
 			},
 		},
 	})
@@ -2839,7 +3007,7 @@ test('append operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -2946,7 +3114,7 @@ test('append from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3076,7 +3244,7 @@ test('toggle list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3118,6 +3286,100 @@ test('toggle list', () => {
 	// toggle the user again to add the user back
 	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
+})
+
+test('toggle list survives multiple on-off cycles through mutation layers', () => {
+	const cache = new Cache(config)
+
+	// shared selections
+	const friendsSelection: SubscriptionSelection = {
+		fields: {
+			friends: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'friends',
+				list: {
+					name: 'All_Users',
+					connection: false,
+					type: 'User',
+				},
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+					},
+				},
+			},
+		},
+	}
+
+	const toggleSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [{ action: 'toggle', list: 'All_Users' }],
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+					},
+				},
+			},
+		},
+	}
+
+	// write the initial query result and subscribe so the list is registered
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: friendsSelection,
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	// simulate a mutation by writing through an optimistic layer then resolving it,
+	// matching the lifecycle the mutation plugin uses in production
+	const mutate = (data: Record<string, unknown>) => {
+		const layer = cache._internal_unstable.storage.createLayer(true)
+		cache.write({ selection: toggleSelection, data, layer: layer.id })
+		cache._internal_unstable.storage.resolveLayer(layer.id)
+	}
+
+	// cycle 1 — on
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
+
+	// cycle 1 — off
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual([])
+
+	// cycle 2 — on (this is where the stale remove op used to re-cancel the insert)
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
+
+	// cycle 2 — off
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual([])
+
+	// cycle 3 — on
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
 })
 
 test('append when operation', () => {
@@ -3190,7 +3452,7 @@ test('append when operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3210,7 +3472,10 @@ test('append when operation', () => {
 							list: 'All_Users',
 							when: {
 								must: {
-									value: 'not-foo',
+									value: {
+										kind: 'String',
+										value: 'not-foo',
+									},
 								},
 							},
 						},
@@ -3236,6 +3501,127 @@ test('append when operation', () => {
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+})
+
+test('when operation with variable condition', () => {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						filters: {
+							value: {
+								kind: 'String',
+								value: 'foo',
+							},
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	// the selection for a mutation whose when condition points to a variable
+	const mutationSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+						when: {
+							must: {
+								value: {
+									kind: 'Variable',
+									value: 'target',
+								},
+							},
+						},
+					},
+				],
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// a write whose variable doesn't match the list's filters gets skipped
+	cache.write({
+		selection: mutationSelection,
+		data: { newUser: { id: '3' } },
+		variables: { target: 'not-foo' },
+	})
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+
+	// one whose variable matches the filter applies
+	cache.write({
+		selection: mutationSelection,
+		data: { newUser: { id: '3' } },
+		variables: { target: 'foo' },
+	})
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
 })
 
 test('prepend when operation', () => {
@@ -3308,7 +3694,7 @@ test('prepend when operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3329,7 +3715,10 @@ test('prepend when operation', () => {
 							position: 'first',
 							when: {
 								must: {
-									value: 'not-foo',
+									value: {
+										kind: 'String',
+										value: 'not-foo',
+									},
 								},
 							},
 						},
@@ -3446,7 +3835,7 @@ test('prepend operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3574,7 +3963,7 @@ test('remove operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3704,7 +4093,7 @@ test('remove operation from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3829,7 +4218,7 @@ test('delete operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3958,7 +4347,7 @@ test('delete operation with non-string id', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', 1)!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4090,7 +4479,7 @@ test('delete operation from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4275,7 +4664,7 @@ test('delete operation from connection', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4965,7 +5354,7 @@ test('when conditions look for all matching lists', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{
@@ -4975,7 +5364,7 @@ test('when conditions look for all matching lists', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{
@@ -5093,7 +5482,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5104,7 +5493,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '2')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5273,7 +5662,7 @@ test('append in abstract list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -5294,21 +5683,24 @@ test('append in abstract list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			__typename: 'User',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-					__typename: 'User',
-				},
-				{
-					firstName: 'mary',
-					id: '3',
-					__typename: 'User',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+						__typename: 'User',
+					},
+					{
+						firstName: 'mary',
+						id: '3',
+						__typename: 'User',
+					},
+				],
+			},
 		},
 	})
 })
@@ -5432,7 +5824,7 @@ test('list operations on interface fields without a well defined parent update t
 	// subscribe to the fields (create the list handler)
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -5465,38 +5857,41 @@ test('list operations on interface fields without a well defined parent update t
 	})
 
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			__typename: 'User',
-			friends: [
-				{
-					id: '2',
-					__typename: 'User',
-					notFriends: [
-						{
-							id: '3',
-							firstName: 'jane',
-							__typename: 'User',
-						},
-					],
-				},
-				{
-					id: '3',
-					__typename: 'User',
-					notFriends: [
-						{
-							id: '4',
-							firstName: 'jane',
-							__typename: 'User',
-						},
-						{
-							id: '5',
-							firstName: 'Billy',
-							__typename: 'User',
-						},
-					],
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						id: '2',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '3',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+						],
+					},
+					{
+						id: '3',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '4',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+							{
+								id: '5',
+								firstName: 'Billy',
+								__typename: 'User',
+							},
+						],
+					},
+				],
+			},
 		},
 	})
 })
@@ -5565,7 +5960,7 @@ test("parentID ignores single lists that don't match", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5676,7 +6071,7 @@ test('inserting in list at a specific layer affects just that layer', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5825,7 +6220,7 @@ test("two operations referencing the same list don't commit twice", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5863,7 +6258,7 @@ test("two operations referencing the same list don't commit twice", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5939,4 +6334,785 @@ test("two operations referencing the same list don't commit twice", () => {
 			},
 		],
 	})
+})
+
+test('@includeListID attaches opaque key to plain list array', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2' }] } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	expect((result.data?.friends as any).__id).toBe(opaqueListID(parentKey!, 'All_Users'))
+})
+
+test('@includeListID attaches opaque key to connection object', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friendsConnection: {
+								type: 'UserConnection',
+								visible: true,
+								keyRaw: 'friendsConnection',
+								selection: {
+									fields: {
+										edges: {
+											type: 'UserEdge',
+											visible: true,
+											keyRaw: 'edges',
+											selection: {
+												fields: {
+													node: {
+														type: 'User',
+														visible: true,
+														keyRaw: 'node',
+														nullable: true,
+														selection: {
+															fields: {
+																id: {
+																	type: 'ID',
+																	visible: true,
+																	keyRaw: 'id',
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friendsConnection: { edges: [{ node: { id: '2' } }] } } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friendsConnection: {
+					type: 'UserConnection',
+					visible: true,
+					keyRaw: 'friendsConnection',
+					list: {
+						name: 'Friends_Conn',
+						connection: true,
+						type: 'User',
+						includeListID: true,
+					},
+					selection: {
+						fields: {
+							edges: {
+								type: 'UserEdge',
+								visible: true,
+								keyRaw: 'edges',
+								selection: {
+									fields: {
+										node: {
+											type: 'User',
+											visible: true,
+											keyRaw: 'node',
+											nullable: true,
+											selection: {
+												fields: {
+													id: { type: 'ID', visible: true, keyRaw: 'id' },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	// the connection object (not an array) gets __id
+	expect((result.data?.friendsConnection as any)?.__id).toBe(
+		opaqueListID(parentKey!, 'Friends_Conn')
+	)
+})
+
+test('@includeListID generates distinct keys for two lists on the same parent', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								selection: {
+									fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+								},
+							},
+							followers: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'followers',
+								selection: {
+									fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2' }], followers: [{ id: '3' }] } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: {
+						name: 'My_Friends',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
+					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+				},
+				followers: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'followers',
+					list: {
+						name: 'My_Followers',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
+					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	const friendsListID = (result.data?.friends as any).__id
+	const followersListID = (result.data?.followers as any).__id
+
+	// same parent, but different list names → different opaque IDs
+	expect(friendsListID).toBe(opaqueListID(parentKey!, 'My_Friends'))
+	expect(followersListID).toBe(opaqueListID(parentKey!, 'My_Followers'))
+	expect(friendsListID).not.toBe(followersListID)
+})
+
+test('@listID operation inserts into the correct list via opaque key', () => {
+	const cache = new Cache(config)
+
+	const friendsSelection: SubscriptionSelection = {
+		fields: {
+			friends: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'friends',
+				list: { name: 'All_Users', connection: false, type: 'User', includeListID: true },
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							...friendsSelection.fields,
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2', firstName: 'Jean' }] } },
+	})
+
+	// subscribing registers the list in listsByOpaqueID
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	// read to obtain the __id value
+	const readResult = cache.read({
+		selection: friendsSelection,
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const opaqueID = (readResult.data?.friends as any).__id as string
+	expect(opaqueID).toBe(opaqueListID(cache._internal_unstable.id('User', '1')!, 'All_Users'))
+
+	// use the opaque key in a mutation operation
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							listID: { kind: 'String', value: opaqueID },
+						},
+					],
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+						},
+					},
+				},
+			},
+		},
+		data: { newUser: { id: '3', firstName: 'New User' } },
+	})
+
+	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
+})
+
+test('writing the same data with connections should not cause additional links to be inserted', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			user: {
+				keyRaw: 'user(id: $id, snapshot: "testing")',
+				type: 'User',
+				visible: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'ID',
+							visible: true,
+						},
+						friendsConnection: {
+							keyRaw: 'friendsConnection',
+							type: 'UserConnection',
+							visible: true,
+							selection: {
+								fields: {
+									edges: {
+										keyRaw: 'edges',
+										type: 'UserEdge',
+										visible: true,
+										selection: {
+											fields: {
+												node: {
+													keyRaw: 'node',
+													nullable: true,
+													type: 'User',
+													visible: true,
+													selection: {
+														fields: {
+															id: {
+																keyRaw: 'id',
+																type: 'ID',
+																visible: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const pre = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	// We'll write the same selection again. This shouldn't affect the amount of links stored in the cache.
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const post = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	expect(post).toBe(pre)
+})
+
+test('shrinking a connection cleans up the orphaned edge records', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			user: {
+				keyRaw: 'user(id: $id, snapshot: "testing")',
+				type: 'User',
+				visible: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'ID',
+							visible: true,
+						},
+						friendsConnection: {
+							keyRaw: 'friendsConnection',
+							type: 'UserConnection',
+							visible: true,
+							selection: {
+								fields: {
+									edges: {
+										keyRaw: 'edges',
+										type: 'UserEdge',
+										visible: true,
+										selection: {
+											fields: {
+												node: {
+													keyRaw: 'node',
+													nullable: true,
+													type: 'User',
+													visible: true,
+													selection: {
+														fields: {
+															id: {
+																keyRaw: 'id',
+																type: 'ID',
+																visible: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off with a connection holding 4 edges
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const pre = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	// write the same connection with only 2 edges. the records for the 2 lost
+	// edges should be cleaned up
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [{ node: { id: '1' } }, { node: { id: '2' } }],
+				},
+			},
+		},
+	})
+
+	const post = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	expect(post).toBe(pre - 2)
+})
+
+test('upsert list inserts when not present', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+										firstName: {
+											type: 'String',
+											visible: true,
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: {
+							fields: {
+								id: { type: 'ID', visible: true, keyRaw: 'id' },
+								firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [{ action: 'upsert', list: 'All_Users' }],
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+						},
+					},
+				},
+			},
+		},
+		data: { newUser: { id: '3', firstName: 'Bob' } },
+	})
+
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
+})
+
+test('upsert list does not duplicate when already present', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+										firstName: {
+											type: 'String',
+											visible: true,
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: {
+							fields: {
+								id: { type: 'ID', visible: true, keyRaw: 'id' },
+								firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	const upsertSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [{ action: 'upsert', list: 'All_Users' }],
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+					},
+				},
+			},
+		},
+	}
+
+	// upsert User:5 which is already in the list
+	cache.write({
+		selection: upsertSelection,
+		data: { newUser: { id: '5', firstName: 'Alice Updated' } },
+	})
+
+	// should still be length 1, no duplicate
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
+})
+
+test('upsert list updates record data when already present', () => {
+	const cache = new Cache(config)
+
+	const friendsField: SubscriptionSelection = {
+		fields: {
+			id: { type: 'ID', visible: true, keyRaw: 'id' },
+			firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+		},
+	}
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: friendsField,
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	const onMessage = vi.fn()
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: friendsField,
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage,
+		},
+		{}
+	)
+
+	// upsert an existing user with updated data
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [{ action: 'upsert', list: 'All_Users' }],
+					selection: friendsField,
+				},
+			},
+		},
+		data: { newUser: { id: '5', firstName: 'Alice Updated' } },
+	})
+
+	// list unchanged, but subscriber was called with updated data
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
+	expect(onMessage).toHaveBeenCalledWith(
+		expect.objectContaining({
+			kind: 'update',
+			data: expect.objectContaining({
+				friends: expect.arrayContaining([
+					expect.objectContaining({ firstName: 'Alice Updated' }),
+				]),
+			}),
+		})
+	)
 })

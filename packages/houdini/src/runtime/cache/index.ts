@@ -9,6 +9,9 @@ import { PendingValue } from '../types.js'
 import type {
 	GraphQLObject,
 	GraphQLValue,
+	ListFilter,
+	ListWhen,
+	MutationOperation,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
@@ -18,12 +21,12 @@ import type {
 import { fragmentKey } from '../types.js'
 import { GarbageCollector } from './gc.js'
 import type { ListCollection } from './lists.js'
-import { ListManager } from './lists.js'
+import { ListManager, opaqueListID } from './lists.js'
 import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
 import { evaluateKey, rootID } from './stuff.js'
-import { InMemorySubscriptions, type FieldSelection } from './subscription.js'
+import { filterValue, InMemorySubscriptions } from './subscription.js'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -80,10 +83,9 @@ export class Cache {
 			? this._internal_unstable.storage.getLayer(layerID)
 			: this._internal_unstable.storage.topLayer
 
-		// write any values that we run into and get a list of subscribers
-		const subscribers = this._internal_unstable
-			.writeSelection({ ...args, layer })
-			.map((sub) => sub[0])
+		// write any values that we run into and get a set of subscribers to notify
+		const toNotify = this._internal_unstable.writeSelection({ ...args, layer })
+		const subscribers = [...toNotify]
 
 		this.#notifySubscribers(subscribers.concat(notifySubscribers))
 
@@ -193,6 +195,30 @@ export class Cache {
 				options.field,
 				options.when
 			)
+		}
+	}
+
+	// ask every document whose data contains the record to refetch itself.
+	// this includes documents that only contain the record behind a masked
+	// boundary (a fragment spread) thanks to their masked parent subscriptions
+	refresh(id: string) {
+		// when an optimistic key resolves we might know the record by two ids
+		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
+			Boolean
+		) as string[]
+
+		// a document can be subscribed to multiple fields of the record so make
+		// sure we only send the message once per set
+		const notified = new Set<SubscriptionSpec['onMessage']>()
+		for (const recordID of recordIDs) {
+			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
+				includeMaskedParents: true,
+			})) {
+				if (!notified.has(spec.onMessage)) {
+					notified.add(spec.onMessage)
+					spec.onMessage({ kind: 'refetch' })
+				}
+			}
 		}
 	}
 
@@ -334,27 +360,37 @@ export class Cache {
 		this.#notifySubscribers(subSpecs)
 	}
 
+	// returns the current notification generation; fragment references carry this value
+	// so hooks can detect which epoch of data they were rendered with
+	getEpoch(): number {
+		return this._internal_unstable.epoch
+	}
+
 	#notifySubscribers(subs: SubscriptionSpec[]) {
 		// if there's no one to notify, its a no-op
 		if (subs.length === 0) {
 			return
 		}
+		// advance the epoch before stamping fragment references so every reference
+		// produced during this flush carries the new generation number
+		this._internal_unstable.epoch++
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
-		const notified: SubscriptionSpec['set'][] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
 		for (const spec of subs) {
 			// if we haven't added the set yet
-			if (!notified.includes(spec.set)) {
-				notified.push(spec.set)
+			if (!notified.has(spec.onMessage)) {
+				notified.add(spec.onMessage)
 				// trigger the update
-				spec.set(
-					this._internal_unstable.getSelection({
+				spec.onMessage({
+					kind: 'update',
+					data: this._internal_unstable.getSelection({
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
 						ignoreMasking: false,
-					}).data
-				)
+					}).data,
+				})
 			}
 		}
 	}
@@ -363,6 +399,10 @@ export class Cache {
 class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	disabled = false
+
+	// monotonically increasing counter incremented on every cache notification flush;
+	// threaded into fragment references so hooks know which generation of data they hold
+	epoch = 0
 
 	_config?: ConfigFile
 	storage: InMemoryStorage
@@ -433,7 +473,7 @@ class CacheInternal {
 		parent = rootID,
 		applyUpdates,
 		layer,
-		toNotify = [],
+		toNotify = new Set(),
 		forceNotify,
 		forceStale,
 	}: {
@@ -443,14 +483,14 @@ class CacheInternal {
 		parent?: string
 		root?: string
 		layer: Layer
-		toNotify?: FieldSelection[]
+		toNotify?: Set<SubscriptionSpec>
 		applyUpdates?: string[]
 		forceNotify?: boolean
 		forceStale?: boolean
-	}): FieldSelection[] {
+	}): Set<SubscriptionSpec> {
 		// if the cache is disabled, dont do anything
 		if (this.disabled) {
-			return []
+			return toNotify
 		}
 
 		// which selection we need to walk down depends on the type of the data
@@ -487,9 +527,15 @@ class CacheInternal {
 				linkedType = value.__typename as string
 			}
 
-			// the current set of subscribers
+			// the current set of subscribers. the masked parent ones belong to documents
+			// whose data contains this record behind a masked boundary — they never
+			// get notified but they do need their subscriptions propagated when
+			// links change so containment lookups (cache.refresh) stay accurate
 			const currentSubscribers = this.subscriptions.get(parent, key)
-			const specs = currentSubscribers.map((sub) => sub[0])
+			const maskedParentSubscribers = this.subscriptions.getMaskedParents(parent, key)
+			const specs = currentSubscribers
+				.map((sub) => sub[0])
+				.concat(maskedParentSubscribers.map((sub) => sub[0]))
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -548,11 +594,14 @@ class CacheInternal {
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// write value to the layer
 				layer.writeField(parent, key, newValue)
+				if (key === '__typename' && typeof newValue === 'string') {
+					this.storage.typenames.set(parent, newValue)
+				}
 			}
 			// if we are writing `null` over a link
 			else if (value === null) {
@@ -570,7 +619,7 @@ class CacheInternal {
 				layer.writeLink(parent, key, null)
 
 				// add the list of subscribers for this field
-				toNotify.push(...currentSubscribers)
+				for (const [sub] of currentSubscribers) toNotify.add(sub)
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
@@ -618,8 +667,17 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
+					if (maskedParentSubscribers.length > 0) {
+						this.subscriptions.addMany({
+							parent: linkedID,
+							subscribers: maskedParentSubscribers,
+							variables,
+							parentType: linkedType,
+							masked: true,
+						})
+					}
 
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// if the link target points to another record in the cache we need to walk down its
@@ -681,6 +739,16 @@ class CacheInternal {
 				// build up the list of linked ids
 				let linkedIDs: NestedList = []
 
+				// if we are applying an append/prepend update the new entries get concatenated
+				// with the previous ones so they can't take over the previous embedded keys.
+				// a normal write replaces the field's links so embedded entries can reuse the
+				// key of the record they replace instead of generating a new one every write
+				const insertingUpdates = Boolean(
+					applyUpdates?.some(
+						(update) => update !== 'replace' && updates?.includes(update)
+					)
+				)
+
 				// it could be a list of lists, in order to recreate the list of lists we need
 				// we need to track two sets of IDs, the ids of the embedded records and
 				// then the full structure of embedded lists. we'll use the flat list to add
@@ -698,6 +766,10 @@ class CacheInternal {
 					fields: fieldSelection,
 					layer,
 					forceNotify,
+					previousIDs:
+						!insertingUpdates && Array.isArray(previousValue)
+							? (previousValue as NestedList)
+							: null,
 				})
 
 				// we have to do something different if we are writing to an optimistic layer or not
@@ -807,16 +879,33 @@ class CacheInternal {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
+				const linkedIDSet = new Set<string | null>(
+					(linkedIDs as (string | null)[]).flat(Infinity)
+				)
 				for (const lostID of oldIDs) {
-					if (linkedIDs.includes(lostID) || !lostID) {
+					if (!lostID || linkedIDSet.has(lostID)) {
 						continue
 					}
 
 					this.subscriptions.remove(lostID, fieldSelection, specs, variables)
+
+					// embedded records can only be referenced by the field that wrote them
+					// so once they fall out of the list their data can be cleaned up. if
+					// we're writing to an optimistic layer the old values have to survive
+					// a potential rollback so we leave them for the garbage collector
+					if (
+						!layer.optimistic &&
+						typeof lostID === 'string' &&
+						lostID.startsWith(`${parent}.${key}[`)
+					) {
+						this.storage.removeEmbeddedRecord(lostID)
+						this.lifetimes.delete(lostID)
+						this.staleManager.deleteRecord(lostID)
+					}
 				}
 
 				// if there was a change in the list
@@ -825,8 +914,9 @@ class CacheInternal {
 				}
 
 				// every new id that isn't a prevous relationship needs a new subscriber
-				for (const id of newIDs.filter((id) => !oldIDs.includes(id))) {
-					if (id == null) {
+				const oldIDSet = new Set(oldIDs)
+				for (const id of newIDs) {
+					if (id == null || oldIDSet.has(id)) {
 						continue
 					}
 
@@ -836,6 +926,15 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
+					if (maskedParentSubscribers.length > 0) {
+						this.subscriptions.addMany({
+							parent: id,
+							subscribers: maskedParentSubscribers,
+							variables,
+							parentType: linkedType,
+							masked: true,
+						})
+					}
 				}
 			}
 
@@ -863,12 +962,26 @@ class CacheInternal {
 					}
 				}
 
+				// resolve the opaque list ID from @listID (the value of __id set by @includeListID)
+				let opaqueListID: string | undefined
+				if (operation.listID) {
+					if (operation.listID.kind !== 'Variable') {
+						opaqueListID = operation.listID.value
+					} else {
+						const id = variables[operation.listID.value]
+						if (typeof id !== 'string') {
+							throw new Error('listID value must be a string')
+						}
+						opaqueListID = id
+					}
+				}
+
 				// if the necessary list doesn't exist, don't do anything
-				if (
-					operation.list &&
-					!this.lists.get(operation.list, parentID, operation.target === 'all')
-				) {
-					continue
+				if (operation.list) {
+					const exists = opaqueListID
+						? this.lists.getByOpaqueID(opaqueListID)
+						: this.lists.get(operation.list, parentID, operation.target === 'all')
+					if (!exists) continue
 				}
 
 				// there could be a list of elements to perform the operation on
@@ -881,14 +994,16 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
-							.when(operation.when)
+						const insertList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						insertList
+							.when(resolveWhen(operation.when, variables))
 							.addToList(
 								fieldSelection,
 								target,
@@ -905,21 +1020,47 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
+						const toggleList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						toggleList.when(resolveWhen(operation.when, variables)).toggleElement({
+							selection: fieldSelection,
+							data: target,
+							variables,
+							where: operation.position || 'last',
+							layer,
+						})
+					}
+
+					// upsert: insert if not present, update if already in list
+					else if (
+						operation.action === 'upsert' &&
+						target instanceof Object &&
+						fieldSelection &&
+						operation.list
+					) {
+						const upsertList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						upsertList
 							.when(operation.when)
-							.toggleElement({
-								selection: fieldSelection,
-								data: target,
+							.upsertInList(
+								fieldSelection,
+								target,
 								variables,
-								where: operation.position || 'last',
-								layer,
-							})
+								operation.position || 'last',
+								layer
+							)
 					}
 
 					// remove object from list
@@ -929,14 +1070,16 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
-							.when(operation.when)
+						const removeList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						removeList
+							.when(resolveWhen(operation.when, variables))
 							.remove(target, variables, layer)
 					}
 
@@ -947,11 +1090,11 @@ class CacheInternal {
 							continue
 						}
 
-						toNotify.push(
-							...this.subscriptions
-								.getAll(targetID)
-								.filter((sub) => sub[0].parentID !== targetID)
-						)
+						for (const [sub] of this.subscriptions
+							.getAll(targetID)
+							.filter((sub) => sub[0].parentID !== targetID)) {
+							toNotify.add(sub)
+						}
 
 						this.cache.delete(targetID, layer)
 					}
@@ -959,11 +1102,9 @@ class CacheInternal {
 
 				if (operation.list) {
 					// figure out the field referenced by the list
-					const matchingLists = this.cache.list(
-						operation.list,
-						parentID,
-						operation.target === 'all'
-					)
+					const matchingLists = opaqueListID
+						? this.lists.getByOpaqueID(opaqueListID)!
+						: this.cache.list(operation.list, parentID, operation.target === 'all')
 					for (const list of matchingLists.lists) {
 						processedOperations.add(list.fieldRef)
 					}
@@ -1038,7 +1179,7 @@ class CacheInternal {
 		let stale = false
 
 		// if we have abstract fields, grab the __typename and include them in the list
-		const typename = this.storage.get(parent, '__typename').value as string
+		const typename = this.storage.getTypename(parent)
 		// collect all of the fields that we need to write
 		const targetSelection = getFieldsForType(selection, typename, !!generateLoading)
 
@@ -1260,6 +1401,13 @@ class CacheInternal {
 				}
 			}
 
+			// if the list requested an opaque key, attach it to the hydrated value so the
+			// user can pass it to @listID on a mutation to target this specific list instance.
+			// the format matches what ListManager.listsByOpaqueID uses as its key.
+			if (list?.includeListID && fieldTarget[attributeName] != null) {
+				;(fieldTarget[attributeName] as any).__id = opaqueListID(parent, list.name)
+			}
+
 			// if we are generating a loading value then we might need to wrap up the result
 			if (generateLoading && fieldLoading?.list) {
 				fieldTarget[attributeName] = wrapInLists(
@@ -1454,6 +1602,7 @@ class CacheInternal {
 		specs,
 		layer,
 		forceNotify,
+		previousIDs,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -1461,11 +1610,12 @@ class CacheInternal {
 		linkedType: string
 		abstract: boolean
 		variables: {}
-		specs: FieldSelection[]
+		specs: Set<SubscriptionSpec>
 		applyUpdates?: string[]
 		fields: SubscriptionSelection
 		layer: Layer
 		forceNotify?: boolean
+		previousIDs?: NestedList | null
 	}): { nestedIDs: NestedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: NestedList = []
@@ -1475,6 +1625,7 @@ class CacheInternal {
 			// if we found another list
 			if (Array.isArray(entry)) {
 				// compute the nested list of ids
+				const previousEntry = previousIDs?.[i]
 				const inner = this.extractNestedListIDs({
 					value: entry as GraphQLValue[],
 					abstract,
@@ -1487,6 +1638,7 @@ class CacheInternal {
 					specs,
 					layer,
 					forceNotify,
+					previousIDs: Array.isArray(previousEntry) ? previousEntry : null,
 				})
 
 				// add the list of new ids to our list
@@ -1506,8 +1658,14 @@ class CacheInternal {
 			// we know now that entry is an object
 			const entryObj = entry as GraphQLObject
 
-			// start off building up the embedded id
-			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
+			// start off building up the embedded id. if the previous write left an
+			// embedded record at this position, take over its key so that rewriting
+			// a list doesn't leave orphaned records behind
+			const previousID = previousIDs?.[i]
+			let linkedID =
+				typeof previousID === 'string' && previousID.startsWith(`${recordID}.${key}[`)
+					? previousID
+					: `${recordID}.${key}[${this.storage.nextRank}]`
 			let innerType = linkedType
 
 			const typename = entryObj.__typename as string | undefined
@@ -1606,6 +1764,27 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 			}),
 			{}
 		)
+	}
+}
+
+// resolve the variable references inside of an operation's when conditions
+// so they can be compared against the list's filters
+function resolveWhen(
+	when: MutationOperation['when'],
+	variables: Record<string, GraphQLValue>
+): ListWhen | undefined {
+	if (!when) {
+		return undefined
+	}
+
+	const resolve = (conditions: Record<string, ListFilter>) =>
+		Object.fromEntries(
+			Object.entries(conditions).map(([key, value]) => [key, filterValue(value, variables)])
+		)
+
+	return {
+		...(when.must ? { must: resolve(when.must) } : {}),
+		...(when.must_not ? { must_not: resolve(when.must_not) } : {}),
 	}
 }
 

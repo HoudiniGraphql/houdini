@@ -32,9 +32,18 @@ var (
 	wsMutex         = sync.Mutex{}
 	activeConns     = make(map[*websocket.Conn]bool)
 	connMutex       = sync.Mutex{}
+	connWriteMu     sync.Map // *websocket.Conn -> *sync.Mutex, serializes writes per connection
 	shutdownChannel = make(chan struct{})
 	shutdownOnce    = sync.Once{}
 )
+
+func writeJSON(conn *websocket.Conn, v any) error {
+	if mu, ok := connWriteMu.Load(conn); ok {
+		mu.(*sync.Mutex).Lock()
+		defer mu.(*sync.Mutex).Unlock()
+	}
+	return conn.WriteJSON(v)
+}
 
 func registerWSHandler(hookName string, handler HookHandler) {
 	wsMutex.Lock()
@@ -66,7 +75,7 @@ func registerWSHandler(hookName string, handler HookHandler) {
 			Type:   "response",
 			Result: result,
 		}
-		_ = conn.WriteJSON(response)
+		_ = writeJSON(conn, response)
 	}
 }
 
@@ -75,9 +84,11 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	connMutex.Lock()
 	activeConns[conn] = true
 	connMutex.Unlock()
+	connWriteMu.Store(conn, &sync.Mutex{})
 
 	// Ensure cleanup when connection ends
 	defer func() {
+		connWriteMu.Delete(conn)
 		connMutex.Lock()
 		delete(activeConns, conn)
 		connCount := len(activeConns)
@@ -122,14 +133,14 @@ func sendErrorResponse(conn *websocket.Conn, id string, err error) {
 	// if the error is a list of plugin errors then we should serialize the full list
 	if pluginErr, ok := err.(*ErrorList); ok {
 		response := WebSocketResponse{ID: id, Type: "response", Error: pluginErr.GetItems()}
-		conn.WriteJSON(response)
+		writeJSON(conn, response)
 		return
 	}
 
 	// error could be just a single error
 	if pluginErr, ok := err.(*Error); ok {
 		response := WebSocketResponse{ID: id, Type: "response", Error: pluginErr}
-		conn.WriteJSON(response)
+		writeJSON(conn, response)
 		return
 	}
 
@@ -139,7 +150,7 @@ func sendErrorResponse(conn *websocket.Conn, id string, err error) {
 		Type:  "response",
 		Error: map[string]string{"message": err.Error()},
 	}
-	conn.WriteJSON(response)
+	writeJSON(conn, response)
 }
 
 // WaitForShutdown blocks until all WebSocket connections are closed

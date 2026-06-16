@@ -3,6 +3,8 @@ title: Fragments
 description: Reusable data shapes in Houdini
 ---
 
+import Notice from '@components/docs/Notice.astro'
+
 Fragments let each component declare exactly the data it needs, without coupling it to the query that fetches it. The parent query spreads the fragment; the component reads it back through `useFragment`.
 
 ## Basic Usage
@@ -85,7 +87,9 @@ query AllUsers {
 }
 ```
 
-> If you use fragment arguments on a field that is also marked for list operations, you must pass the variable value when performing the operation.
+<Notice variant="warning">
+  If you use fragment arguments on a field that is also marked for list operations, you must pass the variable value when performing the operation.
+</Notice>
 
 ## Fragment Masking
 

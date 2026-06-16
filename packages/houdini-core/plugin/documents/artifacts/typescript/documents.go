@@ -24,6 +24,124 @@ type DocumentContext struct {
 	ScalarImports map[string]bool // full import statement → true
 }
 
+// spreadDisablesMasking returns true when a fragment spread's fields should be
+// inlined into the surrounding type. @mask_disable and @mask_enable on the spread
+// take priority, otherwise we fall back to the project's defaultFragmentMasking
+func spreadDisablesMasking(projectConfig plugins.ProjectConfig, spread *collected.Selection) bool {
+	for _, directive := range spread.Directives {
+		if directive.Name == graphql.DisableMaskDirective {
+			return true
+		}
+		if directive.Name == graphql.EnableMaskDirective {
+			return false
+		}
+	}
+	return !projectConfig.DefaultFragmentMasking
+}
+
+// spreadIsConditional returns true when the spread carries @include or @skip,
+// meaning the fields it inlines might be missing from the response
+func spreadIsConditional(spread *collected.Selection) bool {
+	for _, directive := range spread.Directives {
+		if directive.Name == graphql.IncludeDirective || directive.Name == graphql.SkipDirective {
+			return true
+		}
+	}
+	return false
+}
+
+// expandMaskedSpreads replaces fragment spreads that disable masking with the
+// selections of the fragment definition. the spread node itself is kept so the
+// " $fragments" marker is still generated. only spreads whose type condition is
+// satisfied by every object of parentType are expanded — anything narrower needs
+// a discriminated union to describe accurately so we leave those masked.
+//
+// the second return value marks the fields that were inlined through a spread
+// guarded by @include or @skip — those might be missing from the response so
+// they have to be typed as optional
+func expandMaskedSpreads(
+	ctx *DocumentContext,
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+	parentType string,
+) ([]*collected.Selection, map[*collected.Selection]bool) {
+	result := make([]*collected.Selection, 0, len(selections))
+	optionalFields := map[*collected.Selection]bool{}
+	seenFields := map[string]*collected.Selection{}
+	seenFragments := map[string]bool{}
+
+	// satisfied returns true when every object of parentType matches the condition
+	satisfied := func(condition string) bool {
+		return condition == "" || condition == parentType ||
+			collectedDocs.PossibleTypes[condition][parentType]
+	}
+
+	var walk func(sels []*collected.Selection, expanded bool, conditional bool)
+	walk = func(sels []*collected.Selection, expanded bool, conditional bool) {
+		for _, sel := range sels {
+			switch sel.Kind {
+			case "fragment":
+				// always keep the spread for the " $fragments" marker
+				result = append(result, sel)
+
+				if !spreadDisablesMasking(ctx.ProjectConfig, sel) {
+					continue
+				}
+				// guard against revisiting a fragment (the spec forbids cycles but
+				// we don't want a malformed document to hang the generator)
+				if seenFragments[sel.FieldName] {
+					continue
+				}
+				seenFragments[sel.FieldName] = true
+
+				definition, ok := collectedDocs.Selections[sel.FieldName]
+				if !ok || !satisfied(definition.TypeCondition) {
+					continue
+				}
+
+				walk(definition.Selections, true, conditional || spreadIsConditional(sel))
+
+			case "inline_fragment":
+				// inline fragments pulled out of an expanded definition can't be
+				// passed through (the flat object type has no way to express them)
+				// so we inline the ones that always match and drop the rest
+				if !expanded {
+					result = append(result, sel)
+				} else if satisfied(sel.FieldName) {
+					walk(sel.Children, true, conditional)
+				}
+
+			case "field":
+				// fields can reach us twice (selected directly and through an
+				// unmasked fragment) but the type can only list them once
+				name := sel.FieldName
+				if sel.Alias != nil {
+					name = *sel.Alias
+				}
+				if kept, ok := seenFields[name]; ok {
+					// an occurrence that is always present wins over a conditional one
+					if !conditional {
+						delete(optionalFields, kept)
+					}
+					continue
+				}
+				seenFields[name] = sel
+				if conditional {
+					optionalFields[sel] = true
+				}
+
+				result = append(result, sel)
+
+			default:
+				result = append(result, sel)
+			}
+		}
+	}
+	walk(selections, false, false)
+
+	return result, optionalFields
+}
+
 func GenerateDocumentTypeDefs(
 	projectConfig plugins.ProjectConfig,
 	rootTypes *RootTypeNames,
@@ -346,6 +464,9 @@ func generateSelectionType(
 		return "{}", nil
 	}
 
+	// inline the fields of any fragment spread that disables masking
+	selections, optionalFields := expandMaskedSpreads(ctx, collectedDocs, selections, parentType)
+
 	var fields []string
 	var fragmentFields []string
 
@@ -467,10 +588,24 @@ func generateSelectionType(
 			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
 		}
 
+		// @includeListID attaches an opaque __id to the runtime value; reflect that in the type
+		for _, directive := range selection.Directives {
+			if directive.Name == graphql.IncludeListIDDirective {
+				fieldType = fieldType + " & { __id: string }"
+				break
+			}
+		}
+
 		// Add readonly modifier if needed
 		readonlyPrefix := ""
 		if readonly {
 			readonlyPrefix = "readonly "
+		}
+
+		// fields inlined through a conditionally included spread might be missing
+		// from the response so they are typed as optional
+		if optionalFields[selection] {
+			fieldName += "?"
 		}
 
 		// Add JSDoc comment if this field has a description
@@ -584,7 +719,8 @@ func generateInterfaceUnionTypeWithLoading(
 					for concreteType := range possibleTypesMap {
 						fragmentsByType[concreteType] = append(fragmentsByType[concreteType], child)
 						concreteTypesSet[concreteType] = true
-						collectNamedFragments(concreteType, child.Children)
+						expanded, _ := expandMaskedSpreads(ctx, collectedDocs, child.Children, concreteType)
+						collectNamedFragments(concreteType, expanded)
 					}
 					// Also recursively process any nested inline fragments within this abstract fragment
 					processInlineFragments(child.Children)
@@ -593,7 +729,8 @@ func generateInterfaceUnionTypeWithLoading(
 					if fieldPossibleTypes[fragmentTypeName] {
 						fragmentsByType[fragmentTypeName] = append(fragmentsByType[fragmentTypeName], child)
 						concreteTypesSet[fragmentTypeName] = true
-						collectNamedFragments(fragmentTypeName, child.Children)
+						expanded, _ := expandMaskedSpreads(ctx, collectedDocs, child.Children, fragmentTypeName)
+						collectNamedFragments(fragmentTypeName, expanded)
 					}
 				}
 			}
@@ -629,8 +766,10 @@ func generateInterfaceUnionTypeWithLoading(
 
 		// Process all fragments that apply to this type
 		for _, fragment := range fragmentsByType[typeName] {
+			// inline the fields of any fragment spread that disables masking
+			fragmentChildren, optionalFields := expandMaskedSpreads(ctx, collectedDocs, fragment.Children, typeName)
 			// Include fields from this inline fragment
-			for _, fragmentChild := range fragment.Children {
+			for _, fragmentChild := range fragmentChildren {
 				if fragmentChild.Kind == "field" && fragmentChild.FieldName != "__typename" {
 					// Skip __typename fields from fragments - we'll add the discriminated version
 					// Also skip if we've already added this field
@@ -705,12 +844,20 @@ func generateInterfaceUnionTypeWithLoading(
 						}
 					}
 
+					// fields inlined through a conditionally included spread might be
+					// missing from the response so they are typed as optional
+					optional := ""
+					if optionalFields[fragmentChild] {
+						optional = "?"
+					}
+
 					fields = append(
 						fields,
 						fmt.Sprintf(
-							"\t\t%s%s: %s;",
+							"\t\t%s%s%s: %s;",
 							readonlyPrefix,
 							fragmentChild.FieldName,
+							optional,
 							fieldType,
 						),
 					)
@@ -856,7 +1003,20 @@ func generateOptimisticType(
 
 		visibleSelections = append(visibleSelections, sel)
 		if sel.FieldName != "__typename" {
-			explicitFieldCount++
+			// @optimisticKey fields are server-generated; the caller can never provide them,
+			// so they don't count as "explicit" — without this, a selection like
+			// { id @optimisticKey ...Frag } would suppress fragment expansion and produce
+			// a broken `Frag?: null` optimistic type instead of inlining the fragment fields.
+			isOptimisticKey := false
+			for _, d := range sel.Directives {
+				if d.Name == graphql.OptimisticKeyDirective {
+					isOptimisticKey = true
+					break
+				}
+			}
+			if !isOptimisticKey {
+				explicitFieldCount++
+			}
 		}
 	}
 

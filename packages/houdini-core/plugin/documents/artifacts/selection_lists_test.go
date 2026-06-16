@@ -751,7 +751,7 @@ export type TestQuery$artifact = typeof artifact
 				Pass: true,
 				Input: []string{
 					`query TestQuery {
-            usersByCursor(first: 10) @paginate(name: "All_Users", mode: "SinglePage") {
+            usersByCursor(first: 10) @paginate(name: "All_Users", mode: SinglePage) {
               edges {
                 node {
                   firstName
@@ -806,7 +806,7 @@ export type TestQuery$artifact = typeof artifact
         "fields": {
             "usersByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+                "keyRaw": "usersByCursor(first: $first, after: $after, last: $last, before: $before)",
 
                 "directives": [{
                     "name": "paginate",
@@ -816,7 +816,7 @@ export type TestQuery$artifact = typeof artifact
                             "value": "All_Users"
                         },
                         "mode": {
-                            "kind": "StringValue",
+                            "kind": "EnumValue",
                             "value": "SinglePage"
                         }
                     }
@@ -838,7 +838,6 @@ export type TestQuery$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
-                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -895,7 +894,6 @@ export type TestQuery$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -903,21 +901,18 @@ export type TestQuery$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1202,7 +1197,6 @@ fragment MonkeyList on MonkeyConnection {
                                                         "hasBanana": {
                                                             "type": "Boolean",
                                                             "keyRaw": "hasBanana",
-                                                            "visible": true,
                                                         },
 
                                                         "id": {
@@ -1213,7 +1207,6 @@ fragment MonkeyList on MonkeyConnection {
                                                         "name": {
                                                             "type": "String",
                                                             "keyRaw": "name",
-                                                            "visible": true,
                                                         },
                                                     },
 
@@ -1224,12 +1217,10 @@ fragment MonkeyList on MonkeyConnection {
                                                     },
                                                 },
 
-                                                "visible": true,
                                             },
                                         },
                                     },
 
-                                    "visible": true,
                                 },
                                 "pageInfo": {
                                     "type": "PageInfo",
@@ -1448,17 +1439,14 @@ fragment MonkeyFragment on Monkey {
                                                         "hasBanana": {
                                                             "type": "Boolean",
                                                             "keyRaw": "hasBanana",
-                                                            "visible": true,
                                                         },
                                                         "id": {
                                                             "type": "ID",
                                                             "keyRaw": "id",
-                                                            "visible": true,
                                                         },
                                                         "name": {
                                                             "type": "String",
                                                             "keyRaw": "name",
-                                                            "visible": true,
                                                         },
                                                     },
                                                 },
@@ -1474,13 +1462,11 @@ fragment MonkeyFragment on Monkey {
                                         },
 
                                         "abstract": true,
-                                        "visible": true,
                                     },
                                 },
                             },
 
                             "abstract": true,
-                            "visible": true,
                         },
                     },
 
@@ -1817,7 +1803,6 @@ fragment UserTest on User {
                                                 "firstName": {
                                                     "type": "String",
                                                     "keyRaw": "firstName",
-                                                    "visible": true,
                                                 },
 
                                                 "id": {
@@ -1921,6 +1906,169 @@ export type TestQuery$input = null | undefined;
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"`),
+				},
+			},
+		},
+	})
+}
+
+func TestIncludeListID(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+      type Query {
+        users: [User!]!
+        usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type UserConnection {
+        edges: [UserEdge!]!
+        pageInfo: PageInfo!
+      }
+
+      type UserEdge {
+        node: User
+        cursor: String!
+      }
+
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    `,
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			performArtifactTest(t, p, test)
+
+			if !test.Pass {
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(t.Context())
+			require.NoError(t, err)
+
+			artifactPath := projectConfig.ArtifactPath("TestQuery")
+			file, err := p.Fs.Open(artifactPath)
+			require.NoError(t, err)
+			content, err := afero.ReadAll(file)
+			require.NoError(t, err)
+
+			artifact := string(content)
+			require.True(t, strings.Contains(artifact, `"includeListID": true`),
+				"artifact should contain includeListID: true, got:\n%s", artifact)
+			// @includeListID is an internal directive; it must be stripped from the raw query
+			// sent to the server — only the selection metadata should carry it
+			require.NotContains(t, artifact, "@includeListID",
+				"@includeListID should be stripped from the raw query, got:\n%s", artifact)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "non-connection list with @includeListID emits includeListID in artifact",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  users @list(name: "All_Users") @includeListID {
+    id
+    name
+  }
+}`},
+			},
+			{
+				Name: "connection list with @paginate and @includeListID emits includeListID in artifact",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  usersByCursor(first: 10) @paginate(name: "All_Users") @includeListID {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}`},
+			},
+			{
+				Name: "@includeListID without @list or @paginate fails validation",
+				Pass: false,
+				Input: []string{`query TestQuery {
+  users @includeListID {
+    id
+    name
+  }
+}`},
+			},
+		},
+	})
+}
+
+// TestListIDMutation verifies that @listID on a fragment spread is serialized into the mutation
+// artifact's operations so the runtime can resolve the list via the opaque key from __id.
+func TestListIDMutation(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+      type Mutation {
+          addUser(name: String!): User
+      }
+
+      type Query {
+          users: [User!]!
+      }
+
+      type User implements Node {
+          id: ID!
+          name: String!
+      }
+
+      interface Node {
+          id: ID!
+      }
+    `,
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			performArtifactTest(t, p, test)
+			if !test.Pass {
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(t.Context())
+			require.NoError(t, err)
+
+			artifactPath := projectConfig.ArtifactPath("TestMutation")
+			file, err := p.Fs.Open(artifactPath)
+			require.NoError(t, err)
+			content, err := afero.ReadAll(file)
+			require.NoError(t, err)
+
+			artifact := string(content)
+			require.Contains(t, artifact, `"listID"`,
+				"mutation artifact should contain listID in operations, got:\n%s", artifact)
+			// @listID is internal; it should not appear in the raw mutation sent to the server
+			require.NotContains(t, artifact, "@listID",
+				"@listID should be stripped from the raw query, got:\n%s", artifact)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "@listID on fragment spread produces listID field in mutation artifact operations",
+				Pass: true,
+				Input: []string{
+					`query TestQuery {
+  users @list(name: "All_Users") @includeListID {
+    id
+    name
+  }
+}`,
+					`mutation TestMutation($listId: ID!) {
+  addUser(name: "Test") {
+    ...All_Users_insert @listID(value: $listId)
+  }
+}`,
 				},
 			},
 		},

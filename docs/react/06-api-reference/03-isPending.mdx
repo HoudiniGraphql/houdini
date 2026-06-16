@@ -1,0 +1,39 @@
+---
+title: isPending
+description: Type guard for @loading placeholder values.
+---
+
+import Notice from '@components/docs/Notice.astro'
+
+A type guard that returns `true` if a value is a loading placeholder produced by `@loading`. Use this instead of comparing directly against `PendingValue`, which is not safe under React 18's concurrent rendering.
+
+```tsx
+import { graphql, useFragment, isPending } from '$houdini'
+import type { ShowCard_show } from '$houdini'
+
+export function ShowCard({ show }: { show: ShowCard_show }) {
+  const data = useFragment(show, graphql(`
+    fragment ShowCard_show on Show {
+      title @loading
+      posterUrl @loading
+    }
+  `))
+
+  return (
+    <div>
+      <img src={isPending(data.posterUrl) ? '/placeholder.png' : data.posterUrl} alt="" />
+      <h2>{isPending(data.title) ? <span className="skeleton" /> : data.title}</h2>
+    </div>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function isPending(value: any): value is LoadingType
+```
+
+Returns `true` when `value` is the internal pending symbol inserted by the `@loading` directive. TypeScript narrows the type on both branches of the condition.
+
+Import from `$houdini` alongside the other runtime utilities. See [Loading States](~/loading-data/loading-states) for the full picture on building loading UI with `@loading`.

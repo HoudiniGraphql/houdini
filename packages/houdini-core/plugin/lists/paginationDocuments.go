@@ -338,11 +338,37 @@ func PreparePaginationDocuments(
 	defer insertDiscoveredLists.Finalize()
 
 	// statements for fragment pagination processing
+	//
+	// Copy only the selections we need into the paginated fragment:
+	//   1. root-level internal (key) fields — needed for cache lookup
+	//   2. the paginated field's subtree (grandchildren+) — copyChildSelectionsQuery
+	//      handles the direct children so we skip them here to avoid orphaned refs
+	//
+	// Siblings of the paginated field (and their descendants) are intentionally omitted
+	// because the pagination query only needs the path from the fragment root down to
+	// the paginated field, not unrelated sibling data.
 	copySelectionsQuery, err := conn.Prepare(`
+		WITH RECURSIVE paginated_subtree AS (
+			SELECT parent_id, child_id, row, column, path_index, internal
+			FROM selection_refs
+			WHERE document = $original_document AND parent_id = $paginated_field
+			UNION ALL
+			SELECT sr.parent_id, sr.child_id, sr.row, sr.column, sr.path_index, sr.internal
+			FROM selection_refs sr
+			JOIN paginated_subtree ps ON sr.parent_id = ps.child_id
+			WHERE sr.document = $original_document
+		)
 		INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal)
 		SELECT parent_id, child_id, $new_document, row, column, path_index, internal
 		FROM selection_refs
-		WHERE document = $original_document AND child_id != $paginated_field
+		WHERE document = $original_document
+		  AND parent_id IS NULL
+		  AND internal = true
+		  AND child_id != $paginated_field
+		UNION ALL
+		SELECT parent_id, child_id, $new_document, row, column, path_index, internal
+		FROM paginated_subtree
+		WHERE parent_id != $paginated_field
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -880,6 +906,17 @@ func processFragmentPagination(
 			"child_id":  fragmentSpreadID,
 			"parent_id": resolveSelectionID,
 			"internal":  true,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// mark the fragment spread with @mask_disable so the cache reader exposes its
+		// fields through the abstract type wrapper (node() returns an interface, and
+		// external fragment spreads are masked by default; we need them visible here).
+		err = ctx.db.ExecStatement(ctx.insertSelectionDirective, map[string]any{
+			"selection": fragmentSpreadID,
+			"directive": graphql.DisableMaskDirective,
 		})
 		if err != nil {
 			return 0, err

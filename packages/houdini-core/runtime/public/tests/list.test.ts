@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest'
 
-import type { SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from 'houdini/runtime/types'
 import { testCache, testFragment } from './test.js'
 
 test('list.append accepts record proxies', () => {
@@ -109,7 +109,7 @@ test('list.append accepts record proxies', () => {
 	// subscribe to the fields
 	cache._internal_unstable.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -134,32 +134,35 @@ test('list.append accepts record proxies', () => {
 
 	// make sure the duplicate has been removed
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'Cat',
-							id: '2',
-							firstName: 'mary',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'Cat',
+								id: '2',
+								firstName: 'mary',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '4',
-							firstName: 'jacob',
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jacob',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -270,7 +273,7 @@ test('list.prepend accepts record proxies', () => {
 	// subscribe to the fields
 	cache._internal_unstable.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -295,32 +298,35 @@ test('list.prepend accepts record proxies', () => {
 
 	// make sure the duplicate has been removed
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '4',
-							firstName: 'jacob',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jacob',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'Cat',
-							id: '2',
-							firstName: 'mary',
+						{
+							node: {
+								__typename: 'Cat',
+								id: '2',
+								firstName: 'mary',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -401,7 +407,7 @@ test('list when must', () => {
 	// subscribe to the fields
 	cache._internal_unstable.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -429,18 +435,21 @@ test('list when must', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -514,7 +523,7 @@ test('can remove record', () => {
 	// subscribe to the fields
 	cache._internal_unstable.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -528,9 +537,12 @@ test('can remove record', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
 		},
 	})
 })
@@ -624,7 +636,7 @@ test('can toggle records', () => {
 				},
 			},
 			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -731,7 +743,7 @@ test('can remove record from all lists', () => {
 				},
 			},
 			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)

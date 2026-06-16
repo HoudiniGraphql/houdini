@@ -330,7 +330,7 @@ export type PaginatedFragment$artifact = typeof artifact
 				},
 			},
 			{
-				Name: "pagination arguments stays in key as its a SinglePage Mode",
+				Name: "pagination arguments included in key for SinglePage Mode (per-cursor keys, no ::paginated)",
 				Input: []string{
 					`
              fragment PaginatedFragment on User {
@@ -398,7 +398,7 @@ export type PaginatedFragment$artifact = typeof artifact
 
             "friendsByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)::paginated",
+                "keyRaw": "friendsByCursor(first: 10, after: null, last: null, before: null, filter: \"hello\")",
                 "nullable": true,
 
                 "directives": [{
@@ -422,7 +422,6 @@ export type PaginatedFragment$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
-                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -474,7 +473,6 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -482,21 +480,18 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1840,7 +1835,7 @@ export type TestQuery$artifact = typeof artifact
 
                         "moves": {
                             "type": "SpeciesMoveConnection",
-                            "keyRaw": "moves(after: $after, first: $first)::paginated",
+                            "keyRaw": "moves(first: $first, after: $after, last: null, before: null)",
 
                             "directives": [{
                                 "name": "paginate",
@@ -1863,7 +1858,6 @@ export type TestQuery$artifact = typeof artifact
                                     "edges": {
                                         "type": "SpeciesMoveEdge",
                                         "keyRaw": "edges",
-                                        "updates": ["append"],
 
                                         "selection": {
                                             "fields": {
@@ -1920,7 +1914,6 @@ export type TestQuery$artifact = typeof artifact
                                                 "endCursor": {
                                                     "type": "String",
                                                     "keyRaw": "endCursor",
-                                                    "updates": ["append"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
@@ -1928,14 +1921,12 @@ export type TestQuery$artifact = typeof artifact
                                                 "hasNextPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasNextPage",
-                                                    "updates": ["append"],
                                                     "visible": true,
                                                 },
 
                                                 "hasPreviousPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasPreviousPage",
-                                                    "updates": ["prepend"],
                                                     "visible": true,
                                                 },
 

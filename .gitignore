@@ -8,6 +8,7 @@ bin
 
 .pnp.*
 __tests__
+test-results/
 
 .svelte-kit
 functions
@@ -27,3 +28,7 @@ vite.config.*.timestamp-*
 .netlify
 
 mise.toml
+
+# Benchmark outputs — only benchmark.json (the full baseline) is committed
+perf/benchmark.*.json
+perf/benchmark.quick.json

@@ -62,10 +62,16 @@ func TestValidate_Houdini(t *testing.T) {
 
 			directive @repeatable repeatable on FIELD
 
+			enum UserRole {
+				ADMIN
+				USER
+			}
+
 			type Query {
 				rootScalar: String
 				user(name: String! birthday: Date) : User
 				users(filters: [UserFilter], filter: UserFilter, limit: Int, offset: Int): [User!]!
+				usersByRole(role: UserRole, roles: [UserRole!], minWeight: Float): [User!]!
 				nodes(ids: [ID!]!): [Node!]!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
@@ -663,6 +669,443 @@ func TestValidate_Houdini(t *testing.T) {
 					`mutation Test {
 				   update(list: [{ field: 2 }, { field: "String"}])
 			   }`,
+				},
+			},
+			{
+				Name: "List arguments can be passed as static values",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					nodes(ids: [1, 2, 3]) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "List arguments with static values of the wrong element type",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					nodes(ids: [true, false]) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Static lists cannot contain null when the element type is non-null",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					nodes(ids: [null]) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Static lists cannot be passed to non-list arguments",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					user(name: ["foo"]) {
+						firstName
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Nested static lists of input objects",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					users(filters: [{ and: [{ firstName: "foo" }] }]) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Int literals coerce to Float",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					usersByRole(minWeight: 2) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Float literals do not coerce to Int",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					users(limit: 1.5) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Block strings are strings",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					user(name: """foo""") {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Single values coerce to lists",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					nodes(ids: "1") {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Enum values can be passed to enum arguments",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					usersByRole(role: ADMIN) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Unknown enum values are rejected",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					usersByRole(role: SUPERADMIN) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Strings cannot be passed to enum arguments",
+				Pass: false,
+				Input: []string{
+					`query Test {
+					usersByRole(role: "ADMIN") {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Enum values inside static lists",
+				Pass: true,
+				Input: []string{
+					`query Test {
+					usersByRole(roles: [ADMIN, USER]) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Nullable variables with defaults satisfy non-null arguments",
+				Pass: true,
+				Input: []string{
+					`query Test($id: ID = "1") {
+					node(id: $id) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Variable defaults do not forgive inner nullability",
+				Pass: false,
+				Input: []string{
+					`query Test($ids: [ID] = ["1"]) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Unknown fields on input objects",
+				Pass: false,
+				Input: []string{
+					`mutation Test {
+					update(input: { unknown: 1 })
+				}`,
+				},
+			},
+			{
+				Name: "Fragment arguments with list defaults",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!", default: ["1"] }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with values must match the fragment argument type",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					offset: { type: "Int" }
+				) {
+					friends(offset: $offset) {
+						id
+					}
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: "five")
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with values matching the fragment argument type",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					offset: { type: "Int" }
+				) {
+					friends(offset: $offset) {
+						id
+					}
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with cannot pass null to non-null fragment arguments",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: null)
+				}`,
+				},
+			},
+			{
+				Name: "@with can pass empty lists to non-null list arguments",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: [])
+				}`,
+				},
+			},
+			{
+				Name: "@with accepts known enum values",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: ADMIN)
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects unknown enum values",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: SUPERADMIN)
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects strings for enum arguments",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: "ADMIN")
+				}`,
+				},
+			},
+			{
+				Name: "@with accepts valid input objects",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { and: [{ firstName: "x" }] })
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects unknown fields on input objects",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { bogus: "x" })
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects mistyped fields nested in input objects",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { and: [{ firstName: 1 }] })
+				}`,
+				},
+			},
+			{
+				Name: "@with accepts configured custom scalar inputs",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					birthday: { type: "Date" }
+				) {
+					user(name: "foo", birthday: $birthday) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(birthday: "2024-01-01")
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects custom scalar inputs outside the config",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					birthday: { type: "Date" }
+				) {
+					user(name: "foo", birthday: $birthday) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(birthday: true)
+				}`,
+				},
+			},
+			{
+				Name: "Variables cannot use unknown types",
+				Pass: false,
+				Input: []string{
+					`query Test($name: NotARealType!) {
+					user(name: $name) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Fragment arguments cannot use unknown types",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "NotARealType" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: "A")
+				}`,
+				},
+			},
+			{
+				Name: "Variables with unknown types are caught even when only passed through @with",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test($ids: NotARealType) {
+					...Fragment @with(ids: $ids)
+				}`,
+				},
+			},
+			{
+				Name: "Variables can use runtime scalar types",
+				Pass: true,
+				Input: []string{
+					`query Test($id: ViewerIDFromSession!) {
+					node(id: $id) {
+						id
+					}
+				}`,
 				},
 			},
 			{
@@ -1420,12 +1863,12 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
-				Name: "must pass list to list fragment arguments",
-				Pass: false,
+				Name: "single values passed to list fragment arguments are coerced",
+				Pass: true,
 				Input: []string{
 					`
 					fragment Fragment on Query @arguments(
-						ids: { type: "[String]" }
+						ids: { type: "[ID!]!" }
 					) {
 						nodes(ids: $ids) {
 							id

@@ -124,15 +124,17 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
 			projectConfig := plugins.ProjectConfig{
-				ProjectRoot:          "/project",
-				SchemaPath:           "schema.graphql",
-				DefaultKeys:          []string{"id"},
-				TypeConfig:           make(map[string]plugins.TypeConfig),
-				DefaultCachePolicy:   "CacheOrNetwork",
-				DefaultPartial:       false,
-				DefaultPaginateMode:  "Infinite",
-				RuntimeDir:           ".houdini",
-				PersistedQueriesPath: "persisted_queries.json",
+				ProjectRoot:         "/project",
+				SchemaPath:          "schema.graphql",
+				DefaultKeys:         []string{"id"},
+				TypeConfig:          make(map[string]plugins.TypeConfig),
+				DefaultCachePolicy:  "CacheOrNetwork",
+				DefaultPartial:      false,
+				DefaultPaginateMode: "Infinite",
+				// match the real-world default of defaultFragmentMasking: 'enable'
+				DefaultFragmentMasking: true,
+				RuntimeDir:             ".houdini",
+				PersistedQueriesPath:   "persisted_queries.json",
 			}
 
 			if table.ProjectConfig.TypeConfig != nil {

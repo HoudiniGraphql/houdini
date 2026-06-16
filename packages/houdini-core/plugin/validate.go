@@ -23,6 +23,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateFragmentUnknownType,
 		documents.ValidateFragmentOnScalar,
 		documents.ValidateOutputTypeAsInput,
+		documents.ValidateUnknownVariableTypes,
 		documents.ValidateScalarWithSelection,
 		documents.ValidateUnknownField,
 		documents.ValidateIncompatibleFragmentSpread,
@@ -35,7 +36,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateDuplicateArgumentInField,
 		documents.ValidateWrongTypesToArg,
 		documents.ValidateMissingRequiredArgument,
-		documents.ValidateFieldArgumentIncompatibleType,
 		documents.ValidateConflictingSelections,
 		documents.ValidateDuplicateKeysInInputObject,
 		// Houdini-specific validation rules
@@ -49,6 +49,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		lists.DiscoverListsThenValidate,
 		lists.ValidateConflictingParentIDAllLists,
 		lists.ValidateConflictingPrependAppend,
+		lists.ValidateIncludeListID,
 		lists.ValidatePaginateTypeCondition,
 		lists.ValidateSinglePaginateDirective,
 		lists.ValidateParentID,

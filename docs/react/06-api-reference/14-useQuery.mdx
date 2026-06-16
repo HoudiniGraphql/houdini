@@ -1,0 +1,50 @@
+---
+title: useQuery
+description: Fetch a query and suspend until data is available.
+---
+
+In most cases query data arrives as a prop from the route file rather than from a hook directly. `useQuery` exists for cases where you need to issue a query imperatively from inside a component.
+
+Fetches a query and returns the data. Suspends until the result is available.
+
+```tsx
+import { graphql, useQuery } from '$houdini'
+
+export function UserProfile({ userId }: { userId: string }) {
+  const data = useQuery(
+    graphql(`
+      query UserProfile($userId: ID!) {
+        user(id: $userId) {
+          name
+          bio
+        }
+      }
+    `),
+    { userId }
+  )
+
+  return <p>{data.user.bio}</p>
+}
+```
+
+**Signature**
+
+```ts
+function useQuery(document, variables?, config?): data
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `document` | `graphql()` result | The query document |
+| `variables` | object | Query variables |
+| `config` | `UseQueryConfig` | Optional config (see below) |
+
+Returns the query data directly. For access to the imperative handle, use [`useQueryHandle`](~/api-reference/useQueryHandle) instead.
+
+**`UseQueryConfig`**
+
+| Option | Type | Description |
+|---|---|---|
+| `policy` | `CachePolicy` | Override the cache policy for this query |
+| `metadata` | `App.Metadata` | Passed through to client plugins |
+| `fetchKey` | any | Change this value to force a refetch |

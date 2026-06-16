@@ -3,9 +3,11 @@ title: Reusing Parts of a Query
 description: The second part of the Houdini intro focusing how to reuse parts of a query
 ---
 
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
 As you've seen, we can get pretty far by just using GraphQL queries to define our route's data requirements. However, as our application grows these would quickly become unmanageable. To illustrate this point, look at how we used the `Sprite` component earlier (copied below without the unrelated bits):
 
-```graphql title="src/routes/[[id]]/+page.gql"
+```graphql title="src/routes/[[id]]/Info.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
         name
@@ -28,10 +30,9 @@ At first it might not be clear what the problem is. `Sprite` defines some props 
 
 Wouldn't it be nice if we had some way of defining these requirements inside of `Sprite` so we didn't have to worry about the exact details and could ensure that the query included whatever information `Sprite` needs? Well, that's where GraphQL fragments come to the rescue.
 
-:::note[GraphQL: What Are Fragments?]
+<AsideAccordion variant="graphql" title="Fragments">
 
-
-It's safe to skip this section if you familiar with GraphQL Fragments.
+It's safe to skip this section if you are familiar with GraphQL Fragments.
 
 Fragments are a super powerful tool in GraphQL that is commonly overlooked. In short, they allow us to describe a selection of fields of a given type without having a concrete instance of that type. They look like this:
 
@@ -42,32 +43,21 @@ fragment MyFragment on Species {
 }
 ```
 
-This fragment acts as a reusable bit of query so anywhere we have a field in our document that returns a `Species` we can ask for this data by appending `...` to the fragment name in a selection:
+This fragment acts as a reusable bit of query so anywhere we have a field in our document that returns a `Species` we can ask for this data by appending `...` to the fragment name in a selection.
 
-<div style="display: flex; flex-direction: row; align-items: center; overflow-x: auto;">
-    
-        <p style="margin-left: 10px; margin-right: 10px">
-            →
-        </p>
-        
-</div>
-
-
-:::
+</AsideAccordion>
 
 ## Using Fragments
 
 Defining a fragment inside of your component looks a lot like the query from before. Let's see this in action by updating the `Sprite` component to look like this:
 
-```svelte title="src/components/Sprite.svelte&typescriptToggle=true"
-<script lang="ts">
+```svelte title="src/components/Sprite.svelte"
+<script>
     import { fragment, graphql } from '$houdini'
-    import type { SpriteInfo } from '$houdini'
 
-    export let species: SpriteInfo
+    let { species, id } = $props()
 
-    // prettier-ignore
-    $: info = fragment(species, graphql(`
+    const info = fragment(species, graphql(`
         fragment SpriteInfo on Species {
             name
             sprites {
@@ -77,18 +67,18 @@ Defining a fragment inside of your component looks a lot like the query from bef
     `))
 </script>
 
-<div id={$$props.id} class="sprite">
+<div {id} class="sprite">
     <img
         src={$info.sprites.front}
-        alt={`${$info.name} sprite`}
+        alt="{$info.name} sprite"
         height="100%"
     />
 </div>
 ```
 
-Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[[id]]/+page.gql` to look like:
+Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[[id]]/Info.gql` to look like:
 
-```graphql title="src/routes/[[id]]/+page.gql"
+```graphql title="src/routes/[[id]]/Info.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
         name
@@ -127,39 +117,35 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 
 Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
-```svelte title="src/components/SpeciesPreview.svelte&typescriptToggle=true"
-<script lang="ts">
+```svelte title="src/components/SpeciesPreview.svelte"
+<script>
     import { graphql, fragment } from '$houdini'
     import { Sprite, Display } from '.'
     import Number from './SpeciesPreviewNumber.svelte'
-    import type { SpeciesPreview } from '$houdini'
 
-    export let species: SpeciesPreview
-    export let number: number
+    let { species, number } = $props()
 
-	// prettier-ignore
-    $: preview = fragment(species, graphql(`
+    const data = fragment(species, graphql(`
         fragment SpeciesPreview on Species {
-            name
             id
+            pokedexNumber
+            name
 
             ...SpriteInfo
         }
     `))
 </script>
 
-<a href={$preview.id}>
+<a href="/{$data.pokedexNumber}">
     <Number value={number} />
-    <Sprite species={$preview} />
-    <Display>
-        {$preview.name}
-    </Display>
+    <Sprite species={$data} />
+    <Display>{$data.name}</Display>
 </a>
 ```
 
 Once that's done, go back to the route we've been working with and update the query to look like this:
 
-```graphql title="src/routes/[[id]]/+page.gql"
+```graphql title="src/routes/[[id]]/Info.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
         name

@@ -81,6 +81,19 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		}
 	}
 
+	upsert(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
+		const { selection, data } = this.#listOperationPayload(records)
+		for (const entry of data) {
+			if (entry) {
+				this.#collection.upsertInList(selection, entry, {}, where)
+			}
+		}
+	}
+
 	when(filter: ListFilters<Def, ListName>): ListCollection<Def, ListName> {
 		if (!this.#collection) {
 			return this

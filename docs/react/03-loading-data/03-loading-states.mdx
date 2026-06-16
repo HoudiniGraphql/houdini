@@ -5,17 +5,36 @@ description: Building loading states in Houdini's React framework
 
 import LoadingStates from '@shared/_partials/loading-states.mdx'
 
-The naive approach to loading states is a top-level check: if the query is fetching, render a skeleton; otherwise render the real UI. The problem is that you end up building your layout twice — and any component that owns its own loading shape has to expose that structure to its parent.
+The naive approach to loading states is a top-level check: if the query is fetching, render a skeleton; otherwise render the real UI. The problem is that you end up building your layout twice, and any component that owns its own loading shape has to expose that structure to its parent.
 
 Houdini solves this with the `@loading` directive. Rather than a separate skeleton branch, the data object itself carries pending placeholders. Components can check their own fields and render accordingly, without the route knowing anything about their internals.
+
+Adding `@loading` to a query also changes how the page is delivered. The response splits at the query boundary: everything above it (layouts, navigation, any ancestor shell) is flushed in the initial HTML. The component that renders the query result streams in over the same HTTP connection as data resolves. Users see the page structure immediately rather than staring at a blank screen until all queries finish.
 
 ## The @loading Directive
 
 <LoadingStates />
 
+## Streaming Boundaries
+
+When a query includes `@loading`, Houdini wraps the route component in a React Suspense boundary and streams the result to the browser using React's built-in streaming support. The split happens at the query:
+
+```
+initial HTML flush
+├── root layout          ← rendered immediately
+│   ├── nav              ← rendered immediately
+│   └── <Suspense>
+│       └── ShowsPage    ← streams in when data resolves
+│           └── ShowCard (pending titles, posters...)
+```
+
+The layout's HTML (navigation, sidebars, any shell chrome) arrives in the first network chunk. The Suspense boundary holds the page content until the query resolves, at which point React streams the rendered HTML and hydrates it in place. The browser shows a real, interactive shell while the data-heavy content loads.
+
+There is nothing to configure. The boundary is created automatically when `@loading` appears on a query, and torn down once the data is ready.
+
 ## Checking for Pending Values in React
 
-Use `isPending` from `$houdini` to check whether a value is a placeholder. Do not compare directly against `PendingValue` — that pattern is incompatible with React 18's concurrent rendering:
+Use `isPending` from `$houdini` to check whether a value is a placeholder. Do not compare directly against `PendingValue` (that pattern is incompatible with React 18's concurrent rendering):
 
 ```jsx meta="typescriptToggle=true"
 import { graphql, useFragment, isPending } from '$houdini'
@@ -38,8 +57,4 @@ export function ShowCard({ show }: { show: ShowCard_show }) {
 }
 ```
 
-`isPending` is a type guard — TypeScript narrows the type correctly on both branches.
-
-## Suspense
-
-When a query includes `@loading`, Houdini automatically wraps the view in a Suspense boundary. There's nothing to configure — the pending values are available as soon as the component renders.
+`isPending` is a type guard, so TypeScript narrows the type correctly on both branches.

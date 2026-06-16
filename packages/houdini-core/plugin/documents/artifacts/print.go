@@ -289,6 +289,11 @@ func printSelection(
 	var resultBuilder strings.Builder
 
 	for _, selection := range selections {
+		// __id is a synthetic field resolved by the cache; never send it to the server
+		if selection.Kind == "field" && selection.FieldName == "__id" {
+			continue
+		}
+
 		// before we print children and directives we need
 		// to handle the specific selection type
 		switch selection.Kind {

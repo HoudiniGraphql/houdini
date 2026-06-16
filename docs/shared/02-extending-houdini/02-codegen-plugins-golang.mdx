@@ -3,6 +3,8 @@ title: Codegen Plugins (Golang)
 description: Writing Houdini codegen plugins in Go
 ---
 
+import ViteSubmodule from '@shared/_partials/plugin-vite-submodule.mdx'
+
 Houdini's codegen pipeline is built in Go, and you can extend it by writing your own Go plugin. A plugin is a standalone binary that registers itself with the pipeline and responds to lifecycle hooks — schema modifications, validation, document generation, and more.
 
 ## Defining a Plugin
@@ -121,6 +123,40 @@ Each binary goes into its own package — `my-plugin-darwin-arm64`, `my-plugin-l
 The root package's `bin` field points to a small Node.js shim rather than a binary directly. The shim's job is to find the right binary for the current platform and hand off execution to it via `execFileSync`. As a post-install optimization, the shim replaces itself with a hard link to the actual binary so subsequent invocations skip Node entirely.
 
 The shim also supports a `HOUDINI_PLATFORM` environment variable, which lets callers force a specific platform — useful in CI environments where the host architecture doesn't match the target.
+
+## Static Runtimes
+
+The `StaticRuntime` interface lets a plugin copy a directory of files into the project during the `afterLoad` phase — before document discovery and codegen run.
+
+```go
+func (p *MyPlugin) StaticRuntime(ctx context.Context) (string, error) {
+	return filepath.Join(p.PluginDirectory(ctx), "static"), nil
+}
+```
+
+Because the copy happens before document discovery, any `.graphql` files in that directory are treated as project documents. That makes `StaticRuntime` the right place to ship fragments or queries that users can reference directly in their own operations:
+
+```graphql title="static/UserFields.graphql"
+fragment UserFields on User {
+	id
+	name
+	email
+}
+```
+
+A user can then spread `...UserFields` in their own queries without defining the fragment themselves. The plugin owns the definition; the project just consumes it.
+
+If you need to rewrite file contents during the copy (to inject the project's schema URL, for example), implement `TransformStaticRuntime` alongside it:
+
+```go
+func (p *MyPlugin) TransformStaticRuntime(ctx context.Context, source string, content string) (string, error) {
+	return strings.ReplaceAll(content, "__SCHEMA_URL__", p.config.SchemaURL), nil
+}
+```
+
+The main distinction from `IncludeRuntime` is timing: `IncludeRuntime` is copied during the `generateRuntime` phase (after documents are already collected), so its `.graphql` files arrive too late to be discovered. Use `StaticRuntime` whenever the content needs to participate in the document graph, and `IncludeRuntime` for TypeScript runtime code that doesn't.
+
+<ViteSubmodule />
 
 ### Houdini's Implementation
 

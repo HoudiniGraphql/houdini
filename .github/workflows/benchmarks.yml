@@ -1,0 +1,76 @@
+name: Cache Benchmarks
+
+on:
+    pull_request:
+        paths:
+            - 'packages/houdini/src/runtime/cache/**'
+
+jobs:
+    benchmark:
+        name: Benchmark
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24.9.0
+
+            - uses: pnpm/action-setup@v4.1.0
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+            - uses: actions/cache@v4
+              with:
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
+
+            # ── PR branch ────────────────────────────────────────────────────
+            - run: pnpm install --frozen-lockfile --prefer-offline
+
+            - name: Benchmark PR branch (3 runs)
+              run: |
+                  for i in 1 2 3; do
+                    BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.$i.json
+                  done
+                  node perf/merge.js /tmp/benchmark.current.1.json /tmp/benchmark.current.2.json /tmp/benchmark.current.3.json > /tmp/benchmark.current.json
+
+            # ── Base branch ──────────────────────────────────────────────────
+            - name: Save benchmark suite and merge script from PR
+              run: |
+                  cp -r packages/houdini/src/runtime/cache/benchmarks /tmp/houdini-benchmarks
+                  cp perf/merge.js /tmp/houdini-merge.js
+
+            - name: Checkout base branch
+              run: git checkout ${{ github.base_ref }}
+
+            - name: Restore benchmark suite onto base branch
+              run: |
+                  mkdir -p packages/houdini/src/runtime/cache/benchmarks
+                  cp -r /tmp/houdini-benchmarks/. packages/houdini/src/runtime/cache/benchmarks/
+
+            - run: pnpm install --frozen-lockfile --prefer-offline
+
+            - name: Benchmark base branch (3 runs)
+              run: |
+                  for i in 1 2 3; do
+                    BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.$i.json
+                  done
+                  node /tmp/houdini-merge.js /tmp/benchmark.baseline.1.json /tmp/benchmark.baseline.2.json /tmp/benchmark.baseline.3.json > /tmp/benchmark.baseline.json
+
+            # ── Compare ──────────────────────────────────────────────────────
+            - name: Checkout PR branch
+              run: |
+                  git stash --include-untracked
+                  git checkout ${{ github.head_ref }}
+
+            - name: Compare
+              run: node perf/compare.js /tmp/benchmark.baseline.json /tmp/benchmark.current.json

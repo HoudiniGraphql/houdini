@@ -1,0 +1,38 @@
+---
+title: Link
+description: Type-safe navigation link component.
+---
+
+A type-safe navigation link. The `to` prop is checked against your app's route manifest at compile time, and `params` is required (and typed) whenever the route contains dynamic segments.
+
+```tsx
+import { Link } from '$houdini'
+
+export function Nav() {
+  return (
+    <nav>
+      <Link to="/">Home</Link>
+      <Link to="/shows/$id" params={{ id: '123' }}>Show</Link>
+    </nav>
+  )
+}
+```
+
+**Props**
+
+| Prop | Type | Description |
+|---|---|---|
+| `to` | route href | The destination route. Must be a known route in your manifest. |
+| `params` | object | Required when `to` contains dynamic segments. Typed per-route. |
+| `disabled` | `boolean` | When true, renders without an `href` (effectively inert). |
+| `preload` | `boolean \| 'data' \| 'component' \| 'page'` | Start loading on hover. `true` is equivalent to `'page'`. |
+
+All standard `<a>` attributes are also accepted (except `href`, which is derived from `to` and `params`).
+
+**External links**
+
+For links outside your route manifest, pass the full URL as a string. TypeScript will accept it as an external href.
+
+```tsx
+<Link to="https://example.com">External</Link>
+```

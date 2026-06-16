@@ -27,13 +27,15 @@ type ProjectManifest struct {
 }
 
 type PageManifest struct {
-	ID           string                    `json:"id"`
-	Queries      []string                  `json:"queries"`
-	QueryOptions []string                  `json:"query_options"`
-	URL          string                    `json:"url"`
-	Layouts      []string                  `json:"layouts"`
-	Path         string                    `json:"path"`
-	Params       map[string]*ParamTypeInfo `json:"params"`
+	ID            string                    `json:"id"`
+	Queries       []string                  `json:"queries"`
+	QueryOptions  []string                  `json:"query_options"`
+	LayoutQueries []string                  `json:"layout_queries"`
+	URL           string                    `json:"url"`
+	Layouts       []string                  `json:"layouts"`
+	Path          string                    `json:"path"`
+	ErrorPath     string                    `json:"error_path"`
+	Params        map[string]*ParamTypeInfo `json:"params"`
 }
 
 // ParamTypeInfo describes the GraphQL type of a URL route parameter.
@@ -70,9 +72,10 @@ type routeDoc struct {
 
 // walkState carries accumulated context as we descend the route tree.
 type walkState struct {
-	availableQueries []string               // layout query names in scope, outermost first
-	availableLayouts []string               // layout IDs currently wrapping this level
-	variables        map[string]VariableTypeInfo // route param types contributed by layout queries
+	availableQueries   []string                    // layout query names in scope, outermost first
+	availableLayouts   []string                    // layout IDs currently wrapping this level
+	availableErrorPath string                      // nearest ancestor +error.tsx path, empty if none
+	variables          map[string]VariableTypeInfo // route param types contributed by layout queries
 }
 
 // LoadManifest builds a ProjectManifest by querying the database for route GQL
@@ -191,13 +194,14 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		if info, ok := viewsByDir[dirKey]; ok && info.layoutViewPath != "" {
 			relPath := toSlash(mustRel(projectConfig.ProjectRoot, info.layoutViewPath))
 			manifest.Layouts[id] = PageManifest{
-				ID:           id,
-				Queries:      clone(state.availableQueries),
-				QueryOptions: clone(newLayoutQueries),
-				URL:          url,
-				Layouts:      clone(state.availableLayouts),
-				Path:         relPath,
-				Params:       buildParams(url, newVariables),
+				ID:            id,
+				Queries:       clone(state.availableQueries),
+				QueryOptions:  clone(newLayoutQueries),
+				LayoutQueries: []string{},
+				URL:           url,
+				Layouts:       clone(state.availableLayouts),
+				Path:          relPath,
+				Params:        buildParams(url, newVariables),
 			}
 			newLayoutIDs = append(newLayoutIDs, id)
 		}
@@ -218,29 +222,49 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		if info, ok := viewsByDir[dirKey]; ok && info.pageViewPath != "" {
 			claimedPageDocs[dirKey] = true
 			allQueries := clone(newLayoutQueries)
+			// Merge page query variables so param types from the page's own
+			// query (e.g. $id: ID!) are available when building the param map.
+			allVars := cloneVariables(newVariables)
 			if pageDoc, ok := pageDocByDir[dirKey]; ok {
 				allQueries = append(allQueries, pageDoc.name)
+				for k, v := range pageDoc.variables {
+					allVars[k] = v
+				}
 			}
 			pageURL := url
 			if len(url) > 1 && strings.HasSuffix(url, "/") {
 				pageURL = url[:len(url)-1]
 			}
 			relPath := toSlash(mustRel(projectConfig.ProjectRoot, info.pageViewPath))
+			errorPath := state.availableErrorPath
+			if info.errorViewPath != "" {
+				errorPath = toSlash(mustRel(projectConfig.ProjectRoot, info.errorViewPath))
+			}
 			manifest.Pages[id] = PageManifest{
-				ID:           id,
-				Queries:      clone(allQueries),
-				QueryOptions: clone(allQueries),
-				URL:          pageURL,
-				Layouts:      clone(newLayoutIDs),
-				Path:         relPath,
-				Params:       buildParams(url, newVariables),
+				ID:            id,
+				Queries:       clone(allQueries),
+				QueryOptions:  clone(allQueries),
+				LayoutQueries: clone(newLayoutQueries),
+				URL:           pageURL,
+				Layouts:       clone(newLayoutIDs),
+				Path:          relPath,
+				ErrorPath:     errorPath,
+				Params:        buildParams(url, allVars),
 			}
 		}
 
+		// Propagate the nearest error path to children: a directory's own +error.tsx
+		// takes precedence over an inherited one.
+		newErrorPath := state.availableErrorPath
+		if info, ok := viewsByDir[dirKey]; ok && info.errorViewPath != "" {
+			newErrorPath = toSlash(mustRel(projectConfig.ProjectRoot, info.errorViewPath))
+		}
+
 		stateByDir[dirKey] = walkState{
-			availableQueries: newLayoutQueries,
-			availableLayouts: newLayoutIDs,
-			variables:        newVariables,
+			availableQueries:   newLayoutQueries,
+			availableLayouts:   newLayoutIDs,
+			availableErrorPath: newErrorPath,
+			variables:          newVariables,
 		}
 	}
 
@@ -340,6 +364,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 type viewInfo struct {
 	pageViewPath   string // absolute path to +page.tsx or +page.jsx, empty if absent
 	layoutViewPath string // absolute path to +layout.tsx or +layout.jsx, empty if absent
+	errorViewPath  string // absolute path to +error.tsx or +error.jsx, empty if absent
 }
 
 // discoverViewFiles uses the parallel glob walker to find all +page and +layout view
@@ -347,7 +372,7 @@ type viewInfo struct {
 // by directory path relative to routesDir.
 func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) (map[string]viewInfo, error) {
 	walker := pluginglob.NewWalker()
-	for _, pattern := range []string{"+page.tsx", "+page.jsx", "+layout.tsx", "+layout.jsx"} {
+	for _, pattern := range []string{"+page.tsx", "+page.jsx", "+layout.tsx", "+layout.jsx", "+error.tsx", "+error.jsx"} {
 		if err := walker.AddInclude("**/" + pattern); err != nil {
 			return nil, err
 		}
@@ -377,8 +402,10 @@ func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) 
 		info := views[dir]
 		if strings.HasPrefix(base, "+page") {
 			info.pageViewPath = absPath
-		} else {
+		} else if strings.HasPrefix(base, "+layout") {
 			info.layoutViewPath = absPath
+		} else {
+			info.errorViewPath = absPath
 		}
 		views[dir] = info
 		mu.Unlock()

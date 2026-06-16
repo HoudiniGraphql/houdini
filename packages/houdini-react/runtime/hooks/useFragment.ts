@@ -1,6 +1,10 @@
-import { deepEquals } from 'houdini/runtime'
 import { fragmentKey } from 'houdini/runtime'
-import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from 'houdini/runtime'
+import type {
+	GraphQLObject,
+	GraphQLVariables,
+	FragmentArtifact,
+	QueryResult,
+} from 'houdini/runtime'
 import * as React from 'react'
 
 import { useRouterContext } from '../routing/index.js'
@@ -15,33 +19,54 @@ export function useFragment<
 	document: { artifact: FragmentArtifact }
 ): _Data | null {
 	const { cache } = useRouterContext()
-
-	// get the fragment reference info
 	const { parent, variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
 		reference,
 		document
 	)
 
-	// if we got this far then we are safe to use the fields on the object
-	let cachedValue = reference as _Data | null
+	// Read from cache whenever the parent or loading state changes. The parent
+	// path uniquely identifies which cache record this fragment is bound to, so
+	// variables are excluded from the dep array — they are forwarded to
+	// observer.send() separately and don't affect which record we read.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: variables intentionally excluded
+	const cachedValue = React.useMemo(() => {
+		if (reference && parent) {
+			return cache.read({
+				selection: document.artifact.selection,
+				parent,
+				variables,
+				loading,
+			}).data as _Data
+		}
+		return reference as _Data | null
+	}, [parent, loading])
 
-	// on the client, we want to ensure that we apply masking to the initial value by
-	// loading the value from cache
-	if (reference && parent) {
-		cachedValue = cache.read({
-			selection: document.artifact.selection,
-			parent,
-			variables,
-			loading,
-		}).data as _Data
-	}
+	// Stable initialState derived from cachedValue. useDocumentStore uses this to
+	// seed box.current synchronously during render when the parent changes, so
+	// storeValue.data is immediately correct without waiting for the subscription
+	// effect to fire. Must be memoized (reference-stable) so the store doesn't
+	// re-seed on every render.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: variables changes don't require re-seeding
+	const initialState = React.useMemo(
+		(): QueryResult<_Data, _Input> | undefined =>
+			cachedValue !== null
+				? {
+						data: cachedValue,
+						errors: null,
+						fetching: false,
+						partial: false,
+						stale: false,
+						source: null,
+						variables: variables ?? null,
+					}
+				: undefined,
+		[cachedValue]
+	)
 
-	// we're ready to setup the live document
 	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
 		artifact: document.artifact,
 		variables,
 		initialValue: cachedValue,
-		// dont subscribe to anything if we are loading
 		disabled: loading,
 		send: {
 			stuff: {
@@ -49,27 +74,10 @@ export function useFragment<
 			},
 			setup: true,
 		},
+		initialState,
 	})
 
-	// the parent has changed, we need to use initialValue for this render
-	// if we don't, then there is a very brief flash where we will show the old data
-	// before the store has had a chance to update
-	const lastReference = React.useRef<{ parent: string; variables: _Input } | null>(null)
-	return React.useMemo(() => {
-		// if the parent reference has changed we need to always prefer the cached value
-		const parentChange =
-			storeValue.parent !== parent ||
-			!deepEquals({ parent, variables }, lastReference.current)
-		if (parentChange) {
-			// make sure we keep track of the last reference we used
-			lastReference.current = { parent, variables: { ...variables } }
-
-			// and use the cached value
-			return cachedValue
-		}
-
-		return storeValue.data
-	}, [variables, parent, storeValue.parent, storeValue.data, cachedValue])
+	return storeValue.data
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(

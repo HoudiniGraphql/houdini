@@ -1,0 +1,5 @@
+query FragmentSinglePageQuery {
+	user(id: "1", snapshot: "pagination-fragment-bidirectional-singlepage") {
+		...UserConnectionSinglePageFragment
+	}
+}

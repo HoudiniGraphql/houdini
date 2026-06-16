@@ -126,7 +126,7 @@ func (p *HoudiniReact) UpdateIndexFiles(ctx context.Context) ([]string, error) {
 		return []string{}, nil
 	}
 
-	if err := afero.WriteFile(p.Filesystem(), targetPath, []byte(result), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), targetPath, []byte(result), 0644); err != nil {
 		return nil, err
 	}
 	return []string{targetPath}, nil
@@ -180,6 +180,12 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 	changed = append(changed, wrappers...)
 
+	errorWrappers, err := p.GenerateErrorWrappers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	changed = append(changed, errorWrappers...)
+
 	fallbacks, err := p.GenerateFallbacks(ctx)
 	if err != nil {
 		return nil, err
@@ -213,7 +219,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	artifactDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
 
-	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot)
+	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot, projectConfig.Scalars)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +234,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
 		return nil, err
 	}
-	if err := afero.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
 		return nil, err
 	}
 
@@ -241,8 +247,9 @@ type hookSpec struct {
 	kind        string // "query", "mutation", "subscription", or "fragment"
 	marker      string // text immediately before which overloads are inserted
 	preamble    string // extra import line to prepend (empty if not needed)
-	imports     func(name string) string
-	overloads   func(name string) string
+	// paginationQuery is the name of the pagination query document for paginated fragments, or ""
+	imports     func(name string, paginationQuery string) string
+	overloads   func(name string, paginationQuery string) string
 	passthrough string // generic overload inserted last, bridges concrete overloads to the implementation
 }
 
@@ -254,10 +261,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQuery.ts",
 		kind:   "query",
 		marker: "export function useQuery<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useQuery(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): %s$result\n",
 				name, name, name,
@@ -269,10 +276,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQueryHandle.ts",
 		kind:   "query",
 		marker: "export function useQueryHandle<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useQueryHandle(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): DocumentHandle<%s$artifact, %s$result, GraphQLVariables>\n",
 				name, name, name, name,
@@ -284,10 +291,10 @@ var hookSpecs = []hookSpec{
 		file:   "useFragment.ts",
 		kind:   "fragment",
 		marker: "export function useFragment<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$data, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useFragment(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact }): %s$data\n"+
 					"export function useFragment(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact }): %s$data | null\n",
@@ -301,14 +308,26 @@ var hookSpecs = []hookSpec{
 		file:   "useFragmentHandle.ts",
 		kind:   "fragment",
 		marker: "export function useFragmentHandle<",
-		imports: func(name string) string {
-			return fmt.Sprintf("import type { %s$data, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
+		// For paginated fragments, import the pagination query artifact too.
+		imports: func(name string, paginationQuery string) string {
+			base := fmt.Sprintf("import type { %s$data, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
+			if paginationQuery != "" {
+				base += fmt.Sprintf("import type { %s$artifact } from '$houdini/artifacts/%s'\n", paginationQuery, paginationQuery)
+			}
+			return base
 		},
-		// DocumentHandle's first type param must extend QueryArtifact; for fragments that
-		// have no refetchArtifact we use the base QueryArtifact (already imported by the source).
-		// Both non-null and nullable reference overloads use the same non-null data type since
-		// DocumentHandle._Data extends GraphQLObject (not null).
-		overloads: func(name string) string {
+		// For paginated fragments, return DocumentHandle typed with the pagination query artifact
+		// so TypeScript exposes loadNext/loadPrevious/pageInfo on the returned handle.
+		// For non-paginated fragments, fall back to DocumentHandle<QueryArtifact, ...>.
+		overloads: func(name string, paginationQuery string) string {
+			if paginationQuery != "" {
+				return fmt.Sprintf(
+					"export function useFragmentHandle(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact; refetchArtifact?: %s$artifact }): DocumentHandle<%s$artifact, %s$data, %s$input>\n"+
+						"export function useFragmentHandle(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact; refetchArtifact?: %s$artifact }): DocumentHandle<%s$artifact, %s$data, %s$input>\n",
+					fragmentKeyLiteral, name, name, paginationQuery, paginationQuery, name, name,
+					fragmentKeyLiteral, name, name, paginationQuery, paginationQuery, name, name,
+				)
+			}
 			return fmt.Sprintf(
 				"export function useFragmentHandle(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact }): DocumentHandle<QueryArtifact, %s$data, GraphQLVariables>\n"+
 					"export function useFragmentHandle(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact }): DocumentHandle<QueryArtifact, %s$data, GraphQLVariables>\n",
@@ -322,25 +341,25 @@ var hookSpecs = []hookSpec{
 		file:   "useMutation.ts",
 		kind:   "mutation",
 		marker: "export function useMutation<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input, %s$optimistic } from '$houdini/artifacts/%s'\n", name, name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
-				"export function useMutation(document: { artifact: %s$artifact }): [boolean, MutationHandler<%s$result, %s$input, %s$optimistic>]\n",
+				"export function useMutation(document: { artifact: %s$artifact }): [MutationHandler<%s$result, %s$input, %s$optimistic>, boolean]\n",
 				name, name, name, name,
 			)
 		},
-		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]",
+		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
 	},
 	{
 		file:   "useSubscription.ts",
 		kind:   "subscription",
 		marker: "export function useSubscription<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useSubscription(document: { artifact: %s$artifact }, variables?: %s$input): %s$result\n",
 				name, name, name,
@@ -352,10 +371,10 @@ var hookSpecs = []hookSpec{
 		file:   "useSubscriptionHandle.ts",
 		kind:   "subscription",
 		marker: "export function useSubscriptionHandle<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useSubscriptionHandle(document: { artifact: %s$artifact }, variables?: %s$input): SubscriptionHandle<%s$result, %s$input>\n",
 				name, name, name, name,
@@ -404,7 +423,7 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 	var typeChain strings.Builder
 
 	for _, cf := range cfs {
-		preamble.WriteString(fmt.Sprintf("import type { %s } from '$houdini'\n", cf.fragment))
+		preamble.WriteString(fmt.Sprintf("import type { %s } from '../artifacts/%s'\n", cf.fragment, cf.fragment))
 		typeChain.WriteString(fmt.Sprintf("_Document extends `%s` ? Required<%s>['shape'] : ", cf.content, cf.fragment))
 	}
 
@@ -414,7 +433,7 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 		"\nexport type GraphQL<_Document extends string> = " +
 		typeChain.String() + "never\n"
 
-	if err := afero.WriteFile(p.Filesystem(), targetPath, []byte(appended), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), targetPath, []byte(appended), 0644); err != nil {
 		return nil, err
 	}
 	return []string{targetPath}, nil
@@ -439,6 +458,25 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		ORDER BY d.name ASC
 	`, nil, func(q plugins.Row) {
 		docsByKind[q.ColumnText(1)] = append(docsByKind[q.ColumnText(1)], q.ColumnText(0))
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the set of visible fragments that are paginated. We detect pagination
+	// via discovered_lists (populated during Validate) rather than looking for
+	// a pre-existing _Pagination_Query document, because GenerateRuntime runs
+	// concurrently with GenerateDocuments and the document may not exist yet.
+	paginatedFragments := map[string]string{}
+	err = p.DB.StepQuery(ctx, `
+		SELECT DISTINCT d.name
+		FROM documents d
+		JOIN discovered_lists dl ON dl.document = d.id
+		WHERE d.visible = 1 AND d.kind = 'fragment'
+		  AND dl.paginate IS NOT NULL
+	`, nil, func(q plugins.Row) {
+		name := q.ColumnText(0)
+		paginatedFragments[name] = name + "_Pagination_Query"
 	})
 	if err != nil {
 		return nil, err
@@ -476,13 +514,13 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			top.WriteString("\n")
 		}
 		for _, name := range names {
-			top.WriteString(spec.imports(name))
+			top.WriteString(spec.imports(name, paginatedFragments[name]))
 		}
 		top.WriteString("\n")
 
 		var before strings.Builder
 		for _, name := range names {
-			before.WriteString(spec.overloads(name))
+			before.WriteString(spec.overloads(name, paginatedFragments[name]))
 		}
 		if spec.passthrough != "" {
 			before.WriteString(spec.passthrough + "\n")
@@ -490,7 +528,7 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 
 		result := top.String() + existingStr[:insertPos] + before.String() + existingStr[insertPos:]
 
-		if err := afero.WriteFile(p.Filesystem(), fp, []byte(result), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), fp, []byte(result), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, fp)
@@ -505,6 +543,7 @@ func formatManifest(
 	runtimeDir string,
 	artifactDir string,
 	projectRoot string,
+	scalars map[string]plugins.ScalarConfig,
 ) (string, error) {
 	// Build a lookup from query name → QueryManifest for artifact/loading/variable info.
 	queryByName := map[string]QueryManifest{}
@@ -523,6 +562,7 @@ func formatManifest(
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 
+		cleanURL := stripRouteGroups(page.URL)
 		pattern, params, err := parsePagePattern(page.URL)
 		if err != nil {
 			return "", fmt.Errorf("could not parse pattern for page %s: %w", id, err)
@@ -539,8 +579,9 @@ func formatManifest(
 
 		sb.WriteString(fmt.Sprintf("\t\t%q: {\n", id))
 		sb.WriteString(fmt.Sprintf("\t\t\tid: %q,\n", id))
+		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
-		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -569,11 +610,20 @@ func formatManifest(
 		sb.WriteString("\t\t\t},\n")
 
 		sb.WriteString(fmt.Sprintf("\t\t\tcomponent: () => import(%q),\n", filepath.ToSlash(componentRel)))
+
 		sb.WriteString("\t\t},\n")
 	}
 
 	sb.WriteString("\t},\n")
-	sb.WriteString("} satisfies RouterManifest<any>\n")
+	sb.WriteString("} as const satisfies RouterManifest<any>\n")
+
+	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
+	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
+	sb.WriteString("\nexport type RouteScalars = {\n")
+	for _, name := range sortedKeys(scalars) {
+		sb.WriteString(fmt.Sprintf("\t%s: %s\n", name, scalars[name].Type))
+	}
+	sb.WriteString("}\n")
 
 	return sb.String(), nil
 }
@@ -655,8 +705,9 @@ func regexEscape(s string) string {
 	return b.String()
 }
 
-// formatParams renders a []routeParam as a TypeScript array literal.
-func formatParams(params []routeParam) string {
+// formatParams renders a []routeParam as a TypeScript array literal, including a
+// resolved TypeScript type for each param so the manifest can drive type extraction.
+func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) string {
 	if len(params) == 0 {
 		return "[]"
 	}
@@ -666,9 +717,15 @@ func formatParams(params []routeParam) string {
 		if p.Matcher != "" {
 			matcher = p.Matcher
 		}
+		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
+		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
+		gqlType := "String"
+		if info, ok := pageParams[p.Name]; ok && info != nil {
+			gqlType = info.Type
+		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained,
+			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -778,7 +835,7 @@ func (p *HoudiniReact) InjectComponentFieldArtifactTypes(ctx context.Context) ([
 			modified = reactImport + modified
 		}
 
-		if err := afero.WriteFile(p.Filesystem(), artPath, []byte(modified), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), artPath, []byte(modified), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, artPath)
@@ -826,7 +883,7 @@ declare module 'houdini/runtime' {
 		if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
 			return nil, err
 		}
-		if err := afero.WriteFile(p.Filesystem(), augPath, []byte(augContent), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), augPath, []byte(augContent), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, augPath)
@@ -843,7 +900,7 @@ declare module 'houdini/runtime' {
 	sideEffect := `import './componentFieldTypes'`
 	if !strings.Contains(indexStr, sideEffect) {
 		patched := sideEffect + "\n" + indexStr
-		if err := afero.WriteFile(p.Filesystem(), indexPath, []byte(patched), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), indexPath, []byte(patched), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, indexPath)
@@ -852,67 +909,50 @@ declare module 'houdini/runtime' {
 	return changed, nil
 }
 
-// GenerateTsConfig writes .houdini/tsconfig.json so the project tsconfig can
-// extend it and get JSX, path aliases, and all other compiler settings for free.
+// stripRouteGroups removes (group) segments from a URL, leaving only real path
+// segments. E.g. "/(auth)/users/[id]" → "/users/[id]".
+func stripRouteGroups(url string) string {
+	parts := strings.Split(url, "/")
+	var out []string
+	for _, p := range parts {
+		if p == "" {
+			continue
+		}
+		if strings.HasPrefix(p, "(") && strings.HasSuffix(p, ")") {
+			continue
+		}
+		out = append(out, p)
+	}
+	return "/" + strings.Join(out, "/")
+}
+
+
+// GenerateTsConfig writes .houdini/tsconfig.json by copying the template from the
+// plugin runtime directory (written there by IncludeRuntime).
 func (p *HoudiniReact) GenerateTsConfig(ctx context.Context) ([]string, error) {
 	projectConfig, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
 	tsConfigPath := filepath.Join(houdiniDir, "tsconfig.json")
 
-	content := `{
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "$houdini": ["."],
-            "$houdini/*": ["./*"],
-            "~": ["../src"],
-            "~/*": ["../src/*"]
-        },
-        "rootDirs": ["..", "./types"],
-        "target": "ESNext",
-        "useDefineForClassFields": true,
-        "lib": ["DOM", "DOM.Iterable", "ESNext"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": false,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-        "allowImportingTsExtensions": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "noEmit": true,
-        "jsx": "react-jsx"
-    },
-    "include": [
-        "ambient.d.ts",
-        "./types/**/$types.d.ts",
-        "../vite.config.ts",
-        "../src/**/*.js",
-        "../src/**/*.ts",
-        "../src/**/*.jsx",
-        "../src/**/*.tsx",
-        "../src/+app.d.ts"
-    ],
-    "exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
-}
-`
+	content, err := afero.ReadFile(p.Filesystem(), filepath.Join(runtimeDir, "tsconfig.json"))
+	if err != nil {
+		return nil, err
+	}
 
 	existing, _ := afero.ReadFile(p.Filesystem(), tsConfigPath)
-	if string(existing) == content {
+	if string(existing) == string(content) {
 		return []string{}, nil
 	}
 
 	if err := p.Filesystem().MkdirAll(houdiniDir, 0755); err != nil {
 		return nil, err
 	}
-	if err := afero.WriteFile(p.Filesystem(), tsConfigPath, []byte(content), 0644); err != nil {
+	if err := afero.WriteFile(p.Filesystem(), tsConfigPath, content, 0644); err != nil {
 		return nil, err
 	}
 

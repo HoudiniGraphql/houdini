@@ -1,0 +1,6 @@
+query UpsertFragmentTest {
+	usersList(snapshot: "UpsertFragmentTest") @list(name: "UpsertFragmentTest") {
+		id
+		name
+	}
+}

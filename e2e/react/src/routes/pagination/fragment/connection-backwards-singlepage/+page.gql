@@ -1,0 +1,5 @@
+query FragmentCursorBackwardsSinglePageQuery {
+	user(id: "1", snapshot: "pagination-fragment-cursor-backwards-singlepage") {
+		...FragmentCursorBackwardsSinglePageFragment
+	}
+}

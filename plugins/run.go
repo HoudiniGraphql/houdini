@@ -147,6 +147,14 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		}
 	}
 
+	var includeStaticRuntime any
+	if staticRuntime, ok := plugin.(StaticRuntime); ok {
+		includeStaticRuntime, err = staticRuntime.StaticRuntime(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	var configModule any
 	if configurer, ok := plugin.(Config); ok {
 		configModule, err = configurer.Config(ctx)
@@ -173,17 +181,18 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	// insert the plugin metadata
 	err = db.ExecQuery(ctx,
 		`INSERT INTO plugins (
-			name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
+			name, hooks, port, plugin_order, include_runtime, include_static_runtime, config_module, client_plugins
 		) VALUES
-			($name, $hooks, $port, $plugin_order, $include_runtime, $config_module, $client_plugins)`,
+			($name, $hooks, $port, $plugin_order, $include_runtime, $include_static_runtime, $config_module, $client_plugins)`,
 		map[string]any{
-			"name":            cmp(pluginKey, plugin.Name()),
-			"hooks":           string(hooksStr),
-			"port":            port,
-			"plugin_order":    string(plugin.Order()),
-			"include_runtime": includeRuntime,
-			"config_module":   configModule,
-			"client_plugins":  clientPlugins,
+			"name":                   cmp(pluginKey, plugin.Name()),
+			"hooks":                  string(hooksStr),
+			"port":                   port,
+			"plugin_order":           string(plugin.Order()),
+			"include_runtime":        includeRuntime,
+			"include_static_runtime": includeStaticRuntime,
+			"config_module":          configModule,
+			"client_plugins":         clientPlugins,
 		},
 	)
 	if err != nil {

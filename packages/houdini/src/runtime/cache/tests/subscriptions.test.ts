@@ -60,7 +60,7 @@ test('root subscribe - field change', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
@@ -76,10 +76,13 @@ test('root subscribe - field change', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
 		},
 	})
 })
@@ -137,7 +140,7 @@ test('root subscribe - linked object changed', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with a different id
@@ -153,11 +156,14 @@ test('root subscribe - linked object changed', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			firstName: 'mary',
-			// this is a sanity-check. the cache wasn't written with that value
-			favoriteColors: null,
-			id: '2',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				// this is a sanity-check. the cache wasn't written with that value
+				favoriteColors: null,
+				id: '2',
+			},
 		},
 	})
 
@@ -182,10 +188,13 @@ test('root subscribe - linked object changed', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenLastCalledWith({
-		viewer: {
-			firstName: 'Michelle',
-			id: '2',
-			favoriteColors: null,
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'Michelle',
+				id: '2',
+				favoriteColors: null,
+			},
 		},
 	})
 
@@ -242,7 +251,7 @@ test("subscribing to null object doesn't explode", () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with a different id
@@ -258,10 +267,13 @@ test("subscribing to null object doesn't explode", () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			firstName: 'mary',
-			favoriteColors: null,
-			id: '2',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: null,
+				id: '2',
+			},
 		},
 	})
 })
@@ -318,7 +330,7 @@ test('overwriting a reference with null clears its subscribers', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// start off associated with one object
@@ -331,7 +343,10 @@ test('overwriting a reference with null clears its subscribers', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: null,
+		kind: 'update',
+		data: {
+			viewer: null,
+		},
 	})
 
 	// we shouldn't be subscribing to user 3 any more
@@ -388,7 +403,7 @@ test('overwriting a linked list with null clears its subscribers', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// add some users that we will subscribe to
@@ -431,9 +446,12 @@ test('overwriting a linked list with null clears its subscribers', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: null,
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: null,
+			},
 		},
 	})
 
@@ -511,7 +529,7 @@ test('root subscribe - linked list lost entry', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with a new friends list
@@ -531,14 +549,17 @@ test('root subscribe - linked list lost entry', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 
@@ -612,7 +633,7 @@ test("subscribing to list with null values doesn't explode", () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with a new friends list
@@ -632,14 +653,17 @@ test("subscribing to list with null values doesn't explode", () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -712,7 +736,7 @@ test('root subscribe - linked list reorder', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -736,18 +760,21 @@ test('root subscribe - linked list reorder', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					id: '3',
-					firstName: 'mary',
-				},
-				{
-					id: '2',
-					firstName: 'jane',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
 		},
 	})
 
@@ -805,7 +832,7 @@ test('unsubscribe', () => {
 	const spec = {
 		rootType: 'Query',
 		selection,
-		set: vi.fn(),
+		onMessage: vi.fn(),
 	}
 
 	// subscribe to the fields
@@ -874,7 +901,7 @@ test('subscribe to new list nodes', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -920,14 +947,17 @@ test('subscribe to new list nodes', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for jane
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane-prime',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane-prime',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 
@@ -977,18 +1007,21 @@ test('subscribe to new list nodes', () => {
 	// the third time set was called, a new entry was added.
 	// the fourth time it's called, we get a new value for mary
 	expect(set).toHaveBeenNthCalledWith(4, {
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane-prime',
-					id: '2',
-				},
-				{
-					firstName: 'mary-prime',
-					id: '3',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane-prime',
+						id: '2',
+					},
+					{
+						firstName: 'mary-prime',
+						id: '3',
+					},
+				],
+			},
 		},
 	})
 })
@@ -1071,7 +1104,7 @@ test('variables in query and subscription', () => {
 		{
 			rootType: 'Query',
 			selection,
-			set,
+			onMessage: set,
 			variables: () => ({ filter: 'foo' }),
 		},
 		{
@@ -1102,14 +1135,17 @@ test('variables in query and subscription', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 
@@ -1199,7 +1235,7 @@ test('deleting a node removes nested subscriptions', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// sanity check
@@ -1655,7 +1691,7 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 		{
 			rootType: 'Query',
 			selection,
-			set,
+			onMessage: set,
 		},
 		{
 			filter: 'foo',
@@ -1766,7 +1802,7 @@ test('embedded references', () => {
 		{
 			rootType: 'Query',
 			selection,
-			set,
+			onMessage: set,
 		},
 		{
 			filter: 'foo',
@@ -1808,23 +1844,26 @@ test('embedded references', () => {
 
 	// make sure we got the updated data
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							id: '2',
-							firstName: 'not-jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								id: '2',
+								firstName: 'not-jane',
+							},
 						},
-					},
-					{
-						node: {
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -1921,7 +1960,7 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 
 	// subscribe to the list
 	const spec = {
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection,
 		rootType: 'Query',
 	}
@@ -2042,7 +2081,7 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', ()
 
 	// subscribe to the list
 	const spec = {
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection,
 		rootType: 'Query',
 	}
@@ -2105,7 +2144,7 @@ test('overwriting a value in an optimistic layer triggers subscribers', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// create an optimistic layer on top
@@ -2125,10 +2164,13 @@ test('overwriting a value in an optimistic layer triggers subscribers', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
 		},
 	})
 })
@@ -2185,7 +2227,7 @@ test('clearing a display layer updates subscribers', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// create an optimistic layer on top
@@ -2205,10 +2247,13 @@ test('clearing a display layer updates subscribers', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
 		},
 	})
 
@@ -2229,10 +2274,13 @@ test('clearing a display layer updates subscribers', () => {
 	})
 
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+		kind: 'update',
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
 		},
 	})
 })
@@ -2343,7 +2391,7 @@ test('optimistic layer & lists & add ok', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: selectionList,
-		set: setOnQuery,
+		onMessage: setOnQuery,
 	})
 
 	// create an optimistic layer on top
@@ -2363,20 +2411,23 @@ test('optimistic layer & lists & add ok', () => {
 
 	// make sure that set got called with the full response
 	expect(setOnQuery).toHaveBeenCalledWith({
-		usersList: [
-			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
-			},
-			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
-			},
-			{
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
-			},
-		],
+		kind: 'update',
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+				{
+					id: '??? id ???',
+					name: '...optimisticResponse... I could have guessed JYC!',
+				},
+			],
+		},
 	})
 
 	// clear the layer
@@ -2395,20 +2446,23 @@ test('optimistic layer & lists & add ok', () => {
 	})
 
 	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
-		usersList: [
-			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
-			},
-			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
-			},
-			{
-				id: 'mutation-opti-list:9',
-				name: 'Alec',
-			},
-		],
+		kind: 'update',
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+				{
+					id: 'mutation-opti-list:9',
+					name: 'Alec',
+				},
+			],
+		},
 	})
 })
 
@@ -2518,7 +2572,7 @@ test('optimistic layer & lists & add null (optimistic will revert)', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: selectionList,
-		set: setOnQuery,
+		onMessage: setOnQuery,
 	})
 
 	// create an optimistic layer on top
@@ -2538,20 +2592,23 @@ test('optimistic layer & lists & add null (optimistic will revert)', () => {
 
 	// make sure that set got called with the full response
 	expect(setOnQuery).toHaveBeenCalledWith({
-		usersList: [
-			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
-			},
-			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
-			},
-			{
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
-			},
-		],
+		kind: 'update',
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+				{
+					id: '??? id ???',
+					name: '...optimisticResponse... I could have guessed JYC!',
+				},
+			],
+		},
 	})
 
 	// clear the layer
@@ -2582,16 +2639,19 @@ test('optimistic layer & lists & add null (optimistic will revert)', () => {
 
 	// Subscription should be call with the right data (element removed from the list)
 	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
-		usersList: [
-			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
-			},
-			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
-			},
-		],
+		kind: 'update',
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+			],
+		},
 	})
 })
 
@@ -2684,7 +2744,7 @@ test('ensure parent type is properly passed for nested lists', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// add a city to the list by hand since using the list util adds type information
@@ -2806,7 +2866,7 @@ test('subscribe to abstract fields of matching type', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
@@ -2823,11 +2883,14 @@ test('subscribe to abstract fields of matching type', () => {
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			__typename: 'User',
-			firstName: 'bob',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+		kind: 'update',
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
 		},
 	})
 })
@@ -2903,7 +2966,7 @@ test('overlapping subscriptions', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: selection1,
-		set: set1,
+		onMessage: set1,
 	})
 
 	// a function to spy on that will play the role of set
@@ -2913,7 +2976,7 @@ test('overlapping subscriptions', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: selection2,
-		set: set2,
+		onMessage: set2,
 	})
 
 	// write to the first selection
@@ -3026,7 +3089,7 @@ test('ignore hidden fields', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// write to the favoriteColors field to make sure we didn't get an update
@@ -3101,14 +3164,14 @@ test('clearing a layer should notify subscribers of displayed values', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection,
-		set,
+		onMessage: set,
 	})
 
 	// clear the layer
 	cache.clearLayer(layer.id)
 
 	// make sure our callback was invoked
-	expect(set).toHaveBeenCalledWith({ viewer: null })
+	expect(set).toHaveBeenCalledWith({ kind: 'update', data: { viewer: null } })
 })
 
 test('reverting optimistic remove notifies subscribers', () => {
@@ -3218,7 +3281,7 @@ test('reverting optimistic remove notifies subscribers', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -3233,21 +3296,24 @@ test('reverting optimistic remove notifies subscribers', () => {
 
 	// make sure our callback was invoked
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: user3,
-					},
-				],
+						{
+							node: user3,
+						},
+					],
+				},
 			},
 		},
 	})
@@ -3300,7 +3366,7 @@ test('overwrite null value with list', () => {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: selection,
-		set: set,
+		onMessage: set,
 	})
 
 	// add some data to the cache
@@ -3312,7 +3378,10 @@ test('overwrite null value with list', () => {
 	})
 
 	expect(set).toHaveBeenCalledWith({
-		friends: [],
+		kind: 'update',
+		data: {
+			friends: [],
+		},
 	})
 })
 
@@ -3357,7 +3426,7 @@ test('removing all subscribers of a field cleans up reference count object', () 
 
 	// subscribe to the list
 	const spec = {
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection,
 		rootType: 'Query',
 	}
@@ -3433,7 +3502,7 @@ test('reference count garbage collection requires totally empty garbage', () => 
 
 	// subscribe to selection 1
 	const spec1 = {
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection: selection1,
 		rootType: 'Query',
 	}
@@ -3441,7 +3510,7 @@ test('reference count garbage collection requires totally empty garbage', () => 
 
 	// subscribe to selection 2
 	const spec2 = {
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection: selection2,
 		rootType: 'Query',
 	}
@@ -3455,4 +3524,82 @@ test('reference count garbage collection requires totally empty garbage', () => 
 
 	// make sure the subscribers object is empty
 	expect(cache._internal_unstable.subscriptions.size).toEqual(2)
+})
+
+test('addMany skips external (visible: false) fields on new linked records', () => {
+	const cache = new Cache(config)
+
+	// Query selection: viewer → User with one visible field and one external field
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+						// external field owned by a fragment — should never trigger this query's subscriber
+						bio: {
+							type: 'String',
+							visible: false,
+							keyRaw: 'bio',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write initial data pointing viewer at User:1
+	cache.write({
+		selection,
+		data: { viewer: { id: '1', firstName: 'alice', bio: 'hello' } },
+	})
+
+	const set = vi.fn()
+	cache.subscribe({ rootType: 'Query', selection, onMessage: set })
+
+	// change viewer to User:2 — this triggers addMany to propagate subscribers onto User:2
+	cache.write({
+		selection,
+		data: { viewer: { id: '2', firstName: 'bob', bio: 'world' } },
+	})
+
+	// set called once for the linked-object change
+	expect(set).toHaveBeenCalledTimes(1)
+	set.mockClear()
+
+	// write only the external field on User:2 — query subscriber must NOT fire
+	cache.write({
+		selection: {
+			fields: {
+				bio: { type: 'String', visible: false, keyRaw: 'bio' },
+			},
+		},
+		data: { bio: 'updated bio' },
+		parent: 'User:2',
+	})
+	expect(set).not.toHaveBeenCalled()
+
+	// write a visible field on User:2 — query subscriber MUST fire
+	cache.write({
+		selection: {
+			fields: {
+				firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+			},
+		},
+		data: { firstName: 'robert' },
+		parent: 'User:2',
+	})
+	expect(set).toHaveBeenCalledTimes(1)
 })

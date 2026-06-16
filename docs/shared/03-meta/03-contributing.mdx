@@ -3,15 +3,17 @@ title: Contributing
 description: A guide for contributing to Houdini.
 ---
 
-import OutOfDate from '@shared/_partials/out-of-date.mdx'
-
-<OutOfDate />
-
 First off, thanks for the interest in contributing to Houdini.
 
 This document should provide some guidance for working on the project, including tips for local development and an introduction to the internal architecture and relevant files.
 
-**Note**: this document contains links to files and sometimes specific lines of code that could easily be invalidated by future work. If you run into a broken link, please open a PR to fix it — keeping documentation up to date is as important as any bug fix or new feature.
+**Note**: this document contains links to files that could easily be invalidated by future work. If you run into a broken link, please open a PR to fix it — keeping documentation up to date is as important as any bug fix or new feature.
+
+Before diving in, the [architecture guide](/api/architecture) is worth a read — it explains how the compiler's process model works, how plugins communicate, and how the shared database fits together. That context makes the rest of this document a lot easier to follow.
+
+## General Introduction
+
+At a high level, Houdini is broken up into a few parts. The core compiler pipeline lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core) and handles document extraction, validation, and artifact generation. The shared plugin runtime library lives in [packages/houdini](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini) and provides the cache, Vite plugin, and utilities for building extensions. Apart from that, Houdini has framework-specific packages that take the generated artifacts and deliver an experience tailored to each framework. The Svelte bindings live in [packages/houdini-svelte](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-svelte) and the React bindings in [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react).
 
 ## Local Development
 
@@ -23,13 +25,9 @@ Make sure you're using Node.js and pnpm versions compatible with the `engines` c
 - [mise-en-place](https://mise.jdx.dev/)
 - [nix](https://nixos.org/)
 
-## General Introduction
-
-At a high level, Houdini is broken up into a few parts. The core project lives in [packages/houdini](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini) and provides the artifact generation pipeline, cache runtime, Vite plugin, and utilities for building extensions. Apart from that, Houdini has framework-specific bindings that take the generated artifacts and deliver an experience tailored to each framework. The Svelte bindings live in [packages/houdini-svelte](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-svelte) and the React bindings in [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react).
-
 ## Code Generation
 
-Houdini's code generation pipeline is written in Go and lives in the [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins) directory. It is ultimately responsible for generating the artifacts that describe every document in a project — those artifacts save the runtime from parsing user documents and enable features like compiling fragments and queries into a single string sent to the API.
+Houdini's code generation pipeline is written in Go. The core pipeline logic lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core), with framework-specific codegen in the corresponding package (e.g. [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react)). The shared library for building plugins lives in [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins). Each plugin runs as a long-running process and communicates with the Node.js orchestrator over WebSocket, sharing state through a common SQLite database — see the [architecture guide](/api/architecture) for the full picture.
 
 The pipeline tasks fall into three categories:
 
@@ -60,6 +58,76 @@ Subscriptions keep stores up to date as values change. The cache walks a given s
 ## End-to-End Tests
 
 The best way to verify a feature is to write a test that simulates the user's experience. These live in the [e2e/](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e) directory at the root of the repository. The general pattern is to create a route in one of the test applications that showcases a specific behavior, then use [Playwright](https://playwright.dev/) to simulate a user interacting with the UI.
+
+## Test Scripts
+
+There are three layers of testing, each with its own set of scripts.
+
+### TypeScript unit tests (root)
+
+Run from the repo root using [Vitest](https://vitest.dev/):
+
+```sh
+pnpm tests            # run all TypeScript unit tests
+pnpm tests:ui         # run with the Vitest browser UI + coverage report
+```
+
+These cover the runtime cache, client plugins, and other TypeScript-only logic that doesn't require a full pipeline run.
+
+### Go pipeline tests (per package)
+
+The Go pipeline tests live in `plugin/` subdirectories of each package (e.g. `packages/houdini-core/plugin/`, `packages/houdini-react/plugin/`). Run them with the standard Go toolchain from the package root:
+
+```sh
+go test ./...
+```
+
+Each test uses `tests.RunTable` from `plugins/tests/` — it spins up an in-memory SQLite database, runs the pipeline steps (extract → validate → generate), and asserts on the resulting artifacts. These are the right tests to write when you change Go plugin logic.
+
+### Playwright e2e tests (e2e apps)
+
+The `e2e/kit/` (SvelteKit) and `e2e/react/` apps each have a family of scripts for running the full Playwright suite. The key ones:
+
+| Script | What it does |
+|---|---|
+| `build:` | Rebuilds all packages from the repo root (`pnpm run build`) |
+| `build:test` | `build:` then runs Playwright (`pnpm test`) — use this to verify changes against a fresh build |
+| `build:build` | `build:` then builds the e2e app itself (produces a static output) |
+| `build:tests` | `build:build` then runs Playwright — use this when you also need the app compiled |
+| `build:dev` | `build:` then starts the dev server |
+| `build:generate` | `build:` then runs `houdini generate` |
+| `tests` / `test` | Playwright only, no rebuild — use when packages are already built |
+
+For faster iteration when only one package changed, the `compile:*` variants recompile a single package without doing a full root build:
+
+```sh
+pnpm compile:core      # recompile houdini-core only
+pnpm compile:houdini   # recompile houdini only
+pnpm compile:svelte    # recompile houdini-svelte only (kit app)
+pnpm compile:react     # recompile houdini-react only (react app)
+```
+
+Each of these has `:dev`, `:generate`, and `:dev` suffixes that chain into the next step after compiling.
+
+### Cache benchmarks
+
+The cache has a benchmark suite in `packages/houdini/src/runtime/cache/benchmarks/`. Benchmarks are grouped into categories (`core`, `subscriptions`, `lists`, `multi-doc`, `optimistic`, `gc`, `ssr`) and can be run selectively.
+
+For active work on the cache, `watch-bench` re-runs a category in fast mode (minimal iterations, just enough to catch regressions) every time a file changes:
+
+```sh
+pnpm watch-bench gc          # re-run gc suite on every save
+pnpm watch-bench core        # re-run core suite on every save
+```
+
+To run the full suite at full statistical precision:
+
+```sh
+pnpm bench                        # all categories, full run
+BENCH=core pnpm bench             # single category, full run
+```
+
+A CI job runs automatically on any PR that touches `packages/houdini/src/runtime/cache/`. It benchmarks the base branch and the PR branch on the same runner and flags any benchmark that regressed beyond its noise band.
 
 ## Piecing It All Together
 

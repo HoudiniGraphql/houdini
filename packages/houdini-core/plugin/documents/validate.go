@@ -13,6 +13,7 @@ import (
 	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
@@ -228,6 +229,51 @@ func ValidateFragmentOnScalar(
 			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+// ValidateUnknownVariableTypes makes sure that every operation variable and
+// fragment argument declares a type that actually exists in the schema. without
+// this, a typo'd type name would only surface as a confusing mismatch where the
+// variable is used (or not at all if it's only passed through @with)
+func ValidateUnknownVariableTypes(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	queryStr := `
+		SELECT
+			document_variables.name,
+			document_variables.type,
+			raw_documents.filepath,
+			document_variables.row + raw_documents.offset_line,
+			document_variables.column + raw_documents.offset_column
+		FROM document_variables
+			JOIN documents ON document_variables.document = documents.id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			LEFT JOIN types ON document_variables.type = types.name
+		WHERE types.name IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	`
+	err := db.StepQuery(ctx, queryStr, nil, func(row plugins.Row) {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Variable '$%s' uses unknown type '%s'",
+				row.ColumnText(0),
+				row.ColumnText(1),
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: row.ColumnText(2),
+					Line:     row.ColumnInt(3),
+					Column:   row.ColumnInt(4),
+				},
+			},
 		})
 	})
 	if err != nil {
@@ -918,91 +964,6 @@ func ValidateDuplicateArgumentInField(
 	}
 }
 
-func ValidateFieldArgumentIncompatibleType(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	errs *plugins.ErrorList,
-) {
-	// This query retrieves each field argument variable usage along with:
-	//   - The expected type and modifiers (from the field argument definition).
-	//   - The provided type and modifiers (from the operation variable definition).
-	// We join through selection_refs (since selections don’t directly store a document id)
-	// and use the normalized argument value (argument_values) for variable references.
-	// A row is returned when the expected type (including non-null modifier) does not match
-	// the provided variable type.
-	query := `
-	SELECT
-		sa.selection_id,
-		fad.name AS argName,
-		fad.type AS expectedType,
-		COALESCE(fad.type_modifiers, '') AS expectedModifiers,
-		opv.type AS providedTypeRaw,
-		COALESCE(opv.type_modifiers, '') AS providedModifiers,
-		rd.filepath,
-		json_group_array(
-			json_object('line', sa.row, 'column', sa.column)
-		) AS locations,
-		av.raw AS varUsage
-	FROM selection_arguments sa
-		JOIN selections s ON sa.selection_id = s.id
-		JOIN type_fields tf ON s.type = tf.id
-		JOIN type_field_arguments fad ON fad.field = tf.id AND fad.name = sa.name
-		JOIN selection_refs sr ON sr.child_id = s.id
-		JOIN documents d ON d.id = sr.document
-		JOIN raw_documents rd ON rd.id = d.raw_document
-		JOIN argument_values av ON av.id = sa.value
-		JOIN document_variables opv ON d.id = opv.document AND opv.name = av.raw
-	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sa.selection_id, fad.name
-	HAVING (
-
-			(
-				fad."type" != opv."type"
-				AND
-				fad.type_modifiers != opv.type_modifiers
-			)
-	)
-	`
-
-	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
-		argName := row.ColumnText(1)
-		expectedType := row.ColumnText(2)
-		expectedModifiers := row.ColumnText(3)
-		providedTypeRaw := row.ColumnText(4)
-		providedModifiers := row.ColumnText(5)
-		filepath := row.ColumnText(6)
-		locationsRaw := row.ColumnText(7)
-
-		var locations []*plugins.ErrorLocation
-		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for argument '%s'", argName),
-				Detail:  err.Error(),
-			})
-			return
-		}
-		for _, loc := range locations {
-			loc.Filepath = filepath
-		}
-
-		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf(
-				"Variable used for argument '%s' is incompatible: expected type '%s%s' but got '%s%s'",
-				argName,
-				expectedType,
-				expectedModifiers,
-				providedTypeRaw,
-				providedModifiers,
-			),
-			Kind:      plugins.ErrorKindValidation,
-			Locations: locations,
-		})
-	})
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-	}
-}
-
 func ValidateMissingRequiredArgument(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -1181,193 +1142,16 @@ func ValidateDuplicateKeysInInputObject(
 	}
 }
 
-// InputTypeDefinition describes an input object type.
-type InputTypeDefinition struct {
-	Name   string
-	Fields map[string]*InputFieldDefinition
-}
-
-// InputFieldDefinition describes one field on an input object.
-type InputFieldDefinition struct {
-	Name         string
-	ExpectedType string // e.g. "String", "Int", etc.
-	Required     bool   // true if the field is non-null
-	IsList       bool   // true if the field is defined as a list (derived from type_modifiers)
-	// If the field itself is an input object, InputDef holds its definition.
-	InputDef *InputTypeDefinition
-}
-
-// TypeModifiers represents the parsed structure of a modifier string.
-// We assume the stored modifier string consists solely of closing brackets (']')
-// and exclamation marks ('!'). For example, a modifier like "]!]]!]]" indicates
-// five levels of nesting, with the outermost and third levels non-null.
-type TypeModifiers struct {
-	ListDepth     int
-	NonNullLevels []bool // one per level, in order from outermost to innermost
-}
-
-// parseModifiers parses a modifier string (e.g. "]!]]!]]") into a structured form.
-func parseModifiers(modifiers string) TypeModifiers {
-	var tm TypeModifiers
-	tm.NonNullLevels = []bool{}
-	i := 0
-	for i < len(modifiers) {
-		if modifiers[i] == ']' {
-			tm.ListDepth++
-			nonNull := false
-			if i+1 < len(modifiers) && modifiers[i+1] == '!' {
-				nonNull = true
-				i++ // Skip the '!'
-			}
-			tm.NonNullLevels = append(tm.NonNullLevels, nonNull)
-		}
-		i++
-	}
-	return tm
-}
-
-// loadUsedInputTypes loads only those input types that are used by structured arguments.
-// It first queries for distinct expected input type names from structured arguments, then
-// loads all matching type definitions (from the types table) and their fields (from type_fields).
-func loadUsedInputTypes(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-) (map[string]*InputTypeDefinition, error) {
-	conn, err := db.Take(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Put(conn)
-
-	// Step 1: Get distinct input type names used by structured arguments.
-	distinctQuery := `
-	SELECT DISTINCT fad.type AS expectedInputType
-	FROM selection_arguments sargs
-	  JOIN type_field_arguments fad ON fad.field = sargs.selection_id AND fad.name = sargs.name
-	  JOIN argument_values av ON av.id = sargs.value
-	WHERE av.kind = 'Object'
-	`
-	stmt, err := conn.Prepare(distinctQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare distinct types query: %w", err)
-	}
-	defer stmt.Finalize()
-
-	usedTypes := make(map[string]bool)
-	for {
-		hasData, err := stmt.Step()
-		if err != nil {
-			return nil, fmt.Errorf("error stepping distinct types query: %w", err)
-		}
-		if !hasData {
-			break
-		}
-		typ := stmt.ColumnText(0)
-		usedTypes[typ] = true
-	}
-	// If none are used, return an empty map.
-	if len(usedTypes) == 0 {
-		return make(map[string]*InputTypeDefinition), nil
-	}
-
-	// Build an IN clause (e.g. "'TypeA','TypeB'")
-	typeNames := []string{}
-	for t := range usedTypes {
-		typeNames = append(typeNames, fmt.Sprintf("'%s'", t))
-	}
-	inClause := strings.Join(typeNames, ",")
-
-	// Step 2: Load input type definitions from the types table.
-	typesQuery := fmt.Sprintf(`
-		SELECT name FROM types
-		WHERE name IN (%s) AND kind IN ('INPUT','INPUT_OBJECT')
-	`, inClause)
-	typesStmt, err := conn.Prepare(typesQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare types query: %w", err)
-	}
-	defer typesStmt.Finalize()
-
-	typeDefs := make(map[string]*InputTypeDefinition)
-	for {
-		hasData, err := typesStmt.Step()
-		if err != nil {
-			return nil, fmt.Errorf("error stepping types query: %w", err)
-		}
-		if !hasData {
-			break
-		}
-		name := typesStmt.ColumnText(0)
-		typeDefs[name] = &InputTypeDefinition{
-			Name:   name,
-			Fields: make(map[string]*InputFieldDefinition),
-		}
-	}
-
-	// Step 3: Load all fields for these types.
-	fieldsQuery := fmt.Sprintf(`
-		SELECT parent, name, type, type_modifiers
-		FROM type_fields
-		WHERE parent IN (%s)
-	`, inClause)
-	fieldsStmt, err := conn.Prepare(fieldsQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare fields query: %w", err)
-	}
-	defer fieldsStmt.Finalize()
-
-	for {
-		hasData, err := fieldsStmt.Step()
-		if err != nil {
-			return nil, fmt.Errorf("error stepping fields query: %w", err)
-		}
-		if !hasData {
-			break
-		}
-		parent := fieldsStmt.ColumnText(0)
-		fieldName := fieldsStmt.ColumnText(1)
-		fieldType := fieldsStmt.ColumnText(2)
-		modifiers := fieldsStmt.ColumnText(3)
-
-		tm := parseModifiers(modifiers)
-		isList := tm.ListDepth > 0
-		required := false
-		if len(tm.NonNullLevels) > 0 {
-			required = tm.NonNullLevels[0]
-		}
-
-		fieldDef := &InputFieldDefinition{
-			Name:         fieldName,
-			ExpectedType: fieldType,
-			Required:     required,
-			IsList:       isList,
-		}
-		if parentDef, ok := typeDefs[parent]; ok {
-			parentDef.Fields[fieldName] = fieldDef
-		}
-	}
-
-	// Step 4: For each field whose ExpectedType is itself an input type, set its InputDef.
-	for _, typeDef := range typeDefs {
-		for _, fieldDef := range typeDef.Fields {
-			if nested, ok := typeDefs[fieldDef.ExpectedType]; ok {
-				fieldDef.InputDef = nested
-			}
-		}
-	}
-
-	return typeDefs, nil
-}
-
 func ValidateWrongTypesToArg(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	errs *plugins.ErrorList,
 ) {
-	// every argument value contains the type that it should be so we need to look at every scalar
-	// usage and make sure that it matches with the expectations
+	// every argument value was annotated with its expected type at extraction so
+	// this query just streams every value along with the context needed to decide
+	// assignability; the actual decision happens in validArgumentValue
 	query := `
-		WITH input_types as (
+		WITH scalar_inputs as (
 			SELECT
 				scalar.name,
 				types.value AS input_type
@@ -1380,20 +1164,26 @@ func ValidateWrongTypesToArg(
 			raw_documents.offset_column,
 			argument_values.row,
 			argument_values.column,
-			selection_arguments.name,
-			selection_directive_arguments.name,
-			argument_value_children.name,
 			COALESCE(
-          selection_arguments.name, 
-          selection_directive_arguments.name, 
-          argument_value_children.name
-      ) AS argument_name,
+				selection_arguments.name,
+				selection_directive_arguments.name,
+				argument_value_children.name
+			) AS argument_name,
+			argument_value_children.name AS child_name,
+			parent_values.expected_type AS parent_expected_type,
 			argument_values.expected_type,
 			argument_values.expected_type_modifiers,
-			argument_values.kind,
-			input_types.name,
-      document_variables.type AS variable_type,
-      document_variables.type_modifiers AS variable_type_modifiers
+			argument_values.kind AS value_kind,
+			types.kind AS expected_type_kind,
+			scalar_inputs.name IS NOT NULL AS scalar_input_ok,
+			ev.value IS NOT NULL AS enum_value_ok,
+			document_variables.id IS NOT NULL AS variable_defined,
+			document_variables.type AS variable_type,
+			document_variables.type_modifiers AS variable_type_modifiers,
+			(
+				document_variables.default_value IS NOT NULL
+				AND COALESCE(variable_defaults.kind, '') != 'Null'
+			) AS variable_has_non_null_default
 		FROM argument_values
 		JOIN documents on argument_values."document" = documents.id
 		JOIN raw_documents on documents.raw_document = raw_documents.id
@@ -1403,192 +1193,87 @@ func ValidateWrongTypesToArg(
 			ON argument_values.kind = 'Variable'
 			AND argument_values.document = document_variables.document
 			AND argument_values.raw = document_variables."name"
+		LEFT JOIN argument_values variable_defaults
+			ON document_variables.default_value = variable_defaults.id
 		LEFT JOIN selection_arguments
 			ON argument_values.id = selection_arguments.value
 		LEFT JOIN selection_directive_arguments
 			ON argument_values.id = selection_directive_arguments.value
 		LEFT JOIN argument_value_children
 			ON argument_values.id = argument_value_children.value
+		LEFT JOIN argument_values parent_values
+			ON argument_value_children.parent = parent_values.id
 		LEFT JOIN enum_values ev
 			ON argument_values.kind = 'Enum'
 			AND argument_values.expected_type = ev.parent
 			AND argument_values.raw = ev.value
-		LEFT JOIN input_types
-			ON argument_values.expected_type = input_types.name
-			AND argument_values.kind = input_types.input_type
+		LEFT JOIN scalar_inputs
+			ON argument_values.expected_type = scalar_inputs.name
+			AND scalar_inputs.input_type = (
+				CASE WHEN argument_values.kind = 'Block' THEN 'String' ELSE argument_values.kind END
+			)
 
 		WHERE
 			(raw_documents.current_task = $task_id OR $task_id IS NULL)
-
-			AND (
-			-- For non-variable, non-null kinds that are scalar or enum:
-			-- invalid if the expected_type_modifiers contains a ']' or the kind !=
-			(
-				argument_values.kind NOT IN ('Variable', 'Null',  'ENUM')
-				AND types.kind = 'SCALAR'
-				AND (
-					argument_values.expected_type_modifiers LIKE '%]%'
-					OR (
-						argument_values.kind <> argument_values.expected_type
-						AND NOT (
-							argument_values.kind IN ('ID','String', 'Int')
-							AND argument_values.expected_type = 'ID'
-						)
-						AND  (
-							types.built_in IS TRUE OR
-							(types.built_in IS FALSE and input_types.name is null)
-						)
-					)
-				)
-			)
-
-			OR
-
-			-- if the argument kind is an object but the expected type modifiers have a list in it, there's a problem
-			(
-				argument_values.kind = 'Object'
-				AND argument_values.expected_type_modifiers LIKE '%]]%'
-			)
-
-			OR
-
-			-- if the argument kind is a list and there are no list modifiers
-
-			(
-				argument_values.kind = 'List'
-				AND argument_values.expected_type_modifiers NOT LIKE '%]'
-			)
-
-			OR
-
-			-- For enum kinds: invalid if the expected modifiers contain a ']' or if no matching enum value is found.
-			(
-				argument_values.kind = 'Enum'
-				AND (
-					argument_values.expected_type_modifiers LIKE '%]%'
-					OR ev.value IS NULL
-				)
-			)
-			OR
-
-			-- For Null kinds: invalid if the expected_type_modifiers end with '!'
-			(
-				argument_values.kind = 'Null'
-				AND argument_values.expected_type_modifiers LIKE '%!'
-			)
-
-			OR
-
-			-- For Variable kinds: compare the variable's modifiers to the expected modifiers,
-			-- but allow cases where non-null modifiers are allowed on null fields.
-			-- Consult the table below for info.
-			(
-				argument_values.kind = 'Variable'
-				AND NOT (
-					document_variables."type" = argument_values.expected_type
-					AND (
-						document_variables.type_modifiers = argument_values.expected_type_modifiers
-
-						-- Any non-null input is assignable to its nullable variant
-						OR (
-							document_variables.type_modifiers LIKE '%!%'
-							AND document_variables.default_value is null
-							AND REPLACE(document_variables.type_modifiers, '!', '') = argument_values.expected_type_modifiers
-						)
-						-- Non-nullable list needs to have a non-null input
-						OR (
-							argument_values.expected_type_modifiers = ']!'
-							AND document_variables.default_value is null
-							AND document_variables.type_modifiers in (']!', '!]!')
-						)
-						-- Nullable list of non-null needs to have non-null type in list
-						OR (
-							argument_values.expected_type_modifiers = '!]'
-							AND document_variables.default_value is null
-							AND document_variables.type_modifiers in ('!]', '!]!')
-						)
-						-- Non-null list of non-null needs to match perfectly, so it's already handled.
-
-						OR document_variables.default_value is not null
-					)
-				)
-				AND argument_values.expected_type is not 'ArgumentSpecification'
-			)
-		)
 	`
 
-	/*
-			GraphQL non-null types can be valid on null fields.
-			Check the spec for more information on nullability and lists: https://spec.graphql.org/October2021/#sec-Combining-List-and-Non-Null
-
-			input | expected | matches
-			------+-----------+--------
-			single object modifiers:
-			      |          | true
-			!     |          | true
-			!     | !        | true
-		          | !        | false
-
-			list modifiers:
-			]     | ]        | true
-			]!    | ]        | true
-			!]    | ]        | true
-			!]!   | ]        | true
-
-			]     | ]!       | false
-			]!    | ]!       | true
-			!]    | ]!       | false
-			!]!   | ]!       | true
-
-			]     | !]       | false
-			]!    | !]       | false
-			!]    | !]       | true
-			!]!   | !]       | true
-
-			]     | !]!      | false
-			]!    | !]!      | false
-			!]    | !]!      | false
-			!]!   | !]!      | true
-	*/
-
 	err := db.StepQuery(ctx, query, nil, func(stmt plugins.Row) {
-		filepath := stmt.ColumnText(0)
-		offsetLine := stmt.ColumnInt(1)
-		offsetColumn := stmt.ColumnInt(2)
-		row := stmt.ColumnInt(3) + offsetLine
-		column := stmt.ColumnInt(4) + offsetColumn
-		argumentName := stmt.ColumnText(5)
-		kind := stmt.GetText("kind")
+		check := argumentValueCheck{
+			Kind:                      stmt.GetText("value_kind"),
+			ExpectedType:              stmt.GetText("expected_type"),
+			ExpectedModifiers:         stmt.GetText("expected_type_modifiers"),
+			ExpectedTypeKind:          stmt.GetText("expected_type_kind"),
+			ScalarInputOK:             stmt.GetBool("scalar_input_ok"),
+			EnumValueOK:               stmt.GetBool("enum_value_ok"),
+			VariableDefined:           stmt.GetBool("variable_defined"),
+			VariableType:              stmt.GetText("variable_type"),
+			VariableModifiers:         stmt.GetText("variable_type_modifiers"),
+			VariableHasNonNullDefault: stmt.GetBool("variable_has_non_null_default"),
+		}
+
+		argumentName := stmt.GetText("argument_name")
+		childName := stmt.GetText("child_name")
 
 		// Create a single error location from the representative row/column.
 		loc := &plugins.ErrorLocation{
-			Filepath: filepath,
-			Line:     row,
-			Column:   column,
+			Filepath: stmt.ColumnText(0),
+			Line:     stmt.ColumnInt(3) + stmt.ColumnInt(1),
+			Column:   stmt.ColumnInt(4) + stmt.ColumnInt(2),
+		}
+
+		// a child row without an expected type is a field that doesn't exist on
+		// the input object, but only when the parent itself resolved to a real
+		// type: fields of @arguments specifications are checked by the
+		// fragmentArguments plugin and children of unknown values are covered
+		// by the error on their ancestor. other empty expected types (unknown
+		// arguments, unknown directives, etc) are reported by their own rules
+		if check.ExpectedType == "" {
+			parentExpectedType := stmt.GetText("parent_expected_type")
+			if childName != "" &&
+				parentExpectedType != "" &&
+				parentExpectedType != schema.ArgumentSpecificationType {
+				errs.Append(&plugins.Error{
+					Message:   fmt.Sprintf("Unexpected field: %s", argumentName),
+					Kind:      plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{loc},
+				})
+			}
+			return
+		}
+
+		if validArgumentValue(check) {
+			return
 		}
 
 		// we want to show [[User!]!] instead of User!]!]
-		expectedType := stmt.GetText("expected_type") + stmt.GetText("expected_type_modifiers")
+		expectedType := check.ExpectedType + check.ExpectedModifiers
 		for range strings.Count(expectedType, "]") {
 			expectedType = "[" + expectedType
 		}
 
-		if expectedType == "" {
-			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("Unexpected field: %s", argumentName),
-				Kind:      plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{loc},
-			})
-			return
-		}
-
-		valueKind := kind
+		valueKind := check.Kind
 		if valueKind == "Variable" {
-			valueKind += " of kind " + stmt.GetText(
-				"variable_type",
-			) + stmt.GetText(
-				"variable_type_modifiers",
-			)
+			valueKind += " of kind " + check.VariableType + check.VariableModifiers
 		}
 
 		errs.Append(&plugins.Error{

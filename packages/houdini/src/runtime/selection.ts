@@ -1,6 +1,30 @@
 import type { SubscriptionSelection } from './types.js'
 
+const _memoCache = new WeakMap<
+	SubscriptionSelection,
+	Map<string, Required<SubscriptionSelection>['fields']>
+>()
+
 export function getFieldsForType(
+	selection: SubscriptionSelection,
+	__typename: string | undefined | null,
+	loading: boolean
+): Required<SubscriptionSelection>['fields'] {
+	const cacheKey = `${__typename ?? ''}:${loading ? 1 : 0}`
+	let inner = _memoCache.get(selection)
+	if (inner !== undefined) {
+		const cached = inner.get(cacheKey)
+		if (cached !== undefined) return cached
+	} else {
+		inner = new Map()
+		_memoCache.set(selection, inner)
+	}
+	const result = _getFieldsForType(selection, __typename, loading)
+	inner.set(cacheKey, result)
+	return result
+}
+
+function _getFieldsForType(
 	selection: SubscriptionSelection,
 	__typename: string | undefined | null,
 	loading: boolean

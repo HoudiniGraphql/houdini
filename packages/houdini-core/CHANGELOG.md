@@ -1,5 +1,33 @@
 # houdini-core
 
+## 2.0.0-next.22
+
+### Minor Changes
+
+- [#1646](https://github.com/HoudiniGraphql/houdini/pull/1646) [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `record.refresh()` to refetch every document that contains a given cache record, including those that reference it only through a fragment spread.
+
+### Patch Changes
+
+- [#1649](https://github.com/HoudiniGraphql/houdini/pull/1649) [`8bd7291`](https://github.com/HoudiniGraphql/houdini/commit/8bd72911a7a022ccb68e7c3b5047f144077c3e4c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix list filters and @when conditions that contain object values or variable references nested inside objects
+
+- [#1644](https://github.com/HoudiniGraphql/houdini/pull/1644) [`f40e510`](https://github.com/HoudiniGraphql/houdini/commit/f40e510e0e67cd4ecc444f01662e3163fe45e736) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for @includeListID directive
+
+- [#1648](https://github.com/HoudiniGraphql/houdini/pull/1648) [`5f3fd63`](https://github.com/HoudiniGraphql/houdini/commit/5f3fd635199681ef36ecb90a16df2e109a354c22) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rework argument type validation to follow the GraphQL spec, fixing coercions, `@with` checks, and unknown type/enum reporting ([#1645](https://github.com/HoudiniGraphql/houdini/issues/1645)).
+
+## 2.0.0-next.21
+
+### Patch Changes
+
+- [`fec6727`](https://github.com/HoudiniGraphql/houdini/commit/fec672700d142c0e300da0529f7404b3e8521a09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - strip sibling fields from generated pagination query documents so only the paginated field is included
+
+## 2.0.0-next.20
+
+### Patch Changes
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix cursor pagination: @paginate path now wins over @list, listPaginated and direction are correctly computed for bidirectional cursor fields
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - encode per-field pagination direction in pageInfo updates arrays; runtime now drives cache behavior from the artifact instead of hardcoded field names
+
 ## 2.0.0-next.19
 
 ### Patch Changes

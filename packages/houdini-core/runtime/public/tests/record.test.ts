@@ -1,6 +1,10 @@
 import { test, expect } from 'vitest'
 
-import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
+import {
+	ArtifactKind,
+	type FragmentArtifact,
+	type SubscriptionSelection,
+} from 'houdini/runtime/types'
 import { testCache, testFragment } from './test.js'
 
 test('can read fragment', () => {

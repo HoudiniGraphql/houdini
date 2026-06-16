@@ -95,12 +95,6 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 				return err
 			}
 			existingContent = string(existingContentByte)
-
-			// we can delete the file now
-			err = p.Fs.Remove(targetPath)
-			if err != nil {
-				return err
-			}
 		}
 
 		err := runtime.GenerateRuntimeIndexFile(ctx, p.DB, p.Fs)

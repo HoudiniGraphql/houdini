@@ -1,0 +1,24 @@
+---
+title: RoutingError
+description: Error class thrown by notFound, unauthorized, forbidden, and httpError.
+---
+
+The error class thrown by `notFound()`, `unauthorized()`, `forbidden()`, and `httpError()`. Check for it in `+error.tsx` to distinguish routing errors from GraphQL errors.
+
+```ts
+class RoutingError extends Error {
+  status: number
+}
+```
+
+```tsx
+import { RoutingError } from '$houdini'
+import type { ErrorProps } from './$types'
+
+export default function PageError({ errors }: ErrorProps) {
+  const routing = errors.find((e) => e instanceof RoutingError) as RoutingError | undefined
+  if (routing?.status === 404) return <p>Not found.</p>
+  if (routing?.status === 401) return <p>Please log in.</p>
+  return <p>Something went wrong.</p>
+}
+```

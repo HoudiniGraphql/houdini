@@ -63,6 +63,57 @@ func ValidateConflictingPrependAppend(
 	}
 }
 
+func ValidateIncludeListID(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// @includeListID is only valid on fields that also carry @list or @paginate
+	query := `
+	SELECT
+	  raw_documents.filepath,
+	  raw_documents.offset_line,
+	  raw_documents.offset_column,
+	  sd.row AS line,
+	  sd.column,
+	  documents.name AS documentName
+	FROM selection_directives sd
+	  JOIN selection_refs ON selection_refs.child_id = sd.selection_id
+	  JOIN documents ON documents.id = selection_refs.document
+	  JOIN raw_documents ON raw_documents.id = documents.raw_document
+	  LEFT JOIN selection_directives sd2
+	    ON sd2.selection_id = sd.selection_id
+	    AND sd2.directive IN ($list, $paginate)
+	WHERE sd.directive = $includeListID
+	  AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	  AND sd2.selection_id IS NULL
+	`
+	bindings := map[string]any{
+		"includeListID": graphql.IncludeListIDDirective,
+		"list":          graphql.ListDirective,
+		"paginate":      graphql.PaginationDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		filepath := stmt.ColumnText(0)
+		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+		documentName := stmt.ColumnText(5)
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"@includeListID can only be used on fields that also have @list or @paginate in document %q",
+				documentName,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: line, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidateConflictingParentIDAllLists(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -385,7 +436,7 @@ func ValidateParentID(
 
 		-- Define a table of acceptable suffixes
 		suffixes(sfx) AS (
-			VALUES ($insert_prefix), ($toggle_prefix), ($remove_prefix)
+			VALUES ($insert_prefix), ($toggle_prefix), ($remove_prefix), ($upsert_prefix), ($update_prefix)
 		),
 
 		-- precompute the list of operation names that could refer to a constrainted list
@@ -419,6 +470,8 @@ func ValidateParentID(
 		"insert_prefix":      graphql.ListOperationSuffixInsert,
 		"toggle_prefix":      graphql.ListOperationSuffixToggle,
 		"remove_prefix":      graphql.ListOperationSuffixRemove,
+		"upsert_prefix":      graphql.ListOperationSuffixUpsert,
+		"update_prefix":      graphql.ListOperationSuffixUpdate,
 		"parentID_directive": graphql.ParentIDDirective,
 		"allLists_directive": graphql.AllListsDirective,
 	}
@@ -869,7 +922,7 @@ func validateFragmentSpreads(
 	// we need a query that looks for references to fragments in selection that don't exist in the database
 	query := `
 		WITH suffixes(sfx) AS (
-			VALUES ($insert_prefix), ($remove_prefix), ($toggle_prefix)
+			VALUES ($insert_prefix), ($remove_prefix), ($toggle_prefix), ($upsert_prefix), ($update_prefix)
 		),
 		discovered_fragments AS (
 			SELECT
@@ -897,6 +950,8 @@ func validateFragmentSpreads(
 		"insert_prefix": graphql.ListOperationSuffixInsert,
 		"remove_prefix": graphql.ListOperationSuffixRemove,
 		"toggle_prefix": graphql.ListOperationSuffixToggle,
+		"upsert_prefix": graphql.ListOperationSuffixUpsert,
+		"update_prefix": graphql.ListOperationSuffixUpdate,
 	}
 
 	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {

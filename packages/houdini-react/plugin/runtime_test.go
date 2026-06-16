@@ -2,6 +2,7 @@ package plugin_test
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 
 	coreConfig "code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-react/plugin"
+	plugins "code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -158,9 +160,33 @@ func TestUpdateIndexFiles(t *testing.T) {
 func TestUpdateHookFiles(t *testing.T) {
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
-			type Query { id: ID }
+			type Query {
+				id: ID
+				node(id: ID!): Node
+			}
 			type Mutation { id: ID }
 			type Subscription { id: ID }
+
+			interface Node { id: ID! }
+			type User implements Node {
+				id: ID!
+				firstName: String!
+				friends(first: Int, after: String, last: Int, before: String): UserConnection!
+			}
+			type UserConnection {
+				pageInfo: PageInfo!
+				edges: [UserEdge!]!
+			}
+			type UserEdge {
+				cursor: String!
+				node: User!
+			}
+			type PageInfo {
+				hasNextPage: Boolean!
+				hasPreviousPage: Boolean!
+				startCursor: String
+				endCursor: String
+			}
 		`,
 
 		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
@@ -237,8 +263,8 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useMutation.ts": "import type { MyMutation$result, MyMutation$artifact, MyMutation$input, MyMutation$optimistic } from '$houdini/artifacts/MyMutation'\n" +
 							"\n" +
 							"import type { MutationArtifact } from 'houdini/runtime'\n\n" +
-							"export function useMutation(document: { artifact: MyMutation$artifact }): [boolean, MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>]\n" +
-							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]\n" +
+							"export function useMutation(document: { artifact: MyMutation$artifact }): [MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>, boolean]\n" +
+							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]\n" +
 							"export function useMutation<_A>(doc: any): any {}\n",
 					},
 				},
@@ -261,6 +287,49 @@ func TestUpdateHookFiles(t *testing.T) {
 							"export function useFragment(reference: { readonly \" $fragments\": { MyFragment: any } } | null, document: { artifact: MyFragment$artifact }): MyFragment$data | null\n" +
 							"export function useFragment<_Data extends GraphQLObject, _ReferenceType extends {}, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: FragmentArtifact }): _Data | null\n" +
 							"export function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
+				Name: "injects useFragmentHandle overloads for non-paginated fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyFragment on Query { id }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragmentHandle.ts": "import type { MyFragment$data, MyFragment$artifact, MyFragment$input } from '$houdini/artifacts/MyFragment'\n" +
+							"\n" +
+							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyFragment: any } }, document: { artifact: MyFragment$artifact }): DocumentHandle<QueryArtifact, MyFragment$data, GraphQLVariables>\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyFragment: any } } | null, document: { artifact: MyFragment$artifact }): DocumentHandle<QueryArtifact, MyFragment$data, GraphQLVariables>\n" +
+							"export function useFragmentHandle<_Artifact extends FragmentArtifact, _Data extends GraphQLObject, _ReferenceType extends {}, _PaginationArtifact extends QueryArtifact, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: _Artifact; refetchArtifact?: _PaginationArtifact }): DocumentHandle<_PaginationArtifact, _Data, _Input>\n" +
+							"export function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
+				Name: "injects useFragmentHandle overloads with pagination query artifact for paginated fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyPaginatedFragment on User { friends(first: 2) @paginate { edges { node { firstName } } } }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragmentHandle.ts": "import type { MyPaginatedFragment$data, MyPaginatedFragment$artifact, MyPaginatedFragment$input } from '$houdini/artifacts/MyPaginatedFragment'\n" +
+							"import type { MyPaginatedFragment_Pagination_Query$artifact } from '$houdini/artifacts/MyPaginatedFragment_Pagination_Query'\n" +
+							"\n" +
+							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyPaginatedFragment: any } }, document: { artifact: MyPaginatedFragment$artifact; refetchArtifact?: MyPaginatedFragment_Pagination_Query$artifact }): DocumentHandle<MyPaginatedFragment_Pagination_Query$artifact, MyPaginatedFragment$data, MyPaginatedFragment$input>\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyPaginatedFragment: any } } | null, document: { artifact: MyPaginatedFragment$artifact; refetchArtifact?: MyPaginatedFragment_Pagination_Query$artifact }): DocumentHandle<MyPaginatedFragment_Pagination_Query$artifact, MyPaginatedFragment$data, MyPaginatedFragment$input>\n" +
+							"export function useFragmentHandle<_Artifact extends FragmentArtifact, _Data extends GraphQLObject, _ReferenceType extends {}, _PaginationArtifact extends QueryArtifact, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: _Artifact; refetchArtifact?: _PaginationArtifact }): DocumentHandle<_PaginationArtifact, _Data, _Input>\n" +
+							"export function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
 					},
 				},
 			},
@@ -352,7 +421,7 @@ func TestAddGraphQLType(t *testing.T) {
 						},
 					},
 					// preamble (fragment imports) go BEFORE existing content, type appended at end
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -374,7 +443,7 @@ func TestAddGraphQLType(t *testing.T) {
 						{"filepath": "src/components/Avatar.tsx", "type": "User", "field": "Avatar", "prop": "user", "fragment": "UserAvatar", "content": "fragment UserAvatar on User { avatar }"},
 					},
 					"call_twice": true,
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -531,6 +600,19 @@ func TestGenerateRuntime(t *testing.T) {
 		SetupAlwaysPasses: true,
 
 		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			cfg, err := p.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
+			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
+
+			// GenerateTsConfig reads tsconfig.json from the plugin runtime dir (written
+			// there by IncludeRuntime in the real pipeline). Seed a minimal stub so the
+			// test doesn't fail on a missing file.
+			tsconfigStub, err := os.ReadFile("../runtime/tsconfig.json")
+			require.NoError(t, err)
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "tsconfig.json"), tsconfigStub, 0644))
+
 			views, ok := test.Extra["views"].(map[string]string)
 			if !ok {
 				return
@@ -573,7 +655,10 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -605,6 +690,7 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__subRoute__nested": {
 									id: "__subRoute__nested",
+									url: "/nested",
 									pattern: /^\/nested\/?$/,
 									params: [],
 									documents: {
@@ -622,7 +708,10 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__subRoute__nested"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -646,9 +735,10 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__id_": {
 									id: "__id_",
+									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false }
+										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
 									],
 									documents: {
 										MyQuery: {
@@ -660,7 +750,75 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__id_"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
+				Name: "+error.tsx emits error field in manifest",
+				Pass: true,
+				Input: []string{
+					mockQuery("PageQuery", false),
+				},
+				Filepaths: []string{
+					"src/routes/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx":  mockView([]string{"PageQuery"}),
+						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
+					},
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_": {
+									id: "_",
+									url: "/",
+									pattern: /^\/$/,
+									params: [],
+									documents: {
+										PageQuery: {
+											artifact: () => import("../../../artifacts/PageQuery"),
+											loading: false,
+											variables: {},
+										},
+									},
+									component: () => import("../units/entries/_"),
+								},
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
+				Name: "custom scalar emitted in RouteScalars",
+				Pass: true,
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					if cfg.Scalars == nil {
+						cfg.Scalars = make(map[string]plugins.ScalarConfig)
+					}
+					cfg.Scalars["DateTime"] = plugins.ScalarConfig{Type: "Date"}
+				},
+				Extra: map[string]any{
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+							DateTime: Date
+						}
 					`) + "\n",
 				},
 			},

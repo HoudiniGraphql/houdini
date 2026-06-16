@@ -31,7 +31,10 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 		})
 	}
 
-	// TODO: reject?
+	override clear() {
+		super.clear()
+		this.#callbacks.clear()
+	}
 
 	set(key: string, value: _Data) {
 		// perform the set like normal

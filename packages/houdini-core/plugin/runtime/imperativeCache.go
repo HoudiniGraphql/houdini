@@ -443,7 +443,7 @@ func generateCacheTypeDef(
 	content.WriteString("\t\t};\n")
 
 	// Generate lists section
-	listsSection, err := generateListsSection(ctx, db)
+	listsSection, err := generateListsSection(ctx, db, projectConfig)
 	if err != nil {
 		return "", err
 	}
@@ -768,6 +768,7 @@ func getFragmentsByType(
 func generateListsSection(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
+	projectConfig plugins.ProjectConfig,
 ) (string, error) {
 	var content strings.Builder
 
@@ -803,7 +804,7 @@ func generateListsSection(
 		}
 
 		// Generate filters from pre-loaded data
-		filters := generateListFiltersFromData(list.FilterArgs)
+		filters := generateListFiltersFromData(projectConfig, list.FilterArgs)
 		content.WriteString(fmt.Sprintf("\t\t\t\tfilters: %s;\n", filters))
 
 		content.WriteString("\t\t\t};\n")
@@ -832,10 +833,10 @@ func getDiscoveredListsWithFilters(
 
 	// First get the basic list info with possible types
 	err := db.StepQuery(ctx, `
-		SELECT DISTINCT dl.name, dl.list_field, dl.target_type,
-		       COALESCE(pt.member, dl.target_type) as possible_type
+		SELECT DISTINCT dl.name, dl.list_field, dl.node_type,
+		       COALESCE(pt.member, dl.node_type) as possible_type
 		FROM discovered_lists dl
-		LEFT JOIN possible_types pt ON dl.target_type = pt.type
+		LEFT JOIN possible_types pt ON dl.node_type = pt.type
 		WHERE dl.name IS NOT NULL
 		ORDER BY dl.name, possible_type
 	`, nil, func(stmt plugins.Row) {
@@ -862,11 +863,15 @@ func getDiscoveredListsWithFilters(
 		return nil, err
 	}
 
-	// Now get the field arguments for each list
+	// Now get the field arguments for each list. list_field points at the
+	// selection the @list was found on, so we have to go through selections
+	// to land on the schema field that defines the arguments
 	err = db.StepQuery(ctx, `
-		SELECT DISTINCT dl.name, tfa.name as arg_name, tfa.type, tfa.type_modifiers
+		SELECT DISTINCT dl.name, tfa.name as arg_name, tfa.type, tfa.type_modifiers, types.kind
 		FROM discovered_lists dl
-		JOIN type_field_arguments tfa ON dl.list_field = tfa.field
+		JOIN selections s ON dl.list_field = s.id
+		JOIN type_field_arguments tfa ON s.type = tfa.field
+		LEFT JOIN types ON tfa.type = types.name
 		WHERE dl.name IS NOT NULL
 		ORDER BY dl.name, tfa.name
 	`, nil, func(stmt plugins.Row) {
@@ -876,6 +881,7 @@ func getDiscoveredListsWithFilters(
 			arg := FieldArgument{
 				Name: stmt.ColumnText(1),
 				Type: stmt.ColumnText(2),
+				Kind: stmt.ColumnText(4),
 			}
 			if stmt.ColumnType(3) == plugins.ColumnKindText {
 				arg.TypeModifiers = stmt.ColumnText(3)
@@ -888,20 +894,23 @@ func getDiscoveredListsWithFilters(
 	return listsWithFilters, err
 }
 
-func generateListFiltersFromData(args []FieldArgument) string {
+func generateListFiltersFromData(projectConfig plugins.ProjectConfig, args []FieldArgument) string {
 	if len(args) == 0 {
 		return "never"
 	}
 
 	var argStrings []string
 	for _, arg := range args {
-		// Convert to TypeScript type using the exported function
-		baseType := typescript.ConvertScalarType(plugins.ProjectConfig{}, arg.Type, false)
-		tsType := typescript.ApplyTypeModifiers(
-			baseType,
+		tsType, err := typescript.ConvertToTypeScriptType(
+			projectConfig,
+			arg.Kind,
+			arg.Type,
 			arg.TypeModifiers,
 			true,
-		) // Input type (filter argument)
+		)
+		if err != nil {
+			continue
+		}
 
 		// All filter arguments are optional
 		argStrings = append(argStrings, fmt.Sprintf("\n\t\t\t\t\t%s?: %s;", arg.Name, tsType))

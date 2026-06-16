@@ -15,11 +15,13 @@ export type { ServerAdapterFactory } from './server.js'
 
 export type RouterPageManifest<_ComponentType> = {
 	id: string
+	// the navigable url for this page (route groups stripped), e.g. "/users/[id]"
+	url: string
 
 	// the url pattern to match against. created from './match/parse_page_pattern'
 	pattern: RegExp
 	// the params used to execute the pattern and extract the variables
-	params: RouteParam[]
+	params: readonly RouteParam[]
 
 	// loaders for the information that we need to render a page
 	// and its loading state

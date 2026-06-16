@@ -31,8 +31,12 @@ When making changes, update the relevant doc pages alongside the code. This incl
 - Changed behavior or API shape → update any pages that describe it
 - New adapters or plugins → add an entry to the relevant reference page
 
+**Mandatory check**: before finishing any code task, run `grep -rn <changed symbol> /docs` to find pages that reference it and verify they reflect the change. Do not skip this step.
+
+**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`.
+
 The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
 
-## Tutorial sync
+## Changesets
 
-Fixes to tutorial shim/Go files must also update the houdini source templates: `shim.cjs`, `postInstall.js`, `db_ncruces.go`. No automated check enforces this.
+Every non-documentation change needs a changeset. Doc-only changes do not need one. Each branch should have exactly one changeset. Keep the description to one or two sentences — no bullet lists.

@@ -1,0 +1,6 @@
+query UpdateFragmentTest {
+	usersList(snapshot: "UpdateFragmentTest", limit: 1) @list(name: "UpdateFragmentTest") {
+		id
+		name
+	}
+}

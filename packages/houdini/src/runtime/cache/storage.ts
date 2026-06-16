@@ -11,6 +11,8 @@ export class InMemoryStorage {
 	private idCount = 1
 	private rank = 0
 	idMaps: Record<string, string> = {}
+	// fast lookup: record id → __typename, maintained alongside normal field writes
+	typenames: Map<string, string> = new Map()
 
 	constructor() {
 		this.data = []
@@ -58,6 +60,23 @@ export class InMemoryStorage {
 		return this.topLayer.deleteField(id, field)
 	}
 
+	// embedded records are only ever referenced by the field that wrote them so once
+	// that reference is gone the data can be physically removed. any embedded
+	// descendants are left for the garbage collector
+	removeEmbeddedRecord(id: string) {
+		for (const layer of this.data) {
+			// optimistic layers hold their own copy of the data and get rolled back
+			// or merged wholesale so we leave them alone
+			if (layer.optimistic) {
+				continue
+			}
+
+			delete layer.fields[id]
+			delete layer.links[id]
+		}
+		this.typenames.delete(id)
+	}
+
 	getLayer(id: number): Layer {
 		for (const layer of this.data) {
 			if (layer.id === id) {
@@ -73,6 +92,8 @@ export class InMemoryStorage {
 		for (const layer of this.data) {
 			layer.replaceID(replacement)
 		}
+		const typename = this.typenames.get(replacement.from)
+		if (typename) this.typenames.set(replacement.to, typename)
 	}
 	get(
 		targetID: string,
@@ -83,21 +104,17 @@ export class InMemoryStorage {
 		kind: 'link' | 'scalar' | 'unknown'
 		displayLayers: number[]
 	} {
-		// the list of operations for the field
-		const operations = {
-			[OperationKind.insert]: {
-				[OperationLocation.start]: [] as string[],
-				[OperationLocation.end]: [] as string[],
-			},
-			[OperationKind.remove]: new Set<string>(),
-		}
+		// Lazy accumulators — only allocated when we actually encounter list
+		// operations. Scalar reads (the common case) never touch these.
+		let insertStart: string[] | undefined
+		let insertEnd: string[] | undefined
+		let removeSet: Set<string> | undefined
+		let layerIDs: number[] | undefined
 
-		// the list of layers we used to build up the value
-		const layerIDs: number[] = []
-
-		// the record might be known by multiple ids and we  need to look at every layer
+		// the record might be known by multiple ids and we need to look at every layer
 		// in the correct order
-		const recordIDs = [this.idMaps[targetID], targetID].filter(Boolean) as string[]
+		const mappedID = this.idMaps[targetID]
+		const recordIDs = mappedID ? [mappedID, targetID] : [targetID]
 
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
@@ -106,17 +123,20 @@ export class InMemoryStorage {
 				const layer = this.data[i]
 				let [layerValue, kind] = layer.get(id, field)
 
-				const layerOperations = layer.getOperations(id, field) || []
-				layer.deletedIDs.forEach((v) => {
-					// if the layer wants to undo a delete for the id
-					if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
-						return
-					}
-					operations.remove.add(v)
-					if (this.idMaps[v]) {
-						operations.remove.add(this.idMaps[v])
-					}
-				})
+				const layerOperations = layer.getOperations(id, field)
+				if (layer.deletedIDs.size > 0) {
+					layer.deletedIDs.forEach((v) => {
+						// if the layer wants to undo a delete for the id
+						if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
+							return
+						}
+						if (!removeSet) removeSet = new Set()
+						removeSet.add(v)
+						if (this.idMaps[v]) {
+							removeSet.add(this.idMaps[v])
+						}
+					})
+				}
 
 				// if we don't have a value to return, we're done
 				if (typeof layerValue === 'undefined' && defaultValue) {
@@ -126,8 +146,9 @@ export class InMemoryStorage {
 				}
 
 				// if the layer does not contain a value for the field, move on
-				if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
+				if (typeof layerValue === 'undefined' && !layerOperations?.length) {
 					if (layer.deletedIDs.size > 0) {
+						if (!layerIDs) layerIDs = []
 						layerIDs.push(layer.id)
 					}
 					continue
@@ -144,23 +165,26 @@ export class InMemoryStorage {
 				}
 
 				// if the layer contains operations or values add it to the list of relevant layers
-				// add the layer to the list
+				if (!layerIDs) layerIDs = []
 				layerIDs.push(layer.id)
 
 				// if we have an operation
-				if (layerOperations.length > 0) {
+				if (layerOperations?.length) {
 					// process every operation
 					for (const op of layerOperations) {
 						// remove operation
 						if (isRemoveOperation(op)) {
-							operations.remove.add(op.id)
+							if (!removeSet) removeSet = new Set()
+							removeSet.add(op.id)
 						}
 						// inserts are sorted by location
 						if (isInsertOperation(op)) {
 							if (op.location === OperationLocation.end) {
-								operations.insert[op.location].unshift(op.id)
+								if (!insertEnd) insertEnd = []
+								insertEnd.unshift(op.id)
 							} else {
-								operations.insert[op.location].push(op.id)
+								if (!insertStart) insertStart = []
+								insertStart.push(op.id)
 							}
 						}
 						// if we found a delete operation, we're done
@@ -180,21 +204,15 @@ export class InMemoryStorage {
 				}
 
 				// if there are no operations, move along
-				if (
-					!operations.remove.size &&
-					!operations.insert.start.length &&
-					!operations.insert.end.length
-				) {
+				if (!removeSet?.size && !insertStart?.length && !insertEnd?.length) {
 					return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
 				}
 
 				// we have operations to apply to the list
 				return {
-					value: [
-						...operations.insert.start,
-						...layerValue,
-						...operations.insert.end,
-					].filter((value) => !operations.remove.has(value as string)),
+					value: [...(insertStart ?? []), ...layerValue, ...(insertEnd ?? [])].filter(
+						(value) => !removeSet?.has(value as string)
+					),
 					displayLayers: layerIDs,
 					kind,
 				}
@@ -333,8 +351,19 @@ export class InMemoryStorage {
 		layer.links = links
 	}
 
+	// fast typename lookup with lazy-populate fallback for records written via hydrate()
+	getTypename(id: string): string | undefined {
+		let typename = this.typenames.get(id)
+		if (typename === undefined) {
+			typename = this.get(id, '__typename').value as string | undefined
+			if (typename !== undefined) this.typenames.set(id, typename)
+		}
+		return typename
+	}
+
 	reset() {
 		this.data = []
+		this.typenames.clear()
 	}
 }
 
@@ -363,26 +392,18 @@ export class Layer {
 	}
 
 	getOperations(id: string, field: string): Operation[] | undefined {
-		// if the id has been deleted
-		if (this.operations[id]?.deleted) {
-			return [
-				{
-					kind: OperationKind.delete,
-					target: id,
-				},
-			]
-		}
-
-		// there could be a mutation for the specific field
-		if (this.operations[id]?.fields?.[field]) {
-			return this.operations[id].fields[field]
-		}
+		const ops = this.operations[id]
+		if (!ops) return undefined
+		if (ops.deleted) return [{ kind: OperationKind.delete, target: id }]
+		return ops.fields?.[field]
 	}
 
 	writeField(id: string, field: string, value: GraphQLField): LayerID {
-		this.fields[id] = {
-			...this.fields[id],
-			[field]: value,
+		const record = this.fields[id]
+		if (record) {
+			record[field] = value
+		} else {
+			this.fields[id] = { [field]: value }
 		}
 
 		return this.id
@@ -415,20 +436,26 @@ export class Layer {
 			}
 		}
 
-		this.links[id] = {
-			...this.links[id],
-			[field]: value,
+		const linkRecord = this.links[id]
+		if (linkRecord) {
+			linkRecord[field] = value
+		} else {
+			this.links[id] = { [field]: value }
 		}
 
 		return this.id
 	}
 
 	isDisplayLayer(displayLayers: number[]) {
-		return (
-			displayLayers.length === 0 ||
-			displayLayers.includes(this.id) ||
-			Math.max(...displayLayers) < this.id
-		)
+		const n = displayLayers.length
+		if (n === 0) return true
+		let max = 0
+		for (let i = 0; i < n; i++) {
+			const d = displayLayers[i]
+			if (d === this.id) return true
+			if (d > max) max = d
+		}
+		return max < this.id
 	}
 
 	clear() {
@@ -531,6 +558,60 @@ export class Layer {
 				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
 					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
 				}
+			}
+
+			// Each mutation writes to an optimistic layer that gets resolved (merged) into
+			// the base layer here. If a toggle fires twice — insert in M1, remove in M2 —
+			// both operations end up in the base after their layers resolve. A third mutation
+			// (insert again) would then be cancelled by the stale remove from M2, so the
+			// list appears stuck. We fix this by compacting the merged operation list:
+			// for each ID, compute the net count (inserts minus removes) and keep only that
+			// many operations, favouring the newest ones (layer's ops come first in the array).
+			for (const [fieldName, ops] of Object.entries(fields)) {
+				// count how many times each ID is inserted and removed across both layers
+				const insertCount = new Map<string, number>()
+				const removeCount = new Map<string, number>()
+				for (const op of ops) {
+					if (isInsertOperation(op))
+						insertCount.set(op.id, (insertCount.get(op.id) ?? 0) + 1)
+					else if (isRemoveOperation(op))
+						removeCount.set(op.id, (removeCount.get(op.id) ?? 0) + 1)
+				}
+
+				// net > 0 means the ID should end up inserted that many more times than removed,
+				// net < 0 means it should end up removed that many more times than inserted,
+				// net = 0 means the operations cancel completely and nothing should be stored
+				const net = new Map<string, number>()
+				for (const [id, n] of insertCount) net.set(id, n)
+				for (const [id, n] of removeCount) net.set(id, (net.get(id) ?? 0) - n)
+
+				// walk the ops array (newest first) and keep only as many inserts/removes
+				// as the net dictates, discarding the excess older ones
+				const keptInserts = new Map<string, number>()
+				const keptRemoves = new Map<string, number>()
+				fields[fieldName] = ops.filter((op) => {
+					if (isInsertOperation(op)) {
+						const n = net.get(op.id) ?? 0
+						// net is zero or negative — no inserts survive
+						if (n <= 0) return false
+						const kept = keptInserts.get(op.id) ?? 0
+						// already kept enough newer inserts
+						if (kept >= n) return false
+						keptInserts.set(op.id, kept + 1)
+						return true
+					}
+					if (isRemoveOperation(op)) {
+						const n = net.get(op.id) ?? 0
+						// net is zero or positive — no removes survive
+						if (n >= 0) return false
+						const kept = keptRemoves.get(op.id) ?? 0
+						// already kept enough newer removes
+						if (kept >= -n) return false
+						keptRemoves.set(op.id, kept + 1)
+						return true
+					}
+					return true
+				})
 			}
 
 			// only copy a field key if there is something

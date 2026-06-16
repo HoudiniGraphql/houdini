@@ -18,15 +18,17 @@ export function useDocumentSubscription<
 	artifact,
 	variables,
 	send,
+	initialState,
 	disabled,
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data, _Input> & {
 	variables: _Input
 	disabled?: boolean
-	send?: Partial<SendParams>
+	send?: Partial<Omit<SendParams, 'initialState'>>
 }): [QueryResult<_Data, _Input> & { parent?: string | null }, DocumentStore<_Data, _Input>] {
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
+		initialState,
 		...observeParams,
 	})
 
@@ -42,6 +44,7 @@ export function useDocumentSubscription<
 				// TODO: metadata
 				metadata: {},
 				...send,
+				initialState,
 			})
 		}
 

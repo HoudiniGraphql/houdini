@@ -1,0 +1,38 @@
+---
+title: useFragment
+description: Read a fragment reference into typed, reactive data.
+---
+
+import Notice from '@components/docs/Notice.astro'
+
+Reads a fragment reference into typed data. The component re-renders whenever the underlying cache record changes.
+
+```tsx
+import { graphql, useFragment } from '$houdini'
+import type { UserAvatar_user } from '$houdini'
+
+export function UserAvatar({ user }: { user: UserAvatar_user }) {
+  const data = useFragment(user, graphql(`
+    fragment UserAvatar_user on User {
+      name
+      avatarUrl
+    }
+  `))
+
+  if (!data) return null
+  return <img src={data.avatarUrl} alt={data.name} />
+}
+```
+
+**Signature**
+
+```ts
+function useFragment(reference, document): data | null
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `reference` | fragment prop | The masked reference passed from the parent |
+| `document` | `graphql()` result | The fragment document |
+
+Returns the fragment data, or `null` if the reference is null.

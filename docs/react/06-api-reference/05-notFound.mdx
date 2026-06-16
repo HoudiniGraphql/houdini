@@ -1,0 +1,16 @@
+---
+title: notFound
+description: Throw a 404 RoutingError from a route loader or component.
+---
+
+Throws a `RoutingError(404)`, caught by the nearest `+error.tsx`. On an initial SSR response, Houdini returns HTTP 404 before streaming begins.
+
+```ts
+function notFound(): never
+```
+
+```tsx
+import { notFound } from '$houdini'
+
+if (!data.show) notFound()
+```

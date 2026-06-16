@@ -1,6 +1,6 @@
 import type { RuntimeScalarPayload } from 'houdini'
 import type { Cache } from 'houdini/runtime/cache'
-import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
+import { type SubscriptionSpec, ArtifactKind, CachePolicy, DataSource } from 'houdini/runtime/types'
 
 import { documentPlugin } from './utils/index.js'
 
@@ -11,6 +11,11 @@ export const query = (cache: Cache) =>
 
 		// remember the last variables we were called with
 		let lastVariables: Record<string, any> | null = null
+
+		// track the most recent session so that refetch requests triggered by
+		// record.refresh() use the current auth token, not the one from when the
+		// subscription was first created
+		let lastSession: App.Session | null | undefined = null
 
 		// the function to call when a query is sent
 		return {
@@ -46,6 +51,10 @@ export const query = (cache: Cache) =>
 			// patch subscriptions on the way out so that we don't get a cache update
 			// before the promise resolves
 			end(ctx, { resolve, marshalVariables, variablesChanged }) {
+				// always keep the session current so that a later record.refresh() call
+				// uses the auth token from the most recent send(), not from subscription time
+				lastSession = ctx.session
+
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
 					// if the variables changed we need to unsubscribe from the old fields and
@@ -63,9 +72,20 @@ export const query = (cache: Cache) =>
 						rootType: ctx.artifact.rootType,
 						selection: ctx.artifact.selection,
 						variables: () => variables,
-						set: (newValue) => {
+						onMessage: (message) => {
+							// if the cache asked us to refetch, kick off a brand new request
+							// through the full pipeline so the document reloads from the API
+							if (message.kind === 'refetch') {
+								ctx.documentStore.send({
+									policy: CachePolicy.NetworkOnly,
+									session: lastSession,
+									metadata: ctx.metadata,
+								})
+								return
+							}
+
 							resolve(ctx, {
-								data: newValue,
+								data: message.data,
 								errors: null,
 								fetching: false,
 								partial: false,

@@ -9,6 +9,7 @@ import * as React from 'react'
 
 import { useClient } from '../routing/index.js'
 import { useIsMountedRef } from './useIsMounted.js'
+import { recycleNodesInto } from './recycleNodesInto.js'
 
 export type UseDocumentStoreParams<
 	_Artifact extends DocumentArtifact,
@@ -17,6 +18,10 @@ export type UseDocumentStoreParams<
 > = {
 	artifact: _Artifact
 	observer?: DocumentStore<_Data, _Input>
+	// Optional synchronous seed for box.current. When provided, box.current is updated
+	// during render so useSyncExternalStore's snapshot is immediately correct (e.g. on
+	// fragment parent change). Must be memoized by the caller — tracked by reference.
+	initialState?: QueryResult<_Data, _Input>
 } & Partial<ObserveParams<_Data, DocumentArtifact, _Input>>
 
 export function useDocumentStore<
@@ -26,6 +31,7 @@ export function useDocumentStore<
 >({
 	artifact,
 	observer: obs,
+	initialState,
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data, _Input>): [
 	QueryResult<_Data, _Input>,
@@ -52,11 +58,41 @@ export function useDocumentStore<
 		setObserver(obs)
 	}
 
+	// Relay-style synchronous seeding: when initialState changes (i.e., the fragment
+	// parent changed), update box.current immediately during this render so
+	// useSyncExternalStore's getSnapshot returns the correct data without waiting for
+	// the subscription effect to fire. Tracked by reference — if provided, callers
+	// must memoize initialState to avoid spurious reseeds on every render.
+	const prevInitialStateRef = React.useRef<QueryResult<_Data, _Input> | undefined>(undefined)
+	if (initialState !== undefined && initialState !== prevInitialStateRef.current) {
+		prevInitialStateRef.current = initialState
+		box.current = initialState
+	}
+
 	// the function that registers a new subscription for the observer
 	const subscribe: any = React.useCallback(
 		(fn: () => void) => {
 			return observer.subscribe((val) => {
-				box.current = val
+				const prev = box.current
+				// Preserve object identity for unchanged subtrees so React.memo on
+				// fragment components can bail out when their data wasn't touched.
+				const stableData = recycleNodesInto(prev?.data, val.data)
+				const next = stableData === val.data ? val : { ...val, data: stableData }
+
+				// Skip the re-render entirely if the new state is semantically identical
+				// to what React already has (e.g. an idempotent cache write).
+				if (
+					next === prev ||
+					(stableData === prev?.data &&
+						val.fetching === prev?.fetching &&
+						val.errors === prev?.errors &&
+						val.source === prev?.source &&
+						val.stale === prev?.stale)
+				) {
+					return
+				}
+
+				box.current = next
 				if (isMountedRef.current) {
 					fn()
 				}

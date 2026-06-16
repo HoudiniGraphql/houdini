@@ -11,8 +11,10 @@ export const routes = {
 	abstractFragments: '/abstract-fragments',
 	abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
 	fragment_masking_partial: '/fragment-masking-partial',
+	conditional_fragment_spread: '/conditional-fragment-spread',
 	loading_state: '/loading-state',
 	required_field: '/required-field',
+	Cache_Refresh: '/cache/refresh',
 
 	Lists_fragment: '/lists/fragment',
 	Lists_mutation_insert: '/lists/mutation-insert',
@@ -67,6 +69,7 @@ export const routes = {
 	Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
 	Pagination_fragment_offset: '/pagination/fragment/offset',
 	Pagination_fragment_required_arguments: '/pagination/fragment/required-arguments',
+	Pagination_fragment_forward_cursor_singlepage: '/pagination/fragment/forward-cursor-singlepage',
 
 	nested_argument_fragments: '/nested-argument-fragments',
 	nested_argument_fragments_masking: '/nested-argument-fragments-masking',
@@ -78,6 +81,8 @@ export const routes = {
 
 	Stores_Layouts: '/layouts',
 	Stores_Layouts_page2: '/layouts/page2',
+
+	Bug_RefetchCacheLinksLeak: '/bug/refetch-cache-links-leak',
 
 	Svelte5_Runes_Simple_SSR: '/svelte5-runes/simple-ssr',
 	Svelte5_Runes_Pagination: '/svelte5-runes/pagination',

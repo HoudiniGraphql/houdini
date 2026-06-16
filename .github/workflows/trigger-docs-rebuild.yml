@@ -2,7 +2,7 @@ name: Trigger docs rebuild
 
 on:
   push:
-    branches: [houdini-2.0]
+    branches: [main]
     tags:
       - 'svelte-v*'
       - 'react-v*'

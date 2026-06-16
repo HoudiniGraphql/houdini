@@ -3,6 +3,8 @@ title: Codegen Plugins (Node)
 description: Writing Houdini codegen plugins in Node.js
 ---
 
+import ViteSubmodule from '@shared/_partials/plugin-vite-submodule.mdx'
+
 Node plugins let you hook into Houdini's codegen pipeline from JavaScript or TypeScript. They follow the same lifecycle as [Go plugins](~/extending-houdini/codegen-plugins-golang) but are written as plain Node.js scripts and distributed as normal npm packages.
 
 ## Defining a Plugin
@@ -139,6 +141,7 @@ async validate(ctx, payload) {
 The plugin config accepts a few additional fields for plugins that need to ship runtime code:
 
 - `includeRuntime` — a path (relative to your plugin entry point) to a directory that Houdini will copy into the project's generated runtime
+- `staticRuntime` — a path (relative to your plugin entry point) to a directory whose contents are copied **before codegen runs** (see below)
 - `configModule` — a path to a JavaScript module that exports config values to merge into the project config
 - `clientPlugins` — an object of client-side plugins to inject into the user's `HoudiniClient`
 
@@ -153,3 +156,32 @@ plugin({
 	hooks: { /* ... */ },
 })
 ```
+
+## Static Runtimes
+
+`staticRuntime` points to a directory (relative to your plugin entry point) whose contents are copied into the project during the `afterLoad` phase — before document discovery and codegen run.
+
+```typescript
+plugin({
+	name: 'my-plugin',
+	order: 'after',
+	staticRuntime: './static',
+	hooks: { /* ... */ },
+})
+```
+
+Because the copy happens before document discovery, any `.graphql` files in that directory are treated as project documents. That makes `staticRuntime` the right place to ship GraphQL fragments or queries that users can reference directly in their own operations:
+
+```graphql title="static/UserFields.graphql"
+fragment UserFields on User {
+	id
+	name
+	email
+}
+```
+
+A user can then spread `...UserFields` in their own queries without defining the fragment themselves. The plugin owns the definition; the project just consumes it.
+
+The main distinction from `includeRuntime` is timing: `includeRuntime` is copied during the `generateRuntime` phase (after documents are already collected), so its `.graphql` files arrive too late to be discovered. Use `staticRuntime` whenever the content needs to participate in the document graph, and `includeRuntime` for TypeScript runtime code that doesn't.
+
+<ViteSubmodule />

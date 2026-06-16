@@ -25,7 +25,6 @@ func GenerateRuntimeIndexFile(
 	// we are going to populate the runtime index
 	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
-	_ = fs.Remove(indexPath)
 
 	definitionsRelative, err := filepath.Rel(config.RuntimeDir, config.DefinitionsDirectory())
 	if err != nil {
@@ -43,11 +42,11 @@ func GenerateRuntimeIndexFile(
 	defer db.Put(conn)
 
 	documentSearch, err := conn.Prepare(`
-		SELECT 
-			name 
-		FROM documents 
+		SELECT
+			name
+		FROM documents
 		JOIN raw_documents ON documents.raw_document = raw_documents.id
-		WHERE printed IS NOT NULL and internal = 0 
+		WHERE internal = 0
 		ORDER BY name ASC
 	`)
 	if err != nil {
@@ -107,7 +106,7 @@ export * from './%s'
 	)
 
 	// if we got this far then we need to update the file
-	err = afero.WriteFile(fs, indexPath, []byte(indexContent), 0644)
+	err = plugins.WriteFile(fs, indexPath, []byte(indexContent), 0644)
 	if err != nil {
 		return err
 	}

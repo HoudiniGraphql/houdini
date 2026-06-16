@@ -5,12 +5,11 @@ name: Release
 on:
     push:
         branches:
-            - houdini-2.0
-            - go
             - main
 
 env:
     CI: true
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
     publish:
         name: Publish Release Version

@@ -225,7 +225,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -365,13 +364,11 @@ fragment All_Users_insert_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -436,6 +433,166 @@ export type A$optimistic = {
 export type A$artifact = typeof artifact
 
 "HoudiniHash=5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370"`),
+				},
+			},
+			{
+				Name: "Insert operations with variable condition",
+				Pass: true,
+				Input: []string{
+					`mutation B($name: String!) {
+              addFriend {
+                friend {
+                  ...All_Users_insert @when(stringValue: $name)
+                }
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"B": tests.Dedent(`const artifact = {
+    "name": "B",
+    "kind": "HoudiniMutation",
+    "hash": "680082591789d4a74f7136909b1e6349e6561f44b777de23138d5dda947e4150",
+    "raw": ` + "`" + `fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+
+mutation B {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": ["name"] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
+
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
+
+                                "when": {
+                                    "must": {
+                                        "stringValue": {
+                                            "kind": "Variable",
+                                            "value": "name"
+                                        },
+                                    },
+                                },
+                            }],
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
+
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
+
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type B = {
+	readonly "input": B$input;
+	readonly "result": B$result;
+};
+
+export type B$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type B$input = {
+	name: string;
+};
+
+export type B$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly firstName?: string;
+		};
+	};
+};
+
+export type B$artifact = typeof artifact
+
+"HoudiniHash=680082591789d4a74f7136909b1e6349e6561f44b777de23138d5dda947e4150"`),
 				},
 			},
 			{
@@ -505,7 +662,10 @@ fragment All_Users_insert on User {
 
                                 "when": {
                                     "must": {
-                                        "stringValue": "foo",
+                                        "stringValue": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                 },
                             }],
@@ -520,7 +680,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -648,7 +807,10 @@ fragment All_Users_insert on User {
 
                                 "when": {
                                     "must_not": {
-                                        "stringValue": "foo",
+                                        "stringValue": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                 },
                             }],
@@ -663,7 +825,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -791,10 +952,16 @@ fragment All_Users_insert on User {
 
                                 "when": {
                                     "must": {
-                                        "stringValue": "foo",
+                                        "stringValue": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                     "must_not": {
-                                        "a": "foo",
+                                        "a": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                 },
                             }],
@@ -809,7 +976,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -950,13 +1116,11 @@ fragment All_Users_insert_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1212,7 +1376,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1478,7 +1641,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1619,13 +1781,11 @@ fragment All_Users_toggle_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1772,7 +1932,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1912,7 +2071,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -2267,7 +2425,10 @@ export type A$artifact = typeof artifact
 
                                 "when": {
                                     "must": {
-                                        "stringValue": "foo",
+                                        "stringValue": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                 },
                             }],
@@ -2379,7 +2540,10 @@ export type A$artifact = typeof artifact
 
                                 "when": {
                                     "must_not": {
-                                        "stringValue": "foo",
+                                        "stringValue": {
+                                            "kind": "String",
+                                            "value": "foo"
+                                        },
                                     },
                                 },
                             }],
@@ -2503,7 +2667,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {

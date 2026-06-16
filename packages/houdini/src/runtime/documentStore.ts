@@ -140,6 +140,7 @@ export class DocumentStore<
 		stuff,
 		cacheParams,
 		setup = false,
+		initialState,
 		silenceEcho = false,
 		abortController = new AbortController(),
 	}: SendParams = {}) {
@@ -154,13 +155,14 @@ export class DocumentStore<
 			// just use an empty object
 			const dedupeKey = this.controllerKey(variables)
 
-			// if there is already a pending request
-			if (inflightRequests[dedupeKey]) {
+			// if there is already a live pending request
+			const existingRequest = inflightRequests[dedupeKey]
+			if (existingRequest && !existingRequest.controller.signal.aborted) {
 				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
-					inflightRequests[dedupeKey].controller.abort()
+					existingRequest.controller.abort()
 					// and register the new one
-					inflightRequests[dedupeKey].controller = abortController
+					existingRequest.controller = abortController
 				}
 				// otherwise we have to abort this one
 				else {
@@ -180,6 +182,7 @@ export class DocumentStore<
 		let context = new ClientPluginContextWrapper({
 			abortController,
 			config: this.#configFile,
+			documentStore: this,
 			name: this.artifact.name,
 			text: this.artifact.raw,
 			hash: this.artifact.hash,
@@ -211,6 +214,7 @@ export class DocumentStore<
 			// the initial state of the iterator
 			const state: IteratorState = {
 				setup,
+				initialState,
 				currentStep: 0,
 				index: 0,
 				silenceEcho,
@@ -233,14 +237,12 @@ export class DocumentStore<
 			this.#step('forward', state)
 		})
 
-		// fire off the chain
-		const response = await promise
-
-		// after the whole plugin chain, we need to clean up the in flight tracking
-		delete inflightRequests[this.controllerKey(variables)]
-
-		// we're done
-		return response
+		// fire off the chain — always clean up the inflight entry regardless of outcome
+		try {
+			return await promise
+		} finally {
+			delete inflightRequests[this.controllerKey(variables)]
+		}
 	}
 
 	async cleanup() {
@@ -456,7 +458,7 @@ export class DocumentStore<
 						currentStep: 0,
 						index: this.#plugins.length,
 					},
-					this.state
+					ctx.initialState ?? this.state
 				)
 				return
 			}
@@ -667,6 +669,7 @@ type IteratorState = {
 	context: ClientPluginContextWrapper
 	index: number
 	setup: boolean
+	initialState?: unknown
 	currentStep: number
 	silenceEcho: boolean
 	promise: {
@@ -696,6 +699,9 @@ export type ClientPluginContext = {
 	name: string
 	text: string
 	hash: string
+	// a reference to the document store driving the pipeline so that plugins
+	// can kick off a brand new request (eg when the cache asks for a refetch)
+	documentStore: DocumentStore<any, any>
 	artifact: DocumentArtifact
 	policy?: CachePolicies
 	fetch?: Fetch
@@ -764,6 +770,9 @@ export type SendParams = {
 	stuff?: Partial<App.Stuff>
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
+	// when setup:true, the backward pass normally uses this.state (which may carry stale data
+	// from a previous parent). Pass initialState to override it with the correct initial value.
+	initialState?: QueryResult
 	silenceEcho?: boolean
 	abortController?: AbortController
 }

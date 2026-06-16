@@ -1,0 +1,9 @@
+query BackwardsCursorSinglePagePaginationQuery {
+	usersConnectionBackwardOnly(last: 2, snapshot: "pagination-query-backwards-cursor-singlepage") @paginate(mode: SinglePage) {
+		edges {
+			node {
+				name
+			}
+		}
+	}
+}
