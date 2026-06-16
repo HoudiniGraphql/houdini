@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
 import { routes } from '~/utils/routes'
-import { goto } from '~/utils/testsHelper.js'
+import { goto, locator_click } from '~/utils/testsHelper.js'
 
 test('notFound() triggers the error boundary with 404 status', async ({ page }) => {
-	await goto(page, routes.routing_errors_not_found)
+	await goto(page, routes.routing_errors)
+	await locator_click(page, 'a[href="/routing-errors/not-found"]')
 	await expect(page.locator('#error-message')).toHaveText('routing-error: 404')
 })
 

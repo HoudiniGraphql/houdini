@@ -597,10 +597,19 @@ func TestGenerateErrorWrappers(t *testing.T) {
 						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
 					},
 					"expected": map[string]string{
-						"errors/_.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary } from '$houdini/plugins/houdini-react/runtime/routing'
+						"errors/_.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, useLocation } from '$houdini/plugins/houdini-react/runtime/routing'
+import { useEffect } from 'react'
 import Component__ from '../../../../../src/routes/+error'
 
+const ClientRedirect = ({ to }) => {
+	const { goto } = useLocation()
+	useEffect(() => { goto(to) }, [to])
+	return null
+}
+
 const ErrorView = ({ errors, children }) => {
+	const redirectErr = errors.find(e => e instanceof RedirectError)
+	if (redirectErr) return <ClientRedirect to={redirectErr.location} />
 	return (
 		<PageContextProvider keys={[]}>
 			<Component__ errors={errors}>
@@ -638,10 +647,19 @@ export default ({ children }) => (
 					},
 					// error wrapper at subRoute: layout queries are RootQuery + SubQuery
 					"expected": map[string]string{
-						"errors/_subRoute.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary } from '$houdini/plugins/houdini-react/runtime/routing'
+						"errors/_subRoute.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, useLocation } from '$houdini/plugins/houdini-react/runtime/routing'
+import { useEffect } from 'react'
 import Component__subRoute from '../../../../../src/routes/subRoute/+error'
 
+const ClientRedirect = ({ to }) => {
+	const { goto } = useLocation()
+	useEffect(() => { goto(to) }, [to])
+	return null
+}
+
 const ErrorView = ({ errors, children }) => {
+	const redirectErr = errors.find(e => e instanceof RedirectError)
+	if (redirectErr) return <ClientRedirect to={redirectErr.location} />
 	const [RootQuery$data, RootQuery$handle] = useQueryResult("RootQuery")
 	const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery")
 

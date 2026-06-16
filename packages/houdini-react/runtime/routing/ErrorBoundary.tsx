@@ -70,12 +70,6 @@ export function httpError(status: number): never {
 }
 
 export function redirect(status: 300 | 301 | 302 | 303 | 307 | 308, location: string): never {
-	// On the client, push history and dispatch popstate so the Router picks up
-	// the new URL after the current render is abandoned (via the throw below).
-	if (typeof window !== 'undefined') {
-		window.history.pushState({}, '', location)
-		setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate')), 0)
-	}
 	throw new RedirectError(status, location)
 }
 
@@ -143,10 +137,6 @@ export class HoudiniErrorBoundary extends React.Component<
 
 	render() {
 		if (this.state.hasError) {
-			// For redirect errors, render nothing while the navigation commits.
-			if (this.state.errors.some((e) => e instanceof RedirectError)) {
-				return null
-			}
 			const ErrorView = this.props.errorView
 			return <ErrorView errors={this.state.errors}>{this.props.children}</ErrorView>
 		}
