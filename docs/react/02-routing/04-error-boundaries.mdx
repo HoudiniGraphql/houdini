@@ -64,9 +64,9 @@ By default Houdini throws GraphQL response errors so they're catchable by the er
 
 Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) are different: Houdini streams the page shell to the browser immediately while queries are in flight. Components waiting on data are suspended and retried asynchronously once the response arrives. If a query returns an error during that retry, React is already mid-stream and cannot route the error to a class-based error boundary — the server returns a 500 and the browser shows a blank error page.
 
-Routing errors (`notFound()`, `redirect()`, etc.) are not affected because they throw synchronously before any suspension happens. Layout queries are also unaffected for the same reason.
+Routing errors (`notFound()`, `redirect()`, etc.) are not affected because they throw synchronously before any suspension happens.
 
-The recommended fix is to add a `@loading` directive to your page query. This tells Houdini to generate a Suspense boundary in the right place — between the error boundary and the suspended component — so that React can hand off errors correctly during SSR. It also gives the browser something to show while the query is in flight:
+The recommended fix is to add a `@loading` directive to your page query. This tells Houdini to generate a Suspense boundary in the right place — between the error boundary and the suspended component — so that React can hand off errors correctly during SSR. It also gives the browser something to show while the query is in flight. We can't exactly tell you where to put it in your app, that depends on how error-prone certain fields are in your API. But you should try to put some kind of loading state high up in your component tree so you load the minimal amount of information for a reasonable experience.
 
 ```graphql title="src/routes/dashboard/+page.gql"
 query DashboardQuery @loading {
