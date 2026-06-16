@@ -86,11 +86,9 @@ export function cursorHandlers<
 		// Get the Pagination Mode
 		const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
-		// Fragment pagination (targetType != 'Query') uses a stable ::paginated cache key
-		// shared by all pages, so CacheOrNetwork would return stale data on the second request.
-		// Always use NetworkOnly except for SinglePage query pagination (distinct keys per page).
-		const policy =
-			isSinglePage && targetType === 'Query' ? artifact.policy : CachePolicy.NetworkOnly
+		// SinglePage pagination uses per-cursor cache keys, so CacheOrNetwork naturally serves
+		// back-navigation from cache. Infinite mode appends pages, so always fetch fresh.
+		const policy = isSinglePage ? artifact.policy : CachePolicy.NetworkOnly
 
 		// send the query
 		return (isSinglePage ? parentFetch : parentFetchUpdate)(
@@ -153,6 +151,25 @@ export function cursorHandlers<
 				})
 			}
 
+			// Bidirectional SinglePage: if the user went backward and hasn't caught back up,
+			// re-issue the saved backward query (cache hit) instead of doing a fresh forward fetch.
+			if (isSinglePage && direction === 'both' && nextCursors.length > 0) {
+				const beforeCursor = nextCursors.pop()!
+				return loadPage({
+					pageSizeVar: 'last',
+					functionName: 'loadNextPage',
+					input: {
+						before: beforeCursor,
+						last: first ?? artifact.refetch!.pageSize,
+						first: null,
+						after: null,
+					} as unknown as _Input,
+					fetch,
+					metadata,
+					where: 'start',
+				})
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
@@ -168,8 +185,9 @@ export function cursorHandlers<
 				})
 			}
 
-			// Forward-only SinglePage: push current 'after' so we can navigate back later
-			if (isSinglePage && direction === 'forward') {
+			// SinglePage (forward or both): push the current 'after' cursor so
+			// loadPreviousPage can re-issue the same forward query (cache hit on back-nav).
+			if (isSinglePage && (direction === 'forward' || direction === 'both')) {
 				previousCursors.push((getVariables() as any)?.after ?? null)
 			}
 
@@ -205,19 +223,12 @@ export function cursorHandlers<
 			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 			const direction = artifact.refetch?.direction
 
-			// Forward-only SinglePage: use previousCursors stack to re-issue a forward query
-			if (isSinglePage && direction === 'forward') {
-				if (previousCursors.length === 0) {
-					return Promise.resolve({
-						data: getState(),
-						errors: null,
-						fetching: false,
-						partial: false,
-						stale: false,
-						source: DataSource.Cache,
-						variables: getVariables(),
-					})
-				}
+			// SinglePage (forward or both): use previousCursors stack to re-issue a forward query.
+			if (
+				isSinglePage &&
+				(direction === 'forward' || direction === 'both') &&
+				previousCursors.length > 0
+			) {
 				const afterCursor = previousCursors.pop()!
 				return loadPage({
 					pageSizeVar: 'first',
@@ -231,6 +242,17 @@ export function cursorHandlers<
 					fetch,
 					metadata,
 					where: 'end',
+				})
+			}
+			if (isSinglePage && direction === 'forward') {
+				return Promise.resolve({
+					data: getState(),
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: getVariables(),
 				})
 			}
 
@@ -250,9 +272,18 @@ export function cursorHandlers<
 				})
 			}
 
-			// Backward-only SinglePage: push current 'before' so we can navigate forward later
-			if (isSinglePage && direction === 'backward') {
-				nextCursors.push((getVariables() as any)?.before ?? null)
+			// Backward-only or bidirectional SinglePage going backward: push the current
+			// 'before' cursor so loadNextPage can re-issue the same backward query (cache hit).
+			// Skip if the current page was forward-loaded (has first/after set) — in that case
+			// loadNextPage's natural forward nav will reach the same cache key via endCursor.
+			const pVars = getVariables() as any
+			const isForwardPage = pVars?.first != null || pVars?.after != null
+			if (
+				isSinglePage &&
+				(direction === 'backward' || direction === 'both') &&
+				!isForwardPage
+			) {
+				nextCursors.push(pVars?.before ?? null)
 			}
 
 			// only specify the page count if we're given one

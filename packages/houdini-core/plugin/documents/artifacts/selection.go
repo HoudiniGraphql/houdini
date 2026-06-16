@@ -877,15 +877,13 @@ func stringifySelection(
 %s}`, resultBuilder.String(), indent)
 }
 
-func keyField(field *collected.Selection, paginatedMode *string, targetType string) string {
-	// Pagination args are stripped and ::paginated suffix applied when:
-	// - Infinite mode (accumulates pages under one key), or
-	// - SinglePage fragment pagination (TargetType != "Query"): fragment stores subscribe
-	//   to a cache key and need all pages to land on the same entry for replace to work.
-	// SinglePage query pagination keeps distinct keys per page; the query observer is
-	// updated directly so cache-key stability isn't required.
-	useStableKey := paginatedMode != nil && (*paginatedMode == graphql.PaginationModeInfinite ||
-		(*paginatedMode == graphql.PaginationModeSinglePage && targetType != "Query"))
+func keyField(field *collected.Selection, paginatedMode *string, _ string) string {
+	// Pagination args are stripped and ::paginated suffix applied only for Infinite mode,
+	// where all pages accumulate under one stable key.
+	// SinglePage pagination (both query and fragment) uses distinct per-cursor cache keys
+	// so the cache can serve back-navigation without a network request.
+	useStableKey := paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite
+	isSinglePage := paginatedMode != nil && *paginatedMode == graphql.PaginationModeSinglePage
 
 	if len(field.Arguments) == 0 {
 		paginationSuffix := ""
@@ -912,6 +910,42 @@ func keyField(field *collected.Selection, paginatedMode *string, targetType stri
 
 		a := *arg
 		args = append(args, &a)
+	}
+
+	// For SinglePage, the initial parent query and the pagination query must share the same
+	// cache key for the first page so backward navigation finds the cached data.
+	// The pagination query always includes all four cursor args; expand the parent query's
+	// key to match by adding any missing cursor args as null in canonical order
+	// (first, after, last, before) followed by the remaining user-defined args.
+	if isSinglePage {
+		cursorNames := []string{"first", "after", "last", "before"}
+		existing := map[string]*collected.Argument{}
+		for _, arg := range args {
+			existing[arg.Name] = arg
+		}
+
+		var ordered []*collected.Argument
+		for _, name := range cursorNames {
+			if arg, ok := existing[name]; ok {
+				ordered = append(ordered, arg)
+			} else {
+				// missing cursor arg — add it as null so the key matches the pagination query
+				ordered = append(ordered, &collected.Argument{Name: name, Value: nil})
+			}
+		}
+		for _, arg := range args {
+			isCursor := false
+			for _, name := range cursorNames {
+				if arg.Name == name {
+					isCursor = true
+					break
+				}
+			}
+			if !isCursor {
+				ordered = append(ordered, arg)
+			}
+		}
+		args = ordered
 	}
 
 	paginationSuffix := ""
