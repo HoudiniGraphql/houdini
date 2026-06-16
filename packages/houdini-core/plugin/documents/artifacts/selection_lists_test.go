@@ -806,7 +806,7 @@ export type TestQuery$artifact = typeof artifact
         "fields": {
             "usersByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "usersByCursor(first: $first, after: $after, last: $last, before: $before)",
+                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
 
                 "directives": [{
                     "name": "paginate",
