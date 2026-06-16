@@ -1,5 +1,4 @@
-// @ts-ignore
-/// <references types="houdini-react">
+/// <reference types="houdini-react" />
 import type { ConfigFile } from 'houdini'
 
 const config: ConfigFile = {
@@ -31,7 +30,7 @@ const config: ConfigFile = {
 
 	plugins: {
 		'houdini-react': {
-			devtools: true,
+			devtools: 'dev',
 		},
 		'./plugins/node-plugin.mjs': {},
 	},

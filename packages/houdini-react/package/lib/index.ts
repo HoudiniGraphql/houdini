@@ -7,8 +7,13 @@ declare module 'houdini' {
 
 export type HoudiniReactConfig = {
 	/**
-	 * Show the Houdini React devtools overlay in development.
-	 * @default false
+	 * Controls when the Houdini React devtools overlay is shown.
+	 *
+	 * - `dev`: show in development
+	 * - `production`: show in production
+	 * - `never`: never show
+	 *
+	 * @default 'dev'
 	 */
-	devtools?: boolean
+	devtools?: 'dev' | 'production' | 'never'
 }

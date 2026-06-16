@@ -15,7 +15,7 @@ const plugin: () => ClientPlugin = () => () => {
 				})
 			},
 		},
-		devtools(),
+		devtools,
 	]
 }
 

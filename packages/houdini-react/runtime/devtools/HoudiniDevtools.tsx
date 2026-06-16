@@ -18,14 +18,6 @@ export function HoudiniDevtools() {
 	const latest = snapshot.requests[0]
 	const selected = snapshot.requests.find((request) => request.id === selectedId) ?? latest
 
-	React.useEffect(() => {
-		if (!selected) {
-			return
-		}
-
-		console.log('[Houdini Devtools] selected request', selected)
-	}, [selected])
-
 	return (
 		<div className={`hdt ${open ? 'hdt--open' : 'hdt--closed'}`}>
 			{open ? (

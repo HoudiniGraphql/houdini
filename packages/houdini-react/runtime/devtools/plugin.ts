@@ -1,10 +1,11 @@
-import type { ClientPlugin } from '$houdini'
+import type { ConfigFile } from 'houdini'
+import type { ClientPlugin } from 'houdini/runtime/client'
 import type { DocumentArtifact } from 'houdini/runtime'
 import React from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 
 import { HoudiniDevtools } from './HoudiniDevtools'
-import styles from './styles.js'
+import styles from './styles.css?inline'
 import { addRequestEvent, createRequest, failRequest, succeedRequest } from './store'
 import type { RequestKind } from './type'
 
@@ -80,12 +81,32 @@ function normalizeError(error: unknown): Error {
 	return new Error(typeof error === 'string' ? error : JSON.stringify(error))
 }
 
-function enabled(ctx: { config: { plugins?: Record<string, { devtools?: boolean }> } }) {
-	return ctx.config.plugins?.['houdini-react']?.devtools === true
+type DevtoolsMode = 'dev' | 'production' | 'never'
+
+type HoudiniReactConfig = { devtools?: DevtoolsMode }
+
+function reactConfig(config: ConfigFile): HoudiniReactConfig | undefined {
+	return (config.plugins as { 'houdini-react'?: HoudiniReactConfig } | undefined)?.[
+		'houdini-react'
+	]
+}
+
+function enabled(ctx: { config: ConfigFile }) {
+	const mode = reactConfig(ctx.config)?.devtools ?? 'dev'
+
+	if (mode === 'never') {
+		return false
+	}
+
+	if (mode === 'production') {
+		return (import.meta as any).env?.PROD === true
+	}
+
+	return (import.meta as any).env?.DEV !== false
 }
 
 const devToolPlugin: ClientPlugin = () => {
-	if (typeof window === 'undefined' || (import.meta as any).env?.DEV === false) {
+	if (typeof window === 'undefined') {
 		return {}
 	}
 
