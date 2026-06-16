@@ -2,4 +2,4 @@
 "houdini-react": minor
 ---
 
-Add `redirect()`, `unauthorized()`, `forbidden()`, `httpError()`, `isRoutingError`, and `isApiError` to the routing error toolkit alongside `notFound()`.
+Add `+error.tsx` route-level error boundaries and a full routing error toolkit (`notFound()`, `redirect()`, `unauthorized()`, `forbidden()`, `httpError()`, `isRoutingError`, `isApiError`) for the React adapter.
