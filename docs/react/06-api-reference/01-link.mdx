@@ -1,0 +1,15 @@
+---
+title: Link
+description: Props reference for the Link component
+---
+
+See [Navigation](~/routing/navigation) for usage and examples.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `to` | `RouteHrefs \| ExternalHref` | The destination URL. Type-checked against your app's known routes. |
+| `params` | `object` | Route parameters for parameterized routes. Required when the route has required params. |
+| `disabled` | `boolean` | When `true`, the `href` attribute is omitted and the element is inert. |
+| `preload` | `boolean \| "data" \| "component" \| "page"` | Prefetch the destination on hover. |
+
+All other props are forwarded to the underlying `<a>` element.
