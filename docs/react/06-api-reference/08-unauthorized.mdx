@@ -1,0 +1,10 @@
+---
+title: unauthorized
+description: Throw a 401 RoutingError from a route loader or component.
+---
+
+Throws a `RoutingError(401)`, caught by the nearest `+error.tsx`. Signals that the user must authenticate to access the resource.
+
+```ts
+function unauthorized(): never
+```

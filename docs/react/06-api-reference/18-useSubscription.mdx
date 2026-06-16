@@ -1,0 +1,35 @@
+---
+title: useSubscription
+description: Subscribe to a live GraphQL subscription document.
+---
+
+Subscribes to a live subscription document and returns the latest data. The subscription starts when the component mounts and stops when it unmounts.
+
+```tsx
+import { graphql, useSubscription } from '$houdini'
+
+export function LiveScore({ matchId }: { matchId: string }) {
+  const data = useSubscription(
+    graphql(`
+      subscription MatchScore($matchId: ID!) {
+        matchScore(matchId: $matchId) {
+          home
+          away
+        }
+      }
+    `),
+    { matchId }
+  )
+
+  if (!data) return <span>Waiting...</span>
+  return <span>{data.matchScore.home} – {data.matchScore.away}</span>
+}
+```
+
+**Signature**
+
+```ts
+function useSubscription(document, variables): data | null
+```
+
+Returns the latest subscription payload, or `null` before the first message arrives.

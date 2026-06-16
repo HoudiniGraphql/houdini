@@ -1,0 +1,16 @@
+---
+title: redirect
+description: Trigger a navigation or HTTP redirect from a route loader or component.
+---
+
+Triggers a navigation to `url` with the given HTTP status code. On an initial SSR response where the redirect can be detected before streaming begins, Houdini returns an HTTP 3xx response. On the client, or when the redirect occurs mid-stream, it triggers a router navigation.
+
+```ts
+function redirect(status: 300 | 301 | 302 | 303 | 307 | 308, url: string): never
+```
+
+```tsx
+import { redirect } from '$houdini'
+
+if (!viewer) redirect(302, '/login')
+```

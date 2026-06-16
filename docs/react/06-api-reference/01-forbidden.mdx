@@ -1,0 +1,10 @@
+---
+title: forbidden
+description: Throw a 403 RoutingError from a route loader or component.
+---
+
+Throws a `RoutingError(403)`, caught by the nearest `+error.tsx`. Signals that the authenticated user does not have permission.
+
+```ts
+function forbidden(): never
+```

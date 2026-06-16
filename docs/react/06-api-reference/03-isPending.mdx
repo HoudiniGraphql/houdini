@@ -1,9 +1,9 @@
 ---
-title: Utilities
-description: API reference for isPending
+title: isPending
+description: Type guard for @loading placeholder values.
 ---
 
-## isPending
+import Notice from '@components/docs/Notice.astro'
 
 A type guard that returns `true` if a value is a loading placeholder produced by `@loading`. Use this instead of comparing directly against `PendingValue`, which is not safe under React 18's concurrent rendering.
 

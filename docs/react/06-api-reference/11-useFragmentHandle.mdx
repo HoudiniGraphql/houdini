@@ -1,0 +1,42 @@
+---
+title: useFragmentHandle
+description: Read a fragment reference with an imperative handle for pagination and refetch.
+---
+
+Like `useFragment`, but also returns an imperative handle. Use this when the fragment is paginated or you need to trigger a refetch.
+
+```tsx
+import { graphql, useFragmentHandle } from '$houdini'
+import type { ShowList_show } from '$houdini'
+
+export function ShowList({ show }: { show: ShowList_show }) {
+  const { data, loadNext, loadNextPending, pageInfo } = useFragmentHandle(show, graphql(`
+    fragment ShowList_show on Show @paginate {
+      episodes(first: 10) @paginate {
+        edges {
+          node { title }
+        }
+      }
+    }
+  `))
+
+  return (
+    <>
+      {data?.episodes.edges.map(({ node }) => <div key={node.title}>{node.title}</div>)}
+      {pageInfo?.hasNextPage && (
+        <button onClick={() => loadNext(10)} disabled={loadNextPending}>
+          Load more
+        </button>
+      )}
+    </>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useFragmentHandle(reference, document): handle
+```
+
+Returns the same `DocumentHandle` shape as [`useQueryHandle`](~/api-reference/useQueryHandle) — `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`.

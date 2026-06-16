@@ -1,0 +1,31 @@
+---
+title: useLocation
+description: Read the current URL pathname and navigate imperatively.
+---
+
+Returns the current location. Use this to read the pathname or navigate imperatively.
+
+```tsx
+import { useLocation } from '$houdini'
+
+export function ActiveLink({ href, label }: { href: string; label: string }) {
+  const { pathname } = useLocation()
+  return (
+    <a href={href} aria-current={pathname === href ? 'page' : undefined}>
+      {label}
+    </a>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useLocation(): { pathname: string; params: Record<string, string>; goto: (url: string) => void }
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `pathname` | `string` | The current URL path |
+| `params` | `Record<string, string>` | The current route params (untyped) |
+| `goto` | `(url: string) => void` | Navigate to a URL imperatively |

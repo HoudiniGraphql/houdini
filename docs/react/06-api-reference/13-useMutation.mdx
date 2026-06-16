@@ -1,0 +1,47 @@
+---
+title: useMutation
+description: Send a GraphQL mutation from a component.
+---
+
+Returns a `[mutate, pending]` tuple. Call `mutate` to send the mutation; `pending` is true while it is in flight.
+
+```tsx
+import { graphql, useMutation } from '$houdini'
+
+export function FollowButton({ userId }: { userId: string }) {
+  const [follow, pending] = useMutation(graphql(`
+    mutation FollowUser($userId: ID!) {
+      followUser(userId: $userId) {
+        success
+      }
+    }
+  `))
+
+  return (
+    <button
+      disabled={pending}
+      onClick={() => follow({ variables: { userId } })}
+    >
+      Follow
+    </button>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useMutation(document): [mutate, pending]
+```
+
+The `mutate` function accepts:
+
+| Option | Type | Description |
+|---|---|---|
+| `variables` | object | The mutation input variables |
+| `optimisticResponse` | object | Optional optimistic update applied immediately |
+| `metadata` | `App.Metadata` | Passed through to client plugins |
+| `fetch` | `typeof fetch` | Override the fetch implementation |
+| `abortController` | `AbortController` | Cancel the in-flight request |
+
+`mutate` throws a `RuntimeGraphQLError` if the server returns any `errors`.

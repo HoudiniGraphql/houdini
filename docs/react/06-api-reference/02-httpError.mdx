@@ -1,0 +1,16 @@
+---
+title: httpError
+description: Throw a RoutingError with any HTTP status code.
+---
+
+Throws a `RoutingError(status)` with any HTTP status code. Use this for status codes not covered by the named helpers.
+
+```ts
+function httpError(status: number): never
+```
+
+```tsx
+import { httpError } from '$houdini'
+
+if (!data.resource) httpError(422)
+```
