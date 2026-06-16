@@ -77,3 +77,45 @@ By default this fetches both the page component and its data. You can narrow it:
 ```tsx
 <Link to="/shows" preload="data">All Shows</Link>
 ```
+
+## Imperative Navigation
+
+When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useLocation`:
+
+```tsx
+import { useLocation } from '$houdini'
+
+export function SearchForm() {
+  const { goto } = useLocation()
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const query = new FormData(e.currentTarget).get('q')
+    goto(`/search?q=${encodeURIComponent(query as string)}`)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="q" />
+      <button type="submit">Search</button>
+    </form>
+  )
+}
+```
+
+`useLocation` also exposes `pathname` and `params` if you need to read the current URL — for example, to mark a link as active:
+
+```tsx
+import { useLocation } from '$houdini'
+
+export function NavLink({ href, label }: { href: string; label: string }) {
+  const { pathname } = useLocation()
+  return (
+    <a href={href} aria-current={pathname === href ? 'page' : undefined}>
+      {label}
+    </a>
+  )
+}
+```
+
+See [`useLocation`](~/api-reference/useLocation) for the full API.
