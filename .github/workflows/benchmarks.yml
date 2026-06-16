@@ -9,7 +9,7 @@ jobs:
     benchmark:
         name: Benchmark
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 30
         permissions:
             contents: read
         steps:
@@ -36,12 +36,18 @@ jobs:
             # ── PR branch ────────────────────────────────────────────────────
             - run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Benchmark PR branch
-              run: BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.json
+            - name: Benchmark PR branch (3 runs)
+              run: |
+                  for i in 1 2 3; do
+                    BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.$i.json
+                  done
+                  node perf/merge.js /tmp/benchmark.current.1.json /tmp/benchmark.current.2.json /tmp/benchmark.current.3.json > /tmp/benchmark.current.json
 
             # ── Base branch ──────────────────────────────────────────────────
-            - name: Save benchmark suite from PR
-              run: cp -r packages/houdini/src/runtime/cache/benchmarks /tmp/houdini-benchmarks
+            - name: Save benchmark suite and merge script from PR
+              run: |
+                  cp -r packages/houdini/src/runtime/cache/benchmarks /tmp/houdini-benchmarks
+                  cp perf/merge.js /tmp/houdini-merge.js
 
             - name: Checkout base branch
               run: git checkout ${{ github.base_ref }}
@@ -53,8 +59,12 @@ jobs:
 
             - run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Benchmark base branch
-              run: BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.json
+            - name: Benchmark base branch (3 runs)
+              run: |
+                  for i in 1 2 3; do
+                    BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.$i.json
+                  done
+                  node /tmp/houdini-merge.js /tmp/benchmark.baseline.1.json /tmp/benchmark.baseline.2.json /tmp/benchmark.baseline.3.json > /tmp/benchmark.baseline.json
 
             # ── Compare ──────────────────────────────────────────────────────
             - name: Checkout PR branch
