@@ -47,6 +47,7 @@
     "fix-dev-fouc-css",
     "fix-fragment-abstract-types",
     "fix-fragment-handle-ts-type",
+    "fix-fragment-pagination",
     "fix-fragment-rerenders",
     "fix-hmr-gql-deletions",
     "fix-hmr-new-routes",

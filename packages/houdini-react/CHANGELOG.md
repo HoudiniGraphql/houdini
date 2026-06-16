@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.39
+
+### Patch Changes
+
+- [#1664](https://github.com/HoudiniGraphql/houdini/pull/1664) [`4ea90cb`](https://github.com/HoudiniGraphql/houdini/commit/4ea90cbc458899ecc5c262d7f80f2d013d7a0a1e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed fragment pagination
+
 ## 2.0.0-next.38
 
 ### Patch Changes
