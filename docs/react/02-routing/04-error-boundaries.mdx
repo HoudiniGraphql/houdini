@@ -58,7 +58,7 @@ src/routes/
 
 ## GraphQL errors
 
-By default Houdini throws GraphQL response errors so they're catchable by the error boundary. The thrown value is unwrapped into the `errors` array, so each entry is a `GraphQLError` object with at least a `message` field (and optionally `path`, `locations`, and `extensions`).
+By default Houdini throws GraphQL response errors so they're catchable by the error boundary. The thrown value is unwrapped into the `errors` array, so each entry is a `GraphQLError` object with at least a `message` field (and optionally `path`, `locations`, and `extensions`). [Learn how to type the `extensions` field.](~/guides/error-handling/#typing-error-extensions)
 
 ### SSR and query errors
 
