@@ -6,7 +6,14 @@ import manifest from './manifest.js'
 import { Router as RouterImpl, type RouterCache, RouterContextProvider } from './routing/index.js'
 
 export * from './hooks/index.js'
-export { router_cache, useCache, useSession, useLocation, useRoute, useCurrentVariables } from './routing/index.js'
+export {
+	router_cache,
+	useCache,
+	useSession,
+	useLocation,
+	useRoute,
+	useCurrentVariables,
+} from './routing/index.js'
 export * from './Link.js'
 
 export function Router({
