@@ -377,10 +377,10 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				},
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(
-						`query Info($userName: String!) { user { ...UserInfo_4E9dx0 @with(name: $userName) id __typename } }`,
+						`query Info($userName: String!) { user { ...UserInfo_qDNpv @with(name: $userName) id __typename } }`,
 					),
 					tests.ExpectedDoc(
-						`fragment UserInfo_4E9dx0 on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName id __typename } id __typename  }`,
+						`fragment UserInfo_qDNpv on User { friends(name: $name) { firstName id __typename } id __typename  }`,
 					).WithVariables(
 						tests.ExpectedOperationVariable{
 							Name:          "name",

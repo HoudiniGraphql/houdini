@@ -359,17 +359,20 @@ func processDocument[PluginConfig any](
 					}
 				}
 
-				// we have a local value
-				if docArg, ok := scope[arg.Name]; ok {
-					fragmentScope[arg.Name] = docArg
-					fragmentHashArgs[arg.Name] = arg.Name
+				// Hash the fragment variant by the caller's variable name so that
+				// @with(name: $x) and @with(name: $y) produce distinct clones.
+				fragmentHashArgs[arg.Name] = arg.Raw
 
-					// there is a document variable
-				} else if fragmentArg, ok := documentScope[arg.Name]; ok {
-					fragmentScope[arg.Name] = fragmentArg.DefaultValue
-					fragmentHashArgs[arg.Name] = fragmentArg.Raw
-					fragmentScopeVariables = append(fragmentScopeVariables, fragmentArg)
-				}
+				// Find the fragment's own variable reference so CopyScope produces an
+				// identical copy in the clone. ReplaceVariables swaps the clone's value
+				// for that copy (same kind/raw), leaving the variable intact.
+				db.BindStatement(statements.FragmentOwnVariableSearch, map[string]any{
+					"raw": arg.Name,
+					"doc": fragmentDocID,
+				})
+				db.StepStatement(ctx, statements.FragmentOwnVariableSearch, func() {
+					fragmentScope[arg.Name] = statements.FragmentOwnVariableSearch.GetInt64("id")
+				})
 			} else {
 				fragmentScope[arg.Name] = arg.Value
 				fragmentHashArgs[arg.Name] = arg.Raw
@@ -1092,6 +1095,7 @@ type transformStatements[PluginConfig any] struct {
 	DirectiveArgumentSearch            plugins.Stmt
 	UpdateDirectiveArgument            plugins.Stmt
 	NoSelectionArgsDirectiveArgsSearch plugins.Stmt
+	FragmentOwnVariableSearch          plugins.Stmt
 	nullValue                          int64
 }
 
@@ -1603,6 +1607,13 @@ func prepareTransformStatements[PluginConfig any](
 		return nil, err
 	}
 
+	fragmentOwnVariableSearch, err := conn.Prepare(`
+    SELECT id FROM argument_values WHERE kind = 'Variable' AND raw = $raw AND document = $doc LIMIT 1
+  `)
+	if err != nil {
+		return nil, err
+	}
+
 	return &transformStatements[PluginConfig]{
 		WithSpreadsInDocument:              withSpreadsInDocument,
 		DeleteValue:                        deleteValue,
@@ -1618,6 +1629,7 @@ func prepareTransformStatements[PluginConfig any](
 		DirectiveArgumentSearch:            directiveArgVariables,
 		UpdateDirectiveArgument:            updateDirectiveArgument,
 		NoSelectionArgsDirectiveArgsSearch: noArgSelectionsDirectiveArgsSearch,
+		FragmentOwnVariableSearch:          fragmentOwnVariableSearch,
 		InsertArgumentValue:                insertArgumentValue,
 		InsertArgumentValueChildren:        insertArgumentValueChildren,
 		InsertDocumentVariable:             insertDocumentVariable,
@@ -1657,6 +1669,7 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 	s.UpdateDirectiveArgument.Finalize()
 	s.NoSelectionArgsDirectiveArgsSearch.Finalize()
 	s.CopyArgumentValue.Finalize()
+	s.FragmentOwnVariableSearch.Finalize()
 }
 
 func (s *transformStatements[PluginConfig]) ReplaceVariables(
