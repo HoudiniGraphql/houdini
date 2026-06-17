@@ -368,6 +368,28 @@ func TestFragmentArgumentTransform(t *testing.T) {
 					),
 				},
 			},
+			{
+				Name: "Argument variable can have arbitrary name",
+				Pass: true,
+				Input: []string{
+					`query Info($userName: String!) { user { ...UserInfo @with(name: $userName) } }`,
+					`fragment UserInfo on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Info($userName: String!) { user { ...UserInfo_4E9dx0 @with(name: $userName) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment UserInfo_4E9dx0 on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName id __typename } id __typename  }`,
+					).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name:          "name",
+							Type:          "String",
+							TypeModifiers: "!",
+						},
+					),
+				},
+			},
 		},
 	})
 }
