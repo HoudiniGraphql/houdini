@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.25
+
+### Patch Changes
+
+- [#1675](https://github.com/HoudiniGraphql/houdini/pull/1675) [`aee18e4`](https://github.com/HoudiniGraphql/houdini/commit/aee18e413618c6bccbd70a420142e44e929d63c1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue in fragment argument expansion
+
 ## 2.0.0-next.24
 
 ### Patch Changes
