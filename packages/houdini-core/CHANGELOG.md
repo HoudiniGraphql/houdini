@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.24
+
+### Patch Changes
+
+- [#1671](https://github.com/HoudiniGraphql/houdini/pull/1671) [`f064d16`](https://github.com/HoudiniGraphql/houdini/commit/f064d165dcd38888ddb65bed065bb0ab3685c691) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed enum literals inside object and list arguments being serialized as quoted strings in printed queries.
+
 ## 2.0.0-next.23
 
 ### Patch Changes
