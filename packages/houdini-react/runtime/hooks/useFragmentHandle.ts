@@ -9,6 +9,7 @@ import type {
 import * as React from 'react'
 
 import { useClient, useSession } from '../routing/Router.js'
+import type { DocumentHandle } from './useDocumentHandle.js'
 import { fragmentReference, useFragment } from './useFragment.js'
 
 // useFragmentHandle is just like useFragment except it also returns an imperative handle
