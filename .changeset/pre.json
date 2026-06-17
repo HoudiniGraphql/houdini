@@ -62,6 +62,8 @@
     "fix-plugin-bin-missing-error",
     "fix-react-vite-ssr-fouc",
     "fix-refetch-cache-links-leak",
+    "fix-serialized-enums",
+    "fix-singlepage-pagination",
     "gitignore-schema-path",
     "go-compiler-features",
     "go-rewrite",

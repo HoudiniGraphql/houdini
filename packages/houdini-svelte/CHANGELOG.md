@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.0-next.35
+
+### Patch Changes
+
+- [#1671](https://github.com/HoudiniGraphql/houdini/pull/1671) [`f064d16`](https://github.com/HoudiniGraphql/houdini/commit/f064d165dcd38888ddb65bed065bb0ab3685c691) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed a flash of intermediate data during single-page fragment pagination and unnecessary network requests on backward navigation by suppressing partial cache hits and preserving marshaled variables across consecutive sends.
+
 ## 3.0.0-next.34
 
 ### Patch Changes
