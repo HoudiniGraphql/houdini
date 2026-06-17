@@ -258,8 +258,12 @@ export class FragmentStoreCursor<
 					...args,
 					variables: resolvedVars,
 					policy: args?.policy,
+					// suppress loading-state placeholder data during SinglePage transitions
+					// so the current page remains visible while the next page loads
+					stuff: { silenceLoading: true },
 					cacheParams: {
 						disableSubscriptions: true,
+						disablePartial: true,
 					},
 				})
 			},

@@ -607,9 +607,12 @@ class ClientPluginContextWrapper {
 		const firstInit = !ctx.stuff.inputs?.init
 		const hasChanged = Object.keys(changed).length > 0 || firstInit
 		if (hasChanged) {
-			// only marshal the changed variables so we don't double marshal
+			// only marshal the changed variables so we don't double marshal.
+			// Use source.stuff.inputs?.marshaled as the base — ctx.stuff comes from the
+			// caller-supplied `values` object (which starts with marshaled: {}) so it
+			// does not carry the previously-marshaled variables that haven't changed.
 			const newVariables = {
-				...ctx.stuff.inputs?.marshaled,
+				...source.stuff.inputs?.marshaled,
 				...marshalInputs({
 					artifact,
 					input: changed,
@@ -717,6 +720,7 @@ export type ClientPluginContext = {
 		disableWrite?: boolean
 		disableRead?: boolean
 		disableSubscriptions?: boolean
+		disablePartial?: boolean
 		applyUpdates?: string[]
 		serverSideFallback?: boolean
 	}
