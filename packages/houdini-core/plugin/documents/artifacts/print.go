@@ -355,6 +355,28 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 	switch value.Kind {
 	case "Enum":
 		return value.Raw
+	case "Object":
+		var resultBuilder strings.Builder
+		resultBuilder.WriteRune('{')
+		for i, v := range value.Children {
+			fmt.Fprintf(&resultBuilder, "%s: %s", v.Name, printValue(v.Value, usedVariables))
+			if i != len(value.Children)-1 {
+				resultBuilder.WriteString(", ")
+			}
+		}
+		resultBuilder.WriteRune('}')
+		return resultBuilder.String()
+	case "List":
+		var resultBuilder strings.Builder
+		resultBuilder.WriteRune('[')
+		for i, v := range value.Children {
+			resultBuilder.WriteString(printValue(v.Value, usedVariables))
+			if i != len(value.Children)-1 {
+				resultBuilder.WriteString(", ")
+			}
+		}
+		resultBuilder.WriteRune(']')
+		return resultBuilder.String()
 	default:
 		return stringifyValue(value, usedVariables)
 	}

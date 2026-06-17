@@ -49,8 +49,12 @@ export const cachePolicy =
 						// we can only use the result if its not a partial result
 						const allowed =
 							!value.partial ||
-							// or the artifact allows for partial responses
-							(artifact.kind === ArtifactKind.Query && artifact.partial)
+							// or the artifact allows for partial responses, and the caller
+							// hasn't opted out (e.g. SinglePage pagination suppresses partial
+							// cache hits to avoid flashing intermediate states)
+							(artifact.kind === ArtifactKind.Query &&
+								artifact.partial &&
+								!ctx.cacheParams?.disablePartial)
 
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
 						if (policy === CachePolicy.CacheOnly) {
