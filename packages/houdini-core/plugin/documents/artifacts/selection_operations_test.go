@@ -144,6 +144,17 @@ export type B$optimistic = {
 	};
 };
 
+export type B$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type B$artifact = typeof artifact
 
 "HoudiniHash=9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6"`),
@@ -277,6 +288,17 @@ export type A$optimistic = {
 		readonly friend?: {
 			readonly firstName?: string;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -427,6 +449,18 @@ export type A$optimistic = {
 			readonly firstName?: string;
 			readonly field?: string | null;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly field: string | null;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -590,6 +624,17 @@ export type B$optimistic = {
 	};
 };
 
+export type B$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type B$artifact = typeof artifact
 
 "HoudiniHash=680082591789d4a74f7136909b1e6349e6561f44b777de23138d5dda947e4150"`),
@@ -735,6 +780,17 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
@@ -877,6 +933,17 @@ export type A$optimistic = {
 		readonly friend?: {
 			readonly firstName?: string;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1031,6 +1098,17 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
@@ -1182,6 +1260,18 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly field: string | null;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"`),
@@ -1291,6 +1381,16 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly id: string;
+			readonly __typename: "User";
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1431,6 +1531,17 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
@@ -1556,6 +1667,16 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly id: string;
+			readonly __typename: "User";
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1693,6 +1814,17 @@ export type A$optimistic = {
 		readonly friend?: {
 			readonly firstName?: string;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1847,6 +1979,18 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly field: string | null;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88"`),
@@ -1984,6 +2128,17 @@ export type A$optimistic = {
 		readonly friend?: {
 			readonly firstName?: string;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -2126,6 +2281,17 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"`),
@@ -2253,6 +2419,16 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly id: string;
+			readonly __typename: "User";
+		};
+		readonly __typename: "AddFriendOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"`),
@@ -2348,6 +2524,13 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly deleteUser?: {
 		readonly userID?: string | null;
+	};
+};
+
+export type A$unmasked = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+		readonly __typename: "DeleteUserOutput";
 	};
 };
 
@@ -2466,6 +2649,13 @@ export type A$optimistic = {
 	};
 };
 
+export type A$unmasked = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+		readonly __typename: "DeleteUserOutput";
+	};
+};
+
 export type A$artifact = typeof artifact
 
 "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"`),
@@ -2578,6 +2768,13 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly deleteUser?: {
 		readonly userID?: string | null;
+	};
+};
+
+export type A$unmasked = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+		readonly __typename: "DeleteUserOutput";
 	};
 };
 
@@ -2719,6 +2916,17 @@ export type A$optimistic = {
 		readonly friend?: {
 			readonly firstName?: string;
 		};
+	};
+};
+
+export type A$unmasked = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+			readonly __typename: "User";
+			readonly id: string;
+		};
+		readonly __typename: "AddFriendOutput";
 	};
 };
 

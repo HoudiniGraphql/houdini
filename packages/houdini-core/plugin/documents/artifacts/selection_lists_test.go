@@ -258,6 +258,14 @@ func TestListArtifacts(t *testing.T) {
               	value: string;
               };
 
+              export type TestQuery$unmasked = {
+              	readonly users: ({
+              		readonly firstName: string;
+              		readonly __typename: "User";
+              		readonly id: string;
+              	})[];
+              };
+
               export type TestQuery$artifact = typeof artifact
 
               "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
@@ -474,6 +482,27 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+				readonly __typename: "User";
+				readonly id: string;
+			} | null;
+			readonly __typename: "UserEdge";
+			readonly cursor: string;
+		})[];
+		readonly __typename: "UserConnection";
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -741,6 +770,27 @@ export type TestQuery$input = {
 	last?: number | null;
 };
 
+export type TestQuery$unmasked = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+				readonly __typename: "User";
+				readonly id: string;
+			} | null;
+			readonly __typename: "UserEdge";
+			readonly cursor: string;
+		})[];
+		readonly __typename: "UserConnection";
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"`),
@@ -1004,6 +1054,27 @@ export type TestQuery$input = {
 	before?: string | null;
 	first?: number | null;
 	last?: number | null;
+};
+
+export type TestQuery$unmasked = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+				readonly __typename: "User";
+				readonly id: string;
+			} | null;
+			readonly __typename: "UserEdge";
+			readonly cursor: string;
+		})[];
+		readonly __typename: "UserConnection";
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
 };
 
 export type TestQuery$artifact = typeof artifact
@@ -1313,6 +1384,27 @@ export type AnimalQuery$result = {
 
 export type AnimalQuery$input = null | undefined;
 
+export type AnimalQuery$unmasked = {
+	readonly animals: {
+		readonly pageInfo: {
+			readonly hasPreviousPage: boolean;
+			readonly hasNextPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+			readonly __typename: "PageInfo";
+		};
+		readonly edges: ({
+			readonly node: {
+				readonly hasBanana: boolean;
+				readonly __typename: "Monkey";
+				readonly id: string;
+			} | null;
+			readonly __typename: "MonkeyEdge";
+		})[];
+		readonly __typename: string;
+	} | null;
+};
+
 export type AnimalQuery$artifact = typeof artifact
 
 "HoudiniHash=4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40"`),
@@ -1505,6 +1597,21 @@ export type AnimalsOverview$result = {
 
 export type AnimalsOverview$input = null | undefined;
 
+export type AnimalsOverview$unmasked = {
+	readonly animals: {
+		readonly edges: ({
+			readonly node: {} & (({
+		readonly id: string;
+		readonly name: string;
+		readonly hasBanana: boolean;
+		readonly __typename: "Monkey";
+	})) | null;
+			readonly __typename: string;
+		})[];
+		readonly __typename: string;
+	} | null;
+};
+
 export type AnimalsOverview$artifact = typeof artifact
 
 "HoudiniHash=dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35"`),
@@ -1671,6 +1778,18 @@ export type Entities$result = {
 };
 
 export type Entities$input = null | undefined;
+
+export type Entities$unmasked = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "User";
+	})))[];
+};
 
 export type Entities$artifact = typeof artifact
 
@@ -1902,6 +2021,27 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+				readonly __typename: "User";
+				readonly id: string;
+			} | null;
+			readonly __typename: "UserEdge";
+			readonly cursor: string;
+		})[];
+		readonly __typename: "UserConnection";
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
 
 export type TestQuery$artifact = typeof artifact
 

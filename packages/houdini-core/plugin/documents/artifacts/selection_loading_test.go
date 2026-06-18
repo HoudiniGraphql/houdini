@@ -312,6 +312,27 @@ export type MonkeyListQuery$result = {
 
 export type MonkeyListQuery$input = null | undefined;
 
+export type MonkeyListQuery$unmasked = {
+	readonly monkeys: {
+		readonly pageInfo: {
+			readonly hasPreviousPage: boolean;
+			readonly hasNextPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+			readonly __typename: "PageInfo";
+		};
+		readonly edges: ({
+			readonly node: {
+				readonly id: string;
+				readonly name: string;
+				readonly __typename: string;
+			} | null;
+			readonly __typename: string;
+		})[];
+		readonly __typename: "MonkeyConnection";
+	};
+};
+
 export type MonkeyListQuery$artifact = typeof artifact
 
 "HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"`,
@@ -547,6 +568,17 @@ export type Query$result = {
 
 export type Query$input = null | undefined;
 
+export type Query$unmasked = {
+	readonly catOwners: ({} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
+
 export type Query$artifact = typeof artifact
 
 "HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"`,
@@ -726,6 +758,21 @@ export type Query$result = {
 
 export type Query$input = null | undefined;
 
+export type Query$unmasked = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
+
 export type Query$artifact = typeof artifact
 
 "HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`,
@@ -874,6 +921,17 @@ export type Query$result = {
 };
 
 export type Query$input = null | undefined;
+
+export type Query$unmasked = {
+	readonly entity: {} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	}));
+};
 
 export type Query$artifact = typeof artifact
 
@@ -1046,6 +1104,21 @@ export type Query$result = {
 };
 
 export type Query$input = null | undefined;
+
+export type Query$unmasked = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
 
 export type Query$artifact = typeof artifact
 
@@ -1222,6 +1295,21 @@ export type Query$result = {
 };
 
 export type Query$input = null | undefined;
+
+export type Query$unmasked = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
 
 export type Query$artifact = typeof artifact
 
@@ -1471,6 +1559,29 @@ export type Query$result = {
 };
 
 export type Query$input = null | undefined;
+
+export type Query$unmasked = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+	readonly b: ({} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
 
 export type Query$artifact = typeof artifact
 

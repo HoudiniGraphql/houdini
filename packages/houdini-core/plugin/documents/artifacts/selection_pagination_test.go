@@ -997,6 +997,40 @@ export type ScalarPagination$input = {
 	last?: number | null;
 };
 
+export type ScalarPagination$unmasked = {
+	readonly user: {
+		readonly friendsByCursorScalar: {
+			readonly edges: ({
+				readonly node: {
+					readonly friendsByCursor: {
+						readonly edges: ({
+							readonly node: {
+								readonly id: string;
+								readonly __typename: "User";
+							} | null;
+							readonly __typename: "UserEdge";
+						})[];
+						readonly __typename: "UserConnection";
+					} | null;
+					readonly __typename: "User";
+					readonly id: string;
+				} | null;
+				readonly __typename: "UserEdge";
+				readonly cursor: string;
+			})[];
+			readonly __typename: "UserConnection";
+			readonly pageInfo: {
+				readonly hasNextPage: boolean;
+				readonly hasPreviousPage: boolean;
+				readonly startCursor: string | null;
+				readonly endCursor: string | null;
+			};
+		};
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
 export type ScalarPagination$artifact = typeof artifact
 
 "HoudiniHash=7f2262dcaf136ea17500364d6ca7be04eca17f9950a9177287240aba89d8f8e7"`),
@@ -1741,6 +1775,30 @@ export type TestQuery$input = {
 	last?: number | null;
 };
 
+export type TestQuery$unmasked = {
+	readonly entitiesByCursor: {
+		readonly edges: ({
+			readonly node: {} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+			readonly __typename: "EntityEdge";
+			readonly cursor: string;
+		})[];
+		readonly __typename: "EntityConnection";
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=0d0fa55060035d4eb6ae7de938bdcfe8703aecff0becc0a479b6e29ffa999e4b"`),
@@ -2013,6 +2071,31 @@ export type Info$input = {
 	after?: string | null;
 	first?: number | null;
 	id?: number | null;
+};
+
+export type Info$unmasked = {
+	readonly species: {
+		readonly id: number;
+		readonly moves: {
+			readonly edges: ({
+				readonly node: {
+					readonly id: number;
+					readonly __typename: "SpeciesMove";
+				} | null;
+				readonly __typename: "SpeciesMoveEdge";
+				readonly cursor: string;
+			})[];
+			readonly pageInfo: {
+				readonly hasNextPage: boolean;
+				readonly hasPreviousPage: boolean;
+				readonly __typename: "PageInfo";
+				readonly startCursor: string | null;
+				readonly endCursor: string | null;
+			};
+			readonly __typename: "SpeciesMoveConnection";
+		};
+		readonly __typename: "Species";
+	} | null;
 };
 
 export type Info$artifact = typeof artifact

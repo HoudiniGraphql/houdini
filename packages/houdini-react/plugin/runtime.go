@@ -227,18 +227,146 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	manifestPath := filepath.Join(runtimeDir, "manifest.ts")
 
 	existing, _ := afero.ReadFile(p.Filesystem(), manifestPath)
-	if string(existing) == content {
-		return []string{}, nil
+	if string(existing) != content {
+		if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
+			return nil, err
+		}
+		if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+			return nil, err
+		}
+		changed = append(changed, manifestPath)
 	}
 
-	if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
-		return nil, err
-	}
-	if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+	mockContent, err := formatMockFile(manifest)
+	if err != nil {
 		return nil, err
 	}
 
-	return append(changed, manifestPath), nil
+	mockPath := filepath.Join(runtimeDir, "mock.ts")
+	existingMock, _ := afero.ReadFile(p.Filesystem(), mockPath)
+	if string(existingMock) != mockContent {
+		if err := plugins.WriteFile(p.Filesystem(), mockPath, []byte(mockContent), 0644); err != nil {
+			return nil, err
+		}
+		changed = append(changed, mockPath)
+	}
+
+	return changed, nil
+}
+
+// formatMockFile generates the typed createMock function for all routes.
+//
+// Uses a single generic function with precomputed route param types so TypeScript
+// gives "Property 'params' is missing in type ... but required in type { params: { id: string } }"
+// with concrete, human-readable types rather than the verbose _ParamObj<readonly [...]> form.
+func formatMockFile(manifest ProjectManifest) (string, error) {
+	var sb strings.Builder
+
+	sb.WriteString("import React from 'react'\n")
+	sb.WriteString("import { _createMock } from './testing'\n")
+
+	// Collect unique query and mutation names across all pages.
+	// Both import $unmasked (fully-resolved server payload, fragments inlined, no masks) and $input.
+	allQueryNames := map[string]bool{}
+	for _, page := range manifest.Pages {
+		for _, q := range page.Queries {
+			allQueryNames[q] = true
+		}
+	}
+	hasMutations := len(manifest.Mutations) > 0 && len(manifest.Pages) > 0
+
+	if len(allQueryNames) > 0 || hasMutations {
+		sb.WriteString("\n")
+		for _, name := range sortedKeys(allQueryNames) {
+			sb.WriteString(fmt.Sprintf(
+				"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+				name, name, name,
+			))
+		}
+		if hasMutations {
+			for _, m := range manifest.Mutations {
+				if !allQueryNames[m] {
+					sb.WriteString(fmt.Sprintf(
+						"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+						m, m, m,
+					))
+				}
+			}
+		}
+	}
+
+	sb.WriteString("\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n")
+
+	if len(manifest.Pages) == 0 {
+		// No routes yet — simple stub so the file is still importable.
+		sb.WriteString("export function createMock({ url, params, data }: { url: string; params: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n")
+		sb.WriteString("\treturn _createMock({ url, params, data })\n")
+		sb.WriteString("}\n")
+		return sb.String(), nil
+	}
+
+	// Per-route mock data types. Required keys are the queries the route uses; mutations
+	// are listed as optional keys with their concrete input/result types so function
+	// handlers get vars typed as the mutation's $input (not Record<string,any>).
+	for _, id := range sortedKeys(manifest.Pages) {
+		page := manifest.Pages[id]
+		sb.WriteString(fmt.Sprintf("type _TestData_%s = {\n", id))
+		for _, q := range page.Queries {
+			sb.WriteString(fmt.Sprintf("\t%s: _MockValue<%s$unmasked, %s$input>\n", q, q, q))
+		}
+		for _, m := range manifest.Mutations {
+			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<%s$unmasked, %s$input>\n", m, m, m))
+		}
+		sb.WriteString("}\n\n")
+	}
+
+	// _RouteParams maps parameterised URL strings to their concrete param objects.
+	// Only routes that actually have URL params appear here; param-free routes fall
+	// through to `{ params?: never }` in _ParamsForRoute.
+	routeParamIDs := []string{}
+	for _, id := range sortedKeys(manifest.Pages) {
+		if len(manifest.Pages[id].Params) > 0 {
+			routeParamIDs = append(routeParamIDs, id)
+		}
+	}
+	if len(routeParamIDs) > 0 {
+		sb.WriteString("type _RouteParams = {\n")
+		for _, id := range routeParamIDs {
+			page := manifest.Pages[id]
+			cleanURL := stripRouteGroups(page.URL)
+			sb.WriteString(fmt.Sprintf("\t%q: %s\n", cleanURL, formatParamsType(page.Params)))
+		}
+		sb.WriteString("}\n")
+	}
+	sb.WriteString("type _ParamsForRoute<H extends string> = ")
+	if len(routeParamIDs) > 0 {
+		sb.WriteString("H extends keyof _RouteParams ? { params: _RouteParams[H] } : { params?: never }\n\n")
+	} else {
+		sb.WriteString("{ params?: never }\n\n")
+	}
+
+	// RouteHrefs is the union of all known route URL strings.
+	hrefs := make([]string, 0, len(manifest.Pages))
+	for _, id := range sortedKeys(manifest.Pages) {
+		hrefs = append(hrefs, fmt.Sprintf("%q", stripRouteGroups(manifest.Pages[id].URL)))
+	}
+	sb.WriteString(fmt.Sprintf("type RouteHrefs = %s\n\n", strings.Join(hrefs, " | ")))
+
+	// _RouteData maps each URL literal to its per-route data type.
+	sb.WriteString("type _RouteData = {\n")
+	for _, id := range sortedKeys(manifest.Pages) {
+		page := manifest.Pages[id]
+		cleanURL := stripRouteGroups(page.URL)
+		sb.WriteString(fmt.Sprintf("\t%q: _TestData_%s\n", cleanURL, id))
+	}
+	sb.WriteString("}\n")
+	sb.WriteString("type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n")
+
+	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n")
+	sb.WriteString("\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n")
+	sb.WriteString("}\n")
+
+	return sb.String(), nil
 }
 
 // hookSpec describes how to inject per-document overloads into one hook file.

@@ -193,6 +193,9 @@ jobs:
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
             - if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
+            - if: matrix.framework == 'e2e-react'
+              name: Unit tests (createMock)
+              run: pnpm --filter ${{ matrix.framework }} unit
             - if: matrix.framework != 'e2e-react'
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
             - if: matrix.framework == 'e2e-react'

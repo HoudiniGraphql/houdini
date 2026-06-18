@@ -142,6 +142,14 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly id: string;
+		readonly firstName: string;
+		readonly __typename: "User";
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=c1028fc6e5213fd703e4e3f2138294735428be9437e68eab4d9854ba91f14c0c"`),
@@ -293,6 +301,14 @@ export type TestQuery$input = {
 	show: boolean;
 };
 
+export type TestQuery$unmasked = {
+	readonly node: {
+		readonly id: string;
+		readonly firstName: string;
+		readonly __typename: string;
+	} | null;
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=2bc145fc0631e7f8e71fa91c1b77afc0b2aba93ca8fe5f39dc4dbfeceb158063"`),
@@ -423,6 +439,14 @@ export type TestQuery$result = {
 
 export type TestQuery$input = {
 	show: boolean;
+};
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly id: string;
+		readonly firstName: string;
+		readonly __typename: "User";
+	};
 };
 
 export type TestQuery$artifact = typeof artifact

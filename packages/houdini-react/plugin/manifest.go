@@ -24,6 +24,7 @@ type ProjectManifest struct {
 	LocalSchema     bool                          `json:"local_schema"`
 	LocalYoga       bool                          `json:"local_yoga"`
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
+	Mutations       []string                      `json:"mutations"`
 }
 
 type PageManifest struct {
@@ -279,6 +280,14 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	}
 
 	manifest.LocalSchema, manifest.LocalYoga, err = p.detectLocalAPI(apiDir)
+	if err != nil {
+		return ProjectManifest{}, err
+	}
+
+	// Collect all mutation document names so the generated mock file can type handlers.
+	err = p.DB.StepQuery(ctx, `SELECT name FROM documents WHERE kind = 'mutation' ORDER BY name`, nil, func(row plugins.Row) {
+		manifest.Mutations = append(manifest.Mutations, row.ColumnText(0))
+	})
 	if err != nil {
 		return ProjectManifest{}, err
 	}

@@ -449,7 +449,92 @@ func generateOperationTypes(
 		)
 	}
 
+	// Generate $unmasked type: the fully-resolved server payload with all fragment
+	// fields inlined and no " $fragments" mask annotations. Used by createMock so
+	// test data can be written as plain JSON matching what the network would return.
+	unmaskedTypeName := fmt.Sprintf("%s$unmasked", doc.Name)
+	unmaskedType, _ := generateNetworkType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+	types = append(types, fmt.Sprintf("export type %s = %s;", unmaskedTypeName, unmaskedType))
+
 	return types
+}
+
+// expandAllFragments returns a copy of selections with every fragment spread replaced
+// by the fragment's own fields (recursively). Duplicate field names are deduplicated
+// so that a field selected both directly and via a fragment appears only once.
+// Internal fields (id, __typename added by Houdini) are un-marked so they appear in
+// the output — they are part of the real server response and must be in $unmasked.
+// Inline fragment children are recursively expanded so named fragment spreads inside
+// `... on SomeType { ...Frag }` branches are inlined too.
+func expandAllFragments(
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+) []*collected.Selection {
+	result := make([]*collected.Selection, 0, len(selections))
+	seenFields := map[string]bool{}
+	seenFragments := map[string]bool{}
+
+	var walk func(sels []*collected.Selection)
+	walk = func(sels []*collected.Selection) {
+		for _, sel := range sels {
+			switch sel.Kind {
+			case "fragment":
+				fragmentName := sel.FieldName
+				if sel.FragmentRef != nil {
+					fragmentName = *sel.FragmentRef
+				}
+				if seenFragments[fragmentName] {
+					continue
+				}
+				seenFragments[fragmentName] = true
+				if def, ok := collectedDocs.Selections[fragmentName]; ok {
+					walk(def.Selections)
+				}
+			case "field":
+				name := sel.FieldName
+				if sel.Alias != nil {
+					name = *sel.Alias
+				}
+				if seenFields[name] {
+					continue
+				}
+				seenFields[name] = true
+				cloned := *sel
+				cloned.Internal = false // expose id/__typename — they're in the real payload
+				if len(sel.Children) > 0 {
+					cloned.Children = expandAllFragments(collectedDocs, sel.Children)
+				}
+				result = append(result, &cloned)
+			default:
+				// Inline fragments: clone and expand their children so named fragment
+				// spreads inside `... on SomeType { ...Frag }` are also inlined.
+				if len(sel.Children) > 0 {
+					cloned := *sel
+					cloned.Children = expandAllFragments(collectedDocs, sel.Children)
+					result = append(result, &cloned)
+				} else {
+					result = append(result, sel)
+				}
+			}
+		}
+	}
+	walk(selections)
+	return result
+}
+
+// generateUnmaskedType builds the $unmasked TypeScript type for the server response of
+// a query or mutation — all fragment fields are inlined, no " $fragments" markers,
+// and internal fields like id/__typename are included since they appear in real payloads.
+func generateNetworkType(
+	ctx *DocumentContext,
+	selections []*collected.Selection,
+	readonly bool,
+	indentLevel int,
+	parentType string,
+	collectedDocs *collected.Documents,
+) (string, error) {
+	expanded := expandAllFragments(collectedDocs, selections)
+	return generateSelectionType(ctx, expanded, readonly, indentLevel, parentType, collectedDocs)
 }
 
 func generateSelectionType(
@@ -584,8 +669,13 @@ func generateSelectionType(
 				fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
 			}
 		} else {
-			// Scalar field - use simplified type conversion
-			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			// Scalar field - use simplified type conversion.
+			// Special-case __typename on a concrete parent type: we know the exact string literal.
+			if selection.FieldName == "__typename" && parentType != "" && len(collectedDocs.PossibleTypes[parentType]) == 0 {
+				fieldType = fmt.Sprintf(`"%s"`, parentType)
+			} else {
+				fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			}
 		}
 
 		// @includeListID attaches an opaque __id to the runtime value; reflect that in the type
@@ -1089,8 +1179,13 @@ func generateOptimisticType(
 			}
 			fieldType = childType
 		} else {
-			// Leaf field - convert the GraphQL type to TypeScript
-			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			// Leaf field - convert the GraphQL type to TypeScript.
+			// Special-case __typename on a concrete parent type: we know the exact string literal.
+			if selection.FieldName == "__typename" && parentType != "" && len(collectedDocs.PossibleTypes[parentType]) == 0 {
+				fieldType = fmt.Sprintf(`"%s"`, parentType)
+			} else {
+				fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			}
 		}
 
 		// Add JSDoc comment if this field has a description
