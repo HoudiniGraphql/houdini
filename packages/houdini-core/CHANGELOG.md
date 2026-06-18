@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.26
+
+### Patch Changes
+
+- [#1678](https://github.com/HoudiniGraphql/houdini/pull/1678) [`e0e4166`](https://github.com/HoudiniGraphql/houdini/commit/e0e4166fe21f6090fce1fdcfc8023214fab320ac) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More fixes for example fragment variables
+
 ## 2.0.0-next.25
 
 ### Patch Changes
