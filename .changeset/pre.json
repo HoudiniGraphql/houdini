@@ -65,6 +65,7 @@
     "fix-refetch-cache-links-leak",
     "fix-serialized-enums",
     "fix-singlepage-pagination",
+    "funny-ducks-give",
     "gitignore-schema-path",
     "go-compiler-features",
     "go-rewrite",
