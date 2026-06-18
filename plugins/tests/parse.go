@@ -37,8 +37,8 @@ func transformValue(val *ast.Value) *ExpectedArgumentValue {
 		Kind: kind,
 		Raw:  val.Raw,
 	}
-	// If the value is an object, process its children.
-	if val.Kind == ast.ObjectValue && val.Children != nil {
+	// Process children for objects and lists.
+	if (val.Kind == ast.ObjectValue || val.Kind == ast.ListValue) && val.Children != nil {
 		for _, child := range val.Children {
 			ev.Children = append(ev.Children, ExpectedArgumentValueChildren{
 				Name:  child.Name,

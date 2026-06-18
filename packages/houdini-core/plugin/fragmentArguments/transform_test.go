@@ -22,7 +22,8 @@ func TestFragmentArgumentTransform(t *testing.T) {
 
       type User {
         firstName: String!
-        friends(name: String): [User!]!
+        friends(name: String, limit: Int, offset: Int): [User!]!
+        friendsByNames(names: [String!]): [User!]!
         id: ID!
       }
     `,
@@ -72,10 +73,10 @@ func TestFragmentArgumentTransform(t *testing.T) {
 						Type:          "String",
 						TypeModifiers: "!",
 					}),
-				},
 			},
-			{
-				Name: "Passes argument values to generated fragments",
+		},
+		{
+			Name: "Passes argument values to generated fragments",
 				Pass: true,
 				Input: []string{
 					`
@@ -369,6 +370,109 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				},
 			},
 			{
+				Name: "Default value is inlined when arg omitted from @with",
+				Pass: true,
+				Input: []string{
+					`query Q($limit: Int!) { user { ...F @with(limit: $limit) } }`,
+					`fragment F on User @arguments(limit: {type: "Int!"}, offset: {type: "Int", default: 5}) { friends(limit: $limit, offset: $offset) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($limit: Int!) { user { ...F_2quo11 @with(limit: $limit) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_2quo11 on User { friends(limit: $limit, offset: 5) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "limit", Type: "Int", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Omitting a defaulted arg and passing the same value explicitly produce the same clone",
+				Pass: true,
+				Input: []string{
+					`query Implicit($limit: Int!) { user { ...F @with(limit: $limit) } }`,
+					`query Explicit($limit: Int!) { user { ...F @with(limit: $limit, offset: 5) } }`,
+					`fragment F on User @arguments(limit: {type: "Int!"}, offset: {type: "Int", default: 5}) { friends(limit: $limit, offset: $offset) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Implicit($limit: Int!) { user { ...F_2quo11 @with(limit: $limit) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`query Explicit($limit: Int!) { user { ...F_2quo11 @with(limit: $limit, offset: 5) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_2quo11 on User { friends(limit: $limit, offset: 5) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "limit", Type: "Int", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Mixed literal and variable args in the same @with",
+				Pass: true,
+				Input: []string{
+					`query Q($userName: String!) { user { ...F @with(name: $userName, limit: 10) } }`,
+					`fragment F on User @arguments(name: {type: "String!"}, limit: {type: "Int!"}) { friends(name: $name, limit: $limit) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($userName: String!) { user { ...F_1CaZGl @with(name: $userName, limit: 10) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_1CaZGl on User { friends(name: $userName, limit: 10) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Same fragment spread twice with different literal values produces distinct clones",
+				Pass: true,
+				Input: []string{
+					`query Q { user { friendsA: friends { ...F @with(name: "alice") } friendsB: friends { ...F @with(name: "bob") } } }`,
+					`fragment F on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q { user { friendsA: friends { ...F_4p6st7 @with(name: "alice") __typename id } friendsB: friends { ...F_16H5UA @with(name: "bob") __typename id } __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_4p6st7 on User { friends(name: "alice") { firstName id __typename } id __typename }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_16H5UA on User { friends(name: "bob") { firstName id __typename } id __typename }`,
+					),
+				},
+			},
+			{
+				Name: "List literal argument is inlined into the clone",
+				Pass: true,
+				Input: []string{
+					`query Q { user { ...F @with(names: ["alice", "bob"]) } }`,
+					`fragment F on User @arguments(names: {type: "[String!]!"}) { friendsByNames(names: $names) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q { user { ...F_TXXm0 @with(names: ["alice", "bob"]) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_TXXm0 on User { friendsByNames(names: ["alice", "bob"]) { firstName id __typename } id __typename }`,
+					),
+				},
+			},
+			{
+				Name: "String default value is inlined when arg omitted from @with",
+				Pass: true,
+				Input: []string{
+					`query Q($limit: Int!) { user { ...F @with(limit: $limit) } }`,
+					`fragment F on User @arguments(limit: {type: "Int!"}, name: {type: "String", default: "all"}) { friends(name: $name, limit: $limit) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($limit: Int!) { user { ...F_3qSBKq @with(limit: $limit) __typename id } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_3qSBKq on User { friends(name: "all", limit: $limit) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "limit", Type: "Int", TypeModifiers: "!"}),
+				},
+			},
+			{
 				Name: "Argument variable can have arbitrary name",
 				Pass: true,
 				Input: []string{
@@ -380,14 +484,90 @@ func TestFragmentArgumentTransform(t *testing.T) {
 						`query Info($userName: String!) { user { ...UserInfo_qDNpv @with(name: $userName) id __typename } }`,
 					),
 					tests.ExpectedDoc(
-						`fragment UserInfo_qDNpv on User { friends(name: $name) { firstName id __typename } id __typename  }`,
-					).WithVariables(
-						tests.ExpectedOperationVariable{
-							Name:          "name",
-							Type:          "String",
-							TypeModifiers: "!",
-						},
+						`fragment UserInfo_qDNpv on User { friends(name: $userName) { firstName id __typename } id __typename  }`,
+					).WithVariables(tests.ExpectedOperationVariable{
+						Name:          "name",
+						Type:          "String",
+						TypeModifiers: "!",
+					}),
+				},
+			},
+			{
+				Name: "Mixed same-name and renamed variable arguments",
+				Pass: true,
+				Input: []string{
+					`query Q($shared: String!, $renamed: String!) { user { ...F @with(a: $shared, b: $renamed) } }`,
+					`fragment F on User @arguments(a: {type: "String!"}, b: {type: "String!"}) { friendsA: friends(name: $a) { firstName } friendsB: friends(name: $b) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($shared: String!, $renamed: String!) { user { ...F_3fkJCt @with(a: $shared, b: $renamed) id __typename } }`,
 					),
+					tests.ExpectedDoc(
+						`fragment F_3fkJCt on User { friendsA: friends(name: $shared) { firstName id __typename } friendsB: friends(name: $renamed) { firstName id __typename } id __typename }`,
+					).WithVariables(
+						tests.ExpectedOperationVariable{Name: "a", Type: "String", TypeModifiers: "!"},
+						tests.ExpectedOperationVariable{Name: "b", Type: "String", TypeModifiers: "!"},
+					),
+				},
+			},
+			{
+				Name: "Same fragment spread with two different variable names produces distinct clones",
+				Pass: true,
+				Input: []string{
+					`query Q($x: String!, $y: String!) { user { ...F @with(name: $x) friends { ...F @with(name: $y) } } }`,
+					`fragment F on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($x: String!, $y: String!) { user { ...F_bdaPf @with(name: $x) friends { ...F_2bkMuv @with(name: $y) id __typename } id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_bdaPf on User { friends(name: $x) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment F_2bkMuv on User { friends(name: $y) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Fragment spreads fragment with variable argument",
+				Pass: true,
+				Input: []string{
+					`query Q($name: String!) { user { ...Outer @with(name: $name) } }`,
+					`fragment Outer on User @arguments(name: {type: "String!"}) { ...Inner @with(name: $name) }`,
+					`fragment Inner on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($name: String!) { user { ...Outer_4E9dx0 @with(name: $name) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment Outer_4E9dx0 on User { ...Inner_4E9dx0 @with(name: $name) id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment Inner_4E9dx0 on User { friends(name: $name) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Fragment spreads fragment with renamed variable argument",
+				Pass: true,
+				Input: []string{
+					`query Q($userId: String!) { user { ...Outer @with(outerName: $userId) } }`,
+					`fragment Outer on User @arguments(outerName: {type: "String!"}) { ...Inner @with(innerName: $outerName) }`,
+					`fragment Inner on User @arguments(innerName: {type: "String!"}) { friends(name: $innerName) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($userId: String!) { user { ...Outer_2KfY5k @with(outerName: $userId) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment Outer_2KfY5k on User { ...Inner_1YmyDS @with(innerName: $userId) id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "outerName", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment Inner_1YmyDS on User { friends(name: $userId) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "innerName", Type: "String", TypeModifiers: "!"}),
 				},
 			},
 		},
@@ -478,8 +658,8 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
 							TypeModifiers: "!",
 						},
 					),
-				},
 			},
 		},
+	},
 	})
 }
