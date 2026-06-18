@@ -1007,6 +1007,123 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@with providing all required arguments passes validation",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" }
+				) {
+					friends(limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with omitting a required argument fails validation",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int" }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with omitting a required String! argument fails validation",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					name: { type: "String!" },
+					limit: { type: "Int" }
+				) {
+					friends(name: $name, limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "optional fragment argument with default can be passed explicitly via @with",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int", default: 10 }
+				) {
+					friends(limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "spreading without @with when all args have defaults passes validation",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int", default: 10 },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment
+					}
+				}`,
+				},
+			},
+			{
+				Name: "required argument alongside optional default — required must be passed",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "required argument alongside optional default — passing only required is valid",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
 				Name: "@with rejects mistyped fields nested in input objects",
 				Pass: false,
 				Input: []string{
