@@ -23,7 +23,10 @@ export function _createMock({
 
 	// Validate required mocks up-front at the call site so the error points
 	// directly to the createMock() call rather than surfacing during rendering.
-	const pages = manifest.pages as Record<string, { pattern: RegExp; documents: Record<string, unknown> }>
+	const pages = manifest.pages as Record<
+		string,
+		{ pattern: RegExp; documents: Record<string, unknown> }
+	>
 	const page = Object.values(pages).find((p) => p.pattern.test(url))
 	if (page) {
 		const missing = Object.keys(page.documents).filter((name) => !(name in mocks))
