@@ -8,8 +8,6 @@ import (
 	"sync"
 
 	"golang.org/x/sync/syncmap"
-	
-	
 
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -57,6 +55,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
     	AND selection_directives.directive = 'with'
       AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
       AND (documents.processed = false OR documents.processed IS NULL)
+      AND (documents.internal = false OR documents.internal IS NULL)
     GROUP BY documents.id  
   `)
 	if err != nil {
@@ -253,7 +252,8 @@ func processDocument[PluginConfig any](
 	      parent_doc.name as document,
 	      selection_refs.id as selection_ref,
 	      selections.id as selection_id,
-	      selections.field_name as fragment,
+	      selections.field_name as current_name,
+	      COALESCE(selections.fragment_ref, selections.field_name) as fragment,
 	      fragment_doc.id as fragment_doc_id,
 	      json_group_array(
 	        json_object(
@@ -278,15 +278,14 @@ func processDocument[PluginConfig any](
 	          )
 	      END as doc_variables,
 	      fragment_doc.type_condition as type_condition,
-	      fragment_doc.raw_document as raw_document,
-	      selections.fragment_ref as fragment_ref
+	      fragment_doc.raw_document as raw_document
 	    FROM selection_directives
 	      JOIN selections ON selection_directives.selection_id = selections.id
 	      JOIN selection_refs ON selection_refs.child_id = selections.id
 	      JOIN selection_directive_arguments ON selection_directives.id = selection_directive_arguments.parent AND selection_directive_arguments.document = $document
 	      JOIN argument_values as selection_arg_values ON selection_directive_arguments."value" = selection_arg_values.id AND selection_arg_values.document = $document
 	      JOIN documents as parent_doc ON selection_refs."document" = parent_doc.id
-	      JOIN documents as fragment_doc on selections.field_name = fragment_doc.name
+	      JOIN documents as fragment_doc on COALESCE(selections.fragment_ref, selections.field_name) = fragment_doc.name
 	      LEFT JOIN document_variables on fragment_doc.id = document_variables."document"
 	      LEFT JOIN argument_values as document_variable_default_values on document_variable_default_values.id = document_variables.default_value
 	    WHERE selection_directives.directive = $with_directive
@@ -307,11 +306,11 @@ func processDocument[PluginConfig any](
 		selectionID := withSearch.GetInt64("selection_id")
 		fragmentDocID := withSearch.GetInt64("fragment_doc_id")
 		fragmentName := withSearch.GetText("fragment")
+		currentFieldName := withSearch.GetText("current_name")
 		withArgsStr := withSearch.GetText("with_args")
 		docVariablesStr := withSearch.GetText("doc_variables")
 		typeCondition := withSearch.GetText("type_condition")
 		rawDocument := withSearch.GetInt64("raw_document")
-		fragmentRef := withSearch.GetText("fragment_ref")
 
 		withArgs := []struct {
 			Name  string `json:"name"`
@@ -389,9 +388,8 @@ func processDocument[PluginConfig any](
 		hash := murmurHash(string(args))
 		newFragmentName := fragmentName + "_" + hash
 
-		// if the selection has already been transformed, don't transfor it again
-		expectedName := fragmentRef + "_" + hash
-		if fragmentName == expectedName {
+		// if the selection's field_name already matches the expected clone for this scope, skip
+		if currentFieldName == newFragmentName {
 			return
 		}
 
@@ -731,12 +729,22 @@ func cloneDocument[PluginConfig any](
 			name := statements.NoSelectionArgsDirectiveArgsSearch.GetText("name")
 			value := statements.NoSelectionArgsDirectiveArgsSearch.GetInt64("value")
 
-			// insert a directive document for the new document with the mapped value
+			// create a fresh copy of the argument value exclusively for this directive arg so
+			// it doesn't share a row with field/nested arg uses of the same variable
+			err = db.ExecStatement(statements.CopyArgumentValue, map[string]any{
+				"id":       valueMap[value],
+				"document": documentID,
+			})
+			if err != nil {
+				return
+			}
+			freshCopy := conn.LastInsertRowID()
+
 			err = db.ExecStatement(statements.InsertSelectionDirectiveArgument,
 				map[string]any{
 					"name":     name,
 					"parent":   parent,
-					"value":    valueMap[value],
+					"value":    freshCopy,
 					"document": documentID,
 				})
 		},
@@ -874,13 +882,24 @@ func cloneDocument[PluginConfig any](
 			directiveID := conn.LastInsertRowID()
 
 			for _, arg := range directive.Arguments {
-				// add the corresponding directive argument
+				// create a fresh copy exclusively for this directive arg so it doesn't
+				// share an argument_values row with field/nested arg uses of the same variable
+				err = db.ExecStatement(statements.CopyArgumentValue, map[string]any{
+					"id":       valueMap[arg.Value],
+					"document": documentID,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+				freshCopy := conn.LastInsertRowID()
+
 				err = db.ExecStatement(
 					statements.InsertSelectionDirectiveArgument,
 					map[string]any{
 						"parent":   directiveID,
 						"name":     arg.Name,
-						"value":    valueMap[arg.Value],
+						"value":    freshCopy,
 						"document": documentID,
 					},
 				)
@@ -925,7 +944,13 @@ func cloneDocument[PluginConfig any](
 	}
 
 	// before we finish lets figure out the new scope
-	newScope, descendantVarNames, err := statements.CopyScope(ctx, db, conn, fragmentScope, documentID)
+	newScope, descendantVarNames, err := statements.CopyScope(
+		ctx,
+		db,
+		conn,
+		fragmentScope,
+		documentID,
+	)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -1708,11 +1733,20 @@ func (s *transformStatements[PluginConfig]) ReplaceVariables(
 ) error {
 	errs := &plugins.ErrorList{}
 
+	// track values we've already written as replacements so SQLite cursor re-scans don't
+	// pick them up and incorrectly nullify them
+	alreadyReplaced := map[int64]bool{}
+
 	db.BindStatement(search, map[string]any{"document": documentID})
 	err := db.StepStatement(ctx, search, func() {
 		parentValue := search.GetInt64("parent")
 		variableName := search.GetText("variable")
 		oldValue := search.GetInt64("value")
+
+		// skip values we already placed as replacements in this pass
+		if alreadyReplaced[oldValue] {
+			return
+		}
 
 		// if the variable name is not defined in the scope then we need to delete the original
 		// value and replace it with null otherwise we'll replace it with the scope value
@@ -1747,6 +1781,9 @@ func (s *transformStatements[PluginConfig]) ReplaceVariables(
 			errs.Append(plugins.WrapError(err))
 			return
 		}
+
+		// mark the replacement so cursor re-scans don't nullify it
+		alreadyReplaced[scopeValue] = true
 
 		// by now, the value passed to the scope will replace the old value so we need to delete it
 		err = db.ExecStatement(s.DeleteValue, map[string]any{"id": oldValue})

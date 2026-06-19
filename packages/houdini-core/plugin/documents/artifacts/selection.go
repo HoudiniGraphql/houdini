@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
@@ -53,8 +52,9 @@ func writeSelectionDocument(
 	artifactPath := projectConfig.ArtifactPath(name)
 
 	// skip the write if the content hasn't changed (common on incremental runs)
-	if existing, err := afero.ReadFile(fs, artifactPath); err == nil && string(existing) == artifact {
-		return "", nil
+	if existing, err := afero.ReadFile(fs, artifactPath); err == nil &&
+		string(existing) == artifact {
+		return artifactPath, nil
 	}
 
 	// write the file to disk
@@ -1707,8 +1707,7 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 %s"name": {
 %s"kind": "Name",
 %s"value": "%s",
-%s},
-%s"value": "%s"`, indent1, indent2, indent2, arg.Raw, indent1, indent1, arg.Raw)
+%s}`, indent1, indent2, indent2, arg.Raw, indent1)
 	case "String", "Enum":
 		attrs = fmt.Sprintf(`
 %s"value": "%s"`, indent1, arg.Raw)

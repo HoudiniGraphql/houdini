@@ -179,14 +179,8 @@ export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete' | 'toggle' | 'upsert'
 	list?: string
 	type?: string
-	parentID?: {
-		kind: string
-		value: string
-	}
-	listID?: {
-		kind: string
-		value: string
-	}
+	parentID?: ValueNode
+	listID?: ValueNode
 	position?: 'first' | 'last'
 	target?: 'all'
 	// when conditions are encoded as filter nodes so that variable references

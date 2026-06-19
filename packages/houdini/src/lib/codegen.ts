@@ -443,11 +443,7 @@ export async function codegen_setup(
 
 			logger.time(`Spawn ${plugin.name}`)
 			const child = spawn(executable, args, {
-				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
-				// message protocol; stderr is always inherited so plugin logs reach the terminal.
-				stdio: pluginUsesStdio
-					? ['pipe', 'pipe', 'inherit']
-					: ['inherit', 'inherit', 'inherit'],
+				stdio: ['pipe', 'pipe', 'inherit'],
 				detached: process.platform !== 'win32',
 			})
 

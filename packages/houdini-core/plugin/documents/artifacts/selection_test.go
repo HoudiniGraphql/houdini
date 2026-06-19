@@ -2520,8 +2520,7 @@ fragment UserPetsByAge_qkFx4 on User {
                                             "name": {
                                                 "kind": "Name",
                                                 "value": "minAge",
-                                            },
-                                            "value": "minAge"
+                                            }
                                         }
                                     }]
                                 },

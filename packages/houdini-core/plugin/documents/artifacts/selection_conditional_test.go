@@ -223,8 +223,7 @@ fragment UserDetails on User {
                                                 "name": {
                                                     "kind": "Name",
                                                     "value": "show",
-                                                },
-                                                "value": "show"
+                                                }
                                             }
                                         }
                                     }],
@@ -360,8 +359,7 @@ fragment UserDetails on User {
                                         "name": {
                                             "kind": "Name",
                                             "value": "show",
-                                        },
-                                        "value": "show"
+                                        }
                                     }
                                 }
                             }],
