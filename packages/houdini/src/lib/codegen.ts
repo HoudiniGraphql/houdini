@@ -445,9 +445,7 @@ export async function codegen_setup(
 			const child = spawn(executable, args, {
 				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
 				// message protocol; stderr is always inherited so plugin logs reach the terminal.
-				stdio: pluginUsesStdio
-					? ['pipe', 'pipe', 'inherit']
-					: ['inherit', 'inherit', 'inherit'],
+				stdio: pluginUsesStdio ? ['pipe', 'pipe', 'inherit'] : ['pipe', 'pipe', 'pipe'],
 				detached: process.platform !== 'win32',
 			})
 

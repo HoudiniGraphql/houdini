@@ -22,10 +22,14 @@ func TestFragmentArgumentTransform(t *testing.T) {
 
       type User {
         firstName: String!
-        friends(name: String, limit: Int, offset: Int): [User!]!
+				friends(name: String, limit: Int, offset: Int, filter: FriendFilter): [User!]!
         friendsByNames(names: [String!]): [User!]!
         id: ID!
       }
+			
+			input FriendFilter { 
+				name: String!
+			}
     `,
 		Tests: []tests.Test[config.PluginConfig]{
 			{
@@ -73,10 +77,10 @@ func TestFragmentArgumentTransform(t *testing.T) {
 						Type:          "String",
 						TypeModifiers: "!",
 					}),
+				},
 			},
-		},
-		{
-			Name: "Passes argument values to generated fragments",
+			{
+				Name: "Passes argument values to generated fragments",
 				Pass: true,
 				Input: []string{
 					`
@@ -505,10 +509,19 @@ func TestFragmentArgumentTransform(t *testing.T) {
 					),
 					tests.ExpectedDoc(
 						`fragment F_3fkJCt on User { friendsA: friends(name: $shared) { firstName id __typename } friendsB: friends(name: $renamed) { firstName id __typename } id __typename }`,
-					).WithVariables(
-						tests.ExpectedOperationVariable{Name: "a", Type: "String", TypeModifiers: "!"},
-						tests.ExpectedOperationVariable{Name: "b", Type: "String", TypeModifiers: "!"},
-					),
+					).
+						WithVariables(
+							tests.ExpectedOperationVariable{
+								Name:          "a",
+								Type:          "String",
+								TypeModifiers: "!",
+							},
+							tests.ExpectedOperationVariable{
+								Name:          "b",
+								Type:          "String",
+								TypeModifiers: "!",
+							},
+						),
 				},
 			},
 			{
@@ -551,6 +564,22 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				},
 			},
 			{
+				Name: "Argument used in object",
+				Pass: true,
+				Input: []string{
+					`query Q($name: String!) { user { ...F @with(name: $name) } }`,
+					`fragment F on User @arguments(name: {type: "String!"}) { friends(filter: {name: $name}) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($name: String!) { user { ...F_4E9dx0 @with(name: $name) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment F_4E9dx0 on User { id __typename friends(filter: {name: $name}) {firstName id __typename }}`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
 				Name: "Fragment spreads fragment with renamed variable argument",
 				Pass: true,
 				Input: []string{
@@ -567,6 +596,66 @@ func TestFragmentArgumentTransform(t *testing.T) {
 					).WithVariables(tests.ExpectedOperationVariable{Name: "outerName", Type: "String", TypeModifiers: "!"}),
 					tests.ExpectedDoc(
 						`fragment Inner_1YmyDS on User { friends(name: $userId) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "innerName", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Renamed variable used in both field arg and nested @with",
+				Pass: true,
+				Input: []string{
+					`query Q($studentId: String!) { user { ...Outer @with(name: $studentId) } }`,
+					`fragment Outer on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } ...Inner @with(innerName: $name) }`,
+					`fragment Inner on User @arguments(innerName: {type: "String!"}) { friends(name: $innerName) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($studentId: String!) { user { ...Outer_3TkJtv @with(name: $studentId) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment Outer_3TkJtv on User { id __typename friends(name: $studentId) { firstName id __typename } ...Inner_2Lx8Sp @with(innerName: $studentId) }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment Inner_2Lx8Sp on User { friends(name: $studentId) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "innerName", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Renamed variable used in nested field object arg and nested @with",
+				Pass: true,
+				Input: []string{
+					`query Q($studentId: String!) { user { ...Outer @with(name: $studentId) } }`,
+					`fragment Outer on User @arguments(name: {type: "String!"}) { friends(filter: {name: $name}) { firstName } ...Inner @with(innerName: $name) }`,
+					`fragment Inner on User @arguments(innerName: {type: "String!"}) { friends(name: $innerName) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($studentId: String!) { user { ...Outer_3TkJtv @with(name: $studentId) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment Outer_3TkJtv on User { id __typename friends(filter: {name: $studentId}) { firstName id __typename } ...Inner_2Lx8Sp @with(innerName: $studentId) }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment Inner_2Lx8Sp on User { friends(name: $studentId) { firstName id __typename } id __typename }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "innerName", Type: "String", TypeModifiers: "!"}),
+				},
+			},
+			{
+				Name: "Renamed variable used only in nested @with (no field args)",
+				Pass: true,
+				Input: []string{
+					`query Q($studentId: String!) { user { ...Outer @with(name: $studentId) } }`,
+					`fragment Outer on User @arguments(name: {type: "String!"}) { ...Inner @with(innerName: $name) }`,
+					`fragment Inner on User @arguments(innerName: {type: "String!"}) { friends(name: $innerName) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query Q($studentId: String!) { user { ...Outer_3TkJtv @with(name: $studentId) id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment Outer_3TkJtv on User { id __typename ...Inner_2Lx8Sp @with(innerName: $studentId) }`,
+					).WithVariables(tests.ExpectedOperationVariable{Name: "name", Type: "String", TypeModifiers: "!"}),
+					tests.ExpectedDoc(
+						`fragment Inner_2Lx8Sp on User { friends(name: $studentId) { firstName id __typename } id __typename }`,
 					).WithVariables(tests.ExpectedOperationVariable{Name: "innerName", Type: "String", TypeModifiers: "!"}),
 				},
 			},
@@ -658,8 +747,8 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
 							TypeModifiers: "!",
 						},
 					),
+				},
 			},
 		},
-	},
 	})
 }
