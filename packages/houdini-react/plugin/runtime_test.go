@@ -874,13 +874,16 @@ func TestGenerateRuntime(t *testing.T) {
 									documents: {
 									},
 									component: () => import("../units/entries/_"),
-									headers: [
-										() => import("../../../../src/routes/+layout").then(m => m.headers),
-										() => import("../../../../src/routes/+page").then(m => m.headers),
-									],
 								},
 							},
 						} as const satisfies RouterManifest<any>
+
+						export const route_headers = {
+							"_": [
+								() => import("../../../../src/routes/+layout").then(m => m.headers),
+								() => import("../../../../src/routes/+page").then(m => m.headers),
+							],
+						}
 
 						export type RouteScalars = {
 						}

@@ -701,6 +701,13 @@ func formatManifest(
 	sb.WriteString("export default {\n")
 	sb.WriteString("\tpages: {\n")
 
+	// Accumulate the ordered headers() loaders per page. These are emitted as a
+	// separate `route_headers` export (below) rather than nested in the manifest
+	// so that the client bundle, which only imports the default manifest, never
+	// references the source modules' headers() exports — letting dead-code
+	// elimination strip them from the client build.
+	headerLoadersByID := map[string][]string{}
+
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 
@@ -753,10 +760,12 @@ func formatManifest(
 
 		sb.WriteString(fmt.Sprintf("\t\t\tcomponent: () => import(%q),\n", filepath.ToSlash(componentRel)))
 
-		// Headers block: ordered loaders for every segment in the layout chain
-		// (outermost first) and then the page itself that export a headers()
-		// function. The server calls them in order and merges the results so the
-		// page wins over layouts and inner layouts win over outer ones.
+		sb.WriteString("\t\t},\n")
+
+		// Collect the ordered headers() loaders for every segment in the layout
+		// chain (outermost first) and then the page itself. The server calls them
+		// in order and merges the results so the page wins over layouts and inner
+		// layouts win over outer ones.
 		var headerSources []string
 		for _, layoutID := range page.Layouts {
 			if layout, ok := manifest.Layouts[layoutID]; ok && layout.Headers {
@@ -766,24 +775,37 @@ func formatManifest(
 		if page.Headers {
 			headerSources = append(headerSources, page.Path)
 		}
-		if len(headerSources) > 0 {
-			sb.WriteString("\t\t\theaders: [\n")
-			for _, src := range headerSources {
-				srcAbs := stripViewExt(filepath.Join(projectRoot, src))
-				srcRel, err := filepath.Rel(runtimeDir, srcAbs)
-				if err != nil {
-					return "", err
-				}
-				sb.WriteString(fmt.Sprintf("\t\t\t\t() => import(%q).then(m => m.headers),\n", filepath.ToSlash(srcRel)))
+		var loaders []string
+		for _, src := range headerSources {
+			srcAbs := stripViewExt(filepath.Join(projectRoot, src))
+			srcRel, err := filepath.Rel(runtimeDir, srcAbs)
+			if err != nil {
+				return "", err
 			}
-			sb.WriteString("\t\t\t],\n")
+			loaders = append(loaders, fmt.Sprintf("() => import(%q).then(m => m.headers)", filepath.ToSlash(srcRel)))
 		}
-
-		sb.WriteString("\t\t},\n")
+		if len(loaders) > 0 {
+			headerLoadersByID[id] = loaders
+		}
 	}
 
 	sb.WriteString("\t},\n")
 	sb.WriteString("} as const satisfies RouterManifest<any>\n")
+
+	// route_headers is a server-only export: it maps a page id to the ordered
+	// list of headers() loaders for that page and its layout chain. It is kept
+	// out of the default manifest so the client build can tree-shake it away.
+	if len(headerLoadersByID) > 0 {
+		sb.WriteString("\nexport const route_headers = {\n")
+		for _, id := range sortedKeys(headerLoadersByID) {
+			sb.WriteString(fmt.Sprintf("\t%q: [\n", id))
+			for _, loader := range headerLoadersByID[id] {
+				sb.WriteString(fmt.Sprintf("\t\t%s,\n", loader))
+			}
+			sb.WriteString("\t],\n")
+		}
+		sb.WriteString("}\n")
+	}
 
 	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
 	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.

@@ -13,13 +13,16 @@ import { componentField_unit_path, houdini_root } from 'houdini/router/conventio
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
+import { strip_named_export } from './strip-headers.js'
+
 const AST = recast.types.builders
 
 export type ComponentFieldRow = { type: string; field: string; fragment: string }
 
 export async function transform_file(
 	page: TransformPage,
-	cfRows: ComponentFieldRow[]
+	cfRows: ComponentFieldRow[],
+	opts: { stripHeaders?: boolean } = {}
 ): Promise<{ code: string; map?: SourceMapInput }> {
 	const isJSX = page.filepath.endsWith('.tsx') || page.filepath.endsWith('.jsx')
 	if (!isJSX && !page.filepath.endsWith('.ts') && !page.filepath.endsWith('.js')) {
@@ -27,6 +30,15 @@ export async function transform_file(
 	}
 
 	const script = parseJS(page.content, isJSX ? { plugins: ['jsx'] } : {})
+
+	// The headers() export of a +page/+layout only ever runs on the server. When
+	// building for the client we strip it so server-only logic (secrets, env
+	// vars) it might read never ends up in the browser bundle. Rollup keeps it
+	// otherwise: route views become preserved-signature chunks, so an unused
+	// export isn't tree-shaken away on its own.
+	if (opts.stripHeaders) {
+		strip_named_export(script, 'headers')
+	}
 
 	const cfMap: Record<string, Record<string, string>> = {}
 	for (const row of cfRows) {

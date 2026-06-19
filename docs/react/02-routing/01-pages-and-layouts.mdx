@@ -69,6 +69,23 @@ export function headers() {
 export default () => <div>Hello Houdini!</div>
 ```
 
-When a page renders, Houdini evaluates the `headers()` exports of the page and every layout in its chain, then merges the results. On a conflict the page wins over its layouts, and an inner layout wins over an outer one. The function runs on the server before the response is streamed, so it can't depend on query data — headers must be statically determinable from the request.
+When a page renders, Houdini evaluates the `headers()` exports of the page and every layout in its chain, then merges the results. On a conflict the page wins over its layouts, and an inner layout wins over an outer one.
+
+Because layouts apply to everything beneath them, the root `+layout.jsx` is the natural place for app-wide headers like `Content-Security-Policy`, `Strict-Transport-Security`, or `X-Frame-Options` that you want on every document response:
+
+```jsx title="src/routes/+layout.tsx&typescriptToggle=true"
+export function headers() {
+  return {
+    'Content-Security-Policy': "default-src 'self'",
+    'Strict-Transport-Security': 'max-age=63072000',
+  }
+}
+```
+
+These headers apply to the page (document) responses Houdini renders. They do not affect responses from your GraphQL endpoint, which is handled separately.
+
+<Notice variant="info">
+  `headers()` only ever runs on the server (it is stripped from the client bundle), so it's safe to read server-only secrets or environment variables inside it. It runs before the response is streamed, so it can't depend on query data; headers must be determinable from the request alone.
+</Notice>
 
 
