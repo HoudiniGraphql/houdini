@@ -220,7 +220,7 @@ fragment UserDetails on User {
                                         "arguments": {
                                             "if": {
                                                 "kind": "Variable",
-                                                name: {
+                                                "name": {
                                                     "kind": "Name",
                                                     "value": "show",
                                                 },
@@ -357,7 +357,7 @@ fragment UserDetails on User {
                                 "arguments": {
                                     "if": {
                                         "kind": "Variable",
-                                        name: {
+                                        "name": {
                                             "kind": "Name",
                                             "value": "show",
                                         },

@@ -307,8 +307,8 @@ export type A$artifact = typeof artifact
 					"A": tests.Dedent(`const artifact = {
     "name": "A",
     "kind": "HoudiniMutation",
-    "hash": "5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370",
-    "raw": ` + "`" + `mutation A() {
+    "hash": "478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6",
+    "raw": ` + "`" + `mutation A {
     addFriend {
         friend {
             ...All_Users_insert_kVR6H
@@ -432,7 +432,7 @@ export type A$optimistic = {
 
 export type A$artifact = typeof artifact
 
-"HoudiniHash=5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370"`),
+"HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"`),
 				},
 			},
 			{
@@ -1058,8 +1058,8 @@ export type A$artifact = typeof artifact
 					"A": tests.Dedent(`const artifact = {
     "name": "A",
     "kind": "HoudiniMutation",
-    "hash": "5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370",
-    "raw": ` + "`" + `mutation A() {
+    "hash": "478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6",
+    "raw": ` + "`" + `mutation A {
     addFriend {
         friend {
             ...All_Users_insert_kVR6H
@@ -1184,7 +1184,7 @@ export type A$optimistic = {
 
 export type A$artifact = typeof artifact
 
-"HoudiniHash=5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370"`),
+"HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"`),
 				},
 			},
 			{
@@ -1723,8 +1723,8 @@ export type A$artifact = typeof artifact
 					"A": tests.Dedent(`const artifact = {
     "name": "A",
     "kind": "HoudiniMutation",
-    "hash": "14c8b84f85cf39c1e786506a09bbeaa617139aa22c6723b595eaf0b7b29ca441",
-    "raw": ` + "`" + `mutation A() {
+    "hash": "2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88",
+    "raw": ` + "`" + `mutation A {
     addFriend {
         friend {
             ...All_Users_toggle_kVR6H
@@ -1849,7 +1849,7 @@ export type A$optimistic = {
 
 export type A$artifact = typeof artifact
 
-"HoudiniHash=14c8b84f85cf39c1e786506a09bbeaa617139aa22c6723b595eaf0b7b29ca441"`),
+"HoudiniHash=2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88"`),
 				},
 			},
 			{

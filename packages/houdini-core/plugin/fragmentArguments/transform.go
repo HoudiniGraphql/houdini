@@ -418,10 +418,14 @@ func processDocument[PluginConfig any](
 			return
 		}
 
-		// compute the used variables
+		// Direct Variable @with arguments (@with(x: $x)) immediately give us the raw
+		// variable name from withArgs. Descendant Variables nested inside Object/List
+		// arguments are returned by CopyScope (inside cloneDocument) and appended below.
 		usedVars := []string{}
-		for key := range fragmentScope {
-			usedVars = append(usedVars, key)
+		for _, arg := range withArgs {
+			if arg.Kind == "Variable" {
+				usedVars = append(usedVars, arg.Raw)
+			}
 		}
 
 		if hasExisting {
@@ -447,8 +451,10 @@ func processDocument[PluginConfig any](
 		processedFragments.Store(newFragmentName, true)
 		fragmentMutex.Unlock()
 
-		// clone the fragment document with the new name
-		fragmentID, fragmentScope, err := cloneDocument(
+		// clone the fragment document with the new name; CopyScope (called inside) also
+		// returns the raw names of any Variable nodes nested inside Object/List scope
+		// values (@with(f: {a: $x}) → "x"), which we append to usedVars.
+		fragmentID, fragmentScope, descendantVarNames, err := cloneDocument(
 			ctx,
 			db,
 			conn,
@@ -464,6 +470,7 @@ func processDocument[PluginConfig any](
 			errs.Append(plugins.WrapError(err))
 			return
 		}
+		usedVars = append(usedVars, descendantVarNames...)
 
 		// fragment is already marked as processed above
 
@@ -536,7 +543,7 @@ func cloneDocument[PluginConfig any](
 	statements *transformStatements[PluginConfig],
 	fragmentScope map[string]int64,
 	fragmentScopeVariables []DocArg,
-) (int64, map[string]int64, error) {
+) (int64, map[string]int64, []string, error) {
 	// the first thing we have to do is create a new document with the correct name
 	err := db.ExecStatement(statements.InsertFragment, map[string]any{
 		"name":           name,
@@ -544,7 +551,7 @@ func cloneDocument[PluginConfig any](
 		"raw_document":   sourceRawDocument,
 	})
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 	documentID := conn.LastInsertRowID()
 
@@ -563,14 +570,14 @@ func cloneDocument[PluginConfig any](
 				"document": documentID,
 			})
 			if err != nil {
-				return 0, nil, err
+				return 0, nil, nil, err
 			}
 
 			variable["default_value"] = conn.LastInsertRowID()
 		}
 		err = db.ExecStatement(statements.InsertDocumentVariable, variable)
 		if err != nil {
-			return 0, nil, err
+			return 0, nil, nil, err
 		}
 	}
 
@@ -582,7 +589,7 @@ func cloneDocument[PluginConfig any](
 		"to":   documentID,
 	})
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	// now we need to copy the argument values for this document which requires recreating the nested
@@ -598,7 +605,7 @@ func cloneDocument[PluginConfig any](
 		"document": sourceDocument,
 	})
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 	err = db.StepStatement(ctx, statements.DocumentArgumentValueSearch, func() {
 		id := statements.DocumentArgumentValueSearch.GetInt64("id")
@@ -644,10 +651,10 @@ func cloneDocument[PluginConfig any](
 		valueMap[id] = newValue
 	})
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 	if errs.Len() > 0 {
-		return 0, nil, errors.New(errs.Error())
+		return 0, nil, nil, errors.New(errs.Error())
 	}
 
 	// we now have a mapping from old argument value to their copy for the new document
@@ -663,7 +670,7 @@ func cloneDocument[PluginConfig any](
 				})
 			}
 
-			return 0, nil, plugins.Error{
+			return 0, nil, nil, plugins.Error{
 				Message: fmt.Sprintf(
 					"could not find value when copying document argument values: %v",
 					oldValue,
@@ -676,7 +683,7 @@ func cloneDocument[PluginConfig any](
 		for _, child := range children {
 			newChild, ok := valueMap[child.Value]
 			if !ok {
-				return 0, nil, plugins.Error{
+				return 0, nil, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"could not find child value when copying document argument values: %v",
 						child.Value,
@@ -696,7 +703,7 @@ func cloneDocument[PluginConfig any](
 				"column":   0,
 			})
 			if err != nil {
-				return 0, nil, plugins.Error{
+				return 0, nil, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"encountered error inserting argument value children: %v",
 						err,
@@ -715,7 +722,7 @@ func cloneDocument[PluginConfig any](
 		map[string]any{"from": sourceDocument},
 	)
 	if err != nil {
-		return 0, nil, plugins.WrapError(err)
+		return 0, nil, nil, plugins.WrapError(err)
 	}
 	err = db.StepStatement(ctx,
 		statements.NoSelectionArgsDirectiveArgsSearch,
@@ -749,7 +756,7 @@ func cloneDocument[PluginConfig any](
 		},
 	)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	// there are a few instances where we need to copy argument values (scope and directive arguments)
@@ -885,10 +892,10 @@ func cloneDocument[PluginConfig any](
 		}
 	})
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 	if errs.Len() > 0 {
-		return 0, nil, errors.New(errs.Error())
+		return 0, nil, nil, errors.New(errs.Error())
 	}
 
 	// the only thing left to do is patch the selection refs whose parents have args
@@ -899,7 +906,7 @@ func cloneDocument[PluginConfig any](
 			"document": documentID,
 		})
 		if err != nil {
-			return 0, nil, err
+			return 0, nil, nil, err
 		}
 	}
 
@@ -914,16 +921,16 @@ func cloneDocument[PluginConfig any](
 		selectionMap,
 	)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	// before we finish lets figure out the new scope
-	newScope, err := statements.CopyScope(ctx, db, conn, fragmentScope, documentID)
+	newScope, descendantVarNames, err := statements.CopyScope(ctx, db, conn, fragmentScope, documentID)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
-	return documentID, newScope, nil
+	return documentID, newScope, descendantVarNames, nil
 }
 
 // copyDiscoveredListsForClonedFragment copies discovered_lists entries that reference selections
@@ -1099,17 +1106,21 @@ type transformStatements[PluginConfig any] struct {
 	nullValue                          int64
 }
 
+// CopyScope copies the caller's argument value trees into documentID and returns the new scope.
+// It also returns the raw names of any Variable nodes that were descendants of an Object/List
+// scope value (e.g. $minAge inside @with(f: {a: $minAge})). These names must be added to
+// usedVars so PrintCollectedDocument keeps the corresponding operation variables in the header.
 func (s *transformStatements[PluginConfig]) CopyScope(
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
 	conn plugins.Conn,
 	fragmentScope map[string]int64,
 	documentID int64,
-) (map[string]int64, error) {
+) (map[string]int64, []string, error) {
 	// copying the fragment scope for a document is 2 steps. one grabs the
 	// argument values and another recreates the nested structure
 	if len(fragmentScope) == 0 {
-		return map[string]int64{}, nil
+		return map[string]int64{}, nil, nil
 	}
 	whereIn := "("
 	for _, id := range fragmentScope {
@@ -1121,21 +1132,21 @@ func (s *transformStatements[PluginConfig]) CopyScope(
       WITH RECURSIVE args as (
         SELECT * from argument_values
           WHERE id in %s
-        
-        UNION 
-        
-        SELECT argument_values.* 
+
+        UNION
+
+        SELECT argument_values.*
         FROM argument_value_children as parent_refs
           JOIN args ON args.id = parent_refs.parent
           JOIN argument_values on parent_refs."value" = argument_values.id
           LEFT JOIN argument_value_children ON argument_value_children.parent = argument_values.id
       )
 
-      SELECT 
+      SELECT
         args.* ,
-        CASE WHEN argument_value_children."value" IS NULL 
+        CASE WHEN argument_value_children."value" IS NULL
           THEN null
-          ELSE 
+          ELSE
             json_group_array(
               json_object (
                 'name', argument_value_children."name",
@@ -1143,12 +1154,12 @@ func (s *transformStatements[PluginConfig]) CopyScope(
             )
           )
         END as children
-      FROM args 
+      FROM args
         LEFT JOIN argument_value_children on argument_value_children.parent = args.id
       GROUP BY args.id
   `, whereIn))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer search.Finalize()
 
@@ -1157,6 +1168,19 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 	foundRows := map[int64][]FoundChildValue{}
 	valueMap := map[int64]int64{}
 	errs := &plugins.ErrorList{}
+
+	// Root scope values are the top-level IDs in fragmentScope (one per @with argument).
+	// - Root Variable values (@with(x: $x)) must be copied so each specialization owns
+	//   its own row; shared rows get deleted by nested specializations (e.g. pagination).
+	// - Descendant Variable nodes inside Object/List values (@with(f: {a: $x})) must NOT
+	//   be copied. ArgumentValueVariableSearch filters by document, so leaving them in the
+	//   caller's document prevents them from being found and wrongly nullified. We record
+	//   their raw names and return them so callers can mark the operation variables as used.
+	rootScopeValues := map[int64]bool{}
+	for _, id := range fragmentScope {
+		rootScopeValues[id] = true
+	}
+	var descendantVarNames []string
 
 	err = db.StepStatement(ctx, search, func() {
 		id := search.GetInt64("id")
@@ -1177,6 +1201,12 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 				errs.Append(plugins.WrapError(err))
 				return
 			}
+		}
+
+		if kind == "Variable" && !rootScopeValues[id] {
+			valueMap[id] = id
+			descendantVarNames = append(descendantVarNames, raw)
+			return
 		}
 
 		// insert the new argument value
@@ -1202,10 +1232,10 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 		valueMap[id] = newValue
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if errs.Len() > 0 {
-		return nil, errors.New(errs.Error())
+		return nil, nil, errors.New(errs.Error())
 	}
 
 	// we now have a mapping from old argument value to their copy for the new document
@@ -1221,7 +1251,7 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 				})
 			}
 
-			return nil, plugins.Error{
+			return nil, nil, plugins.Error{
 				Message: fmt.Sprintf(
 					"could not find value when copying document argument values: %v",
 					oldValue,
@@ -1234,7 +1264,7 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 		for _, child := range children {
 			newChild, ok := valueMap[child.Value]
 			if !ok {
-				return nil, plugins.Error{
+				return nil, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"could not find child value when copying document argument values: %v",
 						child.Value,
@@ -1254,7 +1284,7 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 				"column":   0,
 			})
 			if err != nil {
-				return nil, plugins.Error{
+				return nil, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"encountered error inserting argument value children: %v",
 						err,
@@ -1272,9 +1302,14 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 	for key, value := range fragmentScope {
 		newScope[key] = valueMap[value]
 	}
-	return newScope, nil
+	return newScope, descendantVarNames, nil
 }
 
+// FindVariablesInScope returns the raw names of any Variable argument value nodes that
+// are reachable (as direct values or nested descendants) from the given scope values.
+// These are query-level variables passed inside Object or List @with arguments, and
+// must be included in the selection's FragmentArgs so that PrintCollectedDocument marks
+// them as used and does not strip them from the operation header.
 func prepareTransformStatements[PluginConfig any](
 	conn plugins.Conn,
 ) (*transformStatements[PluginConfig], error) {
