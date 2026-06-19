@@ -274,8 +274,9 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 		}
 	}
 	hasMutations := len(manifest.Mutations) > 0 && len(manifest.Pages) > 0
+	hasSubscriptions := len(manifest.Subscriptions) > 0 && len(manifest.Pages) > 0
 
-	if len(allQueryNames) > 0 || hasMutations {
+	if len(allQueryNames) > 0 || hasMutations || hasSubscriptions {
 		sb.WriteString("\n")
 		for _, name := range sortedKeys(allQueryNames) {
 			sb.WriteString(fmt.Sprintf(
@@ -293,6 +294,16 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 				}
 			}
 		}
+		if hasSubscriptions {
+			for _, s := range manifest.Subscriptions {
+				if !allQueryNames[s] {
+					sb.WriteString(fmt.Sprintf(
+						"import type { %s$unmasked } from '$houdini/artifacts/%s'\n",
+						s, s,
+					))
+				}
+			}
+		}
 	}
 
 	sb.WriteString("\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n")
@@ -306,8 +317,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 	}
 
 	// Per-route mock data types. Required keys are the queries the route uses; mutations
-	// are listed as optional keys with their concrete input/result types so function
-	// handlers get vars typed as the mutation's $input (not Record<string,any>).
+	// and subscriptions are optional keys. Mutation handlers get vars typed as $input;
+	// subscription handlers are AsyncIterables that yield $unmasked values.
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 		sb.WriteString(fmt.Sprintf("type _TestData_%s = {\n", id))
@@ -316,6 +327,9 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 		}
 		for _, m := range manifest.Mutations {
 			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<%s$unmasked, %s$input>\n", m, m, m))
+		}
+		for _, s := range manifest.Subscriptions {
+			sb.WriteString(fmt.Sprintf("\t%s?: AsyncIterable<%s$unmasked>\n", s, s))
 		}
 		sb.WriteString("}\n\n")
 	}

@@ -8,7 +8,10 @@ import React from 'react'
 import { Router as RouterImpl, RouterContextProvider, router_cache } from './routing/index.js'
 import manifest from './manifest.js'
 
-type MockValue = Record<string, unknown> | ((vars: any) => Record<string, unknown>)
+type MockValue =
+	| Record<string, unknown>
+	| ((vars: any) => Record<string, unknown>)
+	| AsyncIterable<Record<string, unknown>>
 
 export function _createMock({
 	url: routePattern,
@@ -41,17 +44,33 @@ export function _createMock({
 
 	const mockPlugin = () => ({
 		network(ctx: any, { resolve }: any) {
-			if (ctx.artifact.kind === 'HoudiniSubscription') {
-				throw new Error(
-					`createMock: subscriptions are not supported. "${ctx.artifact.name}" fired during this test.`
-				)
-			}
 			const mock = mocks[ctx.artifact.name]
 			if (mock === undefined) {
 				throw new Error(
 					`createMock: "${ctx.artifact.name}" fired but was not in data. Add it to the data object passed to createMock.`
 				)
 			}
+
+			if (ctx.artifact.kind === 'HoudiniSubscription') {
+				const iterator = (mock as AsyncIterable<Record<string, unknown>>)[Symbol.asyncIterator]()
+				ctx.abortController.signal.addEventListener('abort', () => { iterator.return?.() }, { once: true })
+				;(async () => {
+					for await (const data of { [Symbol.asyncIterator]: () => iterator }) {
+						if (ctx.abortController.signal.aborted) break
+						resolve(ctx, {
+							data,
+							errors: null,
+							fetching: false,
+							variables: null,
+							source: DataSource.Network,
+							partial: false,
+							stale: false,
+						})
+					}
+				})()
+				return
+			}
+
 			const data = typeof mock === 'function' ? mock(ctx.variables ?? {}) : mock
 			resolve(ctx, {
 				data,
@@ -89,7 +108,9 @@ export function _createMock({
 				ssr_signals={caches.ssr_signals}
 				last_variables={caches.last_variables}
 			>
-				<RouterImpl manifest={manifest} initialURL={url} assetPrefix="" />
+				<React.Suspense fallback={null}>
+					<RouterImpl manifest={manifest} initialURL={url} assetPrefix="" />
+				</React.Suspense>
 			</RouterContextProvider>
 		)
 	}

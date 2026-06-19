@@ -595,6 +595,9 @@ func TestGenerateRuntime(t *testing.T) {
 				id: ID
 				node(id: ID!): Node
 			}
+			type Subscription {
+				id: ID
+			}
 			interface Node { id: ID! }
 		`,
 		SetupAlwaysPasses: true,
@@ -848,6 +851,40 @@ func TestGenerateRuntime(t *testing.T) {
 						export type RouteScalars = {
 						}
 					`) + "\n",
+				},
+			},
+			{
+				Name: "subscription appears as optional AsyncIterable field in mock",
+				Pass: true,
+				Input: []string{
+					mockQuery("PageQuery", false),
+					"subscription UserEvents { id }",
+				},
+				Filepaths: []string{
+					"src/routes/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx": mockView([]string{"PageQuery"}),
+					},
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock } from './testing'\n" +
+						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
+						"import type { UserEvents$unmasked } from '$houdini/artifacts/UserEvents'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData__ = {\n" +
+						"\tPageQuery: _MockValue<PageQuery$unmasked, PageQuery$input>\n" +
+						"\tUserEvents?: AsyncIterable<UserEvents$unmasked>\n" +
+						"}\n\n" +
+						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
+						"type RouteHrefs = \"/\"\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/\": _TestData__\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n" +
+						"}\n",
 				},
 			},
 			{

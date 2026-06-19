@@ -93,4 +93,22 @@ const App = createMock({
 
 ## Subscriptions
 
-Subscriptions are not supported in `createMock`. If a subscription fires during a test, the mock client throws an error with a clear message.
+Pass an async iterable as the handler for a subscription. Each value yielded by the iterable is pushed to the component as a new subscription event.
+
+```typescript
+async function* fakeEvents() {
+    yield { userUpdated: { id: '1', name: 'Alice' } }
+    yield { userUpdated: { id: '1', name: 'Bob' } }
+}
+
+const App = createMock({
+    url: '/profile/[id]',
+    params: { id: '1' },
+    data: {
+        ProfileQuery: { user: { id: '1', name: 'Alice' } },
+        UserUpdates: fakeEvents(),
+    },
+})
+```
+
+If a subscription fires and no handler is provided, the mock client throws immediately, failing the test loudly.

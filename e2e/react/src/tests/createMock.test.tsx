@@ -251,37 +251,49 @@ describe('mutation mock', () => {
 	})
 })
 
-// ─── Subscription guard ───────────────────────────────────────────────────────
+// ─── Subscription mock ───────────────────────────────────────────────────────
 
-describe('subscription guard', () => {
-	test('mock plugin throws synchronously when a subscription document fires', () => {
-		// The subscription guard lives in the mock plugin's network hook.
-		// We exercise it directly rather than through a full render since no
-		// e2e route uses a subscription.
-		let thrownError: Error | null = null
+describe('subscription mock', () => {
+	test('yields successive values from an async iterable', async () => {
+		async function* updates() {
+			yield { userUpdate: { id: '1', __typename: 'User', name: 'First' } }
+			yield { userUpdate: { id: '1', __typename: 'User', name: 'Second' } }
+		}
 
-		const fakePlugin = () => ({
-			network(ctx: any, _handlers: any) {
-				if (ctx.artifact.kind === 'HoudiniSubscription') {
-					throw new Error(
-						`createMock: subscriptions are not supported. "${ctx.artifact.name}" fired during this test.`
-					)
-				}
+		const App = createMock({
+			url: '/subscription-update',
+			data: {
+				UserUpdateSub: updates(),
 			},
 		})
 
-		try {
-			fakePlugin().network(
-				{ artifact: { name: 'LiveFeed', kind: 'HoudiniSubscription' } },
-				{}
-			)
-		} catch (err) {
-			thrownError = err as Error
-		}
+		render(<App />)
+		await screen.findByText('First')
+		await screen.findByText('Second')
+	})
 
-		expect(thrownError).not.toBeNull()
-		expect(thrownError!.message).toMatch(/subscriptions are not supported/)
-		expect(thrownError!.message).toContain('LiveFeed')
+	test('throws when a subscription fires with no handler', async () => {
+		const App = createMock({
+			url: '/subscription-update',
+			data: {},
+		})
+
+		let caughtError: Error | null = null
+		const rejectionHandler = (reason: Error) => {
+			if (reason?.message?.includes('UserUpdateSub')) {
+				caughtError = reason
+			}
+		}
+		process.on('unhandledRejection', rejectionHandler)
+
+		render(<App />)
+
+		await waitFor(() => {
+			expect(caughtError).not.toBeNull()
+			expect(caughtError!.message).toMatch(/UserUpdateSub.*fired but was not in data/)
+		})
+
+		process.off('unhandledRejection', rejectionHandler)
 	})
 })
 

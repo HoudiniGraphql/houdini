@@ -106,7 +106,11 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - run: pnpm run tests
+            - name: Unit tests (e2e-react / createMock)
+              run: pnpm --filter e2e-react unit
 
     go_tests:
         name: Go Tests
@@ -193,10 +197,7 @@ jobs:
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
             - if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
-            - if: matrix.framework == 'e2e-react'
-              name: Unit tests (createMock)
-              run: pnpm --filter ${{ matrix.framework }} unit
-            - if: matrix.framework != 'e2e-react'
+            - if: matrix.framework == 'e2e-kit'
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
             - if: matrix.framework == 'e2e-react'
               run: pnpm --filter ${{ matrix.framework }} tests
