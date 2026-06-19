@@ -299,7 +299,7 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 
 	if len(manifest.Pages) == 0 {
 		// No routes yet — simple stub so the file is still importable.
-		sb.WriteString("export function createMock({ url, params, data }: { url: string; params: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n")
+		sb.WriteString("export function createMock({ url, params = {}, data }: { url: string; params?: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n")
 		sb.WriteString("\treturn _createMock({ url, params, data })\n")
 		sb.WriteString("}\n")
 		return sb.String(), nil

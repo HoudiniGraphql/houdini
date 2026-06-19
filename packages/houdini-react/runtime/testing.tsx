@@ -73,9 +73,12 @@ export function _createMock({
 		cache,
 	})
 
-	const caches = router_cache()
-
 	return function MockApp() {
+		const cachesRef = React.useRef<ReturnType<typeof router_cache> | null>(null)
+		if (cachesRef.current === null) {
+			cachesRef.current = router_cache()
+		}
+		const caches = cachesRef.current
 		return (
 			<RouterContextProvider
 				client={mockClient}

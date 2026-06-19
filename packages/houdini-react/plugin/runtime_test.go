@@ -672,7 +672,7 @@ func TestGenerateRuntime(t *testing.T) {
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock } from './testing'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
-						"export function createMock({ url, params, data }: { url: string; params: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n" +
+						"export function createMock({ url, params = {}, data }: { url: string; params?: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n" +
 						"\treturn _createMock({ url, params, data })\n" +
 						"}\n",
 				},
