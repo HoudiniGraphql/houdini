@@ -753,6 +753,32 @@ func formatManifest(
 
 		sb.WriteString(fmt.Sprintf("\t\t\tcomponent: () => import(%q),\n", filepath.ToSlash(componentRel)))
 
+		// Headers block: ordered loaders for every segment in the layout chain
+		// (outermost first) and then the page itself that export a headers()
+		// function. The server calls them in order and merges the results so the
+		// page wins over layouts and inner layouts win over outer ones.
+		var headerSources []string
+		for _, layoutID := range page.Layouts {
+			if layout, ok := manifest.Layouts[layoutID]; ok && layout.Headers {
+				headerSources = append(headerSources, layout.Path)
+			}
+		}
+		if page.Headers {
+			headerSources = append(headerSources, page.Path)
+		}
+		if len(headerSources) > 0 {
+			sb.WriteString("\t\t\theaders: [\n")
+			for _, src := range headerSources {
+				srcAbs := stripViewExt(filepath.Join(projectRoot, src))
+				srcRel, err := filepath.Rel(runtimeDir, srcAbs)
+				if err != nil {
+					return "", err
+				}
+				sb.WriteString(fmt.Sprintf("\t\t\t\t() => import(%q).then(m => m.headers),\n", filepath.ToSlash(srcRel)))
+			}
+			sb.WriteString("\t\t\t],\n")
+		}
+
 		sb.WriteString("\t\t},\n")
 	}
 

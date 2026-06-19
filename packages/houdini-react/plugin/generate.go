@@ -546,6 +546,7 @@ export const on_render =
 		session,
 		manifest,
 		componentCache,
+		headers,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -593,12 +594,19 @@ export const on_render =
 	` + "`" + `)
 
 		if (pipeTo && pipe) {
+			// route headers must be set on the underlying response before any of
+			// the stream is written
+			if (headers && typeof pipe.setHeader === 'function') {
+				for (const [key, value] of Object.entries(headers)) {
+					pipe.setHeader(key, value)
+				}
+			}
 			pipeTo(pipe)
 			return true
 		} else if (statusRef.location) {
-			return new Response(null, { status: statusRef.status, headers: { Location: statusRef.location } })
+			return new Response(null, { status: statusRef.status, headers: { ...headers, Location: statusRef.location } })
 		} else {
-			return new Response(readable, { status: statusRef.status })
+			return new Response(readable, { status: statusRef.status, headers })
 		}
 	}
 

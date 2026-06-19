@@ -854,6 +854,40 @@ func TestGenerateRuntime(t *testing.T) {
 				},
 			},
 			{
+				Name: "headers() exports emit a headers loader array",
+				Pass: true,
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+layout.tsx": "export function headers() { return { 'X-From': 'layout' } }\nexport default ({children}) => <div>{children}</div>",
+						"src/routes/+page.tsx":   "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
+					},
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_": {
+									id: "_",
+									url: "/",
+									pattern: /^\/$/,
+									params: [],
+									documents: {
+									},
+									component: () => import("../units/entries/_"),
+									headers: [
+										() => import("../../../../src/routes/+layout").then(m => m.headers),
+										() => import("../../../../src/routes/+page").then(m => m.headers),
+									],
+								},
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
 				Name: "subscription appears as optional MockValue field in mock",
 				Pass: true,
 				Input: []string{

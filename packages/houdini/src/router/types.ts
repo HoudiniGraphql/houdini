@@ -34,4 +34,15 @@ export type RouterPageManifest<_ComponentType> = {
 		}
 	>
 	component: () => Promise<{ default: _ComponentType }>
+
+	// loaders for the headers() functions exported by this page and its layout
+	// chain (outermost first). They are evaluated and merged before streaming so
+	// the page wins over layouts and inner layouts win over outer ones.
+	headers?: Array<() => Promise<RouteHeaderFunction | undefined>>
 }
+
+// the shape of a route's headers() export: a function returning the response
+// headers to merge for the matched page.
+export type RouteHeaderFunction = () => RouteHeaders | Promise<RouteHeaders>
+
+export type RouteHeaders = Record<string, string>

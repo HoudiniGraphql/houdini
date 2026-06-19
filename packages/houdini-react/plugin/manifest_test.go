@@ -459,7 +459,62 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "+error.tsx propagates to child pages when no sibling +page.tsx",
+				Name: "headers() export sets Headers on page and layout manifests",
+					Pass: true,
+					Extra: map[string]any{
+						"views": map[string]string{
+							"src/routes/+layout.tsx":     "export function headers() { return { 'X-From': 'layout' } }\nexport default ({children}) => <div>{children}</div>",
+							"src/routes/+page.tsx":       "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
+							"src/routes/plain/+page.tsx": mockView([]string{}),
+						},
+						"expected": plugin.ProjectManifest{
+							Pages: map[string]plugin.PageManifest{
+								"_": {
+									ID:            "_",
+									Queries:       []string{},
+									QueryOptions:  []string{},
+									LayoutQueries: []string{},
+									URL:           "/",
+									Layouts:       []string{"_"},
+									Path:          "src/routes/+page.tsx",
+									Params:        map[string]*plugin.ParamTypeInfo{},
+									Headers:       true,
+								},
+								"_plain": {
+									ID:            "_plain",
+									Queries:       []string{},
+									QueryOptions:  []string{},
+									LayoutQueries: []string{},
+									URL:           "/plain",
+									Layouts:       []string{"_"},
+									Path:          "src/routes/plain/+page.tsx",
+									Params:        map[string]*plugin.ParamTypeInfo{},
+								},
+							},
+							Layouts: map[string]plugin.PageManifest{
+								"_": {
+									ID:            "_",
+									Queries:       []string{},
+									QueryOptions:  []string{},
+									LayoutQueries: []string{},
+									URL:           "/",
+									Layouts:       []string{},
+									Path:          "src/routes/+layout.tsx",
+									Params:        map[string]*plugin.ParamTypeInfo{},
+									Headers:       true,
+								},
+							},
+							PageQueries:     map[string]plugin.QueryManifest{},
+							LayoutQueries:   map[string]plugin.QueryManifest{},
+							Artifacts:       []string{},
+							LocalSchema:     false,
+							LocalYoga:       false,
+							ComponentFields: map[string]plugin.ComponentFieldInfo{},
+						},
+					},
+				},
+				{
+					Name: "+error.tsx propagates to child pages when no sibling +page.tsx",
 				Pass: true,
 				Input: []string{
 					mockQuery("RootQuery", false),
