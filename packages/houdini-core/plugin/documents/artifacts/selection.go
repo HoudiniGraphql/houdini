@@ -1710,7 +1710,7 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	switch arg.Kind {
 	case "Variable":
 		attrs = fmt.Sprintf(`
-%sname: {
+%s"name": {
 %s"kind": "Name",
 %s"value": "%s",
 %s},
@@ -1741,16 +1741,24 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 %s"values": [%s]`, indent1, children,
 		)
 	case "Object":
+		indent3 := strings.Repeat(spacing, level+3)
 		fields := ""
 		for _, child := range arg.Children {
 			if len(fields) > 0 {
 				fields += ", "
 			}
-			fields += fmt.Sprintf(
-				`{"%s": %s}`,
-				child.Name,
-				serializeFragmentArgument(child.Value, level+1),
-			)
+			fields += fmt.Sprintf(`{
+%s"kind": "ObjectField",
+%s"name": {
+%s"kind": "Name",
+%s"value": "%s",
+%s},
+%s"value": %s
+%s}`,
+				indent2,
+				indent2, indent3, indent3, child.Name, indent2,
+				indent2, serializeFragmentArgument(child.Value, level+2),
+				indent1)
 		}
 		attrs = fmt.Sprintf(`
 %s"fields": [%s]`, indent1, fields)
