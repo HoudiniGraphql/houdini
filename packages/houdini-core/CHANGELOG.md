@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.27
+
+### Patch Changes
+
+- [#1680](https://github.com/HoudiniGraphql/houdini/pull/1680) [`704f3b4`](https://github.com/HoudiniGraphql/houdini/commit/704f3b4ba8be98f5b136c3279133a99511bf0e62) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix nil panic with nested fragment argument values
+
 ## 2.0.0-next.26
 
 ### Patch Changes
