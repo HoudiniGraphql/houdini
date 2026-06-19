@@ -1,5 +1,12 @@
 # houdini-adapter-node
 
+## 2.0.0-next.31
+
+### Patch Changes
+
+- Updated dependencies [[`ef5363e`](https://github.com/HoudiniGraphql/houdini/commit/ef5363ed9927cf52a97932dffa3eba983af6a8e9), [`ef5363e`](https://github.com/HoudiniGraphql/houdini/commit/ef5363ed9927cf52a97932dffa3eba983af6a8e9)]:
+  - houdini@2.0.0-next.42
+
 ## 2.0.0-next.30
 
 ### Patch Changes
