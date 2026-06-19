@@ -254,8 +254,8 @@ describe('mutation mock', () => {
 describe('subscription mock', () => {
 	test('yields successive values from an async iterable', async () => {
 		async function* updates() {
-			yield { userUpdate: { id: '1', __typename: 'User', name: 'First' } }
-			yield { userUpdate: { id: '1', __typename: 'User', name: 'Second' } }
+			yield { userUpdate: { id: '1', __typename: 'User' as const, name: 'First' } }
+			yield { userUpdate: { id: '1', __typename: 'User' as const, name: 'Second' } }
 		}
 
 		const App = createMock({
