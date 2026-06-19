@@ -1,5 +1,15 @@
 # houdini-core
 
+## 2.0.0-next.29
+
+### Minor Changes
+
+- [#1677](https://github.com/HoudiniGraphql/houdini/pull/1677) [`ef5363e`](https://github.com/HoudiniGraphql/houdini/commit/ef5363ed9927cf52a97932dffa3eba983af6a8e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add `createMock` for first-class testing support — returns a fully composed React component for any route, wired with a fresh cache and mock network client.
+
+### Patch Changes
+
+- [#1677](https://github.com/HoudiniGraphql/houdini/pull/1677) [`ef5363e`](https://github.com/HoudiniGraphql/houdini/commit/ef5363ed9927cf52a97932dffa3eba983af6a8e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - \_\_typename is generated to be a constant string for non-abstract types
+
 ## 2.0.0-next.28
 
 ### Patch Changes
