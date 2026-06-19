@@ -854,7 +854,7 @@ func TestGenerateRuntime(t *testing.T) {
 				},
 			},
 			{
-				Name: "subscription appears as optional AsyncIterable field in mock",
+				Name: "subscription appears as optional MockValue field in mock",
 				Pass: true,
 				Input: []string{
 					mockQuery("PageQuery", false),
@@ -870,11 +870,11 @@ func TestGenerateRuntime(t *testing.T) {
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock } from './testing'\n" +
 						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
-						"import type { UserEvents$unmasked } from '$houdini/artifacts/UserEvents'\n" +
+						"import type { UserEvents$unmasked, UserEvents$input } from '$houdini/artifacts/UserEvents'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
 						"type _TestData__ = {\n" +
 						"\tPageQuery: _MockValue<PageQuery$unmasked, PageQuery$input>\n" +
-						"\tUserEvents?: AsyncIterable<UserEvents$unmasked>\n" +
+						"\tUserEvents?: _MockValue<AsyncIterable<UserEvents$unmasked>, UserEvents$input>\n" +
 						"}\n\n" +
 						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
 						"type RouteHrefs = \"/\"\n\n" +

@@ -12,6 +12,7 @@ type MockValue =
 	| Record<string, unknown>
 	| ((vars: any) => Record<string, unknown>)
 	| AsyncIterable<Record<string, unknown>>
+	| ((vars: any) => AsyncIterable<Record<string, unknown>>)
 
 export function _createMock({
 	url: routePattern,
@@ -52,7 +53,10 @@ export function _createMock({
 			}
 
 			if (ctx.artifact.kind === 'HoudiniSubscription') {
-				const iterator = (mock as AsyncIterable<Record<string, unknown>>)[Symbol.asyncIterator]()
+				const iterable = typeof mock === 'function'
+					? (mock as (v: any) => AsyncIterable<Record<string, unknown>>)(ctx.variables ?? {})
+					: mock as AsyncIterable<Record<string, unknown>>
+				const iterator = iterable[Symbol.asyncIterator]()
 				ctx.abortController.signal.addEventListener('abort', () => { iterator.return?.() }, { once: true })
 				;(async () => {
 					for await (const data of { [Symbol.asyncIterator]: () => iterator }) {

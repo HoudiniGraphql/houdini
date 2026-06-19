@@ -33,8 +33,6 @@ describe('static query mock', () => {
 	})
 })
 
-// ─── Route params → query variables ──────────────────────────────────────────
-
 // ─── Plain-JSON data ─────────────────────────────────────────────────────────
 
 describe('plain server JSON data', () => {
@@ -142,11 +140,11 @@ describe('function mock', () => {
 			params: { id: '7' },
 			data: {
 				RouteParamsUserInfo: ({ id }) => ({
-					user: { 
-            id,
-            name: id === '7' ? 'Lucky Seven' : 'Unknown' ,
-            __typename: "User"
-          },
+					user: {
+						id,
+						name: id === '7' ? 'Lucky Seven' : 'Unknown',
+						__typename: 'User',
+					},
 				}),
 			},
 		})

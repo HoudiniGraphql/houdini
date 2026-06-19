@@ -1750,13 +1750,13 @@ export type TestQuery$result = {
 	readonly entitiesByCursor: {
 		readonly edges: ({
 			readonly node: {} & (({
-		readonly firstName: string;
-		readonly id: string;
-		readonly __typename: "User";
-	}) | ({
-		readonly " $fragments"?: {};
-		readonly __typename: "non-exhaustive; don't match this";
-	})) | null;
+				readonly firstName: string;
+				readonly id: string;
+				readonly __typename: "User";
+			}) | ({
+				readonly " $fragments"?: {};
+				readonly __typename: "non-exhaustive; don't match this";
+			})) | null;
 			readonly cursor: string;
 		})[];
 		readonly pageInfo: {
@@ -1782,13 +1782,13 @@ export type TestQuery$unmasked = {
 			readonly __typename: "EntityEdge";
 			readonly cursor: string;
 			readonly node: {} & (({
-		readonly firstName: string;
-		readonly id: string;
-		readonly __typename: "User";
-	}) | ({
-		readonly " $fragments"?: {};
-		readonly __typename: "non-exhaustive; don't match this";
-	})) | null;
+				readonly firstName: string;
+				readonly id: string;
+				readonly __typename: "User";
+			}) | ({
+				readonly " $fragments"?: {};
+				readonly __typename: "non-exhaustive; don't match this";
+			})) | null;
 		})[];
 		readonly pageInfo: {
 			readonly endCursor: string | null;

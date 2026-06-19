@@ -298,8 +298,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 			for _, s := range manifest.Subscriptions {
 				if !allQueryNames[s] {
 					sb.WriteString(fmt.Sprintf(
-						"import type { %s$unmasked } from '$houdini/artifacts/%s'\n",
-						s, s,
+						"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+						s, s, s,
 					))
 				}
 			}
@@ -329,7 +329,7 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<%s$unmasked, %s$input>\n", m, m, m))
 		}
 		for _, s := range manifest.Subscriptions {
-			sb.WriteString(fmt.Sprintf("\t%s?: AsyncIterable<%s$unmasked>\n", s, s))
+			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<AsyncIterable<%s$unmasked>, %s$input>\n", s, s, s))
 		}
 		sb.WriteString("}\n\n")
 	}

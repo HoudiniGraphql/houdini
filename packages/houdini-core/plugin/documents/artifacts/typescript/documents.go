@@ -598,6 +598,7 @@ func generateSelectionType(
 					readonly,
 					collectedDocs,
 					unmasked,
+					indentLevel+1,
 				)
 
 				// Apply type modifiers (lists, nullability) to the union type
@@ -702,8 +703,9 @@ func generateInterfaceUnionType(
 	readonly bool,
 	collectedDocs *collected.Documents,
 	unmasked bool,
+	indentLevel int,
 ) string {
-	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs, unmasked)
+	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs, unmasked, indentLevel)
 }
 
 func generateInterfaceUnionTypeWithLoading(
@@ -713,11 +715,15 @@ func generateInterfaceUnionTypeWithLoading(
 	isLoadingState bool,
 	collectedDocs *collected.Documents,
 	unmasked bool,
+	indentLevel int,
 ) string {
 	readonlyPrefix := ""
 	if readonly {
 		readonlyPrefix = "readonly "
 	}
+	fieldIndent := strings.Repeat("\t", indentLevel+1)
+	memberIndent := strings.Repeat("\t", indentLevel)
+	fragmentSubIndent := strings.Repeat("\t", indentLevel+2)
 
 	// Collect all fragments and determine which concrete types need union members
 	fragmentsByType := make(map[string][]*collected.Selection)
@@ -847,6 +853,7 @@ func generateInterfaceUnionTypeWithLoading(
 									readonly,
 									collectedDocs,
 									unmasked,
+									indentLevel+1,
 								)
 
 								// Apply type modifiers (lists, nullability) to the union type
@@ -861,7 +868,7 @@ func generateInterfaceUnionTypeWithLoading(
 								) // Output type
 							} else {
 								// Regular nested object type
-								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs, unmasked)
+								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, indentLevel+1, fragmentChild.FieldType, collectedDocs, unmasked)
 								if childErr != nil {
 									// Fallback to simple type conversion on error
 									fieldType = convertLeafType(
@@ -899,7 +906,8 @@ func generateInterfaceUnionTypeWithLoading(
 					fields = append(
 						fields,
 						fmt.Sprintf(
-							"\t\t%s%s%s: %s;",
+							"%s%s%s%s: %s;",
+							fieldIndent,
 							readonlyPrefix,
 							fragmentChild.FieldName,
 							optional,
@@ -931,21 +939,23 @@ func generateInterfaceUnionTypeWithLoading(
 				sort.Strings(uniqueFragNames)
 				fragEntries := make([]string, len(uniqueFragNames))
 				for i, n := range uniqueFragNames {
-					fragEntries[i] = fmt.Sprintf("\t\t\t%s: {};", n)
+					fragEntries[i] = fmt.Sprintf("%s%s: {};", fragmentSubIndent, n)
 				}
 				fields = append(fields, fmt.Sprintf(
-					"\t\t%s\" $fragments\": {\n%s\n\t\t};",
+					"%s%s\" $fragments\": {\n%s\n%s};",
+					fieldIndent,
 					readonlyPrefix,
 					strings.Join(fragEntries, "\n"),
+					fieldIndent,
 				))
 			}
 		}
 
 		// Always add __typename field for discrimination with literal type
-		fields = append(fields, fmt.Sprintf("\t\t%s__typename: \"%s\";", readonlyPrefix, typeName))
+		fields = append(fields, fmt.Sprintf("%s%s__typename: \"%s\";", fieldIndent, readonlyPrefix, typeName))
 
 		// Create the type literal
-		typeLiteral := fmt.Sprintf("({\n%s\n\t})", strings.Join(fields, "\n"))
+		typeLiteral := fmt.Sprintf("({\n%s\n%s})", strings.Join(fields, "\n"), memberIndent)
 		unionParts = append(unionParts, typeLiteral)
 	}
 
@@ -972,9 +982,12 @@ func generateInterfaceUnionTypeWithLoading(
 
 		if !hasFragmentForAllTypes {
 			nonExhaustive := fmt.Sprintf(
-				"({\n\t\t%s\" $fragments\"?: {};\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+				"({\n%s%s\" $fragments\"?: {};\n%s%s__typename: \"non-exhaustive; don't match this\";\n%s})",
+				fieldIndent,
 				readonlyPrefix,
+				fieldIndent,
 				readonlyPrefix,
+				memberIndent,
 			)
 			unionParts = append(unionParts, nonExhaustive)
 		}
@@ -1135,6 +1148,7 @@ func generateOptimisticType(
 				readonly,
 				collectedDocs,
 				false,
+				indentLevel+1,
 			)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
@@ -1357,6 +1371,7 @@ func generateLoadingStateType(
 							true,  // isLoadingState
 							collectedDocs,
 							false, // unmasked
+							indentLevel+1,
 						)
 
 						// Apply array syntax if this is a list type

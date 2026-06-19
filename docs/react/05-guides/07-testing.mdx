@@ -5,7 +5,7 @@ description: How to write tests for Houdini components and routes
 
 # Testing
 
-Houdini ships first-class testing utilities for React. The `createMock` function returns a fully composed React component for any route in your app — the real layout tree, the real page component — wired with a fresh cache, a mock network client, and the correct router context.
+Houdini ships first-class testing utilities for React. The `createMock` function returns the full page composition including any layouts for any route in your app, wired with a fresh cache, a mock network client, and the correct router context.
 
 ## Setup
 
@@ -50,11 +50,11 @@ test('renders show name', async () => {
 
 ## Mental model
 
-Mocks are **API responses** — the unmasked JSON the server would return for a given document. This means that you will have to provide fields that your components might not have asked for if Houdini includes them behind the scenes (ids, pageInfo, etc). That data is written to a fresh cache instance per test. Components read from the cache through their normal hooks, so masking, normalization, and cache behavior all work exactly as in production.
+Mocks are full API responses. They must contain the entire unmasked JSON the server would return for a given document, including any fields Houdini includes behind the scenes (ids, pageInfo, etc). That data is written to a fresh cache instance per test. Components read from the cache through their normal hooks, so masking, normalization, and cache behavior all work exactly as in production.
 
 ## Type safety
 
-`createMock` is fully typed. The `url` argument is a union of all valid route patterns in your app — a nonexistent path is a type error. The `params` shape is derived from the route's URL parameters. The `data` object requires a key for every query that belongs to that route (the page's own queries plus all ancestor layout queries) — missing query keys are type errors, and `createMock` also throws at runtime with the names of any missing queries before any component is created.
+`createMock` is fully typed. The `url` argument is a union of valid routes in your app, `params` must match the route's URL parameters, and `data` requires a key for every query that belongs to that route (the page's own queries plus all ancestor layout queries). Missing query keys are type errors, and `createMock` also throws at runtime with the names of any missing queries before any component is created.
 
 ## Variable-dependent responses
 

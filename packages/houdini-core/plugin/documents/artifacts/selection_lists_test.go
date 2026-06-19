@@ -1604,11 +1604,11 @@ export type AnimalsOverview$unmasked = {
 		readonly edges: ({
 			readonly __typename: string;
 			readonly node: {} & (({
-		readonly hasBanana: boolean;
-		readonly id: string;
-		readonly name: string;
-		readonly __typename: "Monkey";
-	})) | null;
+				readonly hasBanana: boolean;
+				readonly id: string;
+				readonly name: string;
+				readonly __typename: "Monkey";
+			})) | null;
 		})[];
 	} | null;
 };
