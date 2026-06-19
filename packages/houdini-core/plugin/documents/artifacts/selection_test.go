@@ -2410,6 +2410,18 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly id: string;
+		readonly pets: ({} & (({
+			readonly id: string;
+			readonly name: string;
+			readonly __typename: "Cat";
+		})))[];
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=2c800aa339ee6e032fa3556fa5dfcc560d01248a07b93986477de07f63f176e8"`),
@@ -2549,6 +2561,18 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly friendsByNames: ({
+			readonly __typename: "User";
+			readonly id: string;
+			readonly name: string;
+		})[];
+		readonly id: string;
+	};
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -2726,6 +2750,18 @@ export type TestQuery$result = {
 
 export type TestQuery$input = {
 	minAge?: number | null;
+};
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly id: string;
+		readonly pets: ({} & (({
+			readonly id: string;
+			readonly name: string;
+			readonly __typename: "Cat";
+		})))[];
+	};
 };
 
 export type TestQuery$artifact = typeof artifact
