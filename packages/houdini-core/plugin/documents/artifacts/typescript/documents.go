@@ -18,6 +18,7 @@ import (
 // and embeds context.Context to serve as both context and document state
 type DocumentContext struct {
 	HasLoading    bool
+	SortKeys      bool
 	ProjectConfig plugins.ProjectConfig
 	EnumTypes     map[string]bool
 	InputTypes    map[string]bool
@@ -147,7 +148,8 @@ func GenerateDocumentTypeDefs(
 	rootTypes *RootTypeNames,
 	collectedDefinitions *collected.Documents,
 	doc *collected.Document,
-	flattenedSelection []*collected.Selection,
+	unmaskedSelection []*collected.Selection,
+	sortKeys bool,
 ) (string, []string, error) {
 	// Calculate root type name once per document
 	rootTypeName := getRootTypeName(doc, rootTypes)
@@ -158,7 +160,8 @@ func GenerateDocumentTypeDefs(
 		rootTypeName,
 		doc,
 		collectedDefinitions,
-		flattenedSelection,
+		unmaskedSelection,
+		sortKeys,
 	)
 	if err != nil {
 		return "", nil, err
@@ -172,11 +175,13 @@ func generateDocumentTypeDef(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
-	flattenedSelection []*collected.Selection,
+	unmaskedSelection []*collected.Selection,
+	sortKeys bool,
 ) (string, []string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := DocumentContext{
 		ProjectConfig: projectConfig,
+		SortKeys:      sortKeys,
 		EnumTypes:     make(map[string]bool),
 		InputTypes:    make(map[string]bool),
 		ScalarImports: make(map[string]bool),
@@ -205,7 +210,7 @@ func generateDocumentTypeDef(
 			rootTypeName,
 			doc,
 			collectedDocs,
-			flattenedSelection,
+			unmaskedSelection,
 		)...)
 	}
 
@@ -352,7 +357,7 @@ func generateOperationTypes(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
-	flattenedSelection []*collected.Selection,
+	unmaskedSelection []*collected.Selection,
 ) []string {
 	var types []string
 
@@ -459,8 +464,10 @@ func generateOperationTypes(
 	// Generate $unmasked type: the fully-resolved server payload with all fragment
 	// fields inlined and no " $fragments" mask annotations. Used by createMock so
 	// test data can be written as plain JSON matching what the network would return.
+	// unmaskedSelection comes from FlattenSelection(defaultMask=false) so all fragment
+	// fields are already merged in deterministic order — no manual sort needed.
 	unmaskedTypeName := fmt.Sprintf("%s$unmasked", doc.Name)
-	unmaskedType, _ := generateSelectionType(ctx, flattenedSelection, true, 0, rootTypeName, collectedDocs, true)
+	unmaskedType, _ := generateSelectionType(ctx, unmaskedSelection, true, 0, rootTypeName, collectedDocs, true)
 	types = append(types, fmt.Sprintf("export type %s = %s;", unmaskedTypeName, unmaskedType))
 
 	return types
@@ -527,21 +534,6 @@ func generateSelectionType(
 
 	// onlyFragments logic is now handled in the first pass when determining visibility
 
-	// In unmasked mode the input comes from FlattenSelection which uses Go maps
-	// without a fixed iteration order; sort here so the $unmasked type is deterministic.
-	if unmasked {
-		sort.SliceStable(visibleSelections, func(i, j int) bool {
-			nameI := visibleSelections[i].FieldName
-			if visibleSelections[i].Alias != nil {
-				nameI = *visibleSelections[i].Alias
-			}
-			nameJ := visibleSelections[j].FieldName
-			if visibleSelections[j].Alias != nil {
-				nameJ = *visibleSelections[j].Alias
-			}
-			return nameI < nameJ
-		})
-	}
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
@@ -918,9 +910,12 @@ func generateInterfaceUnionTypeWithLoading(
 			}
 		}
 
-		// In unmasked mode, sort fields alphabetically for deterministic output.
-		// (FlattenSelection uses Go maps so fragment processing order is non-deterministic.)
-		if unmasked {
+
+		// union/interface arms merge fields across several inline fragments, so the
+		// per-node sort FlattenSelection applies doesn't survive the merge. only the
+		// $unmasked type wants a stable global order and only tests need it sorted, so
+		// gate on sortKeys to keep production (sortKeys=false) free of the cost.
+		if ctx.SortKeys && unmasked {
 			sort.Strings(fields)
 		}
 

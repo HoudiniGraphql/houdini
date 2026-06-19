@@ -8,10 +8,32 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 )
+
+func performTypescriptTest(
+	verifyFn func(*testing.T, *plugin.HoudiniCore, tests.Test[config.PluginConfig]),
+) func(*testing.T, *plugin.HoudiniCore, tests.Test[config.PluginConfig]) {
+	return func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		if err := p.Validate(context.Background()); err != nil {
+			require.False(t, test.Pass, err.Error())
+			return
+		}
+		if err := p.AfterValidate(context.Background()); err != nil {
+			require.False(t, test.Pass, err)
+			return
+		}
+		if _, err := documents.Generate(context.Background(), p.DB, p.Fs, true); err != nil {
+			require.False(t, test.Pass, err.Error())
+			return
+		}
+		require.True(t, test.Pass)
+		verifyFn(t, p, test)
+	}
+}
 
 func TestTypescriptGeneration(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
@@ -119,20 +141,16 @@ func TestTypescriptGeneration(t *testing.T) {
 					weight: Float
 				}
     `,
-		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			config, err := plugin.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
-			// for every document that we want to generate types for
 			for docName, expected := range test.Extra {
-				// open the file with the appropriate type definitions
 				typeDefs, err := afero.ReadFile(plugin.Fs, config.ArtifactTypePath(docName))
-
-				// make sure values match expectations
 				require.NoError(t, err)
 				require.Contains(t, string(typeDefs), expected)
 			}
-		},
+		}),
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "generates document types",
@@ -433,8 +451,8 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyQuery$input = {
-							id: string;
 							enum?: MyEnum$options | null;
+							id: string;
 						};
 
 						export type MyQuery$unmasked = {
@@ -1039,12 +1057,12 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyMutation$input = {
-							filter?: UserFilter | null;
-							filterList: (UserFilter)[];
-							id: string;
-							firstName: string;
 							admin?: boolean | null;
 							age?: number | null;
+							filter?: UserFilter | null;
+							filterList: (UserFilter)[];
+							firstName: string;
+							id: string;
 							weight?: number | null;
 						};
 
@@ -1286,7 +1304,7 @@ func TestScalarImports(t *testing.T) {
 				metadata: JSON
 			}
 		`,
-		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			cfg, err := plugin.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
@@ -1295,7 +1313,7 @@ func TestScalarImports(t *testing.T) {
 				require.NoError(t, err)
 				require.Contains(t, string(typeDefs), expected)
 			}
-		},
+		}),
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "named scalar import generates import statement in artifact types",
@@ -1423,14 +1441,14 @@ func TestScalarImports(t *testing.T) {
 					createdAt: DateTime
 				}
 			`,
-			VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 				cfg, err := plugin.DB.ProjectConfig(context.Background())
 				require.NoError(t, err)
 
 				typeDefs, err := afero.ReadFile(plugin.Fs, cfg.ArtifactTypePath("UserQuery"))
 				require.NoError(t, err)
 				require.NotContains(t, string(typeDefs), `import type { Date } from 'date-fns'`)
-			},
+			}),
 			Tests: []tests.Test[config.PluginConfig]{
 				{
 					Name: "no scalar import when field not selected",
