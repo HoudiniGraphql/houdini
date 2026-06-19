@@ -182,6 +182,10 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly version: number;
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"`),
@@ -343,6 +347,14 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly firstName: string;
+		readonly id: string;
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275"`),
@@ -449,6 +461,14 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly firstName: string;
+		readonly id: string;
+	};
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -581,6 +601,22 @@ export type MyQuery$result = {
 
 export type MyQuery$input = {
 	id: string;
+};
+
+export type MyQuery$unmasked = {
+	readonly node: {} & (({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "Dog";
+	}) | ({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "User";
+	})) | null;
 };
 
 export type MyQuery$artifact = typeof artifact
@@ -718,6 +754,14 @@ export type TestQuery$input = {
 	filter?: UserFilter | null;
 	filterList?: (UserFilter)[] | null;
 	id?: string | null;
+};
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	};
 };
 
 export type TestQuery$artifact = typeof artifact
@@ -865,6 +909,22 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly friends: ({} & (({
+		readonly firstName: string;
+		readonly friends: ({
+			readonly __typename: "User";
+			readonly id: string;
+			readonly lastName: string;
+		})[];
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -1032,6 +1092,25 @@ export type Friends$result = {
 
 export type Friends$input = null | undefined;
 
+export type Friends$unmasked = {
+	readonly friends: ({} & (({
+		readonly id: string;
+		readonly owner: {
+			readonly __typename: "User";
+			readonly firstName: string;
+			readonly id: string;
+		};
+		readonly __typename: "Cat";
+	}) | ({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
+
 export type Friends$artifact = typeof artifact
 
 "HoudiniHash=5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121"`),
@@ -1187,6 +1266,18 @@ export type Friends$result = {
 
 export type Friends$input = null | undefined;
 
+export type Friends$unmasked = {
+	readonly pets: ({} & (({
+		readonly id: string;
+		readonly owner: {
+			readonly __typename: "User";
+			readonly firstName: string;
+			readonly id: string;
+		};
+		readonly __typename: "Cat";
+	})))[];
+};
+
 export type Friends$artifact = typeof artifact
 
 "HoudiniHash=19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d"`),
@@ -1308,6 +1399,13 @@ export type Friends$result = {
 };
 
 export type Friends$input = null | undefined;
+
+export type Friends$unmasked = {
+	readonly pets: ({} & (({
+		readonly id: string;
+		readonly __typename: "Cat";
+	})))[];
+};
 
 export type Friends$artifact = typeof artifact
 
@@ -1468,6 +1566,14 @@ export type TestQuery$input = {
 	value: string;
 };
 
+export type TestQuery$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly firstName: string;
+		readonly id: string;
+	})[];
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=cf9a1b37522817318bc0893e797a289dc9ff66bee13544171839bd1b685ad514"`),
@@ -1540,6 +1646,13 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly allItems: ({
+		readonly __typename: "TodoItem";
+		readonly createdAt: DateTime;
+	})[];
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -1644,6 +1757,17 @@ export type B$result = {
 };
 
 export type B$input = null | undefined;
+
+export type B$unmasked = {
+	readonly newUser: {
+		readonly __typename: "NewUserResult";
+		readonly user: {
+			readonly __typename: "User";
+			readonly firstName: string;
+			readonly id: string;
+		};
+	};
+};
 
 export type B$artifact = typeof artifact
 
@@ -1809,6 +1933,17 @@ export type NestedQuery$result = {
 
 export type NestedQuery$input = null | undefined;
 
+export type NestedQuery$unmasked = {
+	readonly node: {} & (({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+};
+
 export type NestedQuery$artifact = typeof artifact
 
 "HoudiniHash=4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2"`),
@@ -1957,6 +2092,16 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly node: {} & (({
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb"`),
@@ -2093,6 +2238,17 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly node: {} & (({
+		readonly field: string | null;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -2254,6 +2410,18 @@ export type TestQuery$result = {
 
 export type TestQuery$input = null | undefined;
 
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly id: string;
+		readonly pets: ({} & (({
+			readonly id: string;
+			readonly name: string;
+			readonly __typename: "Cat";
+		})))[];
+	};
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=2c800aa339ee6e032fa3556fa5dfcc560d01248a07b93986477de07f63f176e8"`),
@@ -2393,6 +2561,18 @@ export type TestQuery$result = {
 };
 
 export type TestQuery$input = null | undefined;
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly friendsByNames: ({
+			readonly __typename: "User";
+			readonly id: string;
+			readonly name: string;
+		})[];
+		readonly id: string;
+	};
+};
 
 export type TestQuery$artifact = typeof artifact
 
@@ -2569,6 +2749,18 @@ export type TestQuery$result = {
 
 export type TestQuery$input = {
 	minAge?: number | null;
+};
+
+export type TestQuery$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly id: string;
+		readonly pets: ({} & (({
+			readonly id: string;
+			readonly name: string;
+			readonly __typename: "Cat";
+		})))[];
+	};
 };
 
 export type TestQuery$artifact = typeof artifact
@@ -2768,6 +2960,13 @@ export type AnimalsOverview$input = {
 	id: string;
 };
 
+export type AnimalsOverview$unmasked = {
+	readonly node: {
+		readonly __typename: string;
+		readonly id: string;
+	} | null;
+};
+
 export type AnimalsOverview$artifact = typeof artifact
 
 "HoudiniHash=6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757"`),
@@ -2902,6 +3101,18 @@ export type UserFriends$input = {
 	search?: string | null;
 };
 
+export type UserFriends$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly friendsByOffset: ({
+			readonly __typename: "User";
+			readonly id: string;
+			readonly name: string;
+		})[];
+		readonly id: string;
+	};
+};
+
 export type UserFriends$artifact = typeof artifact
 
 "HoudiniHash=1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73"`),
@@ -3011,6 +3222,14 @@ export type ListUsers$input = {
 	float?: number | null;
 	int?: number | null;
 	string?: string | null;
+};
+
+export type ListUsers$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	})[];
 };
 
 export type ListUsers$artifact = typeof artifact
@@ -3133,6 +3352,14 @@ export type FindUser$input = {
 	filter?: UserFilter | null;
 };
 
+export type FindUser$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	})[];
+};
+
 export type FindUser$artifact = typeof artifact
 
 "HoudiniHash=f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7"`,
@@ -3224,6 +3451,14 @@ export type FindUser$result = {
 
 export type FindUser$input = null | undefined;
 
+export type FindUser$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	})[];
+};
+
 export type FindUser$artifact = typeof artifact
 
 "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"`),
@@ -3314,6 +3549,14 @@ export type FindUser$result = {
 
 export type FindUser$input = null | undefined;
 
+export type FindUser$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	})[];
+};
+
 export type FindUser$artifact = typeof artifact
 
 "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"`),
@@ -3403,6 +3646,14 @@ export type FindUser$result = {
 };
 
 export type FindUser$input = null | undefined;
+
+export type FindUser$unmasked = {
+	readonly users: ({
+		readonly __typename: "User";
+		readonly id: string;
+		readonly name: string;
+	})[];
+};
 
 export type FindUser$artifact = typeof artifact
 
@@ -3512,6 +3763,17 @@ export type FindUser$artifact = typeof artifact
               };
 
               export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$unmasked = {
+              	readonly user: {
+              		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
+              		readonly id: string;
+              	};
+              };
 
               export type CachedFriends$artifact = typeof artifact
 
@@ -3626,6 +3888,17 @@ export type FindUser$artifact = typeof artifact
 
             export type CachedFriends$input = null | undefined;
 
+            export type CachedFriends$unmasked = {
+            	readonly user: {
+            		readonly __typename: "User";
+            		readonly friends: ({
+            			readonly __typename: "User";
+            			readonly id: string;
+            		})[];
+            		readonly id: string;
+            	};
+            };
+
             export type CachedFriends$artifact = typeof artifact
 
             "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
@@ -3735,6 +4008,17 @@ export type FindUser$artifact = typeof artifact
               };
 
               export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$unmasked = {
+              	readonly user: {
+              		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
+              		readonly id: string;
+              	};
+              };
 
               export type CachedFriends$artifact = typeof artifact
 
@@ -3848,6 +4132,17 @@ export type FindUser$artifact = typeof artifact
               };
 
               export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$unmasked = {
+              	readonly user: {
+              		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
+              		readonly id: string;
+              	};
+              };
 
               export type CachedFriends$artifact = typeof artifact
 
@@ -3998,6 +4293,18 @@ query EntityList {
 
               export type EntityList$input = null | undefined;
 
+              export type EntityList$unmasked = {
+              	readonly entities: ({} & (({
+              		readonly id: string;
+              		readonly name: string;
+              		readonly __typename: "Cat";
+              	}) | ({
+              		readonly firstName: string;
+              		readonly id: string;
+              		readonly __typename: "User";
+              	})))[];
+              };
+
               export type EntityList$artifact = typeof artifact
 
               "HoudiniHash=41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e"
@@ -4140,6 +4447,14 @@ query UserWithAvatar {
 
             export type UserWithAvatar$input = null | undefined;
 
+            export type UserWithAvatar$unmasked = {
+            	readonly user: {
+            		readonly __typename: "User";
+            		readonly firstName: string;
+            		readonly id: string;
+            	};
+            };
+
             export type UserWithAvatar$artifact = typeof artifact
 
             "HoudiniHash=51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71"
@@ -4272,6 +4587,15 @@ query UserWithAvatar {
 							};
 
 							export type UserRequiredFragments$input = null | undefined;
+
+							export type UserRequiredFragments$unmasked = {
+								readonly user: {
+									readonly __typename: "User";
+									readonly field: string | null;
+									readonly id: string;
+									readonly name: string;
+								};
+							};
 
 							export type UserRequiredFragments$artifact = typeof artifact
 

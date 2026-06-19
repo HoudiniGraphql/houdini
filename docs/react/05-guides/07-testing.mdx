@@ -1,0 +1,114 @@
+---
+title: Testing
+description: How to write tests for Houdini components and routes
+---
+
+# Testing
+
+Houdini ships first-class testing utilities for React. The `createMock` function returns the full page composition including any layouts for any route in your app, wired with a fresh cache, a mock network client, and the correct router context.
+
+## Setup
+
+Testing with Houdini requires [Vitest](https://vitest.dev/) and a DOM environment such as [happy-dom](https://github.com/capricorn86/happy-dom). Your `vitest.config.ts` must include the Houdini Vite plugin so that codegen runs before tests:
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vite'
+import houdini from 'houdini/vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+    plugins: [houdini(), react()],
+    test: {
+        environment: 'happy-dom',
+    },
+})
+```
+
+Houdini's codegen (including the `createMock` types) runs automatically when Vitest starts, so no separate `houdini generate` step is needed.
+
+## Basic usage
+
+```typescript
+import { createMock } from '$houdini'
+import { render, screen } from '@testing-library/react'
+
+test('renders show name', async () => {
+    const App = createMock({
+        url: '/shows/[id]',
+        params: { id: '1' },
+        data: {
+            LayoutQuery: { viewer: { name: 'Alec' } },
+            ShowDetailQuery: { show: { id: '1', name: 'Breaking Bad' } },
+        },
+    })
+
+    render(<App />)
+    await screen.findByText('Breaking Bad')
+})
+```
+
+## Mental model
+
+Mocks are full API responses. They must contain the entire unmasked JSON the server would return for a given document, including any fields Houdini includes behind the scenes (ids, pageInfo, etc). That data is written to a fresh cache instance per test. Components read from the cache through their normal hooks, so masking, normalization, and cache behavior all work exactly as in production.
+
+## Type safety
+
+`createMock` is fully typed. The `url` argument is a union of valid routes in your app, `params` must match the route's URL parameters, and `data` requires a key for every query that belongs to that route (the page's own queries plus all ancestor layout queries). Missing query keys are type errors, and `createMock` also throws at runtime with the names of any missing queries before any component is created.
+
+## Variable-dependent responses
+
+Pass a function instead of a plain object to return different data based on the query's variables:
+
+```typescript
+const App = createMock({
+    url: '/shows',
+    data: {
+        SearchQuery: (variables) => ({
+            results: variables.query === 'breaking' ? [{ name: 'Breaking Bad' }] : [],
+        }),
+    },
+})
+```
+
+## Mutation handlers
+
+Mutations are not required in `data` but can be provided. If a mutation fires and no handler is registered, the mock client throws immediately, failing the test loudly.
+
+```typescript
+let callCount = 0
+
+const App = createMock({
+    url: '/shows/[id]',
+    params: { id: '1' },
+    data: {
+        ShowDetailQuery: { show: { id: '1', name: 'Breaking Bad' } },
+        AddToFavoritesMutation: (variables) => {
+            callCount++
+            return { addToFavorites: { id: variables.showId, favorited: true } }
+        },
+    },
+})
+```
+
+## Subscriptions
+
+Pass an async iterable as the handler for a subscription. Each value yielded by the iterable is pushed to the component as a new subscription event.
+
+```typescript
+async function* fakeEvents() {
+    yield { userUpdated: { id: '1', name: 'Alice' } }
+    yield { userUpdated: { id: '1', name: 'Bob' } }
+}
+
+const App = createMock({
+    url: '/profile/[id]',
+    params: { id: '1' },
+    data: {
+        ProfileQuery: { user: { id: '1', name: 'Alice' } },
+        UserUpdates: fakeEvents(),
+    },
+})
+```
+
+If a subscription fires and no handler is provided, the mock client throws immediately, failing the test loudly.

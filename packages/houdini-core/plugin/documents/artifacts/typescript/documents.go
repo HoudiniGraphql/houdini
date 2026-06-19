@@ -18,6 +18,7 @@ import (
 // and embeds context.Context to serve as both context and document state
 type DocumentContext struct {
 	HasLoading    bool
+	SortKeys      bool
 	ProjectConfig plugins.ProjectConfig
 	EnumTypes     map[string]bool
 	InputTypes    map[string]bool
@@ -147,6 +148,8 @@ func GenerateDocumentTypeDefs(
 	rootTypes *RootTypeNames,
 	collectedDefinitions *collected.Documents,
 	doc *collected.Document,
+	unmaskedSelection []*collected.Selection,
+	sortKeys bool,
 ) (string, []string, error) {
 	// Calculate root type name once per document
 	rootTypeName := getRootTypeName(doc, rootTypes)
@@ -157,6 +160,8 @@ func GenerateDocumentTypeDefs(
 		rootTypeName,
 		doc,
 		collectedDefinitions,
+		unmaskedSelection,
+		sortKeys,
 	)
 	if err != nil {
 		return "", nil, err
@@ -170,10 +175,13 @@ func generateDocumentTypeDef(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
+	unmaskedSelection []*collected.Selection,
+	sortKeys bool,
 ) (string, []string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := DocumentContext{
 		ProjectConfig: projectConfig,
+		SortKeys:      sortKeys,
 		EnumTypes:     make(map[string]bool),
 		InputTypes:    make(map[string]bool),
 		ScalarImports: make(map[string]bool),
@@ -202,6 +210,7 @@ func generateDocumentTypeDef(
 			rootTypeName,
 			doc,
 			collectedDocs,
+			unmaskedSelection,
 		)...)
 	}
 
@@ -321,6 +330,7 @@ func generateFragmentTypes(
 			0,
 			rootTypeName,
 			collectedDocs,
+			false,
 		)
 		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
 		loadingType, _ := generateLoadingStateType(
@@ -335,7 +345,7 @@ func generateFragmentTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	} else {
 		// Generate normal single type
-		dataType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+		dataType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs, false)
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	}
 
@@ -347,6 +357,7 @@ func generateOperationTypes(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
+	unmaskedSelection []*collected.Selection,
 ) []string {
 	var types []string
 
@@ -384,6 +395,7 @@ func generateOperationTypes(
 			0,
 			rootTypeName,
 			collectedDocs,
+			false,
 		)
 		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
 		loadingType, _ := generateLoadingStateType(
@@ -398,7 +410,7 @@ func generateOperationTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	} else {
 		// Generate normal single type
-		resultType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+		resultType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs, false)
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	}
 
@@ -449,6 +461,15 @@ func generateOperationTypes(
 		)
 	}
 
+	// Generate $unmasked type: the fully-resolved server payload with all fragment
+	// fields inlined and no " $fragments" mask annotations. Used by createMock so
+	// test data can be written as plain JSON matching what the network would return.
+	// unmaskedSelection comes from FlattenSelection(defaultMask=false) so all fragment
+	// fields are already merged in deterministic order — no manual sort needed.
+	unmaskedTypeName := fmt.Sprintf("%s$unmasked", doc.Name)
+	unmaskedType, _ := generateSelectionType(ctx, unmaskedSelection, true, 0, rootTypeName, collectedDocs, true)
+	types = append(types, fmt.Sprintf("export type %s = %s;", unmaskedTypeName, unmaskedType))
+
 	return types
 }
 
@@ -459,6 +480,7 @@ func generateSelectionType(
 	indentLevel int,
 	parentType string,
 	collectedDocs *collected.Documents,
+	unmasked bool,
 ) (string, error) {
 	if len(selections) == 0 {
 		return "{}", nil
@@ -490,12 +512,17 @@ func generateSelectionType(
 	// Count explicit fields that would be visible (excluding internal/auto-added fields)
 	for _, sel := range selections {
 		if sel.Kind == "fragment" {
-			visibleSelections = append(visibleSelections, sel)
+			// In unmasked mode, fragment spread markers are skipped entirely — the
+			// fields they contributed are already inlined in the flattened selection.
+			if !unmasked {
+				visibleSelections = append(visibleSelections, sel)
+			}
 			continue
 		}
 
-		// Skip internal fields (automatically added fields like __typename)
-		if sel.Internal {
+		// Skip internal fields (automatically added fields like __typename) unless
+		// generating the $unmasked type, where all server-visible fields are included.
+		if sel.Internal && !unmasked {
 			continue
 		}
 
@@ -506,6 +533,7 @@ func generateSelectionType(
 	}
 
 	// onlyFragments logic is now handled in the first pass when determining visibility
+
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
@@ -561,6 +589,8 @@ func generateSelectionType(
 					selection,
 					readonly,
 					collectedDocs,
+					unmasked,
+					indentLevel+1,
 				)
 
 				// Apply type modifiers (lists, nullability) to the union type
@@ -571,7 +601,7 @@ func generateSelectionType(
 				fieldType = ApplyTypeModifiers(unionType, modifiers, false) // Output type
 			} else {
 				// Regular nested object type
-				childType, childErr := generateSelectionType(ctx, selection.Children, readonly, indentLevel+1, selection.FieldType, collectedDocs)
+				childType, childErr := generateSelectionType(ctx, selection.Children, readonly, indentLevel+1, selection.FieldType, collectedDocs, unmasked)
 				if childErr != nil {
 					return "", childErr
 				}
@@ -584,8 +614,13 @@ func generateSelectionType(
 				fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
 			}
 		} else {
-			// Scalar field - use simplified type conversion
-			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			// Scalar field - use simplified type conversion.
+			// Special-case __typename on a concrete parent type: we know the exact string literal.
+			if selection.FieldName == "__typename" && parentType != "" && len(collectedDocs.PossibleTypes[parentType]) == 0 {
+				fieldType = fmt.Sprintf(`"%s"`, parentType)
+			} else {
+				fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			}
 		}
 
 		// @includeListID attaches an opaque __id to the runtime value; reflect that in the type
@@ -659,8 +694,10 @@ func generateInterfaceUnionType(
 	selection *collected.Selection,
 	readonly bool,
 	collectedDocs *collected.Documents,
+	unmasked bool,
+	indentLevel int,
 ) string {
-	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs)
+	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs, unmasked, indentLevel)
 }
 
 func generateInterfaceUnionTypeWithLoading(
@@ -669,11 +706,16 @@ func generateInterfaceUnionTypeWithLoading(
 	readonly bool,
 	isLoadingState bool,
 	collectedDocs *collected.Documents,
+	unmasked bool,
+	indentLevel int,
 ) string {
 	readonlyPrefix := ""
 	if readonly {
 		readonlyPrefix = "readonly "
 	}
+	fieldIndent := strings.Repeat("\t", indentLevel+1)
+	memberIndent := strings.Repeat("\t", indentLevel)
+	fragmentSubIndent := strings.Repeat("\t", indentLevel+2)
 
 	// Collect all fragments and determine which concrete types need union members
 	fragmentsByType := make(map[string][]*collected.Selection)
@@ -802,6 +844,8 @@ func generateInterfaceUnionTypeWithLoading(
 									fragmentChild,
 									readonly,
 									collectedDocs,
+									unmasked,
+									indentLevel+1,
 								)
 
 								// Apply type modifiers (lists, nullability) to the union type
@@ -816,7 +860,7 @@ func generateInterfaceUnionTypeWithLoading(
 								) // Output type
 							} else {
 								// Regular nested object type
-								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs)
+								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, indentLevel+1, fragmentChild.FieldType, collectedDocs, unmasked)
 								if childErr != nil {
 									// Fallback to simple type conversion on error
 									fieldType = convertLeafType(
@@ -854,7 +898,8 @@ func generateInterfaceUnionTypeWithLoading(
 					fields = append(
 						fields,
 						fmt.Sprintf(
-							"\t\t%s%s%s: %s;",
+							"%s%s%s%s: %s;",
+							fieldIndent,
 							readonlyPrefix,
 							fragmentChild.FieldName,
 							optional,
@@ -865,33 +910,47 @@ func generateInterfaceUnionTypeWithLoading(
 			}
 		}
 
+
+		// union/interface arms merge fields across several inline fragments, so the
+		// per-node sort FlattenSelection applies doesn't survive the merge. only the
+		// $unmasked type wants a stable global order and only tests need it sorted, so
+		// gate on sortKeys to keep production (sortKeys=false) free of the cost.
+		if ctx.SortKeys && unmasked {
+			sort.Strings(fields)
+		}
+
 		// Add " $fragments" marker for named fragment spreads on this concrete type
-		if fragNames := namedFragmentsByType[typeName]; len(fragNames) > 0 {
-			seen := make(map[string]bool)
-			var uniqueFragNames []string
-			for _, n := range fragNames {
-				if !seen[n] {
-					seen[n] = true
-					uniqueFragNames = append(uniqueFragNames, n)
+		// (omitted in unmasked mode — the fields are already inlined)
+		if !unmasked {
+			if fragNames := namedFragmentsByType[typeName]; len(fragNames) > 0 {
+				seen := make(map[string]bool)
+				var uniqueFragNames []string
+				for _, n := range fragNames {
+					if !seen[n] {
+						seen[n] = true
+						uniqueFragNames = append(uniqueFragNames, n)
+					}
 				}
+				sort.Strings(uniqueFragNames)
+				fragEntries := make([]string, len(uniqueFragNames))
+				for i, n := range uniqueFragNames {
+					fragEntries[i] = fmt.Sprintf("%s%s: {};", fragmentSubIndent, n)
+				}
+				fields = append(fields, fmt.Sprintf(
+					"%s%s\" $fragments\": {\n%s\n%s};",
+					fieldIndent,
+					readonlyPrefix,
+					strings.Join(fragEntries, "\n"),
+					fieldIndent,
+				))
 			}
-			sort.Strings(uniqueFragNames)
-			fragEntries := make([]string, len(uniqueFragNames))
-			for i, n := range uniqueFragNames {
-				fragEntries[i] = fmt.Sprintf("\t\t\t%s: {};", n)
-			}
-			fields = append(fields, fmt.Sprintf(
-				"\t\t%s\" $fragments\": {\n%s\n\t\t};",
-				readonlyPrefix,
-				strings.Join(fragEntries, "\n"),
-			))
 		}
 
 		// Always add __typename field for discrimination with literal type
-		fields = append(fields, fmt.Sprintf("\t\t%s__typename: \"%s\";", readonlyPrefix, typeName))
+		fields = append(fields, fmt.Sprintf("%s%s__typename: \"%s\";", fieldIndent, readonlyPrefix, typeName))
 
 		// Create the type literal
-		typeLiteral := fmt.Sprintf("({\n%s\n\t})", strings.Join(fields, "\n"))
+		typeLiteral := fmt.Sprintf("({\n%s\n%s})", strings.Join(fields, "\n"), memberIndent)
 		unionParts = append(unionParts, typeLiteral)
 	}
 
@@ -918,9 +977,12 @@ func generateInterfaceUnionTypeWithLoading(
 
 		if !hasFragmentForAllTypes {
 			nonExhaustive := fmt.Sprintf(
-				"({\n\t\t%s\" $fragments\"?: {};\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+				"({\n%s%s\" $fragments\"?: {};\n%s%s__typename: \"non-exhaustive; don't match this\";\n%s})",
+				fieldIndent,
 				readonlyPrefix,
+				fieldIndent,
 				readonlyPrefix,
+				memberIndent,
 			)
 			unionParts = append(unionParts, nonExhaustive)
 		}
@@ -1080,6 +1142,8 @@ func generateOptimisticType(
 				selection,
 				readonly,
 				collectedDocs,
+				false,
+				indentLevel+1,
 			)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
@@ -1089,8 +1153,13 @@ func generateOptimisticType(
 			}
 			fieldType = childType
 		} else {
-			// Leaf field - convert the GraphQL type to TypeScript
-			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			// Leaf field - convert the GraphQL type to TypeScript.
+			// Special-case __typename on a concrete parent type: we know the exact string literal.
+			if selection.FieldName == "__typename" && parentType != "" && len(collectedDocs.PossibleTypes[parentType]) == 0 {
+				fieldType = fmt.Sprintf(`"%s"`, parentType)
+			} else {
+				fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			}
 		}
 
 		// Add JSDoc comment if this field has a description
@@ -1293,9 +1362,11 @@ func generateLoadingStateType(
 						unionType := generateInterfaceUnionTypeWithLoading(
 							ctx,
 							selection,
-							true, // readonly
-							true, // isLoadingState
+							true,  // readonly
+							true,  // isLoadingState
 							collectedDocs,
+							false, // unmasked
+							indentLevel+1,
 						)
 
 						// Apply array syntax if this is a list type

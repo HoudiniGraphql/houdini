@@ -413,11 +413,17 @@ func GenerateSelectionDocument(
 	}
 
 	// compute the type definitions
+	unmaskedSelection, err := FlattenSelection(ctx, docs, name, false, sortKeys)
+	if err != nil {
+		return "", err
+	}
 	typeDefs, imports, err := typescript.GenerateDocumentTypeDefs(
 		projectConfig,
 		rootTypes,
 		docs,
 		doc,
+		unmaskedSelection,
+		sortKeys,
 	)
 	if err != nil {
 		return "", err

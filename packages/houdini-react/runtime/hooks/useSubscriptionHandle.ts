@@ -1,5 +1,6 @@
 import type {
 	SubscriptionArtifact,
+	DocumentArtifact,
 	GraphQLObject,
 	GraphQLVariables,
 	GraphQLError,
@@ -18,20 +19,23 @@ export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends Gra
 
 // a hook to subscribe to a subscription artifact
 export function useSubscriptionHandle<
-	_Result extends GraphQLObject,
-	_Input extends GraphQLVariables,
->({ artifact }: { artifact: SubscriptionArtifact }, variables: _Input) {
+	_Result extends GraphQLObject = GraphQLObject,
+	_Input extends GraphQLVariables = GraphQLVariables,
+>(
+	{ artifact }: { artifact: SubscriptionArtifact },
+	variables?: _Input
+): SubscriptionHandle<_Result, _Input> {
 	// a subscription is basically just a live document
-	const [storeValue, observer] = useDocumentSubscription({
+	const [storeValue, observer] = useDocumentSubscription<DocumentArtifact, _Result, _Input>({
 		artifact,
-		variables,
+		variables: variables as _Input,
 	})
 
 	return {
 		data: storeValue.data,
 		errors: storeValue.errors,
 		fetching: storeValue.fetching,
-		variables,
+		variables: variables as _Input,
 		unlisten: observer.cleanup,
 		listen: observer.send,
 	}

@@ -8,10 +8,32 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 )
+
+func performTypescriptTest(
+	verifyFn func(*testing.T, *plugin.HoudiniCore, tests.Test[config.PluginConfig]),
+) func(*testing.T, *plugin.HoudiniCore, tests.Test[config.PluginConfig]) {
+	return func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		if err := p.Validate(context.Background()); err != nil {
+			require.False(t, test.Pass, err.Error())
+			return
+		}
+		if err := p.AfterValidate(context.Background()); err != nil {
+			require.False(t, test.Pass, err)
+			return
+		}
+		if _, err := documents.Generate(context.Background(), p.DB, p.Fs, true); err != nil {
+			require.False(t, test.Pass, err.Error())
+			return
+		}
+		require.True(t, test.Pass)
+		verifyFn(t, p, test)
+	}
+}
 
 func TestTypescriptGeneration(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
@@ -119,20 +141,16 @@ func TestTypescriptGeneration(t *testing.T) {
 					weight: Float
 				}
     `,
-		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			config, err := plugin.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
-			// for every document that we want to generate types for
 			for docName, expected := range test.Extra {
-				// open the file with the appropriate type definitions
 				typeDefs, err := afero.ReadFile(plugin.Fs, config.ArtifactTypePath(docName))
-
-				// make sure values match expectations
 				require.NoError(t, err)
 				require.Contains(t, string(typeDefs), expected)
 			}
-		},
+		}),
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "generates document types",
@@ -181,6 +199,30 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type TestQuery$input = null | undefined;
+
+						export type TestQuery$unmasked = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly __typename: "User";
+								readonly admin: boolean | null;
+								readonly age: number | null;
+								/**
+								 * An enum value
+								 */
+								readonly enumValue: MyEnum$options | null;
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								/**
+								 * The user's first name
+								 */
+								readonly firstname: string;
+								readonly id: string;
+							} | null;
+						};
 
 						export type TestQuery$artifact = typeof artifact
 					`),
@@ -368,6 +410,17 @@ func TestTypescriptGeneration(t *testing.T) {
 							list: (UserFilter)[];
 						};
 
+						export type MyQuery$unmasked = {
+							readonly users: ({
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
+							} | null)[] | null;
+						};
+
 						export type MyQuery$artifact = typeof artifact
 					`),
 				},
@@ -398,8 +451,22 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyQuery$input = {
-							id: string;
 							enum?: MyEnum$options | null;
+							id: string;
+						};
+
+						export type MyQuery$unmasked = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
+							} | null;
 						};
 
 						export type MyQuery$artifact = typeof artifact
@@ -430,6 +497,16 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyTestQuery$input = null | undefined;
+
+						export type MyTestQuery$unmasked = {
+							readonly entity: {} & (({
+								readonly id: string;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "User";
+							}));
+						};
 
 						export type MyTestQuery$artifact = typeof artifact
 					`),
@@ -464,6 +541,20 @@ func TestTypescriptGeneration(t *testing.T) {
 							filter: UserFilter;
 						};
 
+						export type MyQuery$unmasked = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
+							} | null;
+						};
+
 						export type MyQuery$artifact = typeof artifact
 					`),
 				},
@@ -496,6 +587,19 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type MyQuery$input = null | undefined;
 
+						export type MyQuery$unmasked = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})))[];
+						};
+
 						export type MyQuery$artifact = typeof artifact
 					`),
 				},
@@ -524,6 +628,16 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyQuery$input = null | undefined;
+
+						export type MyQuery$unmasked = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "User";
+							})) | null)[] | null;
+						};
 
 						export type MyQuery$artifact = typeof artifact
 					`),
@@ -575,6 +689,24 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type ComplexQuery$input = null | undefined;
 
+						export type ComplexQuery$unmasked = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly names: (string | null)[];
+								readonly __typename: "Cat";
+							}) | ({
+								readonly admin: boolean | null;
+								readonly age: number | null;
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})))[];
+						};
+
 						export type ComplexQuery$artifact = typeof artifact
 					`),
 				},
@@ -620,6 +752,20 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type UnionQuery$input = null | undefined;
+
+						export type UnionQuery$unmasked = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly isAnimal: boolean;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly admin: boolean | null;
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							})) | null)[] | null;
+						};
 
 						export type UnionQuery$artifact = typeof artifact
 					`),
@@ -667,6 +813,21 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type MixedQuery$input = null | undefined;
 
+						export type MixedQuery$unmasked = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})))[];
+						};
+
 						export type MixedQuery$artifact = typeof artifact
 					`),
 				},
@@ -713,6 +874,20 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type AbstractConcreteQuery$input = null | undefined;
+
+						export type AbstractConcreteQuery$unmasked = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly isAnimal: boolean;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly admin: boolean | null;
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							})) | null)[] | null;
+						};
 
 						export type AbstractConcreteQuery$artifact = typeof artifact
 					`),
@@ -768,6 +943,22 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type UnionAbstractQuery$input = null | undefined;
 
+						export type UnionAbstractQuery$unmasked = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly isAnimal: boolean;
+								readonly kitty: boolean;
+								readonly names: (string | null)[];
+								readonly __typename: "Cat";
+							}) | ({
+								readonly admin: boolean | null;
+								readonly age: number | null;
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							})) | null)[] | null;
+						};
+
 						export type UnionAbstractQuery$artifact = typeof artifact
 					`),
 				},
@@ -807,6 +998,18 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type AnimalCatQuery$input = null | undefined;
+
+						export type AnimalCatQuery$unmasked = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly isAnimal: boolean;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})) | null)[] | null;
+						};
 
 						export type AnimalCatQuery$artifact = typeof artifact
 					`),
@@ -854,12 +1057,12 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyMutation$input = {
-							filter?: UserFilter | null;
-							filterList: (UserFilter)[];
-							id: string;
-							firstName: string;
 							admin?: boolean | null;
 							age?: number | null;
+							filter?: UserFilter | null;
+							filterList: (UserFilter)[];
+							firstName: string;
+							id: string;
 							weight?: number | null;
 						};
 
@@ -869,6 +1072,17 @@ func TestTypescriptGeneration(t *testing.T) {
 								 * The user's first name
 								 */
 								readonly firstName?: string;
+							} | null;
+						};
+
+						export type MyMutation$unmasked = {
+							readonly doThing: {
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
 							} | null;
 						};
 
@@ -902,6 +1116,20 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type MyQuery$input = null | undefined;
+
+						export type MyQuery$unmasked = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
+							} | null;
+						};
 
 						export type MyQuery$artifact = typeof artifact
 					`),
@@ -958,6 +1186,17 @@ func TestTypescriptGeneration(t *testing.T) {
 							id: string;
 						};
 
+						export type NodeQuery$unmasked = {
+							readonly node: {} & (({
+								readonly firstName: string;
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})) | null;
+						};
+
 						export type NodeQuery$artifact = typeof artifact
 					`),
 				},
@@ -988,7 +1227,7 @@ func TestTypescriptGeneration(t *testing.T) {
 							 * Get a user.
 							 */
 							readonly user: {
-								readonly __typename: string;
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
@@ -997,6 +1236,20 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type UserQuery$input = null | undefined;
+
+						export type UserQuery$unmasked = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly __typename: "User";
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
+								readonly id: string;
+							} | null;
+						};
 
 						export type UserQuery$artifact = typeof artifact
 					`),
@@ -1051,7 +1304,7 @@ func TestScalarImports(t *testing.T) {
 				metadata: JSON
 			}
 		`,
-		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			cfg, err := plugin.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
@@ -1060,7 +1313,7 @@ func TestScalarImports(t *testing.T) {
 				require.NoError(t, err)
 				require.Contains(t, string(typeDefs), expected)
 			}
-		},
+		}),
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "named scalar import generates import statement in artifact types",
@@ -1188,14 +1441,14 @@ func TestScalarImports(t *testing.T) {
 					createdAt: DateTime
 				}
 			`,
-			VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			PerformTest: performTypescriptTest(func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 				cfg, err := plugin.DB.ProjectConfig(context.Background())
 				require.NoError(t, err)
 
 				typeDefs, err := afero.ReadFile(plugin.Fs, cfg.ArtifactTypePath("UserQuery"))
 				require.NoError(t, err)
 				require.NotContains(t, string(typeDefs), `import type { Date } from 'date-fns'`)
-			},
+			}),
 			Tests: []tests.Test[config.PluginConfig]{
 				{
 					Name: "no scalar import when field not selected",

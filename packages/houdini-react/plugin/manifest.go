@@ -24,6 +24,8 @@ type ProjectManifest struct {
 	LocalSchema     bool                          `json:"local_schema"`
 	LocalYoga       bool                          `json:"local_yoga"`
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
+	Mutations       []string                      `json:"mutations"`
+	Subscriptions   []string                      `json:"subscriptions"`
 }
 
 type PageManifest struct {
@@ -98,8 +100,10 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		ComponentFields: map[string]ComponentFieldInfo{},
 	}
 
-	// Load all route GQL documents from the database.
-	pageDocByDir, layoutDocByDir, err := p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	// Load all route GQL documents from the database, plus mutation/subscription names.
+	var pageDocByDir map[string]routeDoc
+	var layoutDocByDir map[string]routeDoc
+	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -287,12 +291,12 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 }
 
 // loadRouteDocuments queries the database for all +page.gql and +layout.gql documents
-// and their variables in a single trip, keyed by directory path relative to routesDir.
+// and their variables, plus all mutation and subscription names, in a single trip.
 func (p *HoudiniReact) loadRouteDocuments(
 	ctx context.Context,
 	projectRoot string,
 	routesDir string,
-) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, err error) {
+) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, err error) {
 	pageDocByDir = map[string]routeDoc{}
 	layoutDocByDir = map[string]routeDoc{}
 
@@ -305,7 +309,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 	docsByID := map[int64]*docEntry{}
 
 	err = p.DB.StepQuery(ctx, `
-		SELECT d.id, d.name, rd.filepath,
+		SELECT d.id, d.name, d.kind, rd.filepath,
 		       CASE WHEN EXISTS(
 		           SELECT 1 FROM document_directives dd
 		           WHERE dd.document = d.id AND dd.directive = 'loading'
@@ -316,21 +320,36 @@ func (p *HoudiniReact) loadRouteDocuments(
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
 		LEFT JOIN document_variables dv ON dv.document = d.id
-		WHERE d.kind = 'query'
-		  AND (rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
+		WHERE d.kind IN ('query', 'mutation', 'subscription')
+		  AND (d.kind != 'query' OR rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
 		ORDER BY d.id
 	`, nil, func(q plugins.Row) {
 		id := q.ColumnInt64(0)
+		name := q.ColumnText(1)
+		kind := q.ColumnText(2)
+
+		if kind == "mutation" || kind == "subscription" {
+			if _, seen := docsByID[id]; !seen {
+				docsByID[id] = nil // mark as seen so we don't double-append
+				if kind == "mutation" {
+					mutations = append(mutations, name)
+				} else {
+					subscriptions = append(subscriptions, name)
+				}
+			}
+			return
+		}
+
 		entry, ok := docsByID[id]
 		if !ok {
-			fp := q.ColumnText(2)
+			fp := q.ColumnText(3)
 			fullPath := filepath.Join(projectRoot, fp)
 			dirKey, _ := filepath.Rel(routesDir, filepath.Dir(fullPath))
 			entry = &docEntry{
 				doc: routeDoc{
-					name:      q.ColumnText(1),
+					name:      name,
 					filepath:  fp,
-					loading:   q.ColumnInt(3) == 1,
+					loading:   q.ColumnInt(4) == 1,
 					variables: map[string]VariableTypeInfo{},
 				},
 				isPage: strings.HasSuffix(fp, "+page.gql"),
@@ -338,19 +357,22 @@ func (p *HoudiniReact) loadRouteDocuments(
 			}
 			docsByID[id] = entry
 		}
-		// columns 4-6 are NULL when there are no variables (LEFT JOIN)
-		if varName := q.ColumnText(4); varName != "" {
+		// columns 5-7 are NULL when there are no variables (LEFT JOIN)
+		if varName := q.ColumnText(5); varName != "" {
 			entry.doc.variables[varName] = VariableTypeInfo{
-				Type:     q.ColumnText(5),
-				Wrappers: modifiersToWrappers(q.ColumnText(6)),
+				Type:     q.ColumnText(6),
+				Wrappers: modifiersToWrappers(q.ColumnText(7)),
 			}
 		}
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	for _, entry := range docsByID {
+		if entry == nil {
+			continue // mutation/subscription sentinel
+		}
 		if entry.isPage {
 			pageDocByDir[entry.dirKey] = entry.doc
 		} else {
@@ -358,7 +380,9 @@ func (p *HoudiniReact) loadRouteDocuments(
 		}
 	}
 
-	return pageDocByDir, layoutDocByDir, nil
+	sort.Strings(mutations)
+	sort.Strings(subscriptions)
+	return pageDocByDir, layoutDocByDir, mutations, subscriptions, nil
 }
 
 type viewInfo struct {

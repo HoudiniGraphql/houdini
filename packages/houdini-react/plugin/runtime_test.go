@@ -595,6 +595,9 @@ func TestGenerateRuntime(t *testing.T) {
 				id: ID
 				node(id: ID!): Node
 			}
+			type Subscription {
+				id: ID
+			}
 			interface Node { id: ID! }
 		`,
 		SetupAlwaysPasses: true,
@@ -642,6 +645,15 @@ func TestGenerateRuntime(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, expected, string(got))
 			}
+
+			mockPath := filepath.Join(config.PluginRuntimeDirectory(p.Name()), "mock.ts")
+
+			if expectedMock, ok := test.Extra["expectedMock"].(string); ok {
+				require.Contains(t, changed, mockPath)
+				got, err := afero.ReadFile(p.Filesystem(), mockPath)
+				require.NoError(t, err)
+				require.Equal(t, expectedMock, string(got))
+			}
 		},
 
 		Tests: []tests.Test[coreConfig.PluginConfig]{
@@ -660,6 +672,12 @@ func TestGenerateRuntime(t *testing.T) {
 						export type RouteScalars = {
 						}
 					`) + "\n",
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock } from './testing'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"export function createMock({ url, params = {}, data }: { url: string; params?: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ url, params, data })\n" +
+						"}\n",
 				},
 			},
 			{
@@ -683,6 +701,24 @@ func TestGenerateRuntime(t *testing.T) {
 					// runtimeDir  = /project/.houdini/plugins/houdini-react/runtime
 					// artifacts   = ../../../artifacts/<Name>
 					// component   = ../units/entries/<id>  (entry file, not source)
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock } from './testing'\n" +
+						"\nimport type { FinalQuery$unmasked, FinalQuery$input } from '$houdini/artifacts/FinalQuery'\n" +
+						"import type { RootQuery$unmasked, RootQuery$input } from '$houdini/artifacts/RootQuery'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData___subRoute__nested = {\n" +
+						"\tRootQuery: _MockValue<RootQuery$unmasked, RootQuery$input>\n" +
+						"\tFinalQuery: _MockValue<FinalQuery$unmasked, FinalQuery$input>\n" +
+						"}\n\n" +
+						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
+						"type RouteHrefs = \"/nested\"\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/nested\": _TestData___subRoute__nested\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n" +
+						"}\n",
 					"expected": tests.Dedent(`
 						import type { RouterManifest } from 'houdini/runtime'
 
@@ -728,6 +764,25 @@ func TestGenerateRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock } from './testing'\n" +
+						"\nimport type { MyQuery$unmasked, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData___id_ = {\n" +
+						"\tMyQuery: _MockValue<MyQuery$unmasked, MyQuery$input>\n" +
+						"}\n\n" +
+						"type _RouteParams = {\n" +
+						"\t\"/[id]\": { id: string }\n" +
+						"}\n" +
+						"type _ParamsForRoute<H extends string> = H extends keyof _RouteParams ? { params: _RouteParams[H] } : { params?: never }\n\n" +
+						"type RouteHrefs = \"/[id]\"\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/[id]\": _TestData___id_\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n" +
+						"}\n",
 					"expected": tests.Dedent(`
 						import type { RouterManifest } from 'houdini/runtime'
 
@@ -796,6 +851,40 @@ func TestGenerateRuntime(t *testing.T) {
 						export type RouteScalars = {
 						}
 					`) + "\n",
+				},
+			},
+			{
+				Name: "subscription appears as optional MockValue field in mock",
+				Pass: true,
+				Input: []string{
+					mockQuery("PageQuery", false),
+					"subscription UserEvents { id }",
+				},
+				Filepaths: []string{
+					"src/routes/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx": mockView([]string{"PageQuery"}),
+					},
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock } from './testing'\n" +
+						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
+						"import type { UserEvents$unmasked, UserEvents$input } from '$houdini/artifacts/UserEvents'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData__ = {\n" +
+						"\tPageQuery: _MockValue<PageQuery$unmasked, PageQuery$input>\n" +
+						"\tUserEvents?: _MockValue<AsyncIterable<UserEvents$unmasked>, UserEvents$input>\n" +
+						"}\n\n" +
+						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
+						"type RouteHrefs = \"/\"\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/\": _TestData__\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n" +
+						"}\n",
 				},
 			},
 			{

@@ -24,6 +24,7 @@ export {
 	RedirectError,
 } from './routing/index.js'
 export * from './Link.js'
+export { createMock } from './mock.js'
 
 export function Router({
 	cache,
