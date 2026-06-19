@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.28
+
+### Patch Changes
+
+- [#1682](https://github.com/HoudiniGraphql/houdini/pull/1682) [`54505e2`](https://github.com/HoudiniGraphql/houdini/commit/54505e2c594ff56d802e7fcf43522b84c1a861ba) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix nil panic when generating artifacts for fragments with nested @with directives, and make artifact generation deterministic by sorting keys consistently.
+
 ## 2.0.0-next.27
 
 ### Patch Changes
