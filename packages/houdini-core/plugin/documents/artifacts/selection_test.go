@@ -2099,6 +2099,159 @@ export type TestQuery$artifact = typeof artifact
 				},
 			},
 			{
+				Name: "object argument to @with is serialized correctly",
+				Pass: true,
+				Input: []string{
+					`
+            query TestQuery {
+              user {
+                ...UserPets @with(petFilter: { age_gt: 5 })
+              }
+            }
+          `,
+					`
+            fragment UserPets on User @arguments(petFilter: { type: "PetFilter" }) {
+              pets(name: "test", filter: $petFilter) {
+                ... on Cat {
+                  name
+                }
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "5b4a6a1cadb53b652431eefb74cb148159e12b4844c81c7c7f5456666c4c92e3",
+    "raw": ` + "`" + `query TestQuery() {
+    user {
+        ...UserPets_qkFx4
+        __typename
+        id
+    }
+}
+
+fragment UserPets_qkFx4 on User {
+    __typename
+    id
+    pets(filter: {age_gt: 5}, name: "test") {
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+
+                        "pets": {
+                            "type": "Pet",
+                            "keyRaw": "pets(filter: {age_gt: 5}, name: \"test\")",
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
+                                },
+                                "abstractFields": {
+                                    "fields": {
+                                        "Cat": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+                                            },
+                                            "name": {
+                                                "type": "String",
+                                                "keyRaw": "name",
+                                            },
+                                        },
+                                    },
+
+                                    "typeMap": {},
+                                },
+                            },
+
+                            "abstract": true,
+                        },
+                    },
+
+                    "fragments": {
+                        "UserPets": {
+                            "arguments": {
+                                "petFilter": {
+                                    "kind": "ObjectValue",
+                                    "fields": [{"age_gt": {
+                                        "kind": "IntValue",
+                                        "value": "5"
+                                    }}]
+                                },
+                            }
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly user: {
+		readonly " $fragments": {
+			UserPets: {};
+		};
+	};
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=5b4a6a1cadb53b652431eefb74cb148159e12b4844c81c7c7f5456666c4c92e3"`),
+				},
+			},
+			{
 				Name: "fragment variables are embedded in artifact",
 				Pass: true,
 				Input: []string{

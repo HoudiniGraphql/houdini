@@ -1645,6 +1645,9 @@ func stripSuffix(s string, suffix string) string {
 // so that variable references stay structured instead of being printed as raw
 // graphql text (which isn't valid javascript)
 func serializeListFilter(value *collected.ArgumentValue, level int) string {
+	if value == nil {
+		return "null"
+	}
 	indent0 := strings.Repeat(spacing, level)
 	indent1 := strings.Repeat(spacing, level+1)
 
@@ -1687,6 +1690,9 @@ func serializeListFilter(value *collected.ArgumentValue, level int) string {
 }
 
 func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
+	if arg == nil {
+		return "null"
+	}
 	indent0 := strings.Repeat(spacing, level)
 	indent1 := strings.Repeat(spacing, level+1)
 	indent2 := strings.Repeat(spacing, level+2)
@@ -1746,6 +1752,8 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 				serializeFragmentArgument(child.Value, level+1),
 			)
 		}
+		attrs = fmt.Sprintf(`
+%s"fields": [%s]`, indent1, fields)
 	}
 
 	return fmt.Sprintf(`{
