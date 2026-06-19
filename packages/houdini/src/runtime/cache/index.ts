@@ -951,9 +951,10 @@ class CacheInternal {
 				if (operation.parentID) {
 					// if its a normal scalar we can use the value directly
 					if (operation.parentID.kind !== 'Variable') {
-						parentID = 'value' in operation.parentID
-							? String(operation.parentID.value)
-							: undefined
+						parentID =
+							'value' in operation.parentID
+								? String(operation.parentID.value)
+								: undefined
 					} else {
 						const varName = operation.parentID.name.value
 						const id = variables[varName]
@@ -969,9 +970,8 @@ class CacheInternal {
 				let opaqueListID: string | undefined
 				if (operation.listID) {
 					if (operation.listID.kind !== 'Variable') {
-						opaqueListID = 'value' in operation.listID
-							? String(operation.listID.value)
-							: undefined
+						opaqueListID =
+							'value' in operation.listID ? String(operation.listID.value) : undefined
 					} else {
 						const varName = operation.listID.name.value
 						const id = variables[varName]
