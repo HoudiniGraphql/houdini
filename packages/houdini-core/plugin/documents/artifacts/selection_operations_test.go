@@ -146,12 +146,12 @@ export type B$optimistic = {
 
 export type B$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -293,12 +293,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -454,13 +454,13 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
-			readonly field: string | null;
 			readonly __typename: "User";
+			readonly field: string | null;
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -626,12 +626,12 @@ export type B$optimistic = {
 
 export type B$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -782,12 +782,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -938,12 +938,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1100,12 +1100,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1262,13 +1262,13 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
-			readonly field: string | null;
 			readonly __typename: "User";
+			readonly field: string | null;
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1386,11 +1386,11 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
-		readonly friend: {
-			readonly id: string;
-			readonly __typename: "User";
-		};
 		readonly __typename: "AddFriendOutput";
+		readonly friend: {
+			readonly __typename: "User";
+			readonly id: string;
+		};
 	};
 };
 
@@ -1533,12 +1533,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1672,11 +1672,11 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
-		readonly friend: {
-			readonly id: string;
-			readonly __typename: "User";
-		};
 		readonly __typename: "AddFriendOutput";
+		readonly friend: {
+			readonly __typename: "User";
+			readonly id: string;
+		};
 	};
 };
 
@@ -1819,12 +1819,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -1981,13 +1981,13 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
-			readonly field: string | null;
 			readonly __typename: "User";
+			readonly field: string | null;
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -2133,12 +2133,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -2283,12 +2283,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 
@@ -2421,11 +2421,11 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
-		readonly friend: {
-			readonly id: string;
-			readonly __typename: "User";
-		};
 		readonly __typename: "AddFriendOutput";
+		readonly friend: {
+			readonly __typename: "User";
+			readonly id: string;
+		};
 	};
 };
 
@@ -2529,8 +2529,8 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly deleteUser: {
-		readonly userID: string | null;
 		readonly __typename: "DeleteUserOutput";
+		readonly userID: string | null;
 	};
 };
 
@@ -2651,8 +2651,8 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly deleteUser: {
-		readonly userID: string | null;
 		readonly __typename: "DeleteUserOutput";
+		readonly userID: string | null;
 	};
 };
 
@@ -2773,8 +2773,8 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly deleteUser: {
-		readonly userID: string | null;
 		readonly __typename: "DeleteUserOutput";
+		readonly userID: string | null;
 	};
 };
 
@@ -2921,12 +2921,12 @@ export type A$optimistic = {
 
 export type A$unmasked = {
 	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
 		readonly friend: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "AddFriendOutput";
 	};
 };
 

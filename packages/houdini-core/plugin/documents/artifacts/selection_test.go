@@ -349,8 +349,8 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly user: {
-		readonly firstName: string;
 		readonly __typename: "User";
+		readonly firstName: string;
 		readonly id: string;
 	};
 };
@@ -464,8 +464,8 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly user: {
-		readonly firstName: string;
 		readonly __typename: "User";
+		readonly firstName: string;
 		readonly id: string;
 	};
 };
@@ -605,12 +605,15 @@ export type MyQuery$input = {
 
 export type MyQuery$unmasked = {
 	readonly node: {} & (({
+		readonly id: string;
 		readonly name: string;
 		readonly __typename: "Cat";
 	}) | ({
+		readonly id: string;
 		readonly name: string;
 		readonly __typename: "Dog";
 	}) | ({
+		readonly id: string;
 		readonly name: string;
 		readonly __typename: "User";
 	})) | null;
@@ -755,9 +758,9 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly user: {
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	};
 };
 
@@ -910,6 +913,11 @@ export type TestQuery$input = null | undefined;
 export type TestQuery$unmasked = {
 	readonly friends: ({} & (({
 		readonly firstName: string;
+		readonly friends: ({
+			readonly __typename: "User";
+			readonly id: string;
+			readonly lastName: string;
+		})[];
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
@@ -1088,14 +1096,14 @@ export type Friends$unmasked = {
 	readonly friends: ({} & (({
 		readonly id: string;
 		readonly owner: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
 		readonly __typename: "Cat";
 	}) | ({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1262,8 +1270,8 @@ export type Friends$unmasked = {
 	readonly pets: ({} & (({
 		readonly id: string;
 		readonly owner: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
 		readonly __typename: "Cat";
@@ -1560,8 +1568,8 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly users: ({
-		readonly firstName: string;
 		readonly __typename: "User";
+		readonly firstName: string;
 		readonly id: string;
 	})[];
 };
@@ -1641,8 +1649,8 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly allItems: ({
-		readonly createdAt: DateTime;
 		readonly __typename: "TodoItem";
+		readonly createdAt: DateTime;
 	})[];
 };
 
@@ -1752,12 +1760,12 @@ export type B$input = null | undefined;
 
 export type B$unmasked = {
 	readonly newUser: {
+		readonly __typename: "NewUserResult";
 		readonly user: {
-			readonly firstName: string;
 			readonly __typename: "User";
+			readonly firstName: string;
 			readonly id: string;
 		};
-		readonly __typename: "NewUserResult";
 	};
 };
 
@@ -2919,8 +2927,8 @@ export type AnimalsOverview$input = {
 
 export type AnimalsOverview$unmasked = {
 	readonly node: {
-		readonly id: string;
 		readonly __typename: string;
+		readonly id: string;
 	} | null;
 };
 
@@ -3060,12 +3068,12 @@ export type UserFriends$input = {
 
 export type UserFriends$unmasked = {
 	readonly user: {
+		readonly __typename: "User";
 		readonly friendsByOffset: ({
-			readonly name: string;
 			readonly __typename: "User";
 			readonly id: string;
+			readonly name: string;
 		})[];
-		readonly __typename: "User";
 		readonly id: string;
 	};
 };
@@ -3183,9 +3191,9 @@ export type ListUsers$input = {
 
 export type ListUsers$unmasked = {
 	readonly users: ({
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	})[];
 };
 
@@ -3311,9 +3319,9 @@ export type FindUser$input = {
 
 export type FindUser$unmasked = {
 	readonly users: ({
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	})[];
 };
 
@@ -3410,9 +3418,9 @@ export type FindUser$input = null | undefined;
 
 export type FindUser$unmasked = {
 	readonly users: ({
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	})[];
 };
 
@@ -3508,9 +3516,9 @@ export type FindUser$input = null | undefined;
 
 export type FindUser$unmasked = {
 	readonly users: ({
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	})[];
 };
 
@@ -3606,9 +3614,9 @@ export type FindUser$input = null | undefined;
 
 export type FindUser$unmasked = {
 	readonly users: ({
-		readonly name: string;
 		readonly __typename: "User";
 		readonly id: string;
+		readonly name: string;
 	})[];
 };
 
@@ -3723,11 +3731,11 @@ export type FindUser$artifact = typeof artifact
 
               export type CachedFriends$unmasked = {
               	readonly user: {
-              		readonly friends: ({
-              			readonly id: string;
-              			readonly __typename: "User";
-              		})[];
               		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
               		readonly id: string;
               	};
               };
@@ -3847,11 +3855,11 @@ export type FindUser$artifact = typeof artifact
 
             export type CachedFriends$unmasked = {
             	readonly user: {
-            		readonly friends: ({
-            			readonly id: string;
-            			readonly __typename: "User";
-            		})[];
             		readonly __typename: "User";
+            		readonly friends: ({
+            			readonly __typename: "User";
+            			readonly id: string;
+            		})[];
             		readonly id: string;
             	};
             };
@@ -3968,11 +3976,11 @@ export type FindUser$artifact = typeof artifact
 
               export type CachedFriends$unmasked = {
               	readonly user: {
-              		readonly friends: ({
-              			readonly id: string;
-              			readonly __typename: "User";
-              		})[];
               		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
               		readonly id: string;
               	};
               };
@@ -4092,11 +4100,11 @@ export type FindUser$artifact = typeof artifact
 
               export type CachedFriends$unmasked = {
               	readonly user: {
-              		readonly friends: ({
-              			readonly id: string;
-              			readonly __typename: "User";
-              		})[];
               		readonly __typename: "User";
+              		readonly friends: ({
+              			readonly __typename: "User";
+              			readonly id: string;
+              		})[];
               		readonly id: string;
               	};
               };
@@ -4252,8 +4260,8 @@ query EntityList {
 
               export type EntityList$unmasked = {
               	readonly entities: ({} & (({
-              		readonly name: string;
               		readonly id: string;
+              		readonly name: string;
               		readonly __typename: "Cat";
               	}) | ({
               		readonly firstName: string;
@@ -4406,8 +4414,8 @@ query UserWithAvatar {
 
             export type UserWithAvatar$unmasked = {
             	readonly user: {
-            		readonly firstName: string;
             		readonly __typename: "User";
+            		readonly firstName: string;
             		readonly id: string;
             	};
             };
@@ -4547,10 +4555,10 @@ query UserWithAvatar {
 
 							export type UserRequiredFragments$unmasked = {
 								readonly user: {
-									readonly name: string;
-									readonly field: string | null;
 									readonly __typename: "User";
+									readonly field: string | null;
 									readonly id: string;
+									readonly name: string;
 								};
 							};
 

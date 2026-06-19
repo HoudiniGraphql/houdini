@@ -260,8 +260,8 @@ func TestListArtifacts(t *testing.T) {
 
               export type TestQuery$unmasked = {
               	readonly users: ({
-              		readonly firstName: string;
               		readonly __typename: "User";
+              		readonly firstName: string;
               		readonly id: string;
               	})[];
               };
@@ -485,21 +485,21 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly usersByCursor: {
+		readonly __typename: "UserConnection";
 		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-				readonly __typename: "User";
-				readonly id: string;
-			} | null;
 			readonly __typename: "UserEdge";
 			readonly cursor: string;
+			readonly node: {
+				readonly __typename: "User";
+				readonly firstName: string;
+				readonly id: string;
+			} | null;
 		})[];
-		readonly __typename: "UserConnection";
 		readonly pageInfo: {
+			readonly endCursor: string | null;
 			readonly hasNextPage: boolean;
 			readonly hasPreviousPage: boolean;
 			readonly startCursor: string | null;
-			readonly endCursor: string | null;
 		};
 	};
 };
@@ -772,21 +772,21 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly usersByCursor: {
+		readonly __typename: "UserConnection";
 		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-				readonly __typename: "User";
-				readonly id: string;
-			} | null;
 			readonly __typename: "UserEdge";
 			readonly cursor: string;
+			readonly node: {
+				readonly __typename: "User";
+				readonly firstName: string;
+				readonly id: string;
+			} | null;
 		})[];
-		readonly __typename: "UserConnection";
 		readonly pageInfo: {
+			readonly endCursor: string | null;
 			readonly hasNextPage: boolean;
 			readonly hasPreviousPage: boolean;
 			readonly startCursor: string | null;
-			readonly endCursor: string | null;
 		};
 	};
 };
@@ -1058,21 +1058,21 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly usersByCursor: {
+		readonly __typename: "UserConnection";
 		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-				readonly __typename: "User";
-				readonly id: string;
-			} | null;
 			readonly __typename: "UserEdge";
 			readonly cursor: string;
+			readonly node: {
+				readonly __typename: "User";
+				readonly firstName: string;
+				readonly id: string;
+			} | null;
 		})[];
-		readonly __typename: "UserConnection";
 		readonly pageInfo: {
+			readonly endCursor: string | null;
 			readonly hasNextPage: boolean;
 			readonly hasPreviousPage: boolean;
 			readonly startCursor: string | null;
-			readonly endCursor: string | null;
 		};
 	};
 };
@@ -1385,24 +1385,25 @@ export type AnimalQuery$result = {
 export type AnimalQuery$input = null | undefined;
 
 export type AnimalQuery$unmasked = {
-	readonly animals: {
-		readonly pageInfo: {
-			readonly hasPreviousPage: boolean;
-			readonly hasNextPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-			readonly __typename: "PageInfo";
-		};
+	readonly animals: {} & (({
 		readonly edges: ({
-			readonly node: {
-				readonly hasBanana: boolean;
-				readonly __typename: "Monkey";
-				readonly id: string;
-			} | null;
 			readonly __typename: "MonkeyEdge";
+			readonly node: {
+				readonly __typename: "Monkey";
+				readonly hasBanana: boolean;
+				readonly id: string;
+				readonly name: string;
+			} | null;
 		})[];
-		readonly __typename: string;
-	} | null;
+		readonly pageInfo: {
+			readonly __typename: "PageInfo";
+			readonly endCursor: string | null;
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+		};
+		readonly __typename: "MonkeyConnection";
+	})) | null;
 };
 
 export type AnimalQuery$artifact = typeof artifact
@@ -1599,16 +1600,16 @@ export type AnimalsOverview$input = null | undefined;
 
 export type AnimalsOverview$unmasked = {
 	readonly animals: {
+		readonly __typename: string;
 		readonly edges: ({
+			readonly __typename: string;
 			readonly node: {} & (({
+		readonly hasBanana: boolean;
 		readonly id: string;
 		readonly name: string;
-		readonly hasBanana: boolean;
 		readonly __typename: "Monkey";
 	})) | null;
-			readonly __typename: string;
 		})[];
-		readonly __typename: string;
 	} | null;
 };
 
@@ -1781,12 +1782,12 @@ export type Entities$input = null | undefined;
 
 export type Entities$unmasked = {
 	readonly entities: ({} & (({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "Cat";
 	}) | ({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "User";
 	})))[];
 };
@@ -2024,21 +2025,21 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly usersByCursor: {
+		readonly __typename: "UserConnection";
 		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-				readonly __typename: "User";
-				readonly id: string;
-			} | null;
 			readonly __typename: "UserEdge";
 			readonly cursor: string;
+			readonly node: {
+				readonly __typename: "User";
+				readonly firstName: string;
+				readonly id: string;
+			} | null;
 		})[];
-		readonly __typename: "UserConnection";
 		readonly pageInfo: {
+			readonly endCursor: string | null;
 			readonly hasNextPage: boolean;
 			readonly hasPreviousPage: boolean;
 			readonly startCursor: string | null;
-			readonly endCursor: string | null;
 		};
 	};
 };

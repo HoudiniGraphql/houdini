@@ -144,9 +144,9 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
 	readonly user: {
-		readonly id: string;
-		readonly firstName: string;
 		readonly __typename: "User";
+		readonly firstName: string;
+		readonly id: string;
 	};
 };
 
@@ -302,11 +302,11 @@ export type TestQuery$input = {
 };
 
 export type TestQuery$unmasked = {
-	readonly node: {
-		readonly id: string;
+	readonly node: {} & (({
 		readonly firstName: string;
-		readonly __typename: string;
-	} | null;
+		readonly id: string;
+		readonly __typename: "User";
+	})) | null;
 };
 
 export type TestQuery$artifact = typeof artifact
@@ -443,9 +443,9 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly user: {
-		readonly id: string;
-		readonly firstName: string;
 		readonly __typename: "User";
+		readonly firstName: string;
+		readonly id: string;
 	};
 };
 

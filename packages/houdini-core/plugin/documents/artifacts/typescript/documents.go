@@ -147,6 +147,7 @@ func GenerateDocumentTypeDefs(
 	rootTypes *RootTypeNames,
 	collectedDefinitions *collected.Documents,
 	doc *collected.Document,
+	flattenedSelection []*collected.Selection,
 ) (string, []string, error) {
 	// Calculate root type name once per document
 	rootTypeName := getRootTypeName(doc, rootTypes)
@@ -157,6 +158,7 @@ func GenerateDocumentTypeDefs(
 		rootTypeName,
 		doc,
 		collectedDefinitions,
+		flattenedSelection,
 	)
 	if err != nil {
 		return "", nil, err
@@ -170,6 +172,7 @@ func generateDocumentTypeDef(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
+	flattenedSelection []*collected.Selection,
 ) (string, []string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := DocumentContext{
@@ -202,6 +205,7 @@ func generateDocumentTypeDef(
 			rootTypeName,
 			doc,
 			collectedDocs,
+			flattenedSelection,
 		)...)
 	}
 
@@ -321,6 +325,7 @@ func generateFragmentTypes(
 			0,
 			rootTypeName,
 			collectedDocs,
+			false,
 		)
 		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
 		loadingType, _ := generateLoadingStateType(
@@ -335,7 +340,7 @@ func generateFragmentTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	} else {
 		// Generate normal single type
-		dataType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+		dataType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs, false)
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	}
 
@@ -347,6 +352,7 @@ func generateOperationTypes(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
+	flattenedSelection []*collected.Selection,
 ) []string {
 	var types []string
 
@@ -384,6 +390,7 @@ func generateOperationTypes(
 			0,
 			rootTypeName,
 			collectedDocs,
+			false,
 		)
 		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
 		loadingType, _ := generateLoadingStateType(
@@ -398,7 +405,7 @@ func generateOperationTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	} else {
 		// Generate normal single type
-		resultType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+		resultType, _ := generateSelectionType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs, false)
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	}
 
@@ -453,88 +460,10 @@ func generateOperationTypes(
 	// fields inlined and no " $fragments" mask annotations. Used by createMock so
 	// test data can be written as plain JSON matching what the network would return.
 	unmaskedTypeName := fmt.Sprintf("%s$unmasked", doc.Name)
-	unmaskedType, _ := generateNetworkType(ctx, doc.Selections, true, 0, rootTypeName, collectedDocs)
+	unmaskedType, _ := generateSelectionType(ctx, flattenedSelection, true, 0, rootTypeName, collectedDocs, true)
 	types = append(types, fmt.Sprintf("export type %s = %s;", unmaskedTypeName, unmaskedType))
 
 	return types
-}
-
-// expandAllFragments returns a copy of selections with every fragment spread replaced
-// by the fragment's own fields (recursively). Duplicate field names are deduplicated
-// so that a field selected both directly and via a fragment appears only once.
-// Internal fields (id, __typename added by Houdini) are un-marked so they appear in
-// the output — they are part of the real server response and must be in $unmasked.
-// Inline fragment children are recursively expanded so named fragment spreads inside
-// `... on SomeType { ...Frag }` branches are inlined too.
-func expandAllFragments(
-	collectedDocs *collected.Documents,
-	selections []*collected.Selection,
-) []*collected.Selection {
-	result := make([]*collected.Selection, 0, len(selections))
-	seenFields := map[string]bool{}
-	seenFragments := map[string]bool{}
-
-	var walk func(sels []*collected.Selection)
-	walk = func(sels []*collected.Selection) {
-		for _, sel := range sels {
-			switch sel.Kind {
-			case "fragment":
-				fragmentName := sel.FieldName
-				if sel.FragmentRef != nil {
-					fragmentName = *sel.FragmentRef
-				}
-				if seenFragments[fragmentName] {
-					continue
-				}
-				seenFragments[fragmentName] = true
-				if def, ok := collectedDocs.Selections[fragmentName]; ok {
-					walk(def.Selections)
-				}
-			case "field":
-				name := sel.FieldName
-				if sel.Alias != nil {
-					name = *sel.Alias
-				}
-				if seenFields[name] {
-					continue
-				}
-				seenFields[name] = true
-				cloned := *sel
-				cloned.Internal = false // expose id/__typename — they're in the real payload
-				if len(sel.Children) > 0 {
-					cloned.Children = expandAllFragments(collectedDocs, sel.Children)
-				}
-				result = append(result, &cloned)
-			default:
-				// Inline fragments: clone and expand their children so named fragment
-				// spreads inside `... on SomeType { ...Frag }` are also inlined.
-				if len(sel.Children) > 0 {
-					cloned := *sel
-					cloned.Children = expandAllFragments(collectedDocs, sel.Children)
-					result = append(result, &cloned)
-				} else {
-					result = append(result, sel)
-				}
-			}
-		}
-	}
-	walk(selections)
-	return result
-}
-
-// generateUnmaskedType builds the $unmasked TypeScript type for the server response of
-// a query or mutation — all fragment fields are inlined, no " $fragments" markers,
-// and internal fields like id/__typename are included since they appear in real payloads.
-func generateNetworkType(
-	ctx *DocumentContext,
-	selections []*collected.Selection,
-	readonly bool,
-	indentLevel int,
-	parentType string,
-	collectedDocs *collected.Documents,
-) (string, error) {
-	expanded := expandAllFragments(collectedDocs, selections)
-	return generateSelectionType(ctx, expanded, readonly, indentLevel, parentType, collectedDocs)
 }
 
 func generateSelectionType(
@@ -544,6 +473,7 @@ func generateSelectionType(
 	indentLevel int,
 	parentType string,
 	collectedDocs *collected.Documents,
+	unmasked bool,
 ) (string, error) {
 	if len(selections) == 0 {
 		return "{}", nil
@@ -575,12 +505,17 @@ func generateSelectionType(
 	// Count explicit fields that would be visible (excluding internal/auto-added fields)
 	for _, sel := range selections {
 		if sel.Kind == "fragment" {
-			visibleSelections = append(visibleSelections, sel)
+			// In unmasked mode, fragment spread markers are skipped entirely — the
+			// fields they contributed are already inlined in the flattened selection.
+			if !unmasked {
+				visibleSelections = append(visibleSelections, sel)
+			}
 			continue
 		}
 
-		// Skip internal fields (automatically added fields like __typename)
-		if sel.Internal {
+		// Skip internal fields (automatically added fields like __typename) unless
+		// generating the $unmasked type, where all server-visible fields are included.
+		if sel.Internal && !unmasked {
 			continue
 		}
 
@@ -591,6 +526,22 @@ func generateSelectionType(
 	}
 
 	// onlyFragments logic is now handled in the first pass when determining visibility
+
+	// In unmasked mode the input comes from FlattenSelection which uses Go maps
+	// without a fixed iteration order; sort here so the $unmasked type is deterministic.
+	if unmasked {
+		sort.SliceStable(visibleSelections, func(i, j int) bool {
+			nameI := visibleSelections[i].FieldName
+			if visibleSelections[i].Alias != nil {
+				nameI = *visibleSelections[i].Alias
+			}
+			nameJ := visibleSelections[j].FieldName
+			if visibleSelections[j].Alias != nil {
+				nameJ = *visibleSelections[j].Alias
+			}
+			return nameI < nameJ
+		})
+	}
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
@@ -646,6 +597,7 @@ func generateSelectionType(
 					selection,
 					readonly,
 					collectedDocs,
+					unmasked,
 				)
 
 				// Apply type modifiers (lists, nullability) to the union type
@@ -656,7 +608,7 @@ func generateSelectionType(
 				fieldType = ApplyTypeModifiers(unionType, modifiers, false) // Output type
 			} else {
 				// Regular nested object type
-				childType, childErr := generateSelectionType(ctx, selection.Children, readonly, indentLevel+1, selection.FieldType, collectedDocs)
+				childType, childErr := generateSelectionType(ctx, selection.Children, readonly, indentLevel+1, selection.FieldType, collectedDocs, unmasked)
 				if childErr != nil {
 					return "", childErr
 				}
@@ -749,8 +701,9 @@ func generateInterfaceUnionType(
 	selection *collected.Selection,
 	readonly bool,
 	collectedDocs *collected.Documents,
+	unmasked bool,
 ) string {
-	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs)
+	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs, unmasked)
 }
 
 func generateInterfaceUnionTypeWithLoading(
@@ -759,6 +712,7 @@ func generateInterfaceUnionTypeWithLoading(
 	readonly bool,
 	isLoadingState bool,
 	collectedDocs *collected.Documents,
+	unmasked bool,
 ) string {
 	readonlyPrefix := ""
 	if readonly {
@@ -892,6 +846,7 @@ func generateInterfaceUnionTypeWithLoading(
 									fragmentChild,
 									readonly,
 									collectedDocs,
+									unmasked,
 								)
 
 								// Apply type modifiers (lists, nullability) to the union type
@@ -906,7 +861,7 @@ func generateInterfaceUnionTypeWithLoading(
 								) // Output type
 							} else {
 								// Regular nested object type
-								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs)
+								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs, unmasked)
 								if childErr != nil {
 									// Fallback to simple type conversion on error
 									fieldType = convertLeafType(
@@ -955,26 +910,35 @@ func generateInterfaceUnionTypeWithLoading(
 			}
 		}
 
+		// In unmasked mode, sort fields alphabetically for deterministic output.
+		// (FlattenSelection uses Go maps so fragment processing order is non-deterministic.)
+		if unmasked {
+			sort.Strings(fields)
+		}
+
 		// Add " $fragments" marker for named fragment spreads on this concrete type
-		if fragNames := namedFragmentsByType[typeName]; len(fragNames) > 0 {
-			seen := make(map[string]bool)
-			var uniqueFragNames []string
-			for _, n := range fragNames {
-				if !seen[n] {
-					seen[n] = true
-					uniqueFragNames = append(uniqueFragNames, n)
+		// (omitted in unmasked mode — the fields are already inlined)
+		if !unmasked {
+			if fragNames := namedFragmentsByType[typeName]; len(fragNames) > 0 {
+				seen := make(map[string]bool)
+				var uniqueFragNames []string
+				for _, n := range fragNames {
+					if !seen[n] {
+						seen[n] = true
+						uniqueFragNames = append(uniqueFragNames, n)
+					}
 				}
+				sort.Strings(uniqueFragNames)
+				fragEntries := make([]string, len(uniqueFragNames))
+				for i, n := range uniqueFragNames {
+					fragEntries[i] = fmt.Sprintf("\t\t\t%s: {};", n)
+				}
+				fields = append(fields, fmt.Sprintf(
+					"\t\t%s\" $fragments\": {\n%s\n\t\t};",
+					readonlyPrefix,
+					strings.Join(fragEntries, "\n"),
+				))
 			}
-			sort.Strings(uniqueFragNames)
-			fragEntries := make([]string, len(uniqueFragNames))
-			for i, n := range uniqueFragNames {
-				fragEntries[i] = fmt.Sprintf("\t\t\t%s: {};", n)
-			}
-			fields = append(fields, fmt.Sprintf(
-				"\t\t%s\" $fragments\": {\n%s\n\t\t};",
-				readonlyPrefix,
-				strings.Join(fragEntries, "\n"),
-			))
 		}
 
 		// Always add __typename field for discrimination with literal type
@@ -1170,6 +1134,7 @@ func generateOptimisticType(
 				selection,
 				readonly,
 				collectedDocs,
+				false,
 			)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
@@ -1388,9 +1353,10 @@ func generateLoadingStateType(
 						unionType := generateInterfaceUnionTypeWithLoading(
 							ctx,
 							selection,
-							true, // readonly
-							true, // isLoadingState
+							true,  // readonly
+							true,  // isLoadingState
 							collectedDocs,
+							false, // unmasked
 						)
 
 						// Apply array syntax if this is a list type

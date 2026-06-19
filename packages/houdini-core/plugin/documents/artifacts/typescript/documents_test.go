@@ -187,21 +187,21 @@ func TestTypescriptGeneration(t *testing.T) {
 							 * Get a user.
 							 */
 							readonly user: {
-								/**
-								 * The user's first name
-								 */
-								readonly firstName: string;
+								readonly __typename: "User";
 								readonly admin: boolean | null;
+								readonly age: number | null;
 								/**
 								 * An enum value
 								 */
 								readonly enumValue: MyEnum$options | null;
-								readonly age: number | null;
+								/**
+								 * The user's first name
+								 */
+								readonly firstName: string;
 								/**
 								 * The user's first name
 								 */
 								readonly firstname: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null;
 						};
@@ -394,11 +394,11 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type MyQuery$unmasked = {
 							readonly users: ({
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null)[] | null;
 						};
@@ -442,11 +442,11 @@ func TestTypescriptGeneration(t *testing.T) {
 							 * Get a user.
 							 */
 							readonly user: {
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null;
 						};
@@ -528,11 +528,11 @@ func TestTypescriptGeneration(t *testing.T) {
 							 * Get a user.
 							 */
 							readonly user: {
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null;
 						};
@@ -673,14 +673,14 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type ComplexQuery$unmasked = {
 							readonly nodes: ({} & (({
+								readonly id: string;
 								readonly kitty: boolean;
 								readonly names: (string | null)[];
-								readonly id: string;
 								readonly __typename: "Cat";
 							}) | ({
-								readonly firstName: string;
 								readonly admin: boolean | null;
 								readonly age: number | null;
+								readonly firstName: string;
 								readonly id: string;
 								readonly __typename: "User";
 							}) | ({
@@ -738,13 +738,13 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type UnionQuery$unmasked = {
 							readonly entities: ({} & (({
 								readonly id: string;
-								readonly kitty: boolean;
 								readonly isAnimal: boolean;
+								readonly kitty: boolean;
 								readonly __typename: "Cat";
 							}) | ({
-								readonly id: string;
-								readonly firstName: string;
 								readonly admin: boolean | null;
+								readonly firstName: string;
+								readonly id: string;
 								readonly __typename: "User";
 							})) | null)[] | null;
 						};
@@ -801,8 +801,8 @@ func TestTypescriptGeneration(t *testing.T) {
 								readonly kitty: boolean;
 								readonly __typename: "Cat";
 							}) | ({
-								readonly id: string;
 								readonly firstName: string;
+								readonly id: string;
 								readonly __typename: "User";
 							}) | ({
 								readonly " $fragments"?: {};
@@ -860,13 +860,13 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type AbstractConcreteQuery$unmasked = {
 							readonly entities: ({} & (({
 								readonly id: string;
-								readonly kitty: boolean;
 								readonly isAnimal: boolean;
+								readonly kitty: boolean;
 								readonly __typename: "Cat";
 							}) | ({
-								readonly id: string;
-								readonly firstName: string;
 								readonly admin: boolean | null;
+								readonly firstName: string;
+								readonly id: string;
 								readonly __typename: "User";
 							})) | null)[] | null;
 						};
@@ -927,16 +927,16 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type UnionAbstractQuery$unmasked = {
 							readonly entities: ({} & (({
-								readonly kitty: boolean;
 								readonly id: string;
 								readonly isAnimal: boolean;
+								readonly kitty: boolean;
 								readonly names: (string | null)[];
 								readonly __typename: "Cat";
 							}) | ({
-								readonly firstName: string;
-								readonly id: string;
 								readonly admin: boolean | null;
 								readonly age: number | null;
+								readonly firstName: string;
+								readonly id: string;
 								readonly __typename: "User";
 							})) | null)[] | null;
 						};
@@ -983,9 +983,9 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type AnimalCatQuery$unmasked = {
 							readonly entities: ({} & (({
+								readonly id: string;
 								readonly isAnimal: boolean;
 								readonly kitty: boolean;
-								readonly id: string;
 								readonly __typename: "Cat";
 							}) | ({
 								readonly " $fragments"?: {};
@@ -1059,11 +1059,11 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type MyMutation$unmasked = {
 							readonly doThing: {
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null;
 						};
@@ -1104,11 +1104,11 @@ func TestTypescriptGeneration(t *testing.T) {
 							 * Get a user.
 							 */
 							readonly user: {
+								readonly __typename: "User";
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly __typename: "User";
 								readonly id: string;
 							} | null;
 						};

@@ -999,34 +999,34 @@ export type ScalarPagination$input = {
 
 export type ScalarPagination$unmasked = {
 	readonly user: {
+		readonly __typename: "User";
 		readonly friendsByCursorScalar: {
+			readonly __typename: "UserConnection";
 			readonly edges: ({
-				readonly node: {
-					readonly friendsByCursor: {
-						readonly edges: ({
-							readonly node: {
-								readonly id: string;
-								readonly __typename: "User";
-							} | null;
-							readonly __typename: "UserEdge";
-						})[];
-						readonly __typename: "UserConnection";
-					} | null;
-					readonly __typename: "User";
-					readonly id: string;
-				} | null;
 				readonly __typename: "UserEdge";
 				readonly cursor: string;
+				readonly node: {
+					readonly __typename: "User";
+					readonly friendsByCursor: {
+						readonly __typename: "UserConnection";
+						readonly edges: ({
+							readonly __typename: "UserEdge";
+							readonly node: {
+								readonly __typename: "User";
+								readonly id: string;
+							} | null;
+						})[];
+					} | null;
+					readonly id: string;
+				} | null;
 			})[];
-			readonly __typename: "UserConnection";
 			readonly pageInfo: {
+				readonly endCursor: string | null;
 				readonly hasNextPage: boolean;
 				readonly hasPreviousPage: boolean;
 				readonly startCursor: string | null;
-				readonly endCursor: string | null;
 			};
 		};
-		readonly __typename: "User";
 		readonly id: string;
 	};
 };
@@ -1777,7 +1777,10 @@ export type TestQuery$input = {
 
 export type TestQuery$unmasked = {
 	readonly entitiesByCursor: {
+		readonly __typename: "EntityConnection";
 		readonly edges: ({
+			readonly __typename: "EntityEdge";
+			readonly cursor: string;
 			readonly node: {} & (({
 		readonly firstName: string;
 		readonly id: string;
@@ -1786,15 +1789,12 @@ export type TestQuery$unmasked = {
 		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})) | null;
-			readonly __typename: "EntityEdge";
-			readonly cursor: string;
 		})[];
-		readonly __typename: "EntityConnection";
 		readonly pageInfo: {
+			readonly endCursor: string | null;
 			readonly hasNextPage: boolean;
 			readonly hasPreviousPage: boolean;
 			readonly startCursor: string | null;
-			readonly endCursor: string | null;
 		};
 	};
 };
@@ -2075,26 +2075,26 @@ export type Info$input = {
 
 export type Info$unmasked = {
 	readonly species: {
+		readonly __typename: "Species";
 		readonly id: number;
 		readonly moves: {
+			readonly __typename: "SpeciesMoveConnection";
 			readonly edges: ({
-				readonly node: {
-					readonly id: number;
-					readonly __typename: "SpeciesMove";
-				} | null;
 				readonly __typename: "SpeciesMoveEdge";
 				readonly cursor: string;
+				readonly node: {
+					readonly __typename: "SpeciesMove";
+					readonly id: number;
+				} | null;
 			})[];
 			readonly pageInfo: {
+				readonly __typename: "PageInfo";
+				readonly endCursor: string | null;
 				readonly hasNextPage: boolean;
 				readonly hasPreviousPage: boolean;
-				readonly __typename: "PageInfo";
 				readonly startCursor: string | null;
-				readonly endCursor: string | null;
 			};
-			readonly __typename: "SpeciesMoveConnection";
 		};
-		readonly __typename: "Species";
 	} | null;
 };
 

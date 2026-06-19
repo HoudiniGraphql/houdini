@@ -314,22 +314,22 @@ export type MonkeyListQuery$input = null | undefined;
 
 export type MonkeyListQuery$unmasked = {
 	readonly monkeys: {
-		readonly pageInfo: {
-			readonly hasPreviousPage: boolean;
-			readonly hasNextPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-			readonly __typename: "PageInfo";
-		};
+		readonly __typename: "MonkeyConnection";
 		readonly edges: ({
+			readonly __typename: string;
 			readonly node: {
+				readonly __typename: string;
 				readonly id: string;
 				readonly name: string;
-				readonly __typename: string;
 			} | null;
-			readonly __typename: string;
 		})[];
-		readonly __typename: "MonkeyConnection";
+		readonly pageInfo: {
+			readonly __typename: "PageInfo";
+			readonly endCursor: string | null;
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+		};
 	};
 };
 
@@ -570,6 +570,10 @@ export type Query$input = null | undefined;
 
 export type Query$unmasked = {
 	readonly catOwners: ({} & (({
+		readonly cats: ({
+			readonly __typename: "Cat";
+			readonly id: string;
+		})[];
 		readonly firstName: string;
 		readonly id: string;
 		readonly __typename: "User";
@@ -760,8 +764,8 @@ export type Query$input = null | undefined;
 
 export type Query$unmasked = {
 	readonly entities: ({} & (({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
@@ -1107,8 +1111,8 @@ export type Query$input = null | undefined;
 
 export type Query$unmasked = {
 	readonly entities: ({} & (({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
@@ -1298,8 +1302,8 @@ export type Query$input = null | undefined;
 
 export type Query$unmasked = {
 	readonly entities: ({} & (({
-		readonly name: string;
 		readonly id: string;
+		readonly name: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
@@ -1561,11 +1565,7 @@ export type Query$result = {
 export type Query$input = null | undefined;
 
 export type Query$unmasked = {
-	readonly entities: ({} & (({
-		readonly name: string;
-		readonly id: string;
-		readonly __typename: "Cat";
-	}) | ({
+	readonly b: ({} & (({
 		readonly firstName: string;
 		readonly id: string;
 		readonly __typename: "User";
@@ -1573,7 +1573,11 @@ export type Query$unmasked = {
 		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
-	readonly b: ({} & (({
+	readonly entities: ({} & (({
+		readonly id: string;
+		readonly name: string;
+		readonly __typename: "Cat";
+	}) | ({
 		readonly firstName: string;
 		readonly id: string;
 		readonly __typename: "User";

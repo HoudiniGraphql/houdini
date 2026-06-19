@@ -418,6 +418,7 @@ func GenerateSelectionDocument(
 		rootTypes,
 		docs,
 		doc,
+		selection,
 	)
 	if err != nil {
 		return "", err
