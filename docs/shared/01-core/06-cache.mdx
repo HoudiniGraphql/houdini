@@ -273,10 +273,10 @@ mutation FavoriteBook($id: ID!) {
 ```
 
 `@refetch` goes on the field that returns the record (not on its `id`), so Houdini
-knows which record to reload. It can be used in a mutation or subscription, on a
-field that returns a single keyable object — not on lists or `@paginate`/`@list`
-fields. To refresh records inside a list, place `@refetch` on the element field
-within the list's selection.
+knows which record to reload. It can be used in a mutation or subscription, on any
+field that returns a keyable object — including a list of them, in which case every
+record in the list is refreshed. It cannot be combined with `@list` or `@paginate`,
+which have their own cache machinery.
 
 ## Lists
 

@@ -2555,8 +2555,8 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
-				Name: "@refetch on a list field (negative)",
-				Pass: false,
+				Name: "@refetch on a plain list field (positive)",
+				Pass: true,
 				Input: []string{
 					`mutation RefetchList {
 						addFriend {

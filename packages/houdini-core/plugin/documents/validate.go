@@ -1764,10 +1764,10 @@ func ValidateRefetchDirective(
 	db plugins.DatabasePool[config.PluginConfig],
 	errs *plugins.ErrorList,
 ) {
-	// @refetch marks a record in a response so the cache refetches every document
-	// that depends on it. that only makes sense on a singular field that returns a
-	// keyable object/abstract type, so we reject scalars, lists, keyless types, and
-	// fields that already carry the list/pagination machinery.
+	// @refetch marks the record(s) returned by a field so the cache refetches every
+	// document that depends on them. the field has to return a keyable object/abstract
+	// type (a list of them is fine — we refresh each), so we reject scalars, keyless
+	// types, and fields that already carry the list/pagination machinery.
 	query := `
 	SELECT
 	  s.field_name,
@@ -1804,7 +1804,6 @@ func ValidateRefetchDirective(
 
 	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		fieldName := stmt.ColumnText(0)
-		typeModifiers := stmt.ColumnText(1)
 		fieldTypeKind := stmt.ColumnText(2)
 		keys := strings.TrimSpace(stmt.ColumnText(3))
 		filepath := stmt.ColumnText(4)
@@ -1836,19 +1835,6 @@ func ValidateRefetchDirective(
 				Message: fmt.Sprintf(
 					"@%s can only be used on fields that return an object type, but field %q in document %q returns a %s",
 					graphql.RefetchDirective, fieldName, docName, fieldTypeKind,
-				),
-				Kind:      plugins.ErrorKindValidation,
-				Locations: location,
-			})
-			return
-		}
-
-		// refetch operates on a single record so list fields are not allowed
-		if strings.Contains(typeModifiers, "]") {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf(
-					"@%s cannot be used on list fields (field %q in document %q); place it on the element you want to refetch instead",
-					graphql.RefetchDirective, fieldName, docName,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,

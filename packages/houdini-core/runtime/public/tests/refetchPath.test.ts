@@ -7,6 +7,19 @@ test('walks a path to a singular record', () => {
 	expect(recordsAtPath(data, ['addFriend', 'friend'])).toEqual([{ __typename: 'User', id: '1' }])
 })
 
+test('returns every record when the @refetch field itself is a list', () => {
+	const data = {
+		updateFriends: [
+			{ __typename: 'User', id: '1' },
+			{ __typename: 'User', id: '2' },
+		],
+	}
+	expect(recordsAtPath(data, ['updateFriends'])).toEqual([
+		{ __typename: 'User', id: '1' },
+		{ __typename: 'User', id: '2' },
+	])
+})
+
 test('fans out when a path segment is a list', () => {
 	const data = {
 		updateUsers: [{ bestFriend: { id: '2' } }, { bestFriend: { id: '3' } }],
