@@ -293,48 +293,6 @@ importers:
         specifier: ^4.98.0
         version: 4.98.0(@cloudflare/workers-types@4.20260606.1)
 
-  e2e/svelte:
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.60.0
-        version: 1.60.0
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^7.1.2
-        version: 7.1.2(svelte@5.56.2(@typescript-eslint/types@8.60.1))(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(yaml@2.9.0))
-      '@tsconfig/svelte':
-        specifier: ^5.0.0
-        version: 5.0.8
-      concurrently:
-        specifier: ^10.0.3
-        version: 10.0.3
-      cross-env:
-        specifier: ^10.1.0
-        version: 10.1.0
-      e2e-api:
-        specifier: workspace:^
-        version: link:../_api
-      houdini:
-        specifier: workspace:^
-        version: link:../../packages/houdini
-      houdini-svelte:
-        specifier: workspace:^
-        version: link:../../packages/houdini-svelte
-      svelte:
-        specifier: ^5.56.2
-        version: 5.56.2(@typescript-eslint/types@8.60.1)
-      svelte-check:
-        specifier: ^4.6.0
-        version: 4.6.0(picomatch@4.0.4)(svelte@5.56.2(@typescript-eslint/types@8.60.1))(typescript@6.0.3)
-      tslib:
-        specifier: ^2.8.1
-        version: 2.8.1
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.0.16
-        version: 8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(yaml@2.9.0)
-
   packages/_scripts:
     dependencies:
       commander:
@@ -2500,9 +2458,6 @@ packages:
         optional: true
       '@types/react-dom':
         optional: true
-
-  '@tsconfig/svelte@5.0.8':
-    resolution: {integrity: sha512-UkNnw1/oFEfecR8ypyHIQuWYdkPvHiwcQ78sh+ymIiYoF+uc5H1UBetbjyqT+vgGJ3qQN6nhucJviX6HesWtKQ==}
 
   '@turbo/darwin-64@2.9.16':
     resolution: {integrity: sha512-jLjApWTSNd7JZ5JaLYfelW1ytnGQOvB7ivl+2RD1xQvJTbi8I9gBjzcga7tDZVPyaxpl10YTfJt3BrYXR18KDw==}
@@ -6627,8 +6582,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
-
-  '@tsconfig/svelte@5.0.8': {}
 
   '@turbo/darwin-64@2.9.16':
     optional: true
