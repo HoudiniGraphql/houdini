@@ -4,7 +4,9 @@ import fs from 'node:fs/promises'
  * Write a package.json file with consistent formatting
  */
 export async function writePackageJson(filePath, packageJson) {
-	await fs.writeFile(filePath, JSON.stringify(packageJson, null, 4))
+	// include a trailing newline so recompiling doesn't leave a spurious diff
+	// against the committed (newline-terminated) package.json files
+	await fs.writeFile(filePath, JSON.stringify(packageJson, null, 4) + '\n')
 }
 
 /**

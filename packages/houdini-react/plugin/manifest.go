@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -38,6 +39,9 @@ type PageManifest struct {
 	Path          string                    `json:"path"`
 	ErrorPath     string                    `json:"error_path"`
 	Params        map[string]*ParamTypeInfo `json:"params"`
+	// Headers is true when the view file exports a `headers()` function whose
+	// result should be merged into the HTTP response before streaming.
+	Headers bool `json:"headers"`
 }
 
 // ParamTypeInfo describes the GraphQL type of a URL route parameter.
@@ -206,6 +210,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Layouts:       clone(state.availableLayouts),
 				Path:          relPath,
 				Params:        buildParams(url, newVariables),
+				Headers:       info.layoutHeaders,
 			}
 			newLayoutIDs = append(newLayoutIDs, id)
 		}
@@ -254,6 +259,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Path:          relPath,
 				ErrorPath:     errorPath,
 				Params:        buildParams(url, allVars),
+				Headers:       info.pageHeaders,
 			}
 		}
 
@@ -389,6 +395,8 @@ type viewInfo struct {
 	pageViewPath   string // absolute path to +page.tsx or +page.jsx, empty if absent
 	layoutViewPath string // absolute path to +layout.tsx or +layout.jsx, empty if absent
 	errorViewPath  string // absolute path to +error.tsx or +error.jsx, empty if absent
+	pageHeaders    bool   // +page view exports a headers() function
+	layoutHeaders  bool   // +layout view exports a headers() function
 }
 
 // discoverViewFiles uses the parallel glob walker to find all +page and +layout view
@@ -422,12 +430,24 @@ func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) 
 		absPath := filepath.Join(routesDir, relPath)
 		base := filepath.Base(relPath)
 
+		// +page and +layout views may export a headers() function whose result is
+		// merged into the HTTP response. Detect it statically so the manifest only
+		// references modules that actually contribute headers.
+		hasHeaders := false
+		if strings.HasPrefix(base, "+page") || strings.HasPrefix(base, "+layout") {
+			if content, err := afero.ReadFile(p.Filesystem(), absPath); err == nil {
+				hasHeaders = fileExportsHeaders(string(content))
+			}
+		}
+
 		mu.Lock()
 		info := views[dir]
 		if strings.HasPrefix(base, "+page") {
 			info.pageViewPath = absPath
+			info.pageHeaders = hasHeaders
 		} else if strings.HasPrefix(base, "+layout") {
 			info.layoutViewPath = absPath
+			info.layoutHeaders = hasHeaders
 		} else {
 			info.errorViewPath = absPath
 		}
@@ -436,6 +456,35 @@ func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) 
 		return nil
 	})
 	return views, err
+}
+
+var (
+	headerFuncRe = regexp.MustCompile(`(?m)^\s*export\s+(?:async\s+)?function\s+headers\b`)
+	headerDeclRe = regexp.MustCompile(`(?m)^\s*export\s+(?:const|let|var)\s+headers\b`)
+	headerListRe = regexp.MustCompile(`(?ms)\bexport\s*\{([^}]*)\}`)
+)
+
+// fileExportsHeaders reports whether a route view module exports a value named
+// `headers`. It handles `export function headers`, `export const headers`, and
+// named export lists (`export { headers }` / `export { foo as headers }`).
+func fileExportsHeaders(content string) bool {
+	if headerFuncRe.MatchString(content) || headerDeclRe.MatchString(content) {
+		return true
+	}
+	for _, match := range headerListRe.FindAllStringSubmatch(content, -1) {
+		for _, clause := range strings.Split(match[1], ",") {
+			// The exported name is the alias after `as`, or the identifier itself.
+			fields := strings.Fields(clause)
+			if len(fields) == 0 {
+				continue
+			}
+			name := fields[len(fields)-1]
+			if name == "headers" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // dirKeyToURL converts a routesDir-relative directory key (e.g. "(subRoute)/nested")

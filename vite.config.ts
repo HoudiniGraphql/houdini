@@ -17,6 +17,7 @@ export default defineConfig({
 		include: [
 			'./packages/*/src/**/*.test.{ts,js}',
 			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
+			'./packages/houdini-react/package/**/*.test.{ts,js}',
 			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
 			'./site/**/*.test.{ts,js}',
 		],

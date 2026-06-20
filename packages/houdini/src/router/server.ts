@@ -40,6 +40,7 @@ export function _serverHandler<ComponentType = unknown>({
 		manifest: RouterManifest<unknown>
 		session: App.Session
 		componentCache: Record<string, any>
+		headers: Record<string, string>
 	}) => Response | Promise<Response | undefined> | undefined
 	config_file: ConfigFile
 } & Omit<YogaServerOptions, 'schema'>) {
@@ -120,6 +121,10 @@ export function _serverHandler<ComponentType = unknown>({
 		const is404 = !exactMatch
 		const match = exactMatch ?? find_prefix_match(manifest, url)
 
+		// evaluate the headers() exports for this page and its layout chain so the
+		// adapter can apply them before streaming begins
+		const headers = await collect_response_headers(match)
+
 		// call the framework-specific render hook with the latest session
 		const rendered = await on_render({
 			url,
@@ -128,6 +133,7 @@ export function _serverHandler<ComponentType = unknown>({
 			session: await get_session(request.headers, session_keys),
 			manifest,
 			componentCache,
+			headers,
 		})
 		if (rendered) {
 			return rendered
@@ -142,6 +148,30 @@ export const serverAdapterFactory = (
 	args: Parameters<typeof _serverHandler>[0]
 ): ReturnType<typeof createServerAdapter> => {
 	return createServerAdapter(_serverHandler(args))
+}
+
+// collect_response_headers evaluates the headers() exports for the matched page
+// and its layout chain (outermost first) and merges them into a single record.
+// Because the loaders are ordered outermost → page, later writes overwrite
+// earlier ones, so the page wins over its layouts and an inner layout wins over
+// an outer one.
+export async function collect_response_headers(
+	match: { headers?: Array<() => Promise<(() => unknown) | undefined>> } | null
+): Promise<Record<string, string>> {
+	const merged: Record<string, string> = {}
+	for (const load of match?.headers ?? []) {
+		const fn = await load()
+		if (typeof fn !== 'function') {
+			continue
+		}
+		const result = await fn()
+		if (result && typeof result === 'object') {
+			for (const [key, value] of Object.entries(result)) {
+				merged[key] = String(value)
+			}
+		}
+	}
+	return merged
 }
 
 export type ServerAdapterFactory = typeof serverAdapterFactory

@@ -537,6 +537,16 @@ import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
 
 import config from '%s/houdini.config.js'
 
+// route_headers maps a page id to its ordered headers() loaders. It is a
+// server-only export so headers() stays out of the client bundle; attach it to
+// the manifest here so the request handler can evaluate it before streaming.
+import * as manifest_module from '$houdini/plugins/houdini-react/runtime/manifest'
+for (const id of Object.keys(manifest_module.route_headers ?? {})) {
+	if (router_manifest.pages[id]) {
+		router_manifest.pages[id].headers = manifest_module.route_headers[id]
+	}
+}
+
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable, cssLinks }) =>
 	async ({
@@ -546,6 +556,7 @@ export const on_render =
 		session,
 		manifest,
 		componentCache,
+		headers,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -593,12 +604,19 @@ export const on_render =
 	` + "`" + `)
 
 		if (pipeTo && pipe) {
+			// route headers must be set on the underlying response before any of
+			// the stream is written
+			if (headers && typeof pipe.setHeader === 'function') {
+				for (const [key, value] of Object.entries(headers)) {
+					pipe.setHeader(key, value)
+				}
+			}
 			pipeTo(pipe)
 			return true
 		} else if (statusRef.location) {
-			return new Response(null, { status: statusRef.status, headers: { Location: statusRef.location } })
+			return new Response(null, { status: statusRef.status, headers: { ...headers, Location: statusRef.location } })
 		} else {
-			return new Response(readable, { status: statusRef.status })
+			return new Response(readable, { status: statusRef.status, headers })
 		}
 	}
 

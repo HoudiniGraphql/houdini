@@ -16,6 +16,8 @@ These files go inside `src/routes/` and can appear in any route directory.
 | `+page.gql` | GraphQL query (or queries) for this page. Each query's result is passed as a prop named after the query. |
 | `+layout.gql` | GraphQL query for this layout. Results are available to the layout component and all of its descendants. |
 
+A `+page.jsx` or `+layout.jsx` can also export a `headers()` function to set [response headers](~/routing/pages-and-layouts#response-headers) for the route.
+
 ## API Files
 
 These files go in `src/api/` and are only relevant if you're using a [local GraphQL server](~/loading-data/graphql-server).
