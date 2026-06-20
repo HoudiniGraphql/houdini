@@ -57,7 +57,7 @@ func TestRefetchableDocumentGeneration(t *testing.T) {
 								}
 							}
 						`,
-							graphql.FragmentPaginationQueryName("UserInfo"),
+							graphql.FragmentRefetchQueryName("UserInfo"),
 						)).WithVariables(
 						tests.ExpectedOperationVariable{
 							Name:          "id",
@@ -88,7 +88,7 @@ func TestRefetchableDocumentGeneration(t *testing.T) {
 								}
 							}
 						`,
-							graphql.FragmentPaginationQueryName("UserInfo"),
+							graphql.FragmentRefetchQueryName("UserInfo"),
 						)).WithVariables(
 						tests.ExpectedOperationVariable{
 							Name: "filter",
@@ -129,7 +129,7 @@ func TestRefetchableDocumentGeneration(t *testing.T) {
 								}
 							}
 						`,
-							graphql.FragmentPaginationQueryName("LegendInfo"),
+							graphql.FragmentRefetchQueryName("LegendInfo"),
 						)).WithVariables(
 						tests.ExpectedOperationVariable{
 							Name:          "title",

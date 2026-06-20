@@ -20,6 +20,10 @@ func TestValidate_Houdini(t *testing.T) {
 				"Ghost": {
 					Keys: []string{"aka", "name"},
 				},
+				"Cat": {
+					Keys:         []string{"name"},
+					ResolveQuery: "cat",
+				},
 			},
 			RuntimeScalars: map[string]string{
 				"ViewerIDFromSession": "ID",
@@ -77,6 +81,7 @@ func TestValidate_Houdini(t *testing.T) {
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 				ghost: Ghost!
+				cat(name: String!): Cat
 			}
 
 			input UserFilter {
@@ -2042,6 +2047,17 @@ func TestValidate_Houdini(t *testing.T) {
 					`
 					fragment RefetchableOnNode on User @refetchable {
 						firstName
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a non-Node type that has a resolve query (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnCat on Cat @refetchable {
+						name
 					}
 				`,
 				},

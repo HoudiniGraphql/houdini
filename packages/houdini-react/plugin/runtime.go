@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 
 	plugins "code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // TransformRuntime patches static runtime files as they are copied into the plugin directory.
@@ -631,7 +632,7 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 	// runs concurrently with GenerateDocuments and it may not exist yet.
 	paginatedFragments := map[string]string{}
 	err = p.DB.StepQuery(ctx, `
-		SELECT DISTINCT d.name
+		SELECT DISTINCT d.name, 0 AS refetchable
 		FROM documents d
 		JOIN discovered_lists dl ON dl.document = d.id
 		WHERE d.visible = 1 AND d.kind = 'fragment'
@@ -639,14 +640,20 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 
 		UNION
 
-		SELECT DISTINCT d.name
+		SELECT DISTINCT d.name, 1 AS refetchable
 		FROM documents d
 		JOIN document_directives dd ON dd.document = d.id
 		WHERE d.visible = 1 AND d.kind = 'fragment'
 		  AND dd.directive = 'refetchable'
 	`, nil, func(q plugins.Row) {
 		name := q.ColumnText(0)
-		paginatedFragments[name] = name + "_Pagination_Query"
+		// @paginate fragments embed a <name>_Pagination_Query; @refetchable fragments
+		// embed a <name>_Refetch_Query. both are wired up as the refetchArtifact.
+		if q.ColumnInt(1) == 1 {
+			paginatedFragments[name] = graphql.FragmentRefetchQueryName(name)
+		} else {
+			paginatedFragments[name] = graphql.FragmentPaginationQueryName(name)
+		}
 	})
 	if err != nil {
 		return nil, err

@@ -38,10 +38,10 @@ func TestRefetchableArtifacts(t *testing.T) {
 				},
 				Pass: true,
 				Extra: map[string]any{
-					"UserInfo_Pagination_Query": `const artifact = {
-    "name": "UserInfo_Pagination_Query",
+					"UserInfo_Refetch_Query": `const artifact = {
+    "name": "UserInfo_Refetch_Query",
     "kind": "HoudiniQuery",
-    "hash": "9575bb0b6d1a226a4c7489a1a0dc27ed4320abd5be65fc6ae56c02d86b46d185",
+    "hash": "835ab9f8d3c95cebdcee39010d1e0256ed73c05c84b03f9422b22da5806943a7",
 
     "refetch": {
         "path": [],
@@ -60,7 +60,7 @@ func TestRefetchableArtifacts(t *testing.T) {
     id
 }
 
-query UserInfo_Pagination_Query($id: ID!) {
+query UserInfo_Refetch_Query($id: ID!) {
     node(id: $id) {
         ...UserInfo
         __typename
@@ -146,12 +146,12 @@ query UserInfo_Pagination_Query($id: ID!) {
 
 export default artifact
 
-export type UserInfo_Pagination_Query = {
-	readonly "input": UserInfo_Pagination_Query$input;
-	readonly "result": UserInfo_Pagination_Query$result | undefined;
+export type UserInfo_Refetch_Query = {
+	readonly "input": UserInfo_Refetch_Query$input;
+	readonly "result": UserInfo_Refetch_Query$result | undefined;
 };
 
-export type UserInfo_Pagination_Query$result = {
+export type UserInfo_Refetch_Query$result = {
 	readonly node: {
 		readonly " $fragments": {
 			UserInfo: {};
@@ -159,11 +159,11 @@ export type UserInfo_Pagination_Query$result = {
 	} | null;
 };
 
-export type UserInfo_Pagination_Query$input = {
+export type UserInfo_Refetch_Query$input = {
 	id: string;
 };
 
-export type UserInfo_Pagination_Query$unmasked = {
+export type UserInfo_Refetch_Query$unmasked = {
 	readonly node: {} & (({
 		readonly firstName: string;
 		readonly id: string;
@@ -171,9 +171,9 @@ export type UserInfo_Pagination_Query$unmasked = {
 	})) | null;
 };
 
-export type UserInfo_Pagination_Query$artifact = typeof artifact
+export type UserInfo_Refetch_Query$artifact = typeof artifact
 
-"HoudiniHash=9575bb0b6d1a226a4c7489a1a0dc27ed4320abd5be65fc6ae56c02d86b46d185"`,
+"HoudiniHash=835ab9f8d3c95cebdcee39010d1e0256ed73c05c84b03f9422b22da5806943a7"`,
 				},
 			},
 		},

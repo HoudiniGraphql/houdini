@@ -218,7 +218,7 @@ export * from './client'
 						import { FragmentStoreRefetchable } from '$houdini/plugins/houdini-svelte/runtime/stores/refetchable.js'
 						import artifact from '$houdini/artifacts/RefetchableUser.js'
 						import type { RefetchableUser, RefetchableUser$data, RefetchableUser$input } from '$houdini/artifacts/RefetchableUser.js'
-						import _PaginationArtifact from '$houdini/artifacts/RefetchableUser_Pagination_Query.js'
+						import _PaginationArtifact from '$houdini/artifacts/RefetchableUser_Refetch_Query.js'
 
 						export type { RefetchableUser }
 

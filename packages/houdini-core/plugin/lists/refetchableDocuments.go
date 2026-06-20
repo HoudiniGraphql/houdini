@@ -32,11 +32,11 @@ type refetchableArg struct {
 }
 
 // PrepareRefetchableDocuments looks for every fragment tagged with @refetchable and
-// generates an embedded query (named like the pagination query) that re-fetches the
+// generates an embedded query (named <Fragment>_Refetch_Query) that re-fetches the
 // fragment by id. This is the same wrapper @paginate generates for paginated
 // fragments — node(id:) { ...Fragment @with(...) } — but without any list/pagination
-// semantics. The generated query gets a discovered_lists row (with no list name and
-// no paginate marker) so the artifact picks up a "refetch" block with paginated: false.
+// semantics. The generated query gets a refetch_meta row so the artifact picks up a
+// "refetch" block with paginated: false.
 func PrepareRefetchableDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -84,7 +84,7 @@ func PrepareRefetchableDocuments(
 			LEFT JOIN type_fields tf
 				ON tf.parent = documents.type_condition
 				AND tf.name = je.value
-			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $pagination_suffix
+			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $refetch_suffix
 		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 			AND documents.kind = 'fragment'
 			AND existing_operations.id IS NULL
@@ -97,7 +97,7 @@ func PrepareRefetchableDocuments(
 	defer query.Finalize()
 	err = db.BindStatement(query, map[string]any{
 		"refetchable_directive": graphql.RefetchableDirective,
-		"pagination_suffix":     graphql.PaginationQuerySuffix,
+		"refetch_suffix":        graphql.RefetchQuerySuffix,
 	})
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -290,7 +290,7 @@ func generateRefetchableQuery(
 ) error {
 	// create the query that embeds the fragment
 	err := db.ExecStatement(stmts.insertDocument, map[string]any{
-		"name":         graphql.FragmentPaginationQueryName(frag.Name),
+		"name":         graphql.FragmentRefetchQueryName(frag.Name),
 		"raw_document": frag.RawDocument,
 	})
 	if err != nil {

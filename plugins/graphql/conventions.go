@@ -81,3 +81,9 @@ func FragmentPaginationQueryName(fragmentName string) string {
 }
 
 const PaginationQuerySuffix = "_Pagination_Query"
+
+func FragmentRefetchQueryName(fragmentName string) string {
+	return fragmentName + RefetchQuerySuffix
+}
+
+const RefetchQuerySuffix = "_Refetch_Query"
