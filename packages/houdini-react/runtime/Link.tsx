@@ -8,7 +8,7 @@ import type rawManifest from './manifest.js'
 // @ts-ignore
 import type { RouteScalars } from './manifest.js'
 
-import { resolveHref } from './resolve-href.js'
+import { resolveHref, serializeSearch } from './resolve-href.js'
 
 type _Pages = (typeof rawManifest)['pages']
 type _TSType<T extends string> = T extends keyof RouteScalars
@@ -25,6 +25,20 @@ type _ParamObj<Ps extends readonly _Param[]> = {
 	[P in Ps[number] as P['optional'] extends true ? P['name'] : never]?: _TSType<P['type']>
 } & {
 	[P in Ps[number] as P['optional'] extends true ? never : P['name']]: _TSType<P['type']>
+}
+
+// Search params are derived from a query's nullable variables, so every key is
+// optional. A `List`-wrapped variable accepts an array (serialized as repeated keys).
+type _SearchParam = {
+	readonly name: string
+	readonly type: string
+	readonly wrappers: readonly string[]
+}
+type _SearchValue<P extends _SearchParam> = 'List' extends P['wrappers'][number]
+	? _TSType<P['type']>[]
+	: _TSType<P['type']>
+type _SearchObj<Ps extends readonly _SearchParam[]> = {
+	[P in Ps[number] as P['name']]?: _SearchValue<P>
 }
 
 type _ExternalHref =
@@ -56,6 +70,16 @@ type _ParamsForRoute<H extends string> = [_PageForRoute<H>] extends [never]
 			? { params: _ParamObj<Ps> }
 			: { params?: never }
 
+// Search params are always optional, so this never forces a `search` prop — it only
+// types the keys/values when the consumer chooses to provide them.
+type _SearchForRoute<H extends string> = [_PageForRoute<H>] extends [never]
+	? { search?: never }
+	: _PageForRoute<H> extends { readonly searchParams: readonly [] }
+		? { search?: never }
+		: _PageForRoute<H> extends { readonly searchParams: infer Ps extends readonly _SearchParam[] }
+			? { search?: _SearchObj<Ps> }
+			: { search?: never }
+
 export type LinkProps<H extends RouteHrefs | _ExternalHref = RouteHrefs | _ExternalHref> = Omit<
 	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
 	'href'
@@ -63,19 +87,24 @@ export type LinkProps<H extends RouteHrefs | _ExternalHref = RouteHrefs | _Exter
 	to: H
 	disabled?: boolean
 	preload?: boolean | 'data' | 'component' | 'page'
-} & _ParamsForRoute<H>
+} & _ParamsForRoute<H> &
+	_SearchForRoute<H>
 
 export function Link<H extends RouteHrefs | _ExternalHref>({
 	to,
 	params,
+	search,
 	disabled,
 	preload,
 	...rest
 }: LinkProps<H>): React.ReactElement {
-	const href = disabled
+	let href = disabled
 		? undefined
 		: params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)
 			: (to as string)
+	if (href != null && search != null) {
+		href += serializeSearch(search as Record<string, unknown>)
+	}
 	return React.createElement('a', { ...rest, href, 'data-houdini-preload': preload })
 }

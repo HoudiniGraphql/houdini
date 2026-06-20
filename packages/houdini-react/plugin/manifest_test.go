@@ -121,6 +121,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_", "__subRoute_"},
 								Path:          "src/routes/(subRoute)/nested/+page.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						Layouts: map[string]plugin.PageManifest{
@@ -133,6 +134,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{},
 								Path:          "src/routes/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"__subRoute_": {
 								ID:            "__subRoute_",
@@ -143,6 +145,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_"},
 								Path:          "src/routes/(subRoute)/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						PageQueries: map[string]plugin.QueryManifest{
@@ -208,6 +211,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_"},
 								Path:          "src/routes/+page.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"_subRoute": {
 								ID:            "_subRoute",
@@ -218,6 +222,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_", "_subRoute"},
 								Path:          "src/routes/subRoute/+page.jsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"_another": {
 								ID:            "_another",
@@ -228,6 +233,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_", "_another"},
 								Path:          "src/routes/another/+page.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"_subRoute_nested": {
 								ID:            "_subRoute_nested",
@@ -238,6 +244,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_", "_subRoute"},
 								Path:          "src/routes/subRoute/nested/+page.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						Layouts: map[string]plugin.PageManifest{
@@ -250,6 +257,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{},
 								Path:          "src/routes/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"_subRoute": {
 								ID:            "_subRoute",
@@ -260,6 +268,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_"},
 								Path:          "src/routes/subRoute/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 							"_another": {
 								ID:            "_another",
@@ -270,6 +279,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{"_"},
 								Path:          "src/routes/another/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						PageQueries: map[string]plugin.QueryManifest{
@@ -382,9 +392,10 @@ func TestLoadManifest(t *testing.T) {
 								Params: map[string]*plugin.ParamTypeInfo{
 									"id": {Type: "ID", Wrappers: []string{"NonNull"}},
 								},
+								SearchParams: map[string]*plugin.ParamTypeInfo{},
 							},
 						},
-						Layouts: map[string]plugin.PageManifest{},
+						Layouts:     map[string]plugin.PageManifest{},
 						PageQueries: map[string]plugin.QueryManifest{},
 						LayoutQueries: map[string]plugin.QueryManifest{
 							"__id_": {
@@ -405,15 +416,15 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "+error.tsx sets ErrorPath on the page manifest",
-				Pass: true,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "+error.tsx sets ErrorPath on the page manifest",
+				Pass:      true,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/+layout.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
-						"src/routes/+layout.tsx":  "export default ({children}) => <div>{children}</div>",
-						"src/routes/+page.tsx":    mockView([]string{"RootQuery"}),
-						"src/routes/+error.tsx":   "export default ({ errors }) => <div>{errors[0].message}</div>",
+						"src/routes/+layout.tsx": "export default ({children}) => <div>{children}</div>",
+						"src/routes/+page.tsx":   mockView([]string{"RootQuery"}),
+						"src/routes/+error.tsx":  "export default ({ errors }) => <div>{errors[0].message}</div>",
 					},
 					"expected": plugin.ProjectManifest{
 						Pages: map[string]plugin.PageManifest{
@@ -427,6 +438,7 @@ func TestLoadManifest(t *testing.T) {
 								Path:          "src/routes/+page.tsx",
 								ErrorPath:     "src/routes/+error.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						Layouts: map[string]plugin.PageManifest{
@@ -439,6 +451,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{},
 								Path:          "src/routes/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						PageQueries: map[string]plugin.QueryManifest{},
@@ -460,61 +473,64 @@ func TestLoadManifest(t *testing.T) {
 			},
 			{
 				Name: "headers() export sets Headers on page and layout manifests",
-					Pass: true,
-					Extra: map[string]any{
-						"views": map[string]string{
-							"src/routes/+layout.tsx":     "export function headers() { return { 'X-From': 'layout' } }\nexport default ({children}) => <div>{children}</div>",
-							"src/routes/+page.tsx":       "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
-							"src/routes/plain/+page.tsx": mockView([]string{}),
-						},
-						"expected": plugin.ProjectManifest{
-							Pages: map[string]plugin.PageManifest{
-								"_": {
-									ID:            "_",
-									Queries:       []string{},
-									QueryOptions:  []string{},
-									LayoutQueries: []string{},
-									URL:           "/",
-									Layouts:       []string{"_"},
-									Path:          "src/routes/+page.tsx",
-									Params:        map[string]*plugin.ParamTypeInfo{},
-									Headers:       true,
-								},
-								"_plain": {
-									ID:            "_plain",
-									Queries:       []string{},
-									QueryOptions:  []string{},
-									LayoutQueries: []string{},
-									URL:           "/plain",
-									Layouts:       []string{"_"},
-									Path:          "src/routes/plain/+page.tsx",
-									Params:        map[string]*plugin.ParamTypeInfo{},
-								},
+				Pass: true,
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+layout.tsx":     "export function headers() { return { 'X-From': 'layout' } }\nexport default ({children}) => <div>{children}</div>",
+						"src/routes/+page.tsx":       "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
+						"src/routes/plain/+page.tsx": mockView([]string{}),
+					},
+					"expected": plugin.ProjectManifest{
+						Pages: map[string]plugin.PageManifest{
+							"_": {
+								ID:            "_",
+								Queries:       []string{},
+								QueryOptions:  []string{},
+								LayoutQueries: []string{},
+								URL:           "/",
+								Layouts:       []string{"_"},
+								Path:          "src/routes/+page.tsx",
+								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
+								Headers:       true,
 							},
-							Layouts: map[string]plugin.PageManifest{
-								"_": {
-									ID:            "_",
-									Queries:       []string{},
-									QueryOptions:  []string{},
-									LayoutQueries: []string{},
-									URL:           "/",
-									Layouts:       []string{},
-									Path:          "src/routes/+layout.tsx",
-									Params:        map[string]*plugin.ParamTypeInfo{},
-									Headers:       true,
-								},
+							"_plain": {
+								ID:            "_plain",
+								Queries:       []string{},
+								QueryOptions:  []string{},
+								LayoutQueries: []string{},
+								URL:           "/plain",
+								Layouts:       []string{"_"},
+								Path:          "src/routes/plain/+page.tsx",
+								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
-							PageQueries:     map[string]plugin.QueryManifest{},
-							LayoutQueries:   map[string]plugin.QueryManifest{},
-							Artifacts:       []string{},
-							LocalSchema:     false,
-							LocalYoga:       false,
-							ComponentFields: map[string]plugin.ComponentFieldInfo{},
 						},
+						Layouts: map[string]plugin.PageManifest{
+							"_": {
+								ID:            "_",
+								Queries:       []string{},
+								QueryOptions:  []string{},
+								LayoutQueries: []string{},
+								URL:           "/",
+								Layouts:       []string{},
+								Path:          "src/routes/+layout.tsx",
+								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
+								Headers:       true,
+							},
+						},
+						PageQueries:     map[string]plugin.QueryManifest{},
+						LayoutQueries:   map[string]plugin.QueryManifest{},
+						Artifacts:       []string{},
+						LocalSchema:     false,
+						LocalYoga:       false,
+						ComponentFields: map[string]plugin.ComponentFieldInfo{},
 					},
 				},
-				{
-					Name: "+error.tsx propagates to child pages when no sibling +page.tsx",
+			},
+			{
+				Name: "+error.tsx propagates to child pages when no sibling +page.tsx",
 				Pass: true,
 				Input: []string{
 					mockQuery("RootQuery", false),
@@ -526,9 +542,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"views": map[string]string{
-						"src/routes/+layout.tsx":       "export default ({children}) => <div>{children}</div>",
-						"src/routes/+error.tsx":        "export default ({ errors }) => <div>{errors[0].message}</div>",
-						"src/routes/child/+page.tsx":   mockView([]string{"ChildQuery"}),
+						"src/routes/+layout.tsx":     "export default ({children}) => <div>{children}</div>",
+						"src/routes/+error.tsx":      "export default ({ errors }) => <div>{errors[0].message}</div>",
+						"src/routes/child/+page.tsx": mockView([]string{"ChildQuery"}),
 					},
 					"expected": plugin.ProjectManifest{
 						Pages: map[string]plugin.PageManifest{
@@ -542,6 +558,7 @@ func TestLoadManifest(t *testing.T) {
 								Path:          "src/routes/child/+page.tsx",
 								ErrorPath:     "src/routes/+error.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						Layouts: map[string]plugin.PageManifest{
@@ -554,6 +571,7 @@ func TestLoadManifest(t *testing.T) {
 								Layouts:       []string{},
 								Path:          "src/routes/+layout.tsx",
 								Params:        map[string]*plugin.ParamTypeInfo{},
+								SearchParams:  map[string]*plugin.ParamTypeInfo{},
 							},
 						},
 						PageQueries: map[string]plugin.QueryManifest{
@@ -582,9 +600,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "page queries must be defined in the same directory as the page view",
-				Pass: true,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "page queries must be defined in the same directory as the page view",
+				Pass:      true,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/+page.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
@@ -593,9 +611,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "page query defined in a different directory above the page view",
-				Pass: false,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "page query defined in a different directory above the page view",
+				Pass:      false,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/+page.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
@@ -604,9 +622,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "page query defined in a different directory below the page view",
-				Pass: false,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "page query defined in a different directory below the page view",
+				Pass:      false,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/subRoute/subSubRoute/+page.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
@@ -615,9 +633,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "queries defined in layouts work in local directory",
-				Pass: true,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "queries defined in layouts work in local directory",
+				Pass:      true,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/subRoute/+layout.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
@@ -626,9 +644,9 @@ func TestLoadManifest(t *testing.T) {
 				},
 			},
 			{
-				Name: "queries defined in layouts work in far child directory",
-				Pass: true,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "queries defined in layouts work in far child directory",
+				Pass:      true,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/subRoute/+layout.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{
@@ -639,9 +657,9 @@ func TestLoadManifest(t *testing.T) {
 			{
 				// Without TSX prop parsing we cannot detect that a view references a query
 				// defined only in a descendant layout scope. This passes silently in Go.
-				Name: "queries defined in layouts do not work in parent directory",
-				Pass: true,
-				Input: []string{mockQuery("RootQuery", false)},
+				Name:      "queries defined in layouts do not work in parent directory",
+				Pass:      true,
+				Input:     []string{mockQuery("RootQuery", false)},
 				Filepaths: []string{"src/routes/subRoute/subSubRoute/+layout.gql"},
 				Extra: map[string]any{
 					"views": map[string]string{

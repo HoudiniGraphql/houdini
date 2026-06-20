@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { resolveHref } from './resolve-href.js'
+import { resolveHref, serializeSearch } from './resolve-href.js'
 
 describe('resolveHref', () => {
 	test('substitutes a regular param', () => {
@@ -48,5 +48,33 @@ describe('resolveHref', () => {
 
 	test('static href passes through unchanged', () => {
 		expect(resolveHref('/about', {})).toBe('/about')
+	})
+})
+
+describe('serializeSearch', () => {
+	test('returns an empty string when nothing is set', () => {
+		expect(serializeSearch({})).toBe('')
+		expect(serializeSearch({ q: null, sort: undefined })).toBe('')
+	})
+
+	test('serializes scalar values with a leading "?"', () => {
+		expect(serializeSearch({ q: 'hello' })).toBe('?q=hello')
+		expect(serializeSearch({ first: 10, active: true })).toBe('?first=10&active=true')
+	})
+
+	test('skips null and undefined values', () => {
+		expect(serializeSearch({ q: 'x', sort: null, dir: undefined })).toBe('?q=x')
+	})
+
+	test('expands arrays into repeated keys', () => {
+		expect(serializeSearch({ tags: ['a', 'b'] })).toBe('?tags=a&tags=b')
+	})
+
+	test('skips null/undefined entries inside arrays', () => {
+		expect(serializeSearch({ tags: ['a', null, undefined, 'b'] })).toBe('?tags=a&tags=b')
+	})
+
+	test('encodes reserved characters', () => {
+		expect(serializeSearch({ q: 'a b&c' })).toBe('?q=a+b%26c')
 	})
 })

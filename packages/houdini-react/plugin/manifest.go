@@ -39,6 +39,11 @@ type PageManifest struct {
 	Path          string                    `json:"path"`
 	ErrorPath     string                    `json:"error_path"`
 	Params        map[string]*ParamTypeInfo `json:"params"`
+	// SearchParams are the nullable query variables in scope for this page that are
+	// not satisfied by a route segment. They can be supplied via URLSearchParams and
+	// are always optional (a missing one resolves to null), so they can never turn a
+	// query into a failing request. See issue #1210.
+	SearchParams map[string]*ParamTypeInfo `json:"search_params"`
 	// Headers is true when the view file exports a `headers()` function whose
 	// result should be merged into the HTTP response before streaming.
 	Headers bool `json:"headers"`
@@ -210,6 +215,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Layouts:       clone(state.availableLayouts),
 				Path:          relPath,
 				Params:        buildParams(url, newVariables),
+				SearchParams:  buildSearchParams(url, newVariables),
 				Headers:       info.layoutHeaders,
 			}
 			newLayoutIDs = append(newLayoutIDs, id)
@@ -259,6 +265,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Path:          relPath,
 				ErrorPath:     errorPath,
 				Params:        buildParams(url, allVars),
+				SearchParams:  buildSearchParams(url, allVars),
 				Headers:       info.pageHeaders,
 			}
 		}
@@ -554,7 +561,6 @@ func modifiersToWrappers(modifiers string) []string {
 	return wrappers
 }
 
-
 // routeRelPath returns the document filepath relative to routesDir for queries,
 // using forward slashes.
 func routeRelPath(dbFilepath, projectRoot, routesDir string) string {
@@ -577,6 +583,35 @@ func buildParams(url string, variables map[string]VariableTypeInfo) map[string]*
 		}
 	}
 	return params
+}
+
+// buildSearchParams returns the variables in scope that can be supplied via
+// URLSearchParams: every nullable variable that is not already consumed by a
+// route segment. Required (NonNull) variables are excluded so that a missing
+// search param can never produce a failing query (issue #1210).
+func buildSearchParams(url string, variables map[string]VariableTypeInfo) map[string]*ParamTypeInfo {
+	// collect the names already claimed by route segments ([id], [[opt]], [...rest])
+	routeNames := map[string]bool{}
+	for _, part := range strings.Split(url, "/") {
+		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
+			name := strings.Trim(part, "[]")
+			name = strings.TrimPrefix(name, "...")
+			routeNames[name] = true
+		}
+	}
+
+	searchParams := map[string]*ParamTypeInfo{}
+	for name, info := range variables {
+		if routeNames[name] {
+			continue
+		}
+		// a NonNull outer wrapper means the variable is required — skip it
+		if len(info.Wrappers) > 0 && info.Wrappers[0] == "NonNull" {
+			continue
+		}
+		searchParams[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
+	}
+	return searchParams
 }
 
 func clone(s []string) []string {

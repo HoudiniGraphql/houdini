@@ -615,6 +615,7 @@ func TestGenerateRuntime(t *testing.T) {
 			type Query {
 				id: ID
 				node(id: ID!): Node
+				search(q: String, tags: [String!], first: Int!): [Node!]
 			}
 			type Subscription {
 				id: ID
@@ -750,6 +751,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/nested",
 									pattern: /^\/nested\/?$/,
 									params: [],
+									searchParams: [],
 									documents: {
 										RootQuery: {
 											artifact: () => import("../../../artifacts/RootQuery"),
@@ -816,6 +818,7 @@ func TestGenerateRuntime(t *testing.T) {
 									params: [
 										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
 									],
+									searchParams: [],
 									documents: {
 										MyQuery: {
 											artifact: () => import("../../../artifacts/MyQuery"),
@@ -824,6 +827,53 @@ func TestGenerateRuntime(t *testing.T) {
 										},
 									},
 									component: () => import("../units/entries/__id_"),
+								},
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
+				Name: "nullable non-route variables become search params",
+				Pass: true,
+				Input: []string{
+					"query SearchQuery($q: String, $tags: [String!], $first: Int!) {\n\tsearch(q: $q, tags: $tags, first: $first) {\n\t\tid\n\t}\n}\n",
+				},
+				Filepaths: []string{
+					"src/routes/search/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/search/+page.tsx": mockView([]string{"SearchQuery"}),
+					},
+					// $q and $tags are nullable, so they surface as search params (the list
+					// keeps its wrapper chain). $first is required, so it is omitted — a
+					// missing search param can never make the query fail.
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_search": {
+									id: "_search",
+									url: "/search",
+									pattern: /^\/search\/?$/,
+									params: [],
+									searchParams: [
+										{ name: "q", type: "String", wrappers: [] },
+										{ name: "tags", type: "String", wrappers: ["List", "NonNull"] }
+									],
+									documents: {
+										SearchQuery: {
+											artifact: () => import("../../../artifacts/SearchQuery"),
+											loading: false,
+											variables: { first: { type: "Int" }, q: { type: "String" }, tags: { type: "String" } },
+										},
+									},
+									component: () => import("../units/entries/_search"),
 								},
 							},
 						} as const satisfies RouterManifest<any>
@@ -857,6 +907,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/",
 									pattern: /^\/$/,
 									params: [],
+									searchParams: [],
 									documents: {
 										PageQuery: {
 											artifact: () => import("../../../artifacts/PageQuery"),
@@ -892,6 +943,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/",
 									pattern: /^\/$/,
 									params: [],
+									searchParams: [],
 									documents: {
 									},
 									component: () => import("../units/entries/_"),

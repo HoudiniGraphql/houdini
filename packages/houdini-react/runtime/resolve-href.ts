@@ -12,3 +12,26 @@ export function resolveHref(
 	// regular [param]
 	return href.replace(/\[([^\]]+)\]/g, (_, key: string) => String(params[key] ?? key))
 }
+
+// serializeSearch turns a search object into a query string (including the leading
+// "?"), skipping null/undefined values and expanding arrays into repeated keys so
+// they round-trip with List-typed query variables. Returns "" when nothing is set.
+export function serializeSearch(search: Record<string, unknown>): string {
+	const params = new URLSearchParams()
+	for (const [key, value] of Object.entries(search)) {
+		if (value === null || value === undefined) {
+			continue
+		}
+		if (Array.isArray(value)) {
+			for (const entry of value) {
+				if (entry !== null && entry !== undefined) {
+					params.append(key, String(entry))
+				}
+			}
+		} else {
+			params.append(key, String(value))
+		}
+	}
+	const str = params.toString()
+	return str ? '?' + str : ''
+}

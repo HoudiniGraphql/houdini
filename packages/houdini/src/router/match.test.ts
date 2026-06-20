@@ -143,6 +143,7 @@ describe('find_match parse and match', async () => {
 							pattern: pattern.pattern,
 							// the params used to execute the pattern and extract the variables
 							params: pattern.params,
+							searchParams: [],
 						},
 					}),
 					{}

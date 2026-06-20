@@ -749,6 +749,7 @@ func formatManifest(
 		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
 		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tsearchParams: %s,\n", formatSearchParams(page.SearchParams)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -934,6 +935,37 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 		parts = append(parts, fmt.Sprintf(
 			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
 			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
+		))
+	}
+	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
+}
+
+// formatSearchParams renders the page's searchParams as a TypeScript array literal.
+// Each entry carries the GQL type name (resolved against RouteScalars / built-in
+// scalars by _TSType<T>) and the wrapper chain so list-typed params can be
+// serialized as repeated query keys. All search params are optional by construction.
+func formatSearchParams(searchParams map[string]*ParamTypeInfo) string {
+	if len(searchParams) == 0 {
+		return "[]"
+	}
+	var parts []string
+	for _, name := range sortedKeys(searchParams) {
+		info := searchParams[name]
+		gqlType := "String"
+		wrappers := "[]"
+		if info != nil {
+			gqlType = info.Type
+			if len(info.Wrappers) > 0 {
+				quoted := make([]string, len(info.Wrappers))
+				for i, w := range info.Wrappers {
+					quoted[i] = fmt.Sprintf("%q", w)
+				}
+				wrappers = "[" + strings.Join(quoted, ", ") + "]"
+			}
+		}
+		parts = append(parts, fmt.Sprintf(
+			`{ name: %q, type: %q, wrappers: %s }`,
+			name, gqlType, wrappers,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -1133,7 +1165,6 @@ func stripRouteGroups(url string) string {
 	}
 	return "/" + strings.Join(out, "/")
 }
-
 
 // GenerateTsConfig writes .houdini/tsconfig.json by copying the template from the
 // plugin runtime directory (written there by IncludeRuntime).
