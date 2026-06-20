@@ -27,6 +27,13 @@ const config: ConfigFile = {
 		Sponsor: {
 			keys: ['name'],
 		},
+		RefetchableEntity: {
+			keys: ['id'],
+			resolve: {
+				queryField: 'refetchableEntity',
+				arguments: (entity) => ({ id: entity.id }),
+			},
+		},
 	},
 
 	plugins: {

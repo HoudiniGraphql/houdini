@@ -139,10 +139,17 @@ type Query {
 	Get a monkey by its id
 	"""
 	monkey(id: ID!): Monkey
+	refetchableEntity(id: ID!): RefetchableEntity
 }
 
 type Subscription {
 	userUpdate(id: ID!, snapshot: String): User
+}
+
+"A non-Node type that is refetchable via a custom resolve query."
+type RefetchableEntity {
+	id: ID!
+	avatarURL(size: Int): String!
 }
 
 type User implements Node {

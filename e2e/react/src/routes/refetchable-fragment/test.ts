@@ -9,10 +9,16 @@ test.describe('refetchable fragment', () => {
 		// the fragment loads with the default size argument
 		await expectToContain(page, '?size=50', 'div[id=result]')
 
+		// the `param` argument (passed via @with) drives testField
+		await expectToContain(page, 'Hello world', 'div[id=merge]')
+
 		// refetching with a new size hits the network and swaps in the result
 		await expect_1_gql(page, 'button[id=refetch]')
 
 		await expectToContain(page, '?size=100', 'div[id=result]')
+
+		// refetch only changed `size`; the previously-set `param` must be preserved (merge)
+		await expectToContain(page, 'Hello world', 'div[id=merge]')
 
 		// refetching again with a different size works and replaces the result
 		await expect_1_gql(page, 'button[id=refetch-large]')

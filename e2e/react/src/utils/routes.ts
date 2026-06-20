@@ -24,6 +24,7 @@ export const routes = {
 	pagination_fragment_cursor_backwards_singlepage: '/pagination/fragment/connection-backwards-singlepage',
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
 	refetchable_fragment: '/refetchable-fragment',
+	refetchable_fragment_custom: '/refetchable-fragment-custom',
 	optimistic_keys: '/optimistic-keys',
 	node_plugin: '/node-plugin',
 	list_id: '/list-id',

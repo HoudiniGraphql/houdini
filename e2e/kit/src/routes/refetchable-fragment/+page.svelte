@@ -9,15 +9,18 @@ $: ({ RefetchableFragmentQuery: queryResult } = data)
 $: userInfo = refetchableFragment(
 	$queryResult.data?.user ?? null,
 	graphql(`
-      fragment RefetchableUserInfo on User @refetchable @arguments(size: { type: "Int", default: 50 }) {
+      fragment RefetchableUserInfo on User @refetchable @arguments(size: { type: "Int", default: 50 }, param: { type: "Boolean", default: false }) {
         name
         avatarURL(size: $size)
+        testField(someParam: $param)
       }
     `)
 )
 </script>
 
 <div id="result">{$userInfo.data?.avatarURL}</div>
+<!-- testField reflects the `param` argument; we refetch only `size`, so this must survive -->
+<div id="merge">{$userInfo.data?.testField}</div>
 
 <button id="refetch" on:click={() => userInfo.refetch({ size: 100 })}>refetch</button>
 <button id="refetch-large" on:click={() => userInfo.refetch({ size: 200 })}>refetch large</button>
