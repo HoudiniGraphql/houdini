@@ -16,7 +16,7 @@ import type {
 import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
-import { useClient, useLocation, useSession } from '../routing/Router.js'
+import { useClient, useLocationContext, useSession } from '../routing/Router.js'
 
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
@@ -36,7 +36,7 @@ export function useDocumentHandle<
 	// Stable cursor stacks for SinglePage pagination — must survive re-renders caused by store updates
 	const previousCursorsRef = React.useRef<(string | null)[]>([])
 	const nextCursorsRef = React.useRef<(string | null)[]>([])
-	const location = useLocation()
+	const location = useLocationContext()
 
 	// grab the current session value
 	const [session] = useSession()

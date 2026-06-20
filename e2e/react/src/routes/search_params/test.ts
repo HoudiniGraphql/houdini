@@ -25,7 +25,7 @@ test('Search params drive query variables', async ({ page }) => {
 	await expect_to_be(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks')
 })
 
-test('useLocation().search exposes the parsed query string', async ({ page }) => {
+test('useRoute().location.search exposes the parsed query string', async ({ page }) => {
 	await goto(page, routes.search_params)
 
 	// no query string -> empty object
@@ -45,7 +45,7 @@ test('useLocation().search exposes the parsed query string', async ({ page }) =>
 })
 
 // a custom scalar (DateTime) marshals into the url on write, is sent to the API in that
-// same marshaled form, and unmarshals back to a Date when read via useLocation().search —
+// same marshaled form, and unmarshals back to a Date when read via useRoute().location.search —
 // verified through both <Link> and goto. The marshaled form is getTime() ms:
 // new Date('2024-01-01T00:00:00.000Z').getTime() === 1704067200000
 test('custom-scalar search params round-trip through Link and goto', async ({ page }) => {

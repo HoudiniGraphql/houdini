@@ -1,11 +1,13 @@
 // Compile-time type assertions for <Link>, createMock, and goto prop typing.
 // Verified by `tsc --noEmit` — not a Playwright test.
 
-import { Link, createMock, useLocation } from '$houdini'
+import { Link, createMock, useRoute } from '$houdini'
 
 export {}
 
-const { goto } = useLocation()
+const {
+	location: { goto },
+} = useRoute()
 
 // ── valid usages ─────────────────────────────────────────────────────────────
 

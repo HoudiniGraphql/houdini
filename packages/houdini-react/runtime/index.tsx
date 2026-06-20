@@ -10,7 +10,6 @@ export {
 	router_cache,
 	useCache,
 	useSession,
-	useLocation,
 	useRoute,
 	useCurrentVariables,
 	notFound,

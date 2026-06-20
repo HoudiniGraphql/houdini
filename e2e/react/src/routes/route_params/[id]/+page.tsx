@@ -1,15 +1,15 @@
 import { useRoute } from '$houdini'
 
-import type { PageProps } from './$types'
+import type { PageProps, PageRoute } from './$types'
 
 export default function ({ RouteParamsUserInfo }: PageProps) {
-	const route = useRoute<PageProps>()
+	const { location } = useRoute<PageRoute>()
 
 	const { user } = RouteParamsUserInfo
 	return (
 		<div>
 			<div id="result">
-				{route.params.id}:{user.name}
+				{location.params.id}:{user.name}
 			</div>
 		</div>
 	)

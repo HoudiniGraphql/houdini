@@ -1,6 +1,6 @@
-import { Link, useLocation } from '$houdini'
+import { Link, useRoute } from '$houdini'
 
-import type { PageProps } from './$types'
+import type { PageProps, PageRoute } from './$types'
 
 // a fixed DateTime used by both the Link and goto cases so the test can assert an exact
 // round-trip (marshal -> url -> unmarshal)
@@ -11,7 +11,9 @@ export default function ({ SearchParamsUsers }: PageProps) {
 	// the parsed query string: declared params (offset/limit) are coerced to numbers, a
 	// declared custom scalar (after: DateTime) is unmarshaled to a Date, and any other key
 	// (e.g. tab) passes through as a raw string
-	const { search, goto } = useLocation()
+	const {
+		location: { search, goto },
+	} = useRoute<PageRoute>()
 	return (
 		<div>
 			<div className="flex flex-row gap-12">

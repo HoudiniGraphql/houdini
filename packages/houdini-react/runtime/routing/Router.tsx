@@ -57,14 +57,17 @@ export function Router({
 	})
 
 	// find the matching page for the current route. find_match also hands back the parsed
-	// query string (declared search params coerced, UI-only keys raw). custom-scalar
-	// search params arrive in their url transport form, so we unmarshal them once here —
-	// the rich values feed both the query variables (which marshalInputs re-marshals for
-	// the request) and useLocation().search.
+	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
+	// and search params arrive in their url transport form, so we unmarshal them once here
+	// — the rich values feed both the query variables (which marshalInputs re-marshals for
+	// the request) and useRoute()'s location.params/location.search.
 	const [page, rawVariables, rawSearch] = find_match(manifest, currentURL)
-	const searchUnmarshalers = scalarUnmarshalers(page?.searchParams, getCurrentConfig()?.scalars)
-	const variables = unmarshalScalars(rawVariables ?? {}, searchUnmarshalers)
-	const search = unmarshalScalars(rawSearch, searchUnmarshalers)
+	const unmarshalers = scalarUnmarshalers(
+		[...(page?.params ?? []), ...(page?.searchParams ?? [])],
+		getCurrentConfig()?.scalars
+	)
+	const variables = unmarshalScalars(rawVariables ?? {}, unmarshalers)
+	const search = unmarshalScalars(rawSearch, unmarshalers)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -154,11 +157,14 @@ export function Router({
 			if (!page) {
 				return
 			}
-			// unmarshal any custom-scalar search params so the preloaded query marshals
-			// them the same way the rendered one does
+			// unmarshal any custom-scalar route/search params so the preloaded query
+			// marshals them the same way the rendered one does
 			const variables = unmarshalScalars(
 				rawVariables ?? {},
-				scalarUnmarshalers(page.searchParams, getCurrentConfig()?.scalars)
+				scalarUnmarshalers(
+					[...page.params, ...page.searchParams],
+					getCurrentConfig()?.scalars
+				)
 			)
 
 			// load the page component if necessary
@@ -200,11 +206,13 @@ export function Router({
 	)
 }
 
-// export the location information in context
-export const useLocation = () => useContext(LocationContext)
+// internal accessor for the raw location context. the public surface is useRoute, which
+// layers the per-route param/search types on top of this. not re-exported from the package
+// index, so it isn't part of the public API.
+export const useLocationContext = () => useContext(LocationContext)
 
 export const ClientRedirect = ({ to }: { to: string }) => {
-	const { goto } = useLocation()
+	const { goto } = useLocationContext()
 	useEffect(() => {
 		goto(to)
 	}, [to])
@@ -961,7 +969,7 @@ export function PageContextProvider({
 	keys: string[]
 	children: React.ReactNode
 }) {
-	const location = useLocation()
+	const location = useLocationContext()
 	const params = Object.fromEntries(
 		Object.entries(location.params).filter(([key]) => keys.includes(key))
 	)
@@ -969,12 +977,33 @@ export function PageContextProvider({
 	return <PageContext.Provider value={{ params }}>{children}</PageContext.Provider>
 }
 
-export function useRoute<PageProps extends { Params: {} }>(): RouteProp<PageProps['Params']> {
-	return useContext(PageContext)
-}
-
-export type RouteProp<Params> = {
-	params: Params
+// useRoute is the single hook for reading the current route. It returns a `location` with
+// the route's params (scoped to this route's path segments) and search, both typed when a
+// generated PageRoute/LayoutRoute is supplied, plus the current pathname and goto. This
+// replaces the old useLocation — params/search live here rather than on the component props.
+export function useRoute<
+	_Route extends { params: any; search: any } = {
+		params: Record<string, string>
+		search: Record<string, any>
+	}
+>(): {
+	location: {
+		pathname: string
+		params: _Route['params']
+		search: _Route['search']
+		goto: Goto
+	}
+} {
+	const location = useLocationContext()
+	const route = useContext(PageContext)
+	return {
+		location: {
+			pathname: location.pathname,
+			params: route.params as _Route['params'],
+			search: location.search as _Route['search'],
+			goto: location.goto,
+		},
+	}
 }
 
 // a signal promise is a promise is used to send signals by having listeners attach

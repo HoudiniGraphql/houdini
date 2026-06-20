@@ -1,22 +1,49 @@
 ---
 title: useRoute
-description: Read typed route params for the current page.
+description: Read the current route's params, search, and navigate imperatively.
 ---
 
-Returns the typed params for the current route. The type parameter should be the `PageProps` type generated for the current route file.
+`useRoute` is the single hook for reading the current route. It returns a `location` with the route's `params` (the path segments), its `search` (the query string), the current `pathname`, and `goto` for imperative navigation.
+
+Pass the `PageRoute` (or `LayoutRoute`) type generated for the current route file to type `params` and `search` against that route's query variables.
 
 ```tsx
-import type { PageProps } from './$types'
+import type { PageRoute } from './$types'
 import { useRoute } from '$houdini'
 
 export function ShowBreadcrumb() {
-  const { params } = useRoute<PageProps>()
-  return <span>Show #{params.id}</span>
+  const { location } = useRoute<PageRoute>()
+  // location.params.id  — typed from the route's [id] segment
+  // location.search.tab — typed from the query's nullable variables
+  return <span>Show #{location.params.id}</span>
 }
+```
+
+`params` and `search` are derived from the route's query, so they carry the exact scalar types — including [custom scalars](~/guides/custom-scalars), which are unmarshaled back to their runtime type (e.g. a `DateTime` search param comes back as a `Date`). See [Search Params](~/routing/navigation#search-params) for how they get into the URL.
+
+Calling `useRoute()` without a type argument still works — `params` and `search` fall back to loose records, which is handy when you only need `pathname` or `goto`:
+
+```tsx
+const { location } = useRoute()
+location.goto('/login')
 ```
 
 **Signature**
 
 ```ts
-function useRoute<PageProps>(): { params: PageProps['Params'] }
+function useRoute<Route>(): {
+  location: {
+    pathname: string
+    params: Route['params']
+    search: Route['search']
+    goto: Goto
+  }
+}
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `location.pathname` | `string` | The current URL path (including the query string) |
+| `location.params` | `Route['params']` | The current route's path params, scoped to this route's segments |
+| `location.search` | `Route['search']` | The parsed query string — declared search params coerced/unmarshaled, other keys raw, repeated keys as arrays |
+| `location.goto` | `Goto` | Navigate imperatively — accepts a string or a typed `{ to, params, search }` target |
