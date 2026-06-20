@@ -16,6 +16,7 @@ export const routes = {
 	required_field: '/required-field',
 	Cache_Refresh: '/cache/refresh',
 	Cache_Refetch: '/cache/refetch',
+	Cache_Refetch_Subscription: '/cache/refetch-subscription',
 
 	Lists_fragment: '/lists/fragment',
 	Lists_mutation_insert: '/lists/mutation-insert',

@@ -143,6 +143,67 @@ test('refresh never asks a subscription document to refetch', () => {
 	expect(subscriptionSet).not.toHaveBeenCalled()
 })
 
+test('refreshing many records notifies a dependent document only once', () => {
+	const cache = new Cache(config)
+
+	const listSelection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: { type: 'ID', visible: true, keyRaw: 'id' },
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: listSelection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{ id: '2', firstName: 'jane' },
+					{ id: '3', firstName: 'mark' },
+				],
+			},
+		},
+	})
+
+	const set = vi.fn()
+	cache.subscribe({
+		rootType: 'Query',
+		kind: ArtifactKind.Query,
+		selection: listSelection,
+		onMessage: set,
+	})
+
+	// both friends changed, but the one document that lists them refetches once
+	cache.refresh(['User:2', 'User:3'])
+
+	expect(set).toHaveBeenCalledTimes(1)
+	expect(set).toHaveBeenCalledWith({ kind: 'refetch' })
+})
+
 test('refresh reaches documents that only contain the record behind a mask', () => {
 	const cache = new Cache(config)
 

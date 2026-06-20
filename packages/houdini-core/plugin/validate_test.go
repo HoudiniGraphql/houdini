@@ -93,6 +93,7 @@ func TestValidate_Houdini(t *testing.T) {
 				addFriend: AddFriendOutput!
 				deleteUser(id: ID!): DeleteUserOutput!
 				updateGhost: Ghost!
+				updateNode: Node
 			}
 
 			union Human = User
@@ -2550,6 +2551,17 @@ func TestValidate_Houdini(t *testing.T) {
 							friend {
 								firstName @refetch
 							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on an abstract field (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchNode {
+						updateNode @refetch {
+							id
 						}
 					}`,
 				},

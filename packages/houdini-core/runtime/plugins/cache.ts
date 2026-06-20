@@ -196,6 +196,9 @@ export const cachePolicy =
 						ctx.artifact.operations?.length &&
 						!ctx.cacheParams?.disableWrite
 					) {
+						// gather every record id tagged with @refetch, deduped, so a
+						// document that depends on several of them only refetches once
+						const refreshIDs = new Set<string>()
 						for (const operation of ctx.artifact.operations) {
 							if (operation.action !== 'refetch') {
 								continue
@@ -207,9 +210,13 @@ export const cachePolicy =
 									record
 								)
 								if (id) {
-									targetCache.refresh(id)
+									refreshIDs.add(id)
 								}
 							}
+						}
+
+						if (refreshIDs.size > 0) {
+							targetCache.refresh([...refreshIDs])
 						}
 					}
 
