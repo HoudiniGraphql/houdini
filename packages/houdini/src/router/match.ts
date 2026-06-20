@@ -69,17 +69,17 @@ export function find_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: true
-): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
+): [RouterPageManifest<_ComponentType> | null, GraphQLVariables, Record<string, any>]
 export function find_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull?: false
-): [RouterPageManifest<_ComponentType>, GraphQLVariables]
+): [RouterPageManifest<_ComponentType>, GraphQLVariables, Record<string, any>]
 export function find_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: boolean = true
-): [RouterPageManifest<_ComponentType> | null, GraphQLVariables] {
+): [RouterPageManifest<_ComponentType> | null, GraphQLVariables, Record<string, any>] {
 	// the patterns only describe the path, so split the query string off before
 	// matching and keep it around to populate search params below
 	const queryIndex = current.indexOf('?')
@@ -125,13 +125,23 @@ export function find_match<_ComponentType>(
 		}
 	}
 
-	// fill any nullable search params the matched page declares from the query
-	// string. a route param of the same name always wins, so we only touch
-	// variables that the path didn't already provide. missing params are simply
-	// left unset (they're nullable), so this can never make a query fail.
-	if (match && search) {
+	// the parsed query string, surfaced to consumers via useLocation().search. every
+	// key present in the query string is included: declared search params are coerced
+	// (reusing the work below that fills query variables) while any other UI-only keys
+	// pass through as their raw string values. repeated keys collapse to arrays.
+	const searchObject: Record<string, any> = {}
+	if (search) {
 		const searchParams = new URLSearchParams(search)
-		for (const { name, type, wrappers } of match.searchParams) {
+		for (const key of new Set(searchParams.keys())) {
+			const values = searchParams.getAll(key)
+			searchObject[key] = values.length > 1 ? values : values[0]
+		}
+
+		// fill any nullable search params the matched page declares from the query
+		// string. a route param of the same name always wins, so we only touch
+		// variables that the path didn't already provide. missing params are simply
+		// left unset (they're nullable), so this can never make a query fail.
+		for (const { name, type, wrappers } of match?.searchParams ?? []) {
 			if (variables[name] != null) {
 				continue
 			}
@@ -149,10 +159,14 @@ export function find_match<_ComponentType>(
 					variables[name] = parsed
 				}
 			}
+			// reflect the coerced value (not the raw string) for declared params
+			if (name in searchObject && variables[name] != null) {
+				searchObject[name] = variables[name]
+			}
 		}
 	}
 
-	return [match, variables]
+	return [match, variables, searchObject]
 }
 
 /**

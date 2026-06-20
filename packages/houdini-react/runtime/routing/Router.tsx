@@ -56,8 +56,10 @@ export function Router({
 		return initialURL || window.location.pathname + window.location.search
 	})
 
-	// find the matching page for the current route
-	const [page, variables] = find_match(manifest, currentURL)
+	// find the matching page for the current route. find_match also hands back the
+	// parsed query string (declared search params coerced, UI-only keys raw), which we
+	// surface on useLocation().search instead of re-parsing the url here.
+	const [page, variables, search] = find_match(manifest, currentURL)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -170,6 +172,7 @@ export function Router({
 					pathname: currentURL,
 					goto,
 					params: variables ?? {},
+					search,
 				}}
 			>
 				<Is404Context.Provider value={is404}>
@@ -659,11 +662,15 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 const LocationContext = React.createContext<{
 	pathname: string
 	params: Record<string, any>
+	// the parsed query string of the current url (declared search params coerced to
+	// their scalar type, other keys raw; repeated keys are arrays).
+	search: Record<string, any>
 	// a function to imperatively navigate to a url
 	goto: Goto
 }>({
 	pathname: '',
 	params: {},
+	search: {},
 	goto: () => {},
 })
 
