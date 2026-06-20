@@ -347,6 +347,9 @@ importers:
 
   packages/adapter-node:
     devDependencies:
+      '@types/node':
+        specifier: ^25.9.1
+        version: 25.9.2
       houdini:
         specifier: workspace:^
         version: link:../houdini
