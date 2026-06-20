@@ -1,5 +1,20 @@
 # houdini
 
+## 2.0.0-next.44
+
+### Minor Changes
+
+- [#1690](https://github.com/HoudiniGraphql/houdini/pull/1690) [`981a38f`](https://github.com/HoudiniGraphql/houdini/commit/981a38f7302c7f40c40a2a3afa2630f8577a100b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add the `@plural` fragment directive for spreading a fragment on a list field and reading it back as an array of data through `useFragment` (React) or `fragment` (Svelte).
+
+- [#1687](https://github.com/HoudiniGraphql/houdini/pull/1687) [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add the `@refetch` directive to mark a record in a mutation or subscription response so the cache refetches every document that depends on it once the response is written.
+
+### Patch Changes
+
+- [#1689](https://github.com/HoudiniGraphql/houdini/pull/1689) [`de10b1f`](https://github.com/HoudiniGraphql/houdini/commit/de10b1f824c3ada960254968a455b963a1d8ad2f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Stamp the orchestration database with a schema version and rebuild it automatically when a persisted database from an older compiler is detected.
+
+- Updated dependencies [[`981a38f`](https://github.com/HoudiniGraphql/houdini/commit/981a38f7302c7f40c40a2a3afa2630f8577a100b), [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956)]:
+  - houdini-core@2.0.0-next.30
+
 ## 2.0.0-next.43
 
 ### Minor Changes
