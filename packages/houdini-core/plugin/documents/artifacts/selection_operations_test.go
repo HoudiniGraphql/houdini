@@ -2935,6 +2935,141 @@ export type A$artifact = typeof artifact
 "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
+			{
+				Name: "Refetch operation",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchFriend {
+              addFriend {
+                friend @refetch {
+                  firstName
+                }
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"RefetchFriend": tests.Dedent(`const artifact = {
+    "name": "RefetchFriend",
+    "kind": "HoudiniMutation",
+    "hash": "f21fe997186bd64751f7dd8e9ef3d9329716175a963e5004be685010e2e4c9c0",
+    "raw": ` + "`" + `mutation RefetchFriend {
+    addFriend {
+        friend {
+            firstName
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
+
+                            "directives": [{
+                                "name": "refetch",
+                                "arguments": {}
+                            }],
+
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
+
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "operations": [{
+        "action": "refetch",
+        "type": "User",
+        "path": ["addFriend","friend"]
+    }],
+
+    "pluginData": {},
+} as const
+
+export default artifact
+
+export type RefetchFriend = {
+	readonly "input"?: RefetchFriend$input;
+	readonly "result": RefetchFriend$result;
+};
+
+export type RefetchFriend$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+		};
+	};
+};
+
+export type RefetchFriend$input = null | undefined;
+
+export type RefetchFriend$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly firstName?: string;
+		};
+	};
+};
+
+export type RefetchFriend$unmasked = {
+	readonly addFriend: {
+		readonly __typename: "AddFriendOutput";
+		readonly friend: {
+			readonly __typename: "User";
+			readonly firstName: string;
+			readonly id: string;
+		};
+	};
+};
+
+export type RefetchFriend$artifact = typeof artifact
+
+"HoudiniHash=f21fe997186bd64751f7dd8e9ef3d9329716175a963e5004be685010e2e4c9c0"`),
+				},
+			},
 		},
 	})
 }

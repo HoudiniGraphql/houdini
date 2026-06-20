@@ -15,6 +15,7 @@ export const routes = {
 	loading_state: '/loading-state',
 	required_field: '/required-field',
 	Cache_Refresh: '/cache/refresh',
+	Cache_Refetch: '/cache/refetch',
 
 	Lists_fragment: '/lists/fragment',
 	Lists_mutation_insert: '/lists/mutation-insert',

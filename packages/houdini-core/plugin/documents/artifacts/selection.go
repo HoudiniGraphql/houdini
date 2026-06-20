@@ -412,6 +412,38 @@ func GenerateSelectionDocument(
     "enableLoadingState": "%s",`, flags.HasLoading)
 	}
 
+	// document-level operations (eg @refetch) collected during the walk
+	operations := ""
+	if len(flags.RootOperations) > 0 {
+		var opBuilder strings.Builder
+		for i, op := range flags.RootOperations {
+			if i > 0 {
+				opBuilder.WriteString(", ")
+			}
+
+			var pathBuilder strings.Builder
+			pathBuilder.WriteByte('[')
+			for j, field := range op.Path {
+				if j > 0 {
+					pathBuilder.WriteByte(',')
+				}
+				pathBuilder.WriteByte('"')
+				pathBuilder.WriteString(field)
+				pathBuilder.WriteByte('"')
+			}
+			pathBuilder.WriteByte(']')
+
+			opBuilder.WriteString(fmt.Sprintf(`{
+        "action": "%s",
+        "type": "%s",
+        "path": %s
+    }`, op.Action, op.Type, pathBuilder.String()))
+		}
+		operations = fmt.Sprintf(`
+
+    "operations": [%s],`, opBuilder.String())
+	}
+
 	// compute the type definitions
 	unmaskedSelection, err := FlattenSelection(ctx, docs, name, false, sortKeys)
 	if err != nil {
@@ -440,7 +472,7 @@ const artifact = {
     "rootType": "%s",
     "stripVariables": %s as Array<string>,
 
-    "selection": %s,
+    "selection": %s,%s
 
     "pluginData": %s,%s%s%s%s%s%s%s
 } as const
@@ -459,6 +491,7 @@ export default artifact
 		doc.TypeCondition,
 		string(stripVariables),
 		selectionValues,
+		operations,
 		string(marshaledData),
 		componentFields,
 		dedupe,
@@ -984,6 +1017,19 @@ func stringifyFieldSelection(
 	indent4 := strings.Repeat(spacing, level+3)
 	indent5 := strings.Repeat(spacing, level+4)
 	indent6 := strings.Repeat(spacing, level+5)
+
+	// @refetch is a document-level operation: record the path to this field's
+	// record so the runtime can refresh every dependent document after the write
+	for _, directive := range selection.Directives {
+		if directive.Name == graphql.RefetchDirective {
+			flags.RootOperations = append(flags.RootOperations, RootOperation{
+				Action: "refetch",
+				Type:   selection.FieldType,
+				Path:   pathBuilder.Current(),
+			})
+			break
+		}
+	}
 
 	// figure out the pagination state
 	var paginatedMode *string
@@ -1773,6 +1819,17 @@ type ArtifactFlags struct {
 	Refetch         *RefetchSpec
 	ComponentFields bool
 	HasLoading      string
+	// document-level operations collected during the walk (eg @refetch)
+	RootOperations []RootOperation
+}
+
+// RootOperation is a side effect applied after a document's response is written
+// to the cache. @refetch records the path to a record that every dependent
+// document should refetch.
+type RootOperation struct {
+	Action string
+	Type   string
+	Path   []string
 }
 
 type SelectionFlags struct {

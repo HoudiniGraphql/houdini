@@ -37,6 +37,7 @@ func TestValidate_Houdini(t *testing.T) {
 			type Subscription {
 				newMessage: String
 				anotherMessage: String
+				userUpdate: User
 			}
 
 			type Cat {
@@ -2501,6 +2502,90 @@ func TestValidate_Houdini(t *testing.T) {
 					    ...frag
 				    }
 			   }`,
+				},
+			},
+			{
+				Name: "@refetch on an object field (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchFriend {
+						addFriend {
+							friend @refetch {
+								firstName
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch in a subscription (positive)",
+				Pass: true,
+				Input: []string{
+					`subscription RefetchSub {
+						userUpdate @refetch {
+							id
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch outside a mutation (negative)",
+				Pass: false,
+				Input: []string{
+					`query RefetchQuery {
+						user(name: "foo") {
+							bestFriend @refetch {
+								id
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on a scalar field (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation RefetchScalar {
+						addFriend {
+							friend {
+								firstName @refetch
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on a list field (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation RefetchList {
+						addFriend {
+							friend {
+								friends @refetch {
+									id
+								}
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch combined with @paginate (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation RefetchAndPaginate {
+						addFriend {
+							friend {
+								believers @refetch @paginate {
+									edges {
+										node {
+											id
+										}
+									}
+								}
+							}
+						}
+					}`,
 				},
 			},
 		},

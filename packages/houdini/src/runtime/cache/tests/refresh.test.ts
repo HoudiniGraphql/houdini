@@ -1,6 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test/index.js'
+import { ArtifactKind } from '../../types.js'
 import type { SubscriptionSelection } from '../../types.js'
 import { Cache } from '../index.js'
 import { rootID } from '../stuff.js'
@@ -103,6 +104,43 @@ test('refresh notifies documents subscribed to the record', () => {
 	cache.refresh(rootID)
 	expect(set).toHaveBeenCalledTimes(1)
 	expect(set).toHaveBeenCalledWith({ kind: 'refetch' })
+})
+
+test('refresh never asks a subscription document to refetch', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: visibleSelection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// a query and a subscription both contain the record
+	const querySet = vi.fn()
+	cache.subscribe({
+		rootType: 'Query',
+		selection: visibleSelection,
+		onMessage: querySet,
+	})
+
+	const subscriptionSet = vi.fn()
+	cache.subscribe({
+		rootType: 'Subscription',
+		kind: ArtifactKind.Subscription,
+		selection: visibleSelection,
+		onMessage: subscriptionSet,
+	})
+
+	cache.refresh('User:1')
+
+	// the query refetches but the subscription is left alone — a live stream is
+	// pushed from the server, never pulled
+	expect(querySet).toHaveBeenCalledWith({ kind: 'refetch' })
+	expect(subscriptionSet).not.toHaveBeenCalled()
 })
 
 test('refresh reaches documents that only contain the record behind a mask', () => {

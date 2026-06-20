@@ -120,6 +120,9 @@ directive @loading(cascade: Boolean, count: Int) on FIELD | FRAGMENT_DEFINITION 
 """@required makes a nullable field always non-null by making the parent null when the field is"""
 directive @required on FIELD
 
+"""@refetch marks a record in a mutation response so the cache refetches every document that depends on it"""
+directive @refetch on FIELD
+
 """@componentField is used to mark a field as a component field"""
 directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRAGMENT_DEFINITION | INLINE_FRAGMENT
 

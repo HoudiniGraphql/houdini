@@ -18,7 +18,7 @@ import type {
 	ValueMap,
 	ValueNode,
 } from '../types.js'
-import { fragmentKey } from '../types.js'
+import { ArtifactKind, fragmentKey } from '../types.js'
 import { GarbageCollector } from './gc.js'
 import type { ListCollection } from './lists.js'
 import { ListManager, opaqueListID } from './lists.js'
@@ -214,6 +214,11 @@ export class Cache {
 			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
 				includeMaskedParents: true,
 			})) {
+				// subscriptions are a live stream from the server — they are never
+				// asked to refetch (their data arrives by being pushed, not pulled)
+				if (spec.kind === ArtifactKind.Subscription) {
+					continue
+				}
 				if (!notified.has(spec.onMessage)) {
 					notified.add(spec.onMessage)
 					spec.onMessage({ kind: 'refetch' })
