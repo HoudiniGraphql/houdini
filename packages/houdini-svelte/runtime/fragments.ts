@@ -1,5 +1,5 @@
 import type { Fragment, FragmentArtifact, GraphQLObject } from 'houdini/runtime'
-import { derived, readable, type Readable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores/index.js'
 import type {
@@ -60,23 +60,8 @@ export function fragment<_Data extends GraphQLObject>(
 		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)
 	}
 
-	// @plural fragments are spread on a list field, so the reference is an array of
-	// fragment references and we return a store holding an array of data. We key off the
-	// artifact's plural flag (not Array.isArray) so a null/undefined reference to a plural
-	// fragment still takes the plural path.
-	if (store.artifact.plural) {
-		return pluralFragment(ref as ReadonlyArray<Fragment<_Data>> | null | undefined, store)
-	}
-
-	// a non-plural fragment given a list of references is a mistake (the fragment needs
-	// @plural to be read as an array)
-	if (Array.isArray(ref)) {
-		throw new Error(
-			`fragment "${store.artifact.name}" was given a list of references but is not marked @plural.`
-		)
-	}
-
-	// load the fragment store for the value
+	// store.get() handles both a single reference and a list of references (for @plural
+	// fragments), and throws if a list is passed to a non-plural fragment.
 	// @ts-expect-error: ref is Fragment<_Data> but store.get() expects _Data | { [fragmentKey]: _ReferenceType };
 	// Fragment<_Data> structurally satisfies the { [fragmentKey]: _ReferenceType } branch at runtime.
 	const fragmentStore = store.get(ref)
@@ -85,39 +70,6 @@ export function fragment<_Data extends GraphQLObject>(
 		...fragmentStore,
 		artifact: store.artifact,
 		data: { subscribe: fragmentStore.subscribe },
-	}
-}
-
-// pluralFragment wires up one fragment store instance per reference in the list and combines
-// them into a single store whose value is the array of data. Each instance stays reactive to
-// cache updates on its own record.
-function pluralFragment<_Data extends GraphQLObject>(
-	refs: ReadonlyArray<Fragment<_Data>> | null | undefined,
-	store: FragmentStore<_Data, {}>
-) {
-	const list = refs ?? []
-
-	// derived() requires at least one input store; short-circuit the empty case
-	if (list.length === 0) {
-		const empty = readable<_Data[]>([])
-		return {
-			subscribe: empty.subscribe,
-			artifact: store.artifact,
-			data: { subscribe: empty.subscribe },
-		}
-	}
-
-	const instances = list.map((ref) =>
-		// @ts-expect-error: see the singular branch above
-		store.get(ref)
-	)
-
-	const combined = derived(instances, ($values) => $values as _Data[])
-
-	return {
-		subscribe: combined.subscribe,
-		artifact: store.artifact,
-		data: { subscribe: combined.subscribe },
 	}
 }
 

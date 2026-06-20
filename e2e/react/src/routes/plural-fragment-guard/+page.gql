@@ -1,0 +1,6 @@
+query features__plural_fragment_guard {
+	usersList(snapshot: "plural_guard", limit: 4) {
+		id
+		...GuardRow
+	}
+}

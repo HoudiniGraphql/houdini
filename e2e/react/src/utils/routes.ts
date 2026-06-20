@@ -37,4 +37,7 @@ export const routes = {
 	response_headers: '/response-headers',
 	plural_fragment: '/plural-fragment',
 	plural_fragment_rebind: '/plural-fragment-rebind',
+	plural_fragment_guard: '/plural-fragment-guard',
+	plural_fragment_args: '/plural-fragment-args',
+	plural_fragment_empty: '/plural-fragment-empty',
 } as const

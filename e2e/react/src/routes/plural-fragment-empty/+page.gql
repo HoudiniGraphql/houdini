@@ -1,0 +1,6 @@
+query features__plural_fragment_empty {
+	usersList(snapshot: "plural_empty", limit: 0) {
+		id
+		...PluralUserRow
+	}
+}

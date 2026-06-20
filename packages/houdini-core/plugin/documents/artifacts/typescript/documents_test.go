@@ -311,6 +311,58 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "plural fragment with @arguments keeps the array reference and typed input",
+				Input: []string{
+					`fragment PluralArgs on User @plural @arguments(pattern: { type: "String" }) { firstName(pattern: $pattern) }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					// the @arguments input is typed and the reference stays an array
+					"PluralArgs": tests.Dedent(`
+						export type PluralArgs$input = {
+							pattern?: string | null;
+						};
+
+						export type PluralArgs = ReadonlyArray<{
+							readonly "shape"?: PluralArgs$data;
+							readonly " $fragments": {
+								"PluralArgs": any;
+							};
+						}>;
+					`),
+				},
+			},
+			{
+				Name: "plural fragment with @loading",
+				Input: []string{
+					`fragment PluralLoading on User @plural { firstName @loading }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					// the reference stays an array; $data carries the per-item loading union
+					"PluralLoading": tests.Dedent(`
+						export type PluralLoading = ReadonlyArray<{
+							readonly "shape"?: PluralLoading$data;
+							readonly " $fragments": {
+								"PluralLoading": any;
+							};
+						}>;
+
+						export type PluralLoading$data = {
+							/**
+							 * The user's first name
+							 */
+							readonly firstName: string;
+						} | {
+							/**
+							 * The user's first name
+							 */
+							readonly firstName: LoadingType;
+						};
+					`),
+				},
+			},
+			{
 				Name: "fragment types with variables",
 				Input: []string{
 					`fragment TestFragment on Query @arguments(name:{ type: "ID" }) { user(id: $name) { age } }`,
