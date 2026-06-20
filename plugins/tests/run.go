@@ -242,7 +242,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 
 			// write the relevant config values
 			insertConfig, err := conn.Prepare(
-				`insert into config (default_keys, include, exclude, schema_path, default_paginate_mode) values ($keys, $include, $exclude, $schema_path, $paginate_mode)`,
+				`insert into config (default_keys, include, exclude, schema_path, default_paginate_mode, persisted_queries_path) values ($keys, $include, $exclude, $schema_path, $paginate_mode, $persisted_queries_path)`,
 			)
 			require.Nil(t, err)
 			defer insertConfig.Finalize()
@@ -250,11 +250,12 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			includeJSON, _ := json.Marshal([]string{"**/*"})
 			excludeJSON, _ := json.Marshal([]string{})
 			err = db.ExecStatement(insertConfig, map[string]any{
-				"keys":          string(defaultKeys),
-				"include":       string(includeJSON),
-				"exclude":       string(excludeJSON),
-				"schema_path":   "*",
-				"paginate_mode": "Infinite",
+				"keys":                   string(defaultKeys),
+				"include":                string(includeJSON),
+				"exclude":                string(excludeJSON),
+				"schema_path":            "*",
+				"paginate_mode":          "Infinite",
+				"persisted_queries_path": "$houdini/persisted_queries.json",
 			})
 			require.Nil(t, err)
 
