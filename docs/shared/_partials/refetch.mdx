@@ -1,9 +1,9 @@
-Almost always, you are best off including the changed fields as part of your mutation,
-either explicitly or by using the fragments from your various components. Doing this saves
-any additional network requests and produces the fastest experience. However, this isn't
-always possible and can sometimes be unwieldy. In those situations, you can leverage the
-`@refetch` directive to tell Houdini to look for the queries (and subscriptions) in your
-application that depend on the returned entity and cause them to refetch.
+Most of the time, you're best off including the changed fields in the mutation itself,
+either by requesting them directly or by spreading the fragments your components already
+define. That keeps everything to a single round trip and gives the fastest experience.
+Sometimes that isn't possible, though, or it gets unwieldy. In those cases you can use the
+`@refetch` directive, which tells Houdini to find the queries that depend on the returned
+entity and refetch them.
 
 ```graphql
 mutation FavoriteBook($id: ID!) {
