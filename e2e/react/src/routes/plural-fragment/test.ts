@@ -2,40 +2,25 @@ import { expect, test } from '@playwright/test'
 import { routes } from '~/utils/routes'
 import { goto } from '~/utils/testsHelper.js'
 
-test('@plural fragment renders the whole list through a single useFragment', async ({ page }) => {
+// one ordered flow so the cases don't depend on a shared, mutated snapshot across tests:
+// initial render through a single useFragment, a single-member cache update reflecting in
+// place, and an insert growing the list.
+test('@plural fragment renders the list and reacts to updates and inserts', async ({ page }) => {
 	await goto(page, routes.plural_fragment)
 
-	// every user in the snapshot should be rendered
-	const items = await page.locator('#plural-list li').all()
-	expect(items.length).toBe(4)
-
-	// the masked fragment data should be readable for each item
+	// initial render: the whole list comes through a single useFragment call
+	await expect(page.locator('#plural-list li')).toHaveCount(4)
 	await expect(page.getByTestId('plural_fragment:1')).toHaveText('Bruce Willis')
 	await expect(page.getByTestId('plural_fragment:2')).toHaveText('Samuel Jackson')
-})
 
-test('@plural fragment reacts to a cache update on a single list member', async ({ page }) => {
-	await goto(page, routes.plural_fragment)
-
-	await expect(page.getByTestId('plural_fragment:1')).toHaveText('Bruce Willis')
-
-	// update a single record in the cache; only that row should change
+	// updating one record updates just that row, leaving the others untouched
 	await page.click('[data-test-action="update-first"]')
-
 	await expect(page.getByTestId('plural_fragment:1')).toHaveText('Updated Bruce')
-	// the other members and the list length are untouched
 	await expect(page.getByTestId('plural_fragment:2')).toHaveText('Samuel Jackson')
-	expect((await page.locator('#plural-list li').all()).length).toBe(4)
-})
-
-test('@plural fragment reacts to a record inserted into the list', async ({ page }) => {
-	await goto(page, routes.plural_fragment)
-
 	await expect(page.locator('#plural-list li')).toHaveCount(4)
 
-	// prepend a new member; the plural fragment should pick up the larger list
+	// inserting a record grows the rendered list
 	await page.click('[data-test-action="add-new"]')
-
 	await expect(page.locator('#plural-list li')).toHaveCount(5)
 	await expect(page.locator('#plural-list li').first()).toHaveText('Brand New User')
 })
