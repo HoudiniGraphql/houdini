@@ -91,6 +91,53 @@ query AllUsers {
   If you use fragment arguments on a field that is also marked for list operations, you must pass the variable value when performing the operation.
 </Notice>
 
+## Plural Fragments
+
+A fragment is normally spread on a single record, so `useFragment` hands back a single object. When the fragment lives on a list field, though, we end up with an array of references and no clean way to read them all at once. We can't call `useFragment` inside a `.map()` (that breaks the rules of hooks), so without any help we'd be stuck threading each item through its own component.
+
+The `@plural` directive solves this by marking the fragment as list shaped. The reference becomes an array and `useFragment` returns an array of data, so a single component can own "render this whole list":
+
+```jsx title="src/lib/ShowList.jsx"
+import { graphql, useFragment } from '$houdini'
+
+export function ShowList({ shows }) {
+  const data = useFragment(shows, graphql(`
+    fragment ShowListRow on Show @plural {
+      title
+      posterUrl
+    }
+  `))
+
+  return (
+    <ul>
+      {data.map((show) => (
+        <li key={show.title}>{show.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+The parent spreads the fragment inside the list field and passes the whole list down in one go:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+  shows {
+    ...ShowListRow
+  }
+}
+```
+
+```jsx title="src/routes/shows/+page.jsx"
+import { ShowList } from '../../lib/ShowList'
+
+export default function ShowsPage({ ShowList: data }) {
+  return <ShowList shows={data.shows} />
+}
+```
+
+A `@plural` fragment has to be spread on a list field, since that's the only place an array of references can come from. Spreading it anywhere else is a codegen error.
+
 ## Fragment Masking
 
 Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.

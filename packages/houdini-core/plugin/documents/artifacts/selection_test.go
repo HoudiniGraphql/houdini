@@ -4603,6 +4603,81 @@ query UserWithAvatar {
 				`),
 				},
 			},
+			{
+				Name: "plural fragment records the plural flag",
+				Pass: true,
+				Input: []string{
+					`fragment PluralRow on User @plural {
+						firstName
+					}`,
+					`query PluralQuery {
+						users {
+							...PluralRow
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"PluralRow": tests.Dedent(`const artifact = {
+    "name": "PluralRow",
+    "kind": "HoudiniFragment",
+    "hash": "9f281c7c04e9908f4490520ed23a594a20fea6332dfe90b69ae7eef227673dea",
+    "raw": ` + "`" + `fragment PluralRow on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
+
+    "rootType": "User",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "__typename": {
+                "type": "String",
+                "keyRaw": "__typename",
+                "visible": true,
+            },
+
+            "firstName": {
+                "type": "String",
+                "keyRaw": "firstName",
+                "visible": true,
+            },
+
+            "id": {
+                "type": "ID",
+                "keyRaw": "id",
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "plural": true,
+} as const
+
+export default artifact
+
+export type PluralRow$input = never;
+
+export type PluralRow = ReadonlyArray<{
+	readonly "shape"?: PluralRow$data;
+	readonly " $fragments": {
+		"PluralRow": any;
+	};
+}>;
+
+export type PluralRow$data = {
+	readonly firstName: string;
+};
+
+export type PluralRow$artifact = typeof artifact
+
+"HoudiniHash=9f281c7c04e9908f4490520ed23a594a20fea6332dfe90b69ae7eef227673dea"`),
+				},
+			},
 		},
 	})
 }

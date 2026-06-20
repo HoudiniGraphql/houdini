@@ -90,6 +90,9 @@ export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
 	enableLoadingState?: 'global' | 'local'
+	// @plural marks the fragment as list-shaped: it is spread on a list field and
+	// consumed as an array of items rather than a single record.
+	plural?: boolean
 }
 
 export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>

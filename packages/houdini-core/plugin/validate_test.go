@@ -2600,6 +2600,49 @@ func TestValidate_Houdini(t *testing.T) {
 					}`,
 				},
 			},
+			{
+				Name: "@plural fragment spread on a list field (positive)",
+				Pass: true,
+				Input: []string{
+					`fragment PluralRow on User @plural {
+						firstName
+					}`,
+					`query PluralQuery {
+						users(limit: 10) {
+							...PluralRow
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@plural fragment spread on a non-list field (negative)",
+				Pass: false,
+				Input: []string{
+					`fragment PluralRow on User @plural {
+						firstName
+					}`,
+					`query PluralQuery {
+						user(name: "foo") {
+							...PluralRow
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@plural combined with @paginate (negative)",
+				Pass: false,
+				Input: []string{
+					`fragment PluralPaginated on User @plural {
+						believers @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}`,
+				},
+			},
 		},
 	})
 }

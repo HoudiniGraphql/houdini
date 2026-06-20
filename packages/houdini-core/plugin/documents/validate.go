@@ -2055,3 +2055,109 @@ func ValidateOptimisticKeyFullSelection(
 		}
 	}
 }
+
+// ValidatePluralDirective enforces the constraints around the @plural directive (mirrors
+// Relay's @relay(plural: true) rules):
+//   - a @plural fragment may only be spread on a list field (a field backed by a GraphQL list),
+//     since the consumer receives the whole list as an array.
+//   - @plural may not be combined with @paginate, whose refetch machinery assumes a single record.
+func ValidatePluralDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// Rule 1: a @plural fragment must be spread on a list field. We look at every fragment
+	// spread whose referenced fragment definition carries @plural, resolve the enclosing
+	// parent field's type_modifiers, and flag any whose modifiers do not encode a list
+	// (list types contain "]" in the inner→outer modifier encoding). Spreads with no
+	// enclosing field (parent_id IS NULL, e.g. at the document root) are also invalid.
+	spreadQuery := `
+	SELECT
+	  spread.field_name AS fragmentName,
+	  rd.filepath,
+	  sr.row,
+	  sr.column
+	FROM selections spread
+	  JOIN selection_refs sr ON sr.child_id = spread.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN documents frag ON frag.name = spread.field_name AND frag.kind = 'fragment'
+	  JOIN document_directives dd ON dd.document = frag.id AND dd.directive = $plural_directive
+	  LEFT JOIN selections pf ON pf.id = sr.parent_id
+	  LEFT JOIN type_fields tf ON tf.id = pf.type
+	WHERE spread.kind = 'fragment'
+	  AND (sr.parent_id IS NULL OR tf.type_modifiers IS NULL OR tf.type_modifiers NOT LIKE '%]%')
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	err := db.StepQuery(ctx, spreadQuery, map[string]any{
+		"plural_directive": graphql.PluralDirective,
+	}, func(stmt plugins.Row) {
+		fragmentName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		row := int(stmt.ColumnInt(2))
+		column := int(stmt.ColumnInt(3))
+
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"fragment %q is marked @%s and can only be spread on a list field",
+				fragmentName,
+				graphql.PluralDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+
+	// Rule 2: @plural and @paginate cannot coexist on the same fragment.
+	paginateQuery := `
+	SELECT
+	  d.name AS fragmentName,
+	  rd.filepath,
+	  dd.row,
+	  dd.column
+	FROM documents d
+	  JOIN document_directives dd ON dd.document = d.id AND dd.directive = $plural_directive
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE d.kind = 'fragment'
+	  AND EXISTS (
+	    SELECT 1
+	    FROM selections s
+	      JOIN selection_refs sr ON sr.child_id = s.id AND sr.document = d.id
+	      JOIN selection_directives sd ON sd.selection_id = s.id
+	    WHERE sd.directive = $paginate_directive
+	  )
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	err = db.StepQuery(ctx, paginateQuery, map[string]any{
+		"plural_directive":   graphql.PluralDirective,
+		"paginate_directive": graphql.PaginationDirective,
+	}, func(stmt plugins.Row) {
+		fragmentName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		row := int(stmt.ColumnInt(2))
+		column := int(stmt.ColumnInt(3))
+
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"fragment %q cannot use both @%s and @%s",
+				fragmentName,
+				graphql.PluralDirective,
+				graphql.PaginationDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}

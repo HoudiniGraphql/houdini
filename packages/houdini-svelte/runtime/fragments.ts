@@ -1,5 +1,5 @@
 import type { Fragment, FragmentArtifact, GraphQLObject } from 'houdini/runtime'
-import type { Readable } from 'svelte/store'
+import { derived, readable, type Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores/index.js'
 import type {
@@ -14,6 +14,23 @@ import type {
 type AnyFragmentStoreFor<_Data extends GraphQLObject> =
 	| FragmentStore<_Data, {}>
 	| BasePaginatedFragmentStore<_Data, any, any>
+
+// @plural fragment overloads: the reference is a list of fragment references and the
+// resulting store holds an array of data (one entry per item in the list).
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment>,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment> | null | undefined,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable.
@@ -35,12 +52,18 @@ export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment
 	artifact: FragmentArtifact
 }
 export function fragment<_Data extends GraphQLObject>(
-	ref: Fragment<_Data> | null | undefined,
+	ref: Fragment<_Data> | ReadonlyArray<Fragment<_Data>> | null | undefined,
 	store: FragmentStore<_Data, {}>
 ) {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
 		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)
+	}
+
+	// @plural fragments are spread on a list field, so the reference is an array of
+	// fragment references and we return a store holding an array of data
+	if (store.artifact.plural || Array.isArray(ref)) {
+		return pluralFragment(ref as ReadonlyArray<Fragment<_Data>> | null | undefined, store)
 	}
 
 	// load the fragment store for the value
@@ -52,6 +75,39 @@ export function fragment<_Data extends GraphQLObject>(
 		...fragmentStore,
 		artifact: store.artifact,
 		data: { subscribe: fragmentStore.subscribe },
+	}
+}
+
+// pluralFragment wires up one fragment store instance per reference in the list and combines
+// them into a single store whose value is the array of data. Each instance stays reactive to
+// cache updates on its own record.
+function pluralFragment<_Data extends GraphQLObject>(
+	refs: ReadonlyArray<Fragment<_Data>> | null | undefined,
+	store: FragmentStore<_Data, {}>
+) {
+	const list = refs ?? []
+
+	// derived() requires at least one input store; short-circuit the empty case
+	if (list.length === 0) {
+		const empty = readable<_Data[]>([])
+		return {
+			subscribe: empty.subscribe,
+			artifact: store.artifact,
+			data: { subscribe: empty.subscribe },
+		}
+	}
+
+	const instances = list.map((ref) =>
+		// @ts-expect-error: see the singular branch above
+		store.get(ref)
+	)
+
+	const combined = derived(instances, ($values) => $values as _Data[])
+
+	return {
+		subscribe: combined.subscribe,
+		artifact: store.artifact,
+		data: { subscribe: combined.subscribe },
 	}
 }
 

@@ -36,3 +36,30 @@ function useFragment(reference, document): data | null
 | `document` | `graphql()` result | The fragment document |
 
 Returns the fragment data, or `null` if the reference is null.
+
+## Plural fragments
+
+If the fragment is marked with `@plural`, it is spread on a list field and the reference is an array. In that case `useFragment` accepts the whole array and returns an array of data:
+
+```tsx
+import { graphql, useFragment } from '$houdini'
+import type { ShowListRow } from '$houdini'
+
+export function ShowList({ shows }: { shows: ShowListRow }) {
+  const data = useFragment(shows, graphql(`
+    fragment ShowListRow on Show @plural {
+      title
+    }
+  `))
+
+  return (
+    <ul>
+      {data.map((show) => (
+        <li key={show.title}>{show.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+See [Plural Fragments](~/loading-data/fragments#plural-fragments) for the full picture.

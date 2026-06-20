@@ -52,6 +52,8 @@ const RuntimeScalarDirective = "__houdini__runtimeScalar"
 
 const RefetchDirective = "refetch"
 
+const PluralDirective = "plural"
+
 const ListOperationSuffixInsert = "_insert"
 
 const ListOperationSuffixRemove = "_remove"

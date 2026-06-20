@@ -841,6 +841,23 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @plural on FRAGMENT_DEFINITION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.PluralDirective,
+		"description": "@plural marks a fragment as list-shaped so it can be spread on a list field and consumed as an array of items.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.PluralDirective,
+		"location":  "FRAGMENT_DEFINITION",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @with on FRAGMENT_SPREAD
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.WithDirective,

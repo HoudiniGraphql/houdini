@@ -272,6 +272,17 @@ func generateDocumentTypeDef(
 	return result.String(), imports, nil
 }
 
+// isPluralFragment reports whether the document carries the @plural directive,
+// marking it as list-shaped (spread on a list field, consumed as an array).
+func isPluralFragment(doc *collected.Document) bool {
+	for _, directive := range doc.Directives {
+		if directive.Name == graphql.PluralDirective {
+			return true
+		}
+	}
+	return false
+}
+
 func generateFragmentTypes(
 	ctx *DocumentContext,
 	rootTypeName string,
@@ -310,14 +321,20 @@ func generateFragmentTypes(
 		types = append(types, fmt.Sprintf("export type %s = never;", inputTypeName))
 	}
 
-	// Generate main fragment type
+	// Generate main fragment type. @plural fragments are spread on a list field and
+	// consumed as an array, so the reference type is wrapped in ReadonlyArray (the
+	// $data type below stays the single-item shape).
 	dataTypeName := fmt.Sprintf("%s$data", doc.Name)
-	mainType := fmt.Sprintf(`export type %s = {
+	referenceShape := fmt.Sprintf(`{
 	readonly "shape"?: %s;
 	readonly " $fragments": {
 		"%s": any;
 	};
-};`, doc.Name, dataTypeName, doc.Name)
+}`, dataTypeName, doc.Name)
+	if isPluralFragment(doc) {
+		referenceShape = fmt.Sprintf("ReadonlyArray<%s>", referenceShape)
+	}
+	mainType := fmt.Sprintf("export type %s = %s;", doc.Name, referenceShape)
 	types = append(types, mainType)
 
 	// Generate fragment data type (with single indentation for fragments)

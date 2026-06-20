@@ -286,6 +286,31 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "plural fragment wraps the reference type in ReadonlyArray",
+				Input: []string{
+					`fragment PluralRow on User @plural { firstName }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					// the reference type is an array, but $data stays the single-item shape
+					"PluralRow": tests.Dedent(`
+						export type PluralRow = ReadonlyArray<{
+							readonly "shape"?: PluralRow$data;
+							readonly " $fragments": {
+								"PluralRow": any;
+							};
+						}>;
+
+						export type PluralRow$data = {
+							/**
+							 * The user's first name
+							 */
+							readonly firstName: string;
+						};
+					`),
+				},
+			},
+			{
 				Name: "fragment types with variables",
 				Input: []string{
 					`fragment TestFragment on Query @arguments(name:{ type: "ID" }) { user(id: $name) { age } }`,

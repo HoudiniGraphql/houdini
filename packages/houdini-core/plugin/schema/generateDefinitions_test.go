@@ -102,6 +102,9 @@ directive @when_not on FRAGMENT_SPREAD
 """@arguments is used to define the arguments of a fragment."""
 directive @arguments on FRAGMENT_DEFINITION
 
+"""@plural marks a fragment as list-shaped so it can be spread on a list field and consumed as an array of items."""
+directive @plural on FRAGMENT_DEFINITION
+
 """@with  is used to provide arguments to fragments that have been marked with @arguments"""
 directive @with on FRAGMENT_SPREAD
 
