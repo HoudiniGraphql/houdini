@@ -95,7 +95,7 @@ query AllUsers {
 
 A fragment is normally spread on a single record, so `useFragment` hands back a single object. When the fragment lives on a list field, though, we end up with an array of references and no clean way to read them all at once. We can't call `useFragment` inside a `.map()` (that breaks the rules of hooks), so without any help we'd be stuck threading each item through its own component.
 
-The `@plural` directive solves this by marking the fragment as list shaped. The reference becomes an array and `useFragment` returns an array of data, so a single component can own "render this whole list":
+The `@plural` directive solves this by marking the fragment as list shaped. The reference becomes an array and `useFragment` returns an array of data, so a component can render the whole list:
 
 ```jsx title="src/lib/ShowList.jsx"
 import { graphql, useFragment } from '$houdini'

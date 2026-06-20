@@ -46,6 +46,14 @@ export function useFragment<
 export function useFragment(reference: any, document: { artifact: FragmentArtifact }): any {
 	const plural = Boolean(document.artifact.plural)
 
+	// a non-plural fragment given a list of references is a mistake (the fragment needs
+	// @plural to be read as an array)
+	if (!plural && Array.isArray(reference)) {
+		throw new Error(
+			`useFragment received a list of references for "${document.artifact.name}", but it is not marked @plural.`
+		)
+	}
+
 	// Both implementations run on every render so the rules of hooks are preserved; the one
 	// that isn't relevant is fed a null reference and becomes a no-op. Which result we return
 	// is keyed off the static @plural artifact flag, so a given call-site is always consistent.

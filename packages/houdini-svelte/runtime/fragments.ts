@@ -61,9 +61,19 @@ export function fragment<_Data extends GraphQLObject>(
 	}
 
 	// @plural fragments are spread on a list field, so the reference is an array of
-	// fragment references and we return a store holding an array of data
-	if (store.artifact.plural || Array.isArray(ref)) {
+	// fragment references and we return a store holding an array of data. We key off the
+	// artifact's plural flag (not Array.isArray) so a null/undefined reference to a plural
+	// fragment still takes the plural path.
+	if (store.artifact.plural) {
 		return pluralFragment(ref as ReadonlyArray<Fragment<_Data>> | null | undefined, store)
+	}
+
+	// a non-plural fragment given a list of references is a mistake (the fragment needs
+	// @plural to be read as an array)
+	if (Array.isArray(ref)) {
+		throw new Error(
+			`fragment "${store.artifact.name}" was given a list of references but is not marked @plural.`
+		)
 	}
 
 	// load the fragment store for the value

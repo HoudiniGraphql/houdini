@@ -129,8 +129,8 @@ func TestUpdateIndexFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "missing index.ts skips gracefully",
-				Pass: true,
+				Name:  "missing index.ts skips gracefully",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"no_stub": true,
@@ -138,8 +138,8 @@ func TestUpdateIndexFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "calling twice does not double-inject overloads",
-				Pass: true,
+				Name:  "calling twice does not double-inject overloads",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"call_twice": true,
@@ -291,6 +291,27 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
+				Name: "injects array overloads for a @plural fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyPluralFragment on Query @plural { id }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragment.ts": "import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\nexport function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragment.ts": "import type { MyPluralFragment$data, MyPluralFragment$artifact } from '$houdini/artifacts/MyPluralFragment'\n" +
+							"\n" +
+							"import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragment(reference: ReadonlyArray<{ readonly \" $fragments\": { MyPluralFragment: any } }>, document: { artifact: MyPluralFragment$artifact }): MyPluralFragment$data[]\n" +
+							"export function useFragment(reference: ReadonlyArray<{ readonly \" $fragments\": { MyPluralFragment: any } }> | null, document: { artifact: MyPluralFragment$artifact }): MyPluralFragment$data[] | null\n" +
+							"export function useFragment<_Data extends GraphQLObject, _ReferenceType extends {}, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: FragmentArtifact }): _Data | null\n" +
+							"export function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
 				Name: "injects useFragmentHandle overloads for non-paginated fragment",
 				Pass: true,
 				Input: []string{
@@ -334,8 +355,8 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "skips files not present in plugin runtime dir",
-				Pass: true,
+				Name:  "skips files not present in plugin runtime dir",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					// no stubs written — files don't exist, should silently skip
@@ -344,8 +365,8 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "calling twice does not double-inject",
-				Pass: true,
+				Name:  "calling twice does not double-inject",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"call_twice_hooks": true,
