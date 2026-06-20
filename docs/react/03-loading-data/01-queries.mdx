@@ -91,6 +91,24 @@ query ShowDetail($id: ID!) {
 
 The `$id` variable is populated from the `[id]` segment with no extra configuration.
 
+### Search Params
+
+Route segments aren't the only thing a query can pull from the URL. Any nullable variable whose name doesn't match a route parameter is populated from the query string, so a search route with an optional filter needs no extra wiring:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowSearch($genre: String, $sort: SortOrder) {
+  shows(genre: $genre, sort: $sort) {
+    title
+  }
+}
+```
+
+Visiting `/shows?genre=comedy` runs the query with `$genre` set to `"comedy"` and `$sort` left null. Because the values come straight from the URL, changing the query string re-runs the query: navigating from `/shows?genre=comedy` to `/shows?genre=drama` refetches with the new value, exactly the way a route parameter would. Repeated keys fill list variables, so `?tag=a&tag=b` lands in a `[String!]` variable as `["a", "b"]`.
+
+Only nullable variables are eligible. A missing search param resolves to null, which means it can never turn a valid URL into a failing request. That restriction is also the reason the distinction shows up at build time. A required variable has to be satisfiable from the URL alone, so if a `+page.gql` declares a non-null variable that isn't backed by a route segment and has no default, Houdini reports it during generation rather than letting the query fail later. The fix is one of three things: add the matching `[segment]`, give the variable a default value, or make it nullable so it can ride in on the query string.
+
+To construct these URLs with type safety rather than hand-writing query strings, the [`Link`](~/routing/navigation#search-params) component takes a typed `search` prop derived from the destination route's variables.
+
 ## Imperative Handles
 
 Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:

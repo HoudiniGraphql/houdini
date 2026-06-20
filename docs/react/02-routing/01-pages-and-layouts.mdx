@@ -54,6 +54,8 @@ Dynamic segments are marked with square brackets:
 
 Optional parameters cannot follow rest parameters — the rest segment is greedy and will consume everything after it.
 
+A query's variables can come from the URL's query string too, not just its path. See [Search Params](~/loading-data/queries#search-params) for how a route's nullable variables map onto `?key=value`.
+
 ## Response Headers
 
 A `+page.jsx` or `+layout.jsx` can export a `headers()` function to set HTTP response headers for the route. This is the place for cache directives, security headers, and anything else you'd otherwise have to configure at the CDN or adapter level:

@@ -45,6 +45,30 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 <Link to="./sibling">Relative</Link>
 ```
 
+## Search Params
+
+Where `params` fills the path, `search` fills the query string. Pass a `search` object and Houdini serializes it onto the URL:
+
+```tsx
+// → /shows?genre=comedy
+<Link to="/shows" search={{ genre: 'comedy' }}>Comedies</Link>
+```
+
+The available keys and their value types are taken from the destination route's query variables, the same source as `params`, so a typo or a mistyped value is a compile error rather than a silently empty result. A list variable accepts an array and serializes as repeated keys:
+
+```tsx
+// → /shows?tag=comedy&tag=drama
+<Link to="/shows" search={{ tags: ['comedy', 'drama'] }}>Both</Link>
+```
+
+These params aren't just decoration on the URL. They flow straight back into the route's query, and changing them re-runs it, so a `<Link>` that swaps `?genre=comedy` for `?genre=drama` refetches the page with the new filter. See [Search Params](~/loading-data/queries#search-params) for the data side of the story.
+
+`goto` works the same way for query strings as it does for paths; pass the whole URL, search string included:
+
+```tsx
+goto(`/shows?genre=${encodeURIComponent(genre)}`)
+```
+
 ## Disabled
 
 Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
