@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { routes } from '~/utils/routes'
 import { sleep } from '~/utils/sleep'
 import { expect_to_be, goto } from '~/utils/testsHelper'
@@ -42,4 +42,48 @@ test('useLocation().search exposes the parsed query string', async ({ page }) =>
 	await page.click('#ui-link')
 	await sleep(100)
 	await expect_to_be(page, '{"offset":2,"tab":"reviews"}', '#search')
+})
+
+// a custom scalar (DateTime) marshals into the url on write, is sent to the API in that
+// same marshaled form, and unmarshals back to a Date when read via useLocation().search —
+// verified through both <Link> and goto. The marshaled form is getTime() ms:
+// new Date('2024-01-01T00:00:00.000Z').getTime() === 1704067200000
+test('custom-scalar search params round-trip through Link and goto', async ({ page }) => {
+	// captures the `after` variable as it was actually sent on the wire while `trigger`
+	// performs a navigation
+	async function sentAfter(trigger: () => Promise<unknown>): Promise<unknown> {
+		const [request] = await Promise.all([
+			page.waitForRequest(
+				(req) =>
+					req.url().includes('/_api') &&
+					req.method() === 'POST' &&
+					(req.postData() ?? '').includes('SearchParamsUsers')
+			),
+			trigger(),
+		])
+		return request.postDataJSON()?.variables?.after
+	}
+
+	// ── <Link search={{ after: Date }}> ─────────────────────────────────────────────
+	await goto(page, routes.search_params)
+	const linkAfter = await sentAfter(() => page.click('#date-link'))
+	await sleep(100)
+
+	// 1. the Date was marshaled into the query string
+	expect(page.url()).toContain('?after=1704067200000')
+	// 2. and sent to the API in its marshaled form (the number, not the raw url string)
+	expect(linkAfter).toBe(1704067200000)
+	// 3. and unmarshaled back to a real Date when read
+	await expect_to_be(page, 'Date', '#after-type')
+	await expect_to_be(page, '2024-01-01T00:00:00.000Z', '#after-iso')
+
+	// ── goto({ to, search: { after: Date } }) ───────────────────────────────────────
+	await goto(page, routes.search_params)
+	const gotoAfter = await sentAfter(() => page.click('#goto-date'))
+	await sleep(100)
+
+	expect(page.url()).toContain('?after=1704067200000')
+	expect(gotoAfter).toBe(1704067200000)
+	await expect_to_be(page, 'Date', '#after-type')
+	await expect_to_be(page, '2024-01-01T00:00:00.000Z', '#after-iso')
 })

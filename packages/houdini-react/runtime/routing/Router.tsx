@@ -12,7 +12,7 @@ import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
 
-import { buildHref } from '../resolve-href.js'
+import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
@@ -56,10 +56,15 @@ export function Router({
 		return initialURL || window.location.pathname + window.location.search
 	})
 
-	// find the matching page for the current route. find_match also hands back the
-	// parsed query string (declared search params coerced, UI-only keys raw), which we
-	// surface on useLocation().search instead of re-parsing the url here.
-	const [page, variables, search] = find_match(manifest, currentURL)
+	// find the matching page for the current route. find_match also hands back the parsed
+	// query string (declared search params coerced, UI-only keys raw). custom-scalar
+	// search params arrive in their url transport form, so we unmarshal them once here —
+	// the rich values feed both the query variables (which marshalInputs re-marshals for
+	// the request) and useLocation().search.
+	const [page, rawVariables, rawSearch] = find_match(manifest, currentURL)
+	const searchUnmarshalers = scalarUnmarshalers(page?.searchParams, getCurrentConfig()?.scalars)
+	const variables = unmarshalScalars(rawVariables ?? {}, searchUnmarshalers)
+	const search = unmarshalScalars(rawSearch, searchUnmarshalers)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -145,10 +150,16 @@ export function Router({
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
-			const [page, variables] = find_match(manifest, url)
+			const [page, rawVariables] = find_match(manifest, url)
 			if (!page) {
 				return
 			}
+			// unmarshal any custom-scalar search params so the preloaded query marshals
+			// them the same way the rendered one does
+			const variables = unmarshalScalars(
+				rawVariables ?? {},
+				scalarUnmarshalers(page.searchParams, getCurrentConfig()?.scalars)
+			)
 
 			// load the page component if necessary
 			if (['page', 'component'].includes(which)) {

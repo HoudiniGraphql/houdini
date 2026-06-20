@@ -26,6 +26,67 @@ function marshalValue(value: unknown, marshal?: Marshaler): string {
 	return String(marshal ? marshal(value) : value)
 }
 
+// An unmarshaler is the inverse of a Marshaler: it turns the transport form a URL carries
+// back into a rich runtime value (e.g. a timestamp string into a Date).
+type Unmarshaler = (value: any) => any
+type Unmarshalers = Record<string, Unmarshaler>
+
+// scalarUnmarshalers is the read-side mirror of scalarMarshalers: a name→unmarshal map for
+// the declared params/search params whose GraphQL type is a custom scalar. Names without a
+// custom-scalar unmarshal function are omitted (built-ins and UI-only keys are left as-is).
+export function scalarUnmarshalers(
+	defs: ReadonlyArray<{ name: string; type?: string }> | undefined,
+	scalars: Record<string, { unmarshal?: Unmarshaler } | undefined> | undefined
+): Unmarshalers {
+	const out: Unmarshalers = {}
+	for (const def of defs ?? []) {
+		const unmarshal = def.type ? scalars?.[def.type]?.unmarshal : undefined
+		if (unmarshal) {
+			out[def.name] = unmarshal
+		}
+	}
+	return out
+}
+
+// decodeScalar recovers the marshaled value from the string the URL carries. marshalValue
+// wrote it with String(), which dropped the type, so we JSON.parse to get numbers, booleans
+// and null back, falling back to the raw string when it isn't valid JSON (e.g. a custom
+// scalar that marshals to a plain string). Consequence worth documenting: a value like
+// "true" or "123" always decodes to a boolean / number before it reaches unmarshal.
+function decodeScalar(value: string): unknown {
+	try {
+		return JSON.parse(value)
+	} catch {
+		return value
+	}
+}
+
+// unmarshalScalars turns the transport values a parsed query string carries back into rich
+// runtime values for every key that has a custom-scalar unmarshaler. Keys without one
+// (built-ins, UI-only keys) pass through untouched; List values are unmarshaled
+// element-wise. Used for both useLocation().search and the query variables the router feeds
+// back into marshalInputs, so a custom-scalar search param round-trips correctly. When
+// there's nothing to unmarshal the input object is returned as-is (no allocation).
+export function unmarshalScalars(
+	values: Record<string, any>,
+	unmarshalers: Unmarshalers
+): Record<string, any> {
+	if (Object.keys(unmarshalers).length === 0) {
+		return values
+	}
+	const out: Record<string, any> = { ...values }
+	for (const [key, unmarshal] of Object.entries(unmarshalers)) {
+		if (!(key in out) || out[key] == null) {
+			continue
+		}
+		const value = out[key]
+		out[key] = Array.isArray(value)
+			? value.map((entry) => unmarshal(decodeScalar(entry)))
+			: unmarshal(decodeScalar(value))
+	}
+	return out
+}
+
 // the per-route info buildHref needs to marshal: the declared param and search types.
 export type RouteHrefInfo = {
 	params?: ReadonlyArray<{ name: string; type?: string }>

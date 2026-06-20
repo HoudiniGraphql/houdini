@@ -61,6 +61,8 @@ The route's nullable query variables show up as typed keys, so a mistyped value 
 <Link to="/shows" search={{ tags: ['comedy', 'drama'] }}>Both</Link>
 ```
 
+A search param backed by a [custom scalar](~/guides/custom-scalars) is marshaled into the URL the same way a path param is, so a `DateTime` accepts a `Date` and serializes with your config's `marshal` function. On the read side, [`useLocation().search`](~/api-reference/useLocation) unmarshals it back to its runtime type (a `Date`). One caveat: because the URL is string-only, values are decoded with `JSON.parse` before unmarshaling, so a custom scalar whose value is `"true"` or `"123"` comes back as a boolean or number.
+
 These params aren't just decoration on the URL. They flow straight back into the route's query, and changing them re-runs it, so a `<Link>` that swaps `?genre=comedy` for `?genre=drama` refetches the page with the new filter. See [Search Params](~/loading-data/queries#search-params) for the data side of the story.
 
 `goto` works the same way for query strings as it does for paths; pass the whole URL, search string included:

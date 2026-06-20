@@ -32,6 +32,17 @@ export function Pager() {
 }
 ```
 
+### Custom scalars
+
+A declared search param backed by a [custom scalar](~/api/config#custom-scalars) is **unmarshaled** back to its runtime type — the inverse of how `<Link>` and `goto` marshal it into the URL. For example, with a `DateTime` scalar, `?after=1704067200000` comes back as a `Date`:
+
+```tsx
+const { search } = useLocation()
+search.after // -> Date
+```
+
+> One consequence to know: the URL carries values as strings, so they're decoded with `JSON.parse` before unmarshaling. A custom scalar whose value is `"true"` or `"123"` will therefore arrive as a boolean or number. If a scalar must stay a string, give it a `marshal`/`unmarshal` that preserves that.
+
 **Signature**
 
 ```ts
@@ -47,5 +58,5 @@ function useLocation(): {
 |---|---|---|
 | `pathname` | `string` | The current URL path (including the query string) |
 | `params` | `Record<string, string>` | The current route params (untyped) |
-| `search` | `Record<string, any>` | The parsed query string — declared search params coerced, other keys raw, repeated keys as arrays |
+| `search` | `Record<string, any>` | The parsed query string — declared search params coerced (and custom scalars unmarshaled), other keys raw, repeated keys as arrays |
 | `goto` | `Goto` | Navigate to a URL imperatively — accepts a string or a typed `{ to, params, search }` target |

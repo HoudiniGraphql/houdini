@@ -1,5 +1,12 @@
 import { describe, test, expect } from 'vitest'
-import { buildHref, resolveHref, scalarMarshalers, serializeSearch } from './resolve-href.js'
+import {
+	buildHref,
+	resolveHref,
+	scalarMarshalers,
+	scalarUnmarshalers,
+	serializeSearch,
+	unmarshalScalars,
+} from './resolve-href.js'
 
 describe('resolveHref', () => {
 	test('substitutes a regular param', () => {
@@ -147,5 +154,87 @@ describe('buildHref', () => {
 
 	test('an external href with no route info is returned untouched', () => {
 		expect(buildHref('https://example.com', undefined, scalars)).toBe('https://example.com')
+	})
+})
+
+describe('scalarUnmarshalers', () => {
+	const scalars = {
+		DateTime: { unmarshal: (v: number) => new Date(v) },
+		Plain: {},
+	}
+
+	test('builds a name→unmarshal map for declared custom scalars', () => {
+		const u = scalarUnmarshalers([{ name: 'until', type: 'DateTime' }], scalars)
+		expect(Object.keys(u)).toEqual(['until'])
+		expect(u.until(0)).toEqual(new Date(0))
+	})
+
+	test('omits built-ins and scalars without an unmarshal function', () => {
+		const u = scalarUnmarshalers(
+			[
+				{ name: 'page', type: 'Int' },
+				{ name: 'tag', type: 'Plain' },
+			],
+			scalars
+		)
+		expect(u).toEqual({})
+	})
+
+	test('tolerates missing defs and missing scalars', () => {
+		expect(scalarUnmarshalers(undefined, scalars)).toEqual({})
+		expect(scalarUnmarshalers([{ name: 'x', type: 'DateTime' }], undefined)).toEqual({})
+	})
+})
+
+describe('unmarshalScalars', () => {
+	const dateUnmarshalers = { until: (v: any) => new Date(v) }
+
+	test('decodes the url string and unmarshals a custom scalar', () => {
+		// the url carries DateTime in its marshaled (transport) form: the timestamp
+		const when = new Date('2024-01-01T00:00:00.000Z')
+		expect(unmarshalScalars({ until: String(when.getTime()) }, dateUnmarshalers)).toEqual({
+			until: when,
+		})
+	})
+
+	test('round-trips a value written by serializeSearch', () => {
+		const when = new Date('2024-06-20T12:00:00.000Z')
+		const query = serializeSearch({ until: when }, { until: (d: Date) => d.getTime() })
+		const value = new URLSearchParams(query).get('until')!
+		expect(unmarshalScalars({ until: value }, dateUnmarshalers)).toEqual({ until: when })
+	})
+
+	test('unmarshals List values element-wise', () => {
+		expect(unmarshalScalars({ until: ['0', '1000'] }, dateUnmarshalers)).toEqual({
+			until: [new Date(0), new Date(1000)],
+		})
+	})
+
+	test('leaves keys without an unmarshaler untouched (built-ins, UI-only)', () => {
+		expect(unmarshalScalars({ offset: 2, tab: 'reviews' }, dateUnmarshalers)).toEqual({
+			offset: 2,
+			tab: 'reviews',
+		})
+	})
+
+	test('skips absent and null values', () => {
+		expect(unmarshalScalars({ other: 'x' }, dateUnmarshalers)).toEqual({ other: 'x' })
+		expect(unmarshalScalars({ until: null }, dateUnmarshalers)).toEqual({ until: null })
+	})
+
+	test('returns the input untouched when there is nothing to unmarshal', () => {
+		const input = { offset: 2 }
+		expect(unmarshalScalars(input, {})).toBe(input)
+	})
+
+	// JSON.parse means a transport string that looks like a boolean/number is decoded as
+	// one before it reaches unmarshal — documented behavior, asserted here so it can't
+	// regress silently.
+	test('decodes "true"/"123" to boolean/number before unmarshal', () => {
+		const seen: unknown[] = []
+		const capture = { flag: (v: unknown) => (seen.push(v), v) }
+		unmarshalScalars({ flag: 'true' }, capture)
+		unmarshalScalars({ flag: '123' }, capture)
+		expect(seen).toEqual([true, 123])
 	})
 })

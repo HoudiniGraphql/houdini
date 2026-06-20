@@ -1,5 +1,5 @@
-query SearchParamsUsers($offset: Int, $limit: Int) {
-	usersList(offset: $offset, limit: $limit, snapshot: "search_params") {
+query SearchParamsUsers($offset: Int, $limit: Int, $after: DateTime) {
+	usersList(offset: $offset, limit: $limit, bornAfter: $after, snapshot: "search_params") {
 		id
 		name
 	}
