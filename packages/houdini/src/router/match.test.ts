@@ -207,6 +207,13 @@ describe('find_match search params', () => {
 		expect(match(page, '/search?tags=a&tags=b')).toEqual({ tags: ['a', 'b'] })
 	})
 
+	test('a single value for a List search param stays a one-element array', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'tags', type: 'String', wrappers: ['List', 'NonNull'] }],
+		})
+		expect(match(page, '/search?tags=a')).toEqual({ tags: ['a'] })
+	})
+
 	test('leaves an absent search param unset', () => {
 		const page = pageFor('/search', {
 			searchParams: [{ name: 'q', type: 'String', wrappers: [] }],

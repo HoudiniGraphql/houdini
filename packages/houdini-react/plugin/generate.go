@@ -592,7 +592,7 @@ export const on_render =
 			{ webStream: production, userAgent: 'Vite' }
 		)
 
-		injectToStream(` + "`" + `
+		injectToStream(`+"`"+`
 		<script>
 			window.__houdini__initial__cache__ = ${cache.serialize()};
 			window.__houdini__initial__session__ = ${JSON.stringify(session)};
@@ -601,7 +601,7 @@ export const on_render =
 		${documentPremable ?? ''}
 
 		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '" async=""></script>' : ''}
-	` + "`" + `)
+	`+"`"+`)
 
 		if (pipeTo && pipe) {
 			// route headers must be set on the underlying response before any of
@@ -839,6 +839,51 @@ func formatParamsType(params map[string]*ParamTypeInfo) string {
 		parts = append(parts, fmt.Sprintf("%s: string", k))
 	}
 	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// formatSearchParamsType renders a route's search params as a TypeScript object type
+// for the mock infrastructure. Every key is optional (search params always are), and a
+// List-wrapped param accepts an array. Built-in scalars map to their JS types; anything
+// else (including custom scalars) falls back to string.
+func formatSearchParamsType(searchParams map[string]*ParamTypeInfo) string {
+	if len(searchParams) == 0 {
+		return "{}"
+	}
+	var parts []string
+	for _, k := range sortedKeys(searchParams) {
+		info := searchParams[k]
+		ts := "string"
+		isList := false
+		if info != nil {
+			ts = scalarToTS(info.Type)
+			for _, w := range info.Wrappers {
+				if w == "List" {
+					isList = true
+					break
+				}
+			}
+		}
+		if isList {
+			ts = fmt.Sprintf("Array<%s>", ts)
+		}
+		parts = append(parts, fmt.Sprintf("%s?: %s", k, ts))
+	}
+	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// scalarToTS maps a built-in GraphQL scalar name to its JavaScript type. Custom scalars
+// serialize to the query string as strings, so they fall back to string here.
+func scalarToTS(gqlType string) string {
+	switch gqlType {
+	case "Int", "Float":
+		return "number"
+	case "Boolean":
+		return "boolean"
+	case "ID":
+		return "string | number"
+	default:
+		return "string"
+	}
 }
 
 // ---- component field helpers ----

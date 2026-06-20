@@ -70,6 +70,10 @@ describe('serializeSearch', () => {
 		expect(serializeSearch({ tags: ['a', 'b'] })).toBe('?tags=a&tags=b')
 	})
 
+	test('a single-element array still serializes as one key', () => {
+		expect(serializeSearch({ tags: ['a'] })).toBe('?tags=a')
+	})
+
 	test('skips null/undefined entries inside arrays', () => {
 		expect(serializeSearch({ tags: ['a', null, undefined, 'b'] })).toBe('?tags=a&tags=b')
 	})

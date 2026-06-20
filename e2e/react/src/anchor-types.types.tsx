@@ -1,7 +1,7 @@
-// Compile-time type assertions for <Link> prop typing.
+// Compile-time type assertions for <Link> and createMock prop typing.
 // Verified by `tsc --noEmit` — not a Playwright test.
 
-import { Link } from '$houdini'
+import { Link, createMock } from '$houdini'
 
 export {}
 
@@ -59,4 +59,56 @@ const _e5 =
 const _e7 =
     // @ts-expect-error -- params required for parameterized route
     <Link to="/route_params/[id]">Bad</Link>
+
+// ── search params ─────────────────────────────────────────────────────────────
+
+// valid: /search_params declares offset/limit as optional Int search params
+const _sp1 = <Link to="/search_params" search={{ offset: 2 }}>Page</Link>
+const _sp2 = <Link to="/search_params" search={{ offset: 1, limit: 3 }}>Page</Link>
+// search is always optional, so omitting it is fine
+const _sp3 = <Link to="/search_params">Page</Link>
+
+// wrong value type for a search param (offset is a number)
+const _spe1 =
+    // @ts-expect-error -- string is not assignable to the Int search param
+    <Link to="/search_params" search={{ offset: 'two' }}>Bad</Link>
+
+// unknown search key for a known route
+const _spe2 =
+    // @ts-expect-error -- genre is not a search param of /search_params
+    <Link to="/search_params" search={{ genre: 'comedy' }}>Bad</Link>
+
+// search on a route that declares none
+const _spe3 =
+    // @ts-expect-error -- /hello-world has no search params
+    <Link to="/hello-world" search={{ offset: 1 }}>Bad</Link>
+
+// ── createMock search typing ──────────────────────────────────────────────────
+
+// valid: typed search object on a route that declares search params
+const _cm1 = createMock({ url: '/search_params', search: { offset: 2 }, data: {} as any })
+
+// wrong value type
+const _cme1 = createMock({
+    url: '/search_params',
+    // @ts-expect-error -- offset must be a number
+    search: { offset: 'two' },
+    data: {} as any,
+})
+
+// unknown search key
+const _cme2 = createMock({
+    url: '/search_params',
+    // @ts-expect-error -- genre is not a search param of /search_params
+    search: { genre: 'comedy' },
+    data: {} as any,
+})
+
+// search on a route that declares none
+const _cme3 = createMock({
+    url: '/hello-world',
+    // @ts-expect-error -- /hello-world has no search params
+    search: { offset: 1 },
+    data: {} as any,
+})
 

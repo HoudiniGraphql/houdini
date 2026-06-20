@@ -263,7 +263,7 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 	var sb strings.Builder
 
 	sb.WriteString("import React from 'react'\n")
-	sb.WriteString("import { _createMock } from './testing'\n")
+	sb.WriteString("import { _createMock, buildMockPath } from './testing'\n")
 
 	// Collect unique query and mutation names across all pages.
 	// Both import $unmasked (fully-resolved server payload, fragments inlined, no masks) and $input.
@@ -310,8 +310,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 
 	if len(manifest.Pages) == 0 {
 		// No routes yet — simple stub so the file is still importable.
-		sb.WriteString("export function createMock({ url, params = {}, data }: { url: string; params?: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n")
-		sb.WriteString("\treturn _createMock({ url, params, data })\n")
+		sb.WriteString("export function createMock({ url, params = {}, search, data }: { url: string; params?: Record<string, string>; search?: Record<string, unknown>; data: Record<string, any> }): React.ComponentType<{}> {\n")
+		sb.WriteString("\treturn _createMock({ path: buildMockPath(url, params, search), data })\n")
 		sb.WriteString("}\n")
 		return sb.String(), nil
 	}
@@ -359,6 +359,30 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 		sb.WriteString("{ params?: never }\n\n")
 	}
 
+	// _RouteSearch maps each URL string with search params to its (all-optional)
+	// search object. Routes without search params fall through to `{ search?: never }`.
+	routeSearchIDs := []string{}
+	for _, id := range sortedKeys(manifest.Pages) {
+		if len(manifest.Pages[id].SearchParams) > 0 {
+			routeSearchIDs = append(routeSearchIDs, id)
+		}
+	}
+	if len(routeSearchIDs) > 0 {
+		sb.WriteString("type _RouteSearch = {\n")
+		for _, id := range routeSearchIDs {
+			page := manifest.Pages[id]
+			cleanURL := stripRouteGroups(page.URL)
+			sb.WriteString(fmt.Sprintf("\t%q: %s\n", cleanURL, formatSearchParamsType(page.SearchParams)))
+		}
+		sb.WriteString("}\n")
+	}
+	sb.WriteString("type _SearchForRoute<H extends string> = ")
+	if len(routeSearchIDs) > 0 {
+		sb.WriteString("H extends keyof _RouteSearch ? { search?: _RouteSearch[H] } : { search?: never }\n\n")
+	} else {
+		sb.WriteString("{ search?: never }\n\n")
+	}
+
 	// RouteHrefs is the union of all known route URL strings.
 	hrefs := make([]string, 0, len(manifest.Pages))
 	for _, id := range sortedKeys(manifest.Pages) {
@@ -376,8 +400,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 	sb.WriteString("}\n")
 	sb.WriteString("type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n")
 
-	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n")
-	sb.WriteString("\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n")
+	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H> & _SearchForRoute<H>): React.ComponentType<{}> {\n")
+	sb.WriteString("\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n")
 	sb.WriteString("}\n")
 
 	return sb.String(), nil
