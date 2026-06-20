@@ -44,6 +44,17 @@ test('useRoute().location.search exposes the parsed query string', async ({ page
 	await expect_to_be(page, '{"offset":2,"tab":"reviews"}', '#search')
 })
 
+// the unmarshal happens in the Router body, which runs during SSR too — so a cold load
+// (server render) with a custom-scalar search param in the url must produce the same Date
+test('search params unmarshal on a direct (SSR) load', async ({ page }) => {
+	await goto(page, '/search_params?after=1704067200000')
+
+	await expect_to_be(page, 'Date', '#after-type')
+	await expect_to_be(page, '2024-01-01T00:00:00.000Z', '#after-iso')
+	// the query ran on the server with the marshaled variable, without crashing
+	await expect_to_be(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks')
+})
+
 // a custom scalar (DateTime) marshals into the url on write, is sent to the API in that
 // same marshaled form, and unmarshals back to a Date when read via useRoute().location.search —
 // verified through both <Link> and goto. The marshaled form is getTime() ms:

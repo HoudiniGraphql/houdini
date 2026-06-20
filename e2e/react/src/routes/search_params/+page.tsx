@@ -14,6 +14,7 @@ export default function ({ SearchParamsUsers }: PageProps) {
 	const {
 		location: { search, goto },
 	} = useRoute<PageRoute>()
+
 	return (
 		<div>
 			<div className="flex flex-row gap-12">

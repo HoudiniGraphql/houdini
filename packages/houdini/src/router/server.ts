@@ -95,11 +95,14 @@ export function _serverHandler<ComponentType = unknown>({
 			)
 		}
 
-		// pull out the desired url
-		const url = new URL(request.url).pathname
+		// pull out the desired url. keep the query string so search params survive into
+		// find_match and the server-rendered initialURL; match the graphql endpoint on the
+		// pathname alone.
+		const parsedURL = new URL(request.url)
+		const url = parsedURL.pathname + parsedURL.search
 
 		// if its a request we can process with yoga, do it.
-		if (requestHandler && url === graphqlEndpoint) {
+		if (requestHandler && parsedURL.pathname === graphqlEndpoint) {
 			return requestHandler(request, ...extraContext)
 		}
 
