@@ -255,28 +255,9 @@ user.refresh()
 Unlike `markStale` (which waits for the next fetch to reload the data), `refresh`
 triggers the network requests immediately.
 
-### Refreshing from a mutation response
-
-If a mutation already returns the record that changed, you can skip the imperative
-call and tag the field with `@refetch`. Once the response is written to the cache,
-every document that depends on that record refetches itself over the network —
-the same behavior as calling `refresh()` on it:
-
-```graphql
-mutation FavoriteBook($id: ID!) {
-	favoriteBook(id: $id) {
-		book @refetch {
-			id
-		}
-	}
-}
-```
-
-`@refetch` goes on the field that returns the record (not on its `id`), so Houdini
-knows which record to reload. It can be used in a mutation or subscription, on any
-field that returns a keyable object — including a list of them, in which case every
-record in the list is refreshed. It cannot be combined with `@list` or `@paginate`,
-which have their own cache machinery.
+If a mutation or subscription already returns the record that changed, you can get
+this same behavior declaratively by tagging the field with `@refetch` instead of
+calling `refresh()` yourself — see [Refetching Changed Data](~/updating-data/mutations#refetching-changed-data).
 
 ## Lists
 

@@ -1,0 +1,24 @@
+Almost always, you are best off including the changed fields as part of your mutation,
+either explicitly or by using the fragments from your various components. Doing this saves
+any additional network requests and produces the fastest experience. However, this isn't
+always possible and can sometimes be unwieldy. In those situations, you can leverage the
+`@refetch` directive to tell Houdini to look for the queries (and subscriptions) in your
+application that depend on the returned entity and cause them to refetch.
+
+```graphql
+mutation FavoriteBook($id: ID!) {
+	favoriteBook(id: $id) {
+		book @refetch {
+			id
+		}
+	}
+}
+```
+
+A few things to keep in mind:
+
+- `@refetch` goes on the field that **returns the entity**, not on its `id` — that's how
+  Houdini knows which record changed.
+- It also works on a field that returns a **list** of entities, in which case every record
+  in the list is refreshed.
+- It can't be combined with `@list` or `@paginate`, which already keep their data in sync.
