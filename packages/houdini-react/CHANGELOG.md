@@ -1,5 +1,16 @@
 # houdini-react
 
+## 2.0.0-next.43
+
+### Minor Changes
+
+- [#1685](https://github.com/HoudiniGraphql/houdini/pull/1685) [`cc47a1a`](https://github.com/HoudiniGraphql/houdini/commit/cc47a1ad7fbc1d8d7e7effc0d8935af80054e707) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Pages and layouts can now export a `headers()` function to set HTTP response headers for a route. Headers from the page and its layout chain are merged before streaming, with the page taking precedence over its layouts.
+
+### Patch Changes
+
+- Updated dependencies [[`cc47a1a`](https://github.com/HoudiniGraphql/houdini/commit/cc47a1ad7fbc1d8d7e7effc0d8935af80054e707)]:
+  - houdini@2.0.0-next.43
+
 ## 2.0.0-next.42
 
 ### Minor Changes

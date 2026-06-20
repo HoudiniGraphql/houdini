@@ -85,6 +85,7 @@
     "publish-wasm-packages",
     "react-routing-errors",
     "refresh-cache-record",
+    "route-response-headers",
     "session-transform-ts-annotations",
     "shaky-ads-smell",
     "sharp-banks-check",
