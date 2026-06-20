@@ -44,6 +44,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateMaskDirectives,
 		documents.ValidateLoadingDirective,
 		documents.ValidateRequiredDirective,
+		documents.ValidatePluralDirective,
 		documents.ValidateOptimisticKeyFullSelection,
 		documents.ValidateOptimisticKeyOnScalar,
 		documents.ValidateRefetchDirective,

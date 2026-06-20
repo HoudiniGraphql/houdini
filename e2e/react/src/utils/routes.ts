@@ -35,4 +35,9 @@ export const routes = {
 	routing_errors_static_404: '/routing-errors/does-not-exist',
 	error_loop: '/error-loop/doesnt-exist',
 	response_headers: '/response-headers',
+	plural_fragment: '/plural-fragment',
+	plural_fragment_rebind: '/plural-fragment-rebind',
+	plural_fragment_guard: '/plural-fragment-guard',
+	plural_fragment_args: '/plural-fragment-args',
+	plural_fragment_empty: '/plural-fragment-empty',
 } as const

@@ -105,6 +105,46 @@ query AllUsers {
 
 For paginated fragments, see the [Pagination](~/loading-data/pagination) guide.
 
+## Plural Fragments
+
+A fragment usually describes a single record, so `fragment` hands back a store of one object. When the fragment is spread on a list field, though, the parent gives us an array of references instead. Wiring up a store for each item by hand gets tedious fast.
+
+The `@plural` directive marks a fragment as list shaped. The reference becomes an array and the resulting store holds an array of data, so one component can render the whole list:
+
+```svelte
+<script>
+	import { fragment, graphql } from '$houdini'
+	import type { UserListRow } from '$houdini'
+
+	let { users }: { users: UserListRow } = $props()
+
+	const data = $derived(fragment(users, graphql(`
+		fragment UserListRow on User @plural {
+			id
+			name
+		}
+	`)))
+</script>
+
+<ul>
+	{#each $data as user}
+		<li>{user.name}</li>
+	{/each}
+</ul>
+```
+
+The parent spreads the fragment inside the list field and passes the whole list down:
+
+```graphql
+query AllUsers {
+	users {
+		...UserListRow
+	}
+}
+```
+
+A `@plural` fragment has to be spread on a list field, since that's the only place the array of references can come from. Spreading it anywhere else is a codegen error.
+
 ## Fragment Masking
 
 Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.

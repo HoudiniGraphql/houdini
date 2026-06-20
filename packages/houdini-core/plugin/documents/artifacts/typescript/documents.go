@@ -280,6 +280,20 @@ func generateFragmentTypes(
 ) []string {
 	var types []string
 
+	// gather the document-level directive flags in a single pass. @plural marks the
+	// fragment as list-shaped (spread on a list field, consumed as an array); a
+	// document-level @loading shapes the value while it loads.
+	pluralFragment := false
+	documentLoading := false
+	for _, directive := range doc.Directives {
+		switch directive.Name {
+		case graphql.PluralDirective:
+			pluralFragment = true
+		case graphql.LoadingDirective:
+			documentLoading = true
+		}
+	}
+
 	// Generate fragment input type
 	inputTypeName := fmt.Sprintf("%s$input", doc.Name)
 	if len(doc.Variables) > 0 {
@@ -310,14 +324,20 @@ func generateFragmentTypes(
 		types = append(types, fmt.Sprintf("export type %s = never;", inputTypeName))
 	}
 
-	// Generate main fragment type
+	// Generate main fragment type. @plural fragments are spread on a list field and
+	// consumed as an array, so the reference type is wrapped in ReadonlyArray (the
+	// $data type below stays the single-item shape).
 	dataTypeName := fmt.Sprintf("%s$data", doc.Name)
-	mainType := fmt.Sprintf(`export type %s = {
+	referenceShape := fmt.Sprintf(`{
 	readonly "shape"?: %s;
 	readonly " $fragments": {
 		"%s": any;
 	};
-};`, doc.Name, dataTypeName, doc.Name)
+}`, dataTypeName, doc.Name)
+	if pluralFragment {
+		referenceShape = fmt.Sprintf("ReadonlyArray<%s>", referenceShape)
+	}
+	mainType := fmt.Sprintf("export type %s = %s;", doc.Name, referenceShape)
 	types = append(types, mainType)
 
 	// Generate fragment data type (with single indentation for fragments)
@@ -332,7 +352,7 @@ func generateFragmentTypes(
 			collectedDocs,
 			false,
 		)
-		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
+		hasGlobalLoading := documentLoading && !hasAnyLoadingDirectives(doc.Selections)
 		loadingType, _ := generateLoadingStateType(
 			ctx,
 			doc.Selections,

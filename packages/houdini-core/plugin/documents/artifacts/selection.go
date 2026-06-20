@@ -141,11 +141,19 @@ func GenerateSelectionDocument(
 	// dedupe config
 	dedupe := ""
 
+	// @plural marks a fragment as list-shaped (consumed as an array of items)
+	pluralValue := ""
+
 	// we need to compute the cache policy for the document
 	cachePolicy := projectConfig.DefaultCachePolicy
 	partial := projectConfig.DefaultPartial
 	for _, directive := range doc.Directives {
 		switch directive.Name {
+		case graphql.PluralDirective:
+			pluralValue = `
+
+    "plural": true,`
+
 		case graphql.DedupeDirective:
 			cancel := "last"
 			match := "Variables"
@@ -474,7 +482,7 @@ const artifact = {
 
     "selection": %s,%s
 
-    "pluginData": %s,%s%s%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s%s%s
 } as const
 
 export default artifact
@@ -495,6 +503,7 @@ export default artifact
 		string(marshaledData),
 		componentFields,
 		dedupe,
+		pluralValue,
 		inputTypes,
 		loadingValue,
 		policyValue,

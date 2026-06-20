@@ -15,6 +15,23 @@ type AnyFragmentStoreFor<_Data extends GraphQLObject> =
 	| FragmentStore<_Data, {}>
 	| BasePaginatedFragmentStore<_Data, any, any>
 
+// @plural fragment overloads: the reference is a list of fragment references and the
+// resulting store holds an array of data (one entry per item in the list).
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment>,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment> | null | undefined,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
+
 // function overloads meant to only return a nullable value
 // if the reference type was nullable.
 // _Data is inferred from the store so that the return type is correct even when
@@ -35,7 +52,7 @@ export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment
 	artifact: FragmentArtifact
 }
 export function fragment<_Data extends GraphQLObject>(
-	ref: Fragment<_Data> | null | undefined,
+	ref: Fragment<_Data> | ReadonlyArray<Fragment<_Data>> | null | undefined,
 	store: FragmentStore<_Data, {}>
 ) {
 	// make sure we got a query document
@@ -43,7 +60,8 @@ export function fragment<_Data extends GraphQLObject>(
 		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)
 	}
 
-	// load the fragment store for the value
+	// store.get() handles both a single reference and a list of references (for @plural
+	// fragments), and throws if a list is passed to a non-plural fragment.
 	// @ts-expect-error: ref is Fragment<_Data> but store.get() expects _Data | { [fragmentKey]: _ReferenceType };
 	// Fragment<_Data> structurally satisfies the { [fragmentKey]: _ReferenceType } branch at runtime.
 	const fragmentStore = store.get(ref)
