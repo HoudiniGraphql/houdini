@@ -600,6 +600,18 @@ func (pb *PathBuilder) Current() []string {
 	return result
 }
 
+// FieldPath returns the response path ending at the given field, making sure the
+// field's own alias is the final segment. inline fragments invoke
+// stringifyFieldSelection without pushing the field onto the builder, so we append
+// it when it isn't already there. shared by @refetch and pagination (@list/@paginate).
+func (pb *PathBuilder) FieldPath(selection *collected.Selection) []string {
+	current := pb.Current()
+	if len(current) == 0 || current[len(current)-1] != *selection.Alias {
+		current = append(current, *selection.Alias)
+	}
+	return current
+}
+
 // Len returns the current path depth
 func (pb *PathBuilder) Len() int {
 	return len(pb.path)
@@ -1025,7 +1037,7 @@ func stringifyFieldSelection(
 			flags.RootOperations = append(flags.RootOperations, RootOperation{
 				Action: "refetch",
 				Type:   selection.FieldType,
-				Path:   pathBuilder.Current(),
+				Path:   pathBuilder.FieldPath(selection),
 			})
 			break
 		}
@@ -1053,17 +1065,8 @@ func stringifyFieldSelection(
 		// @paginate always wins over @list when both appear in the same document
 		if flags.Refetch == nil || selection.List.Paginated {
 			// use the computed path for list operations (both paginated and non-paginated)
-			currentPath := pathBuilder.Current()
-
-			// For list fields (both @list and @paginate), ensure the field is included in the path
-			// This handles cases where fragments don't include the field in the path
-			fullPath := currentPath
-			if len(currentPath) == 0 || currentPath[len(currentPath)-1] != *selection.Alias {
-				fullPath = append(currentPath, *selection.Alias)
-			}
-
 			flags.Refetch = &RefetchSpec{
-				Path:       fullPath,
+				Path:       pathBuilder.FieldPath(selection),
 				Paginated:  selection.List.Paginated,
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
