@@ -40,4 +40,5 @@ export const routes = {
 	plural_fragment_guard: '/plural-fragment-guard',
 	plural_fragment_args: '/plural-fragment-args',
 	plural_fragment_empty: '/plural-fragment-empty',
+	search_params: '/search_params',
 } as const

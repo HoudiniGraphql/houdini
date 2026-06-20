@@ -51,7 +51,7 @@ export function Router({
 }) {
 	// the current route is just a string in state.
 	const [currentURL, setCurrentURL] = React.useState(() => {
-		return initialURL || window.location.pathname
+		return initialURL || window.location.pathname + window.location.search
 	})
 
 	// find the matching page for the current route
@@ -88,7 +88,7 @@ export function Router({
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (globalThis.window && window.location.pathname !== currentURL) {
+		if (globalThis.window && window.location.pathname + window.location.search !== currentURL) {
 			window.history.pushState({}, '', currentURL)
 		}
 	}, [currentURL])
@@ -99,7 +99,7 @@ export function Router({
 			return
 		}
 		const onChange = (_evt: PopStateEvent) => {
-			setCurrentURL(window.location.pathname)
+			setCurrentURL(window.location.pathname + window.location.search)
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {

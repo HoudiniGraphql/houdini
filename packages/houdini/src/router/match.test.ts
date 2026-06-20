@@ -158,3 +158,74 @@ describe('find_match parse and match', async () => {
 		})
 	}
 })
+
+describe('find_match search params', () => {
+	const config = testConfigFile()
+
+	function pageFor(
+		url: string,
+		extra: {
+			documents?: RouterManifest<any>['pages'][string]['documents']
+			searchParams?: RouterManifest<any>['pages'][string]['searchParams']
+		} = {}
+	): RouterManifest<any>['pages'][string] {
+		const parsed = parse_page_pattern(url)
+		return {
+			id: url,
+			url,
+			pattern: parsed.pattern,
+			params: parsed.params,
+			searchParams: extra.searchParams ?? [],
+			documents: extra.documents ?? {},
+			component: () => Promise.resolve({ default: (() => null) as any }),
+		}
+	}
+
+	function match(page: RouterManifest<any>['pages'][string], current: string) {
+		const [, variables] = find_match(config, { pages: { [page.id]: page } }, current)
+		return variables
+	}
+
+	test('fills a nullable scalar search param', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'q', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/search?q=hello')).toEqual({ q: 'hello' })
+	})
+
+	test('coerces a search param to its scalar type', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'page', type: 'Int', wrappers: [] }],
+		})
+		expect(match(page, '/search?page=2')).toEqual({ page: 2 })
+	})
+
+	test('expands a List search param from repeated keys', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'tags', type: 'String', wrappers: ['List', 'NonNull'] }],
+		})
+		expect(match(page, '/search?tags=a&tags=b')).toEqual({ tags: ['a', 'b'] })
+	})
+
+	test('leaves an absent search param unset', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'q', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/search')).toEqual({})
+	})
+
+	test('combines route params and search params', () => {
+		const page = pageFor('/user/[id]', {
+			documents: { Q: { artifact: null as any, loading: false, variables: { id: { type: 'ID' } } } },
+			searchParams: [{ name: 'ref', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/user/42?ref=abc')).toEqual({ id: '42', ref: 'abc' })
+	})
+
+	test('a route param wins over a same-named search param', () => {
+		const page = pageFor('/user/[id]', {
+			searchParams: [{ name: 'id', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/user/42?id=99')).toEqual({ id: '42' })
+	})
+})

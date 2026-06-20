@@ -6,7 +6,8 @@ import type { RouterManifest, RouterPageManifest } from './types.js'
  */
 const param_pattern = /^(\[)?(\.\.\.)?(\w+)(?:=(\w+))?(\])?$/
 
-type GraphQLVariables = Record<string, string | number | boolean | null> | null
+type GraphQLScalar = string | number | boolean | null
+type GraphQLVariables = Record<string, GraphQLScalar | GraphQLScalar[]> | null
 type ValueOf<T> = T extends Record<string, infer U> ? U : never
 
 export type RouteParam = {
@@ -29,7 +30,9 @@ export function find_prefix_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	url: string
 ): RouterPageManifest<_ComponentType> | null {
-	const urlSegments = url.split('/').filter(Boolean)
+	// the prefix logic operates on path segments, so drop any query string first
+	const path = url.split('?')[0]
+	const urlSegments = path.split('/').filter(Boolean)
 	let best: RouterPageManifest<_ComponentType> | null = null
 	let bestCount = -1
 
@@ -81,13 +84,19 @@ export function find_match<_ComponentType>(
 	current: string,
 	allowNull: boolean = true
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables] {
+	// the patterns only describe the path, so split the query string off before
+	// matching and keep it around to populate search params below
+	const queryIndex = current.indexOf('?')
+	const path = queryIndex === -1 ? current : current.slice(0, queryIndex)
+	const search = queryIndex === -1 ? '' : current.slice(queryIndex + 1)
+
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
 	let matchVariables: GraphQLVariables = null
 
 	for (const page of Object.values(manifest.pages)) {
 		// check if the current url matches
-		const urlMatch = current.match(page.pattern)
+		const urlMatch = path.match(page.pattern)
 		if (!urlMatch) {
 			continue
 		}
@@ -117,6 +126,33 @@ export function find_match<_ComponentType>(
 					type,
 					matchVariables[variable] as string
 				) as ValueOf<GraphQLVariables>
+			}
+		}
+	}
+
+	// fill any nullable search params the matched page declares from the query
+	// string. a route param of the same name always wins, so we only touch
+	// variables that the path didn't already provide. missing params are simply
+	// left unset (they're nullable), so this can never make a query fail.
+	if (match && search) {
+		const searchParams = new URLSearchParams(search)
+		for (const { name, type, wrappers } of match.searchParams) {
+			if (variables[name] != null) {
+				continue
+			}
+			if (wrappers.includes('List')) {
+				const raw = searchParams.getAll(name)
+				if (raw.length === 0) {
+					continue
+				}
+				variables[name] = raw
+					.map((value) => parseScalar(config, type, value))
+					.filter((value): value is Exclude<GraphQLScalar, null> => value !== undefined)
+			} else if (searchParams.has(name)) {
+				const parsed = parseScalar(config, type, searchParams.get(name) ?? undefined)
+				if (parsed !== undefined) {
+					variables[name] = parsed
+				}
 			}
 		}
 	}

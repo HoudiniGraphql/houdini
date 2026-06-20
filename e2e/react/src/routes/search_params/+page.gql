@@ -1,0 +1,6 @@
+query SearchParamsUsers($offset: Int, $limit: Int) {
+	usersList(offset: $offset, limit: $limit, snapshot: "search_params") {
+		id
+		name
+	}
+}
