@@ -180,16 +180,16 @@ func PrepareRefetchableDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer copyArgumentValue.Finalize()
-	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists
-			(name, node_type, connection_type, document, connection, list_field, paginate, node, page_size, mode, embedded, target_type, supports_forward, supports_backward)
+	insertRefetchMeta, err := conn.Prepare(`
+		INSERT INTO refetch_meta
+			(document, selection, target_type)
 		VALUES
-			($name, $node_type, $connection_type, $document, false, $list_field, NULL, $node, 0, 'Infinite', false, $target_type, false, false)
+			($document, $selection, $target_type)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
-	defer insertDiscoveredLists.Finalize()
+	defer insertRefetchMeta.Finalize()
 
 	// collect the matching fragments first so we don't generate while iterating.
 	fragments := []refetchableFragment{}
@@ -251,7 +251,7 @@ func PrepareRefetchableDocuments(
 			insertSelectionDirective:         insertSelectionDirective,
 			insertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
 			copyArgumentValue:                copyArgumentValue,
-			insertDiscoveredLists:            insertDiscoveredLists,
+			insertRefetchMeta:                insertRefetchMeta,
 		}, frag, args)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -276,7 +276,7 @@ type statementsForRefetch struct {
 	insertSelectionDirective         plugins.Stmt
 	insertSelectionDirectiveArgument plugins.Stmt
 	copyArgumentValue                plugins.Stmt
-	insertDiscoveredLists            plugins.Stmt
+	insertRefetchMeta                plugins.Stmt
 }
 
 func generateRefetchableQuery(
@@ -450,17 +450,14 @@ func generateRefetchableQuery(
 		targetType = frag.TypeCondition
 	}
 
-	// record a discovered_lists row for the generated query so the artifact emits a
-	// "refetch" block (paginated: false). an empty name keeps it out of the list
-	// machinery — it carries refetch metadata only.
-	err = db.ExecStatement(stmts.insertDiscoveredLists, map[string]any{
-		"name":            "",
-		"node_type":       frag.TypeCondition,
-		"connection_type": frag.TypeCondition,
-		"document":        queryDocumentID,
-		"list_field":      resolveSelectionID,
-		"node":            resolveSelectionID,
-		"target_type":     targetType,
+	// record a refetch_meta row for the generated query so the artifact emits a
+	// "refetch" block (paginated: false). this is the list-less analog of a
+	// discovered_lists row — it carries refetch metadata only, keyed by the
+	// node(id:)/resolve selection the block attaches to.
+	err = db.ExecStatement(stmts.insertRefetchMeta, map[string]any{
+		"document":    queryDocumentID,
+		"selection":   resolveSelectionID,
+		"target_type": targetType,
 	})
 	if err != nil {
 		return err
