@@ -117,7 +117,7 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// find the matching url; fall back to the deepest prefix match so that
 		// 404 pages render inside the correct layout chain
-		const [exactMatch] = find_match(config_file, manifest, url)
+		const [exactMatch] = find_match(manifest, url)
 		const is404 = !exactMatch
 		const match = exactMatch ?? find_prefix_match(manifest, url)
 

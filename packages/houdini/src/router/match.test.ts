@@ -1,6 +1,5 @@
 import { test, expect, describe } from 'vitest'
 
-import { testConfigFile } from '../test/index.js'
 import { exec, find_match, parse_page_pattern } from './match.js'
 import type { RouterManifest } from './types.js'
 
@@ -150,18 +149,14 @@ describe('find_match parse and match', async () => {
 				),
 			}
 
-			const configFile = testConfigFile()
-
 			// find the match
-			const [match] = find_match(configFile, manifest, expected)
+			const [match] = find_match(manifest, expected)
 			expect(match?.id).toEqual(expected)
 		})
 	}
 })
 
 describe('find_match search params', () => {
-	const config = testConfigFile()
-
 	function pageFor(
 		url: string,
 		extra: {
@@ -182,7 +177,7 @@ describe('find_match search params', () => {
 	}
 
 	function match(page: RouterManifest<any>['pages'][string], current: string) {
-		const [, variables] = find_match(config, { pages: { [page.id]: page } }, current)
+		const [, variables] = find_match({ pages: { [page.id]: page } }, current)
 		return variables
 	}
 

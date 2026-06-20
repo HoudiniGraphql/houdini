@@ -569,17 +569,44 @@ func routeRelPath(dbFilepath, projectRoot, routesDir string) string {
 	return toSlash(rel)
 }
 
-// buildParams extracts [param] segments from url and maps them to their types.
+// routeSegmentParams extracts the param names declared by the dynamic segments of a
+// route path (either a URL like "/shows/[id]" or a filepath under src/routes). It
+// understands the supported segment forms — [id], [[optional]], and [...rest] — and
+// normalizes each to the bare variable name.
+//
+// This is the single place the routing convention is decoded. Keeping it here means a
+// new convention (or a different router) can be supported by changing one function
+// rather than every consumer that needs to know which variables a route fills.
+func routeSegmentParams(path string) []string {
+	var names []string
+	for _, part := range strings.Split(path, "/") {
+		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
+			name := strings.Trim(part, "[]")
+			name = strings.TrimPrefix(name, "...")
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// routeParamSet is routeSegmentParams as a lookup set.
+func routeParamSet(path string) map[string]bool {
+	names := map[string]bool{}
+	for _, name := range routeSegmentParams(path) {
+		names[name] = true
+	}
+	return names
+}
+
+// buildParams maps a route's dynamic segments to the types of the variables they fill.
+// A segment with no matching variable maps to nil (an unconstrained param).
 func buildParams(url string, variables map[string]VariableTypeInfo) map[string]*ParamTypeInfo {
 	params := map[string]*ParamTypeInfo{}
-	for _, part := range strings.Split(url, "/") {
-		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			name := part[1 : len(part)-1]
-			if info, ok := variables[name]; ok {
-				params[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
-			} else {
-				params[name] = nil
-			}
+	for _, name := range routeSegmentParams(url) {
+		if info, ok := variables[name]; ok {
+			params[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
+		} else {
+			params[name] = nil
 		}
 	}
 	return params
@@ -590,15 +617,7 @@ func buildParams(url string, variables map[string]VariableTypeInfo) map[string]*
 // route segment. Required (NonNull) variables are excluded so that a missing
 // search param can never produce a failing query (issue #1210).
 func buildSearchParams(url string, variables map[string]VariableTypeInfo) map[string]*ParamTypeInfo {
-	// collect the names already claimed by route segments ([id], [[opt]], [...rest])
-	routeNames := map[string]bool{}
-	for _, part := range strings.Split(url, "/") {
-		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			name := strings.Trim(part, "[]")
-			name = strings.TrimPrefix(name, "...")
-			routeNames[name] = true
-		}
-	}
+	routeNames := routeParamSet(url)
 
 	searchParams := map[string]*ParamTypeInfo{}
 	for name, info := range variables {

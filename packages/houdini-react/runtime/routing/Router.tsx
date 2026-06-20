@@ -12,6 +12,8 @@ import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
 
+import { buildHref } from '../resolve-href.js'
+import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
@@ -55,7 +57,7 @@ export function Router({
 	})
 
 	// find the matching page for the current route
-	const [page, variables] = find_match(configFile, manifest, currentURL)
+	const [page, variables] = find_match(manifest, currentURL)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -107,8 +109,24 @@ export function Router({
 		}
 	}, [])
 
-	// the function to call to navigate to a url
-	const goto = (url: string) => {
+	// the function to call to navigate. accepts either a ready-made url string or a
+	// typed target { to, params, search } that is assembled (and custom scalars
+	// marshaled) exactly the way <Link> builds its href. The typed surface is the
+	// shared Goto contract; the implementation takes the loose runtime shape.
+	const goto = ((
+		target: string | { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
+	) => {
+		const url =
+			typeof target === 'string'
+				? target
+				: buildHref(
+						target.to,
+						Object.values(manifest.pages).find((p) => p.url === target.to),
+						getCurrentConfig()?.scalars,
+						target.params,
+						target.search
+					)
+
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()
 		// clear pending signals so the next render starts fresh load_query calls
@@ -116,7 +134,7 @@ export function Router({
 
 		// perform the navigation
 		setCurrentURL(url)
-	}
+	}) as Goto
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
@@ -125,7 +143,7 @@ export function Router({
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
-			const [page, variables] = find_match(configFile, manifest, url)
+			const [page, variables] = find_match(manifest, url)
 			if (!page) {
 				return
 			}
@@ -642,7 +660,7 @@ const LocationContext = React.createContext<{
 	pathname: string
 	params: Record<string, any>
 	// a function to imperatively navigate to a url
-	goto: (url: string) => void
+	goto: Goto
 }>({
 	pathname: '',
 	params: {},
@@ -686,7 +704,7 @@ function useLinkBehavior({
 	goto,
 	preload,
 }: {
-	goto: (url: string) => void
+	goto: Goto
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
 	// always use the click handler
@@ -702,7 +720,7 @@ function useLinkBehavior({
 	}
 }
 
-function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
+function useLinkNavigation({ goto }: { goto: Goto }) {
 	// navigations need to be registered as transitions
 	const [_pending, startTransition] = React.useTransition()
 

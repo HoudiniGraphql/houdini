@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { resolveHref, serializeSearch } from './resolve-href.js'
+import { buildHref, resolveHref, scalarMarshalers, serializeSearch } from './resolve-href.js'
 
 describe('resolveHref', () => {
 	test('substitutes a regular param', () => {
@@ -80,5 +80,72 @@ describe('serializeSearch', () => {
 
 	test('encodes reserved characters', () => {
 		expect(serializeSearch({ q: 'a b&c' })).toBe('?q=a+b%26c')
+	})
+
+	test('marshals a custom-scalar value into its transport form', () => {
+		const when = new Date('2024-01-01T00:00:00.000Z')
+		const marshalers = { when: (d: Date) => d.getTime() }
+		expect(serializeSearch({ when }, marshalers)).toBe(`?when=${when.getTime()}`)
+	})
+
+	test('marshals each entry of a list-valued custom scalar', () => {
+		const a = new Date('2024-01-01T00:00:00.000Z')
+		const b = new Date('2024-02-01T00:00:00.000Z')
+		const marshalers = { on: (d: Date) => d.getTime() }
+		expect(serializeSearch({ on: [a, b] }, marshalers)).toBe(`?on=${a.getTime()}&on=${b.getTime()}`)
+	})
+})
+
+describe('scalarMarshalers', () => {
+	const scalars = {
+		DateTime: { marshal: (d: Date) => d.getTime() },
+		// a scalar configured without a marshal function
+		Plain: {},
+	}
+
+	test('maps a param name to the marshal fn of its custom scalar', () => {
+		const m = scalarMarshalers([{ name: 'when', type: 'DateTime' }], scalars)
+		expect(typeof m.when).toBe('function')
+		expect(m.when(new Date('2024-01-01T00:00:00.000Z'))).toBe(1704067200000)
+	})
+
+	test('omits names whose type has no marshal (built-ins, unconfigured scalars)', () => {
+		const m = scalarMarshalers(
+			[
+				{ name: 'page', type: 'Int' },
+				{ name: 'tag', type: 'Plain' },
+			],
+			scalars
+		)
+		expect(m).toEqual({})
+	})
+
+	test('tolerates missing defs and missing scalars', () => {
+		expect(scalarMarshalers(undefined, scalars)).toEqual({})
+		expect(scalarMarshalers([{ name: 'x', type: 'DateTime' }], undefined)).toEqual({})
+	})
+})
+
+describe('buildHref', () => {
+	const scalars = { DateTime: { marshal: (d: Date) => d.getTime() } }
+
+	test('fills path params and appends search', () => {
+		const route = { params: [{ name: 'id', type: 'ID' }], searchParams: [{ name: 'q', type: 'String' }] }
+		expect(buildHref('/users/[id]', route, scalars, { id: '1' }, { q: 'hi' })).toBe('/users/1?q=hi')
+	})
+
+	test('marshals custom scalars in both params and search', () => {
+		const when = new Date('2024-01-01T00:00:00.000Z')
+		const route = {
+			params: [{ name: 'day', type: 'DateTime' }],
+			searchParams: [{ name: 'until', type: 'DateTime' }],
+		}
+		expect(buildHref('/cal/[day]', route, scalars, { day: when }, { until: when })).toBe(
+			`/cal/${when.getTime()}?until=${when.getTime()}`
+		)
+	})
+
+	test('an external href with no route info is returned untouched', () => {
+		expect(buildHref('https://example.com', undefined, scalars)).toBe('https://example.com')
 	})
 })

@@ -609,6 +609,18 @@ func TestInjectComponentFieldArtifactTypes(t *testing.T) {
 	})
 }
 
+// tsTypeManifest is the shared _TSType resolver emitted into manifest.ts after the
+// RouteScalars map (see tsTypeResolver in runtime.go). Begins with a blank line.
+const tsTypeManifest = "\nexport type _TSType<T extends string> = T extends keyof RouteScalars\n" +
+	"\t? RouteScalars[T]\n" +
+	"\t: T extends 'Int' | 'Float'\n" +
+	"\t\t? number\n" +
+	"\t\t: T extends 'ID'\n" +
+	"\t\t\t? string | number\n" +
+	"\t\t\t: T extends 'Boolean'\n" +
+	"\t\t\t\t? boolean\n" +
+	"\t\t\t\t: string\n"
+
 func TestGenerateRuntime(t *testing.T) {
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
@@ -693,7 +705,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
@@ -725,6 +737,7 @@ func TestGenerateRuntime(t *testing.T) {
 					// component   = ../units/entries/<id>  (entry file, not source)
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { FinalQuery$unmasked, FinalQuery$input } from '$houdini/artifacts/FinalQuery'\n" +
 						"import type { RootQuery$unmasked, RootQuery$input } from '$houdini/artifacts/RootQuery'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
@@ -732,14 +745,11 @@ func TestGenerateRuntime(t *testing.T) {
 						"\tRootQuery: _MockValue<RootQuery$unmasked, RootQuery$input>\n" +
 						"\tFinalQuery: _MockValue<FinalQuery$unmasked, FinalQuery$input>\n" +
 						"}\n\n" +
-						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
-						"type _SearchForRoute<H extends string> = { search?: never }\n\n" +
-						"type RouteHrefs = \"/nested\"\n\n" +
 						"type _RouteData = {\n" +
 						"\t\"/nested\": _TestData___subRoute__nested\n" +
 						"}\n" +
 						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
-						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H> & _SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
@@ -772,7 +782,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -790,22 +800,17 @@ func TestGenerateRuntime(t *testing.T) {
 					},
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { MyQuery$unmasked, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
 						"type _TestData___id_ = {\n" +
 						"\tMyQuery: _MockValue<MyQuery$unmasked, MyQuery$input>\n" +
 						"}\n\n" +
-						"type _RouteParams = {\n" +
-						"\t\"/[id]\": { id: string }\n" +
-						"}\n" +
-						"type _ParamsForRoute<H extends string> = H extends keyof _RouteParams ? { params: _RouteParams[H] } : { params?: never }\n\n" +
-						"type _SearchForRoute<H extends string> = { search?: never }\n\n" +
-						"type RouteHrefs = \"/[id]\"\n\n" +
 						"type _RouteData = {\n" +
 						"\t\"/[id]\": _TestData___id_\n" +
 						"}\n" +
 						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
-						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H> & _SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
@@ -835,7 +840,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -856,22 +861,17 @@ func TestGenerateRuntime(t *testing.T) {
 					// missing search param can never make the query fail.
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { SearchQuery$unmasked, SearchQuery$input } from '$houdini/artifacts/SearchQuery'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
 						"type _TestData__search = {\n" +
 						"\tSearchQuery: _MockValue<SearchQuery$unmasked, SearchQuery$input>\n" +
 						"}\n\n" +
-						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
-						"type _RouteSearch = {\n" +
-						"\t\"/search\": { q?: string, tags?: Array<string> }\n" +
-						"}\n" +
-						"type _SearchForRoute<H extends string> = H extends keyof _RouteSearch ? { search?: _RouteSearch[H] } : { search?: never }\n\n" +
-						"type RouteHrefs = \"/search\"\n\n" +
 						"type _RouteData = {\n" +
 						"\t\"/search\": _TestData__search\n" +
 						"}\n" +
 						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
-						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H> & _SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
@@ -902,7 +902,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -944,7 +944,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -982,7 +982,7 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -1001,6 +1001,7 @@ func TestGenerateRuntime(t *testing.T) {
 					},
 					"expectedMock": "import React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
 						"import type { UserEvents$unmasked, UserEvents$input } from '$houdini/artifacts/UserEvents'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
@@ -1008,14 +1009,11 @@ func TestGenerateRuntime(t *testing.T) {
 						"\tPageQuery: _MockValue<PageQuery$unmasked, PageQuery$input>\n" +
 						"\tUserEvents?: _MockValue<AsyncIterable<UserEvents$unmasked>, UserEvents$input>\n" +
 						"}\n\n" +
-						"type _ParamsForRoute<H extends string> = { params?: never }\n\n" +
-						"type _SearchForRoute<H extends string> = { search?: never }\n\n" +
-						"type RouteHrefs = \"/\"\n\n" +
 						"type _RouteData = {\n" +
 						"\t\"/\": _TestData__\n" +
 						"}\n" +
 						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
-						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H> & _SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 				},
@@ -1041,7 +1039,7 @@ func TestGenerateRuntime(t *testing.T) {
 						export type RouteScalars = {
 							DateTime: Date
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 		},

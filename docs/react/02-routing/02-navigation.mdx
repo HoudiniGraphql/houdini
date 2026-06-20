@@ -47,14 +47,14 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 
 ## Search Params
 
-Where `params` fills the path, `search` fills the query string. Pass a `search` object and Houdini serializes it onto the URL:
+The `search` prop configures the query string of a `Link`. Pass an object and Houdini will serialize it into the URL:
 
 ```tsx
 // → /shows?genre=comedy
 <Link to="/shows" search={{ genre: 'comedy' }}>Comedies</Link>
 ```
 
-The available keys and their value types are taken from the destination route's query variables, the same source as `params`, so a typo or a mistyped value is a compile error rather than a silently empty result. A list variable accepts an array and serializes as repeated keys:
+The route's nullable query variables show up as typed keys, so a mistyped value (a string where the query wants an `Int`) is a compile error rather than a silently empty result. `search` isn't limited to them, though: extra keys are allowed so the query string can also hold UI-only state that no query reads (a selected tab, an open modal). A list variable accepts an array and serializes as repeated keys:
 
 ```tsx
 // → /shows?tag=comedy&tag=drama

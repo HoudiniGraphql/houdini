@@ -32,7 +32,7 @@ All standard `<a>` attributes are also accepted (except `href`, which is derived
 
 **Search params**
 
-`search` carries the destination route's nullable query variables onto the query string, with keys and value types taken from the route's `+page.gql`. List variables accept an array and serialize as repeated keys. See [Query Variables](~/loading-data/queries#search-params) for how those values flow back into the query.
+`search` serializes an object onto the query string. The route's nullable query variables appear as typed keys (their value types come from the `+page.gql`), and a list variable accepts an array that serializes as repeated keys. Extra keys are allowed too, for query string state that drives the UI rather than the query. See [Query Variables](~/loading-data/queries#search-params) for how the declared values flow back into the query.
 
 ```tsx
 <Link to="/shows" search={{ genre: 'comedy' }}>Comedies</Link>

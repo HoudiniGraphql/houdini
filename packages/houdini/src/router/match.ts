@@ -1,4 +1,3 @@
-import type { ConfigFile } from '../lib/index.js'
 import type { RouterManifest, RouterPageManifest } from './types.js'
 
 /**
@@ -67,19 +66,16 @@ export function find_prefix_match<_ComponentType>(
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: true
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull?: false
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: boolean = true
@@ -122,7 +118,6 @@ export function find_match<_ComponentType>(
 		for (const [variable, { type }] of Object.entries(document.variables)) {
 			if (matchVariables?.[variable]) {
 				variables[variable] = parseScalar(
-					config,
 					type,
 					matchVariables[variable] as string
 				) as ValueOf<GraphQLVariables>
@@ -146,10 +141,10 @@ export function find_match<_ComponentType>(
 					continue
 				}
 				variables[name] = raw
-					.map((value) => parseScalar(config, type, value))
+					.map((value) => parseScalar(type, value))
 					.filter((value): value is Exclude<GraphQLScalar, null> => value !== undefined)
 			} else if (searchParams.has(name)) {
-				const parsed = parseScalar(config, type, searchParams.get(name) ?? undefined)
+				const parsed = parseScalar(type, searchParams.get(name) ?? undefined)
 				if (parsed !== undefined) {
 					variables[name] = parsed
 				}
@@ -325,7 +320,6 @@ function escapeRegex(str: string) {
 }
 
 export function parseScalar(
-	config: ConfigFile,
 	type: string,
 	value?: string
 ): string | number | boolean | undefined {
@@ -357,12 +351,10 @@ export function parseScalar(
 		return result
 	}
 
-	// if we have a special parse function, use it
-	if (config.scalars?.[type]?.marshal) {
-		return config.scalars[type]!.marshal!(value)
-	}
-
-	// we dont recognize the type, just use the string value
+	// custom scalars (and anything we don't recognize) are written into the URL in
+	// their already-marshaled transport form, so there's nothing to do on the way back
+	// out — the value is used directly. (Putting, say, a Date object in the URL would be
+	// meaningless; it's the marshaled form that round-trips.)
 	return value
 }
 

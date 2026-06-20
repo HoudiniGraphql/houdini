@@ -1,9 +1,11 @@
-// Compile-time type assertions for <Link> and createMock prop typing.
+// Compile-time type assertions for <Link>, createMock, and goto prop typing.
 // Verified by `tsc --noEmit` — not a Playwright test.
 
-import { Link, createMock } from '$houdini'
+import { Link, createMock, useLocation } from '$houdini'
 
 export {}
+
+const { goto } = useLocation()
 
 // ── valid usages ─────────────────────────────────────────────────────────────
 
@@ -62,33 +64,31 @@ const _e7 =
 
 // ── search params ─────────────────────────────────────────────────────────────
 
-// valid: /search_params declares offset/limit as optional Int search params
+// the route's nullable query variables are typed: /search_params declares offset/limit
 const _sp1 = <Link to="/search_params" search={{ offset: 2 }}>Page</Link>
 const _sp2 = <Link to="/search_params" search={{ offset: 1, limit: 3 }}>Page</Link>
 // search is always optional, so omitting it is fine
 const _sp3 = <Link to="/search_params">Page</Link>
+// extra keys are allowed alongside the typed ones (UI-only query string state)
+const _sp4 = <Link to="/search_params" search={{ offset: 2, tab: 'reviews' }}>Page</Link>
+// search works on a route that declares no query search params at all
+const _sp5 = <Link to="/hello-world" search={{ tab: 'reviews' }}>Page</Link>
 
-// wrong value type for a search param (offset is a number)
+// wrong value type for a declared search param is still caught
 const _spe1 =
     // @ts-expect-error -- string is not assignable to the Int search param
     <Link to="/search_params" search={{ offset: 'two' }}>Bad</Link>
 
-// unknown search key for a known route
-const _spe2 =
-    // @ts-expect-error -- genre is not a search param of /search_params
-    <Link to="/search_params" search={{ genre: 'comedy' }}>Bad</Link>
-
-// search on a route that declares none
-const _spe3 =
-    // @ts-expect-error -- /hello-world has no search params
-    <Link to="/hello-world" search={{ offset: 1 }}>Bad</Link>
-
 // ── createMock search typing ──────────────────────────────────────────────────
 
-// valid: typed search object on a route that declares search params
+// typed search object on a route that declares search params
 const _cm1 = createMock({ url: '/search_params', search: { offset: 2 }, data: {} as any })
+// extra UI-only keys are allowed alongside the typed ones
+const _cm2 = createMock({ url: '/search_params', search: { offset: 2, tab: 'x' }, data: {} as any })
+// search on a route that declares no query search params
+const _cm3 = createMock({ url: '/hello-world', search: { tab: 'x' }, data: {} as any })
 
-// wrong value type
+// wrong value type for a declared search param is still caught
 const _cme1 = createMock({
     url: '/search_params',
     // @ts-expect-error -- offset must be a number
@@ -96,19 +96,30 @@ const _cme1 = createMock({
     data: {} as any,
 })
 
-// unknown search key
-const _cme2 = createMock({
-    url: '/search_params',
-    // @ts-expect-error -- genre is not a search param of /search_params
-    search: { genre: 'comedy' },
+// createMock params accept only the params the route declares
+const _cmp1 = createMock({ url: '/route_params/[id]', params: { id: '1' }, data: {} as any })
+const _cmpe1 = createMock({
+    url: '/route_params/[id]',
+    // @ts-expect-error -- userId is not a param of /route_params/[id]
+    params: { userId: '1' },
     data: {} as any,
 })
+// @ts-expect-error -- params is required for a parameterized route
+const _cmpe2 = createMock({ url: '/route_params/[id]', data: {} as any })
 
-// search on a route that declares none
-const _cme3 = createMock({
-    url: '/hello-world',
-    // @ts-expect-error -- /hello-world has no search params
-    search: { offset: 1 },
-    data: {} as any,
-})
+// ── goto: same typed targets as <Link> ────────────────────────────────────────
+
+// a bare string is always allowed (escape hatch)
+goto('/anything?with=querystring')
+// typed targets: params required for parameterized routes, search typed + optional
+goto({ to: '/route_params/[id]', params: { id: '1' } })
+goto({ to: '/search_params', search: { offset: 2 } })
+goto({ to: '/search_params', search: { offset: 2, tab: 'reviews' } })
+
+// @ts-expect-error -- params required for a parameterized route
+goto({ to: '/route_params/[id]' })
+// @ts-expect-error -- genre... offset is an Int, a string is not assignable
+goto({ to: '/search_params', search: { offset: 'two' } })
+// @ts-expect-error -- not a known route
+goto({ to: '/not-a-real-route' })
 

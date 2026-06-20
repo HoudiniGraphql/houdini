@@ -170,16 +170,16 @@ describe('search params', () => {
 
 	// ── negative cases ──────────────────────────────────────────────────────────
 
-	test('a search key the route does not declare is dropped, not passed as a variable', async () => {
+	test('an extra (non-query) search key is allowed but never becomes a query variable', async () => {
 		const mockFn = vi.fn().mockReturnValue({
 			usersList: [{ id: '1', __typename: 'User', name: 'Ignored' }],
 		})
 
 		const App = createMock({
 			url: '/search_params',
-			// the typed surface rejects unknown keys; force one through to prove the
-			// router ignores params the route never declared
-			search: { nope: 5 } as any,
+			// `tab` isn't a query variable — it's UI-only state. The type allows it, and
+			// the router leaves it in the URL without ever passing it to the query.
+			search: { tab: 'reviews' },
 			data: { SearchParamsUsers: mockFn },
 		})
 
@@ -187,7 +187,7 @@ describe('search params', () => {
 		await screen.findByText('Ignored')
 
 		const vars = mockFn.mock.calls[0][0]
-		expect(vars.nope).toBeUndefined()
+		expect(vars.tab).toBeUndefined()
 		expect(vars.offset).toBeUndefined()
 	})
 

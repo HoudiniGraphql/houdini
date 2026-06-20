@@ -93,7 +93,7 @@ The `$id` variable is populated from the `[id]` segment with no extra configurat
 
 ### Search Params
 
-Route segments aren't the only thing a query can pull from the URL. Any nullable variable whose name doesn't match a route parameter is populated from the query string, so a search route with an optional filter needs no extra wiring:
+A nullable variable whose name doesn't match a route parameter is populated from the query string, so a search route with an optional filter needs no extra wiring:
 
 ```graphql title="src/routes/shows/+page.gql"
 query ShowSearch($genre: String, $sort: SortOrder) {

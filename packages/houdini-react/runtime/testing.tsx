@@ -5,7 +5,7 @@ import { DataSource } from 'houdini/runtime/types'
 import { HoudiniClient } from '$houdini/runtime/client'
 import React from 'react'
 
-import { serializeSearch } from './resolve-href.js'
+import { scalarMarshalers, serializeSearch } from './resolve-href.js'
 import { Router as RouterImpl, RouterContextProvider, router_cache } from './routing/index.js'
 import manifest from './manifest.js'
 
@@ -24,7 +24,16 @@ export function buildMockPath(
 	params: Record<string, string>,
 	search?: Record<string, unknown>
 ): string {
-	return buildURL(pattern, params) + (search ? serializeSearch(search) : '')
+	if (!search) {
+		return buildURL(pattern, params)
+	}
+	// marshal custom-scalar search values the same way <Link> does, so tests exercise
+	// the real serialization path
+	const page = Object.values((manifest as any).pages).find((p: any) => p.url === pattern) as
+		| { searchParams?: ReadonlyArray<{ name: string; type: string }> }
+		| undefined
+	const marshalers = scalarMarshalers(page?.searchParams, getCurrentConfig()?.scalars)
+	return buildURL(pattern, params) + serializeSearch(search, marshalers)
 }
 
 export function _createMock({

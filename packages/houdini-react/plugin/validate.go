@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -48,7 +47,7 @@ func (p *HoudiniReact) Validate(ctx context.Context) error {
 		varName := row.ColumnText(4)
 
 		// satisfied by a route segment — nothing to flag
-		if routeParamNames(filepath)[varName] {
+		if routeParamSet(filepath)[varName] {
 			return
 		}
 
@@ -75,19 +74,4 @@ func (p *HoudiniReact) Validate(ctx context.Context) error {
 		return errs
 	}
 	return nil
-}
-
-// routeParamNames returns the set of route-segment names declared in a +page.gql /
-// +layout.gql filepath. It recognises regular [param], optional [[param]], and rest
-// [...param] segments; route groups like (group) contribute no params.
-func routeParamNames(filepath string) map[string]bool {
-	names := map[string]bool{}
-	for _, part := range strings.Split(filepath, "/") {
-		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			name := strings.Trim(part, "[]")
-			name = strings.TrimPrefix(name, "...")
-			names[name] = true
-		}
-	}
-	return names
 }
