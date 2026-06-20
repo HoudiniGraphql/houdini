@@ -43,10 +43,7 @@ export function useFragment<
 	document: { artifact: FragmentArtifact }
 ): _Data | null
 
-export function useFragment(
-	reference: any,
-	document: { artifact: FragmentArtifact }
-): any {
+export function useFragment(reference: any, document: { artifact: FragmentArtifact }): any {
 	const plural = Boolean(document.artifact.plural)
 
 	// Both implementations run on every render so the rules of hooks are preserved; the one
@@ -163,7 +160,9 @@ function usePluralFragment<
 	// a stable key describing which records (and variables) we are bound to, so we only
 	// re-seed and re-subscribe when the set of records actually changes (eg an insert/remove)
 	const subscriptionKey = entries
-		? entries.map((entry) => `${entry.parent}:${JSON.stringify(entry.variables ?? {})}`).join('|')
+		? entries
+				.map((entry) => `${entry.parent}:${JSON.stringify(entry.variables ?? {})}`)
+				.join('|')
 		: ''
 
 	// read every item from the cache. used to seed the list, and to re-seed it when the set
@@ -174,7 +173,8 @@ function usePluralFragment<
 		}
 		return entries.map(({ parent, variables, loading }, i) =>
 			parent
-				? (cache.read({ selection: artifact.selection, parent, variables, loading }).data as _Data)
+				? (cache.read({ selection: artifact.selection, parent, variables, loading })
+						.data as _Data)
 				: (references[i] as _Data)
 		)
 	}
