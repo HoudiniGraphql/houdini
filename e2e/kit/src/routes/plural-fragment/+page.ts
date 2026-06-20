@@ -3,7 +3,7 @@ import { graphql } from '$houdini'
 
 const store = graphql(`
     query PluralListUsers {
-        usersList(snapshot: "plural-fragment", limit: 4) {
+        usersList(snapshot: "plural-fragment", limit: 4) @list(name: "PluralUsersKit") {
             id
             ...PluralUserRow
         }

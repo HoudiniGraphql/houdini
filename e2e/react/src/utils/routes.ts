@@ -36,4 +36,5 @@ export const routes = {
 	error_loop: '/error-loop/doesnt-exist',
 	response_headers: '/response-headers',
 	plural_fragment: '/plural-fragment',
+	plural_fragment_rebind: '/plural-fragment-rebind',
 } as const

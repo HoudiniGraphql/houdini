@@ -1,0 +1,6 @@
+query features__plural_fragment_rebind {
+	usersList(snapshot: "plural_rebind", limit: 4) {
+		id
+		...PluralUserRow
+	}
+}

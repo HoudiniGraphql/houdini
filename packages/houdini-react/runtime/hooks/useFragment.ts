@@ -132,9 +132,11 @@ function useSingularFragment<
 
 // usePluralFragment consumes a @plural fragment: the reference is an array of fragment
 // references (one per item in the list the fragment was spread on). Each item is bound to
-// its own cache record, so we read every item from the cache and register one cache
-// subscription per item inside a single effect. This keeps the hook count stable regardless
-// of how many items the list contains (we can't call a hook per item).
+// its own cache record, so we keep the list in state and register one cache subscription
+// per item inside a single effect. A subscription message carries the new value for just
+// that record, so we patch it into the list in place rather than re-reading everything.
+// Doing the subscriptions in one effect keeps the hook count stable regardless of how many
+// items the list contains (we can't call a hook per item).
 function usePluralFragment<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
@@ -158,45 +160,48 @@ function usePluralFragment<
 		[references]
 	)
 
-	// a stable key describing which records (and variables) we are bound to, so the
-	// subscription effect only re-runs when the set of records actually changes
+	// a stable key describing which records (and variables) we are bound to, so we only
+	// re-seed and re-subscribe when the set of records actually changes (eg an insert/remove)
 	const subscriptionKey = entries
 		? entries.map((entry) => `${entry.parent}:${JSON.stringify(entry.variables ?? {})}`).join('|')
 		: ''
 
-	// bumped whenever any of the subscribed records change so we re-read from the cache
-	const [version, bump] = React.useReducer((n: number) => n + 1, 0)
-
-	// read the latest data for every item from the cache. re-runs when the bound records
-	// change or when a subscription fires (version).
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-read on subscriptionKey/version
-	const data = React.useMemo(() => {
+	// read every item from the cache. used to seed the list, and to re-seed it when the set
+	// of records changes (membership changes don't necessarily message the existing records).
+	const readAll = (): _Data[] | null => {
 		if (!references || !entries) {
-			return references ? (references as unknown as _Data[]) : null
+			return null
 		}
-		return entries.map(({ parent, variables, loading }, i) => {
-			if (parent) {
-				return cache.read({
-					selection: artifact.selection,
-					parent,
-					variables,
-					loading,
-				}).data as _Data
-			}
-			return references[i] as _Data
-		})
-	}, [subscriptionKey, version])
+		return entries.map(({ parent, variables, loading }, i) =>
+			parent
+				? (cache.read({ selection: artifact.selection, parent, variables, loading }).data as _Data)
+				: (references[i] as _Data)
+		)
+	}
 
-	// register one cache subscription per item; re-reads everything on any change
+	const [data, setData] = React.useState<_Data[] | null>(readAll)
+
+	// the subscriptionKey the current `data` was seeded for; starts matching the initial
+	// useState seed so we don't redundantly re-seed on mount
+	const seededKey = React.useRef(subscriptionKey)
+
+	// re-seed when the set of records changes, then subscribe to each record individually.
+	// onMessage carries the new value for just that record, so we patch it in place.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on subscriptionKey
 	React.useEffect(() => {
+		if (seededKey.current !== subscriptionKey) {
+			seededKey.current = subscriptionKey
+			setData(readAll())
+		}
+
 		if (!entries) {
 			return
 		}
+
 		const specs: SubscriptionSpec[] = []
-		for (const { parent, variables, loading } of entries) {
+		entries.forEach(({ parent, variables, loading }, index) => {
 			if (!parent || loading) {
-				continue
+				return
 			}
 			const spec: SubscriptionSpec = {
 				rootType: artifact.rootType,
@@ -204,11 +209,26 @@ function usePluralFragment<
 				selection: artifact.selection,
 				parentID: parent,
 				variables: () => variables ?? {},
-				onMessage: () => bump(),
+				onMessage: (message) => {
+					// only a cache write ('update') carries a new value for this record. other
+					// messages (eg 'refetch' from cache.refresh()) don't apply to a fragment,
+					// which has no refetch of its own; the refreshed value arrives as an 'update'.
+					if (message.kind !== 'update') {
+						return
+					}
+					setData((current) => {
+						if (!current) {
+							return current
+						}
+						const next = current.slice()
+						next[index] = message.data as _Data
+						return next
+					})
+				},
 			}
 			cache.subscribe(spec)
 			specs.push(spec)
-		}
+		})
 
 		return () => {
 			for (const spec of specs) {

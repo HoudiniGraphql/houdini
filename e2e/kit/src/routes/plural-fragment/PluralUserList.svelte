@@ -15,7 +15,7 @@ $: data = fragment(
 )
 </script>
 
-<ul>
+<ul id="plural-list">
   {#each $data as user}
     <li>{user.name}</li>
   {/each}
