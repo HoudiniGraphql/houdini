@@ -412,6 +412,38 @@ func GenerateSelectionDocument(
     "enableLoadingState": "%s",`, flags.HasLoading)
 	}
 
+	// document-level operations (eg @refetch) collected during the walk
+	operations := ""
+	if len(flags.RootOperations) > 0 {
+		var opBuilder strings.Builder
+		for i, op := range flags.RootOperations {
+			if i > 0 {
+				opBuilder.WriteString(", ")
+			}
+
+			var pathBuilder strings.Builder
+			pathBuilder.WriteByte('[')
+			for j, field := range op.Path {
+				if j > 0 {
+					pathBuilder.WriteByte(',')
+				}
+				pathBuilder.WriteByte('"')
+				pathBuilder.WriteString(field)
+				pathBuilder.WriteByte('"')
+			}
+			pathBuilder.WriteByte(']')
+
+			opBuilder.WriteString(fmt.Sprintf(`{
+        "action": "%s",
+        "type": "%s",
+        "path": %s
+    }`, op.Action, op.Type, pathBuilder.String()))
+		}
+		operations = fmt.Sprintf(`
+
+    "operations": [%s],`, opBuilder.String())
+	}
+
 	// compute the type definitions
 	unmaskedSelection, err := FlattenSelection(ctx, docs, name, false, sortKeys)
 	if err != nil {
@@ -440,7 +472,7 @@ const artifact = {
     "rootType": "%s",
     "stripVariables": %s as Array<string>,
 
-    "selection": %s,
+    "selection": %s,%s
 
     "pluginData": %s,%s%s%s%s%s%s%s
 } as const
@@ -459,6 +491,7 @@ export default artifact
 		doc.TypeCondition,
 		string(stripVariables),
 		selectionValues,
+		operations,
 		string(marshaledData),
 		componentFields,
 		dedupe,
@@ -565,6 +598,18 @@ func (pb *PathBuilder) Current() []string {
 	result := make([]string, len(pb.path))
 	copy(result, pb.path)
 	return result
+}
+
+// FieldPath returns the response path ending at the given field, making sure the
+// field's own alias is the final segment. inline fragments invoke
+// stringifyFieldSelection without pushing the field onto the builder, so we append
+// it when it isn't already there. shared by @refetch and pagination (@list/@paginate).
+func (pb *PathBuilder) FieldPath(selection *collected.Selection) []string {
+	current := pb.Current()
+	if len(current) == 0 || current[len(current)-1] != *selection.Alias {
+		current = append(current, *selection.Alias)
+	}
+	return current
 }
 
 // Len returns the current path depth
@@ -985,6 +1030,19 @@ func stringifyFieldSelection(
 	indent5 := strings.Repeat(spacing, level+4)
 	indent6 := strings.Repeat(spacing, level+5)
 
+	// @refetch is a document-level operation: record the path to this field's
+	// record so the runtime can refresh every dependent document after the write
+	for _, directive := range selection.Directives {
+		if directive.Name == graphql.RefetchDirective {
+			flags.RootOperations = append(flags.RootOperations, RootOperation{
+				Action: "refetch",
+				Type:   selection.FieldType,
+				Path:   pathBuilder.FieldPath(selection),
+			})
+			break
+		}
+	}
+
 	// figure out the pagination state
 	var paginatedMode *string
 	paginatedTargetType := "Query"
@@ -1007,17 +1065,8 @@ func stringifyFieldSelection(
 		// @paginate always wins over @list when both appear in the same document
 		if flags.Refetch == nil || selection.List.Paginated {
 			// use the computed path for list operations (both paginated and non-paginated)
-			currentPath := pathBuilder.Current()
-
-			// For list fields (both @list and @paginate), ensure the field is included in the path
-			// This handles cases where fragments don't include the field in the path
-			fullPath := currentPath
-			if len(currentPath) == 0 || currentPath[len(currentPath)-1] != *selection.Alias {
-				fullPath = append(currentPath, *selection.Alias)
-			}
-
 			flags.Refetch = &RefetchSpec{
-				Path:       fullPath,
+				Path:       pathBuilder.FieldPath(selection),
 				Paginated:  selection.List.Paginated,
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
@@ -1773,6 +1822,17 @@ type ArtifactFlags struct {
 	Refetch         *RefetchSpec
 	ComponentFields bool
 	HasLoading      string
+	// document-level operations collected during the walk (eg @refetch)
+	RootOperations []RootOperation
+}
+
+// RootOperation is a side effect applied after a document's response is written
+// to the cache. @refetch records the path to a record that every dependent
+// document should refetch.
+type RootOperation struct {
+	Action string
+	Type   string
+	Path   []string
 }
 
 type SelectionFlags struct {

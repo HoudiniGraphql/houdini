@@ -4,6 +4,7 @@ description: Mutations in Houdini
 ---
 
 import Dedupe from '@shared/_partials/dedupe.mdx'
+import Refetch from '@shared/_partials/refetch.mdx'
 
 Send a mutation to the server and update your client-side cache with any changes.
 
@@ -112,6 +113,10 @@ Here's a typical pattern combining a fragment with a mutation in the same compon
 	<label for={$data.text}>{$data.text}</label>
 </li>
 ```
+
+## Refetching Changed Data
+
+<Refetch />
 
 ## Deduplication
 

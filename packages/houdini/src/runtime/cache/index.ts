@@ -18,7 +18,7 @@ import type {
 	ValueMap,
 	ValueNode,
 } from '../types.js'
-import { fragmentKey } from '../types.js'
+import { ArtifactKind, fragmentKey } from '../types.js'
 import { GarbageCollector } from './gc.js'
 import type { ListCollection } from './lists.js'
 import { ListManager, opaqueListID } from './lists.js'
@@ -198,25 +198,36 @@ export class Cache {
 		}
 	}
 
-	// ask every document whose data contains the record to refetch itself.
-	// this includes documents that only contain the record behind a masked
-	// boundary (a fragment spread) thanks to their masked parent subscriptions
-	refresh(id: string) {
-		// when an optimistic key resolves we might know the record by two ids
-		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
-			Boolean
-		) as string[]
+	// ask every document whose data contains the record(s) to refetch itself.
+	// this includes documents that only contain a record behind a masked
+	// boundary (a fragment spread) thanks to their masked parent subscriptions.
+	// passing several ids notifies each document at most once, even if it
+	// depends on more than one of them (eg a list returned by a mutation).
+	refresh(id: string | string[]) {
+		const ids = Array.isArray(id) ? id : [id]
 
-		// a document can be subscribed to multiple fields of the record so make
-		// sure we only send the message once per set
+		// a document can be subscribed to multiple fields, multiple records, or
+		// know a record by two ids (optimistic key) — only send one message per set
 		const notified = new Set<SubscriptionSpec['onMessage']>()
-		for (const recordID of recordIDs) {
-			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
-				includeMaskedParents: true,
-			})) {
-				if (!notified.has(spec.onMessage)) {
-					notified.add(spec.onMessage)
-					spec.onMessage({ kind: 'refetch' })
+		for (const baseID of ids) {
+			// when an optimistic key resolves we might know the record by two ids
+			const recordIDs = [this._internal_unstable.storage.idMaps[baseID], baseID].filter(
+				Boolean
+			) as string[]
+
+			for (const recordID of recordIDs) {
+				for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
+					includeMaskedParents: true,
+				})) {
+					// subscriptions are a live stream from the server — they are never
+					// asked to refetch (their data arrives by being pushed, not pulled)
+					if (spec.kind === ArtifactKind.Subscription) {
+						continue
+					}
+					if (!notified.has(spec.onMessage)) {
+						notified.add(spec.onMessage)
+						spec.onMessage({ kind: 'refetch' })
+					}
 				}
 			}
 		}

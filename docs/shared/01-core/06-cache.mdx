@@ -255,6 +255,10 @@ user.refresh()
 Unlike `markStale` (which waits for the next fetch to reload the data), `refresh`
 triggers the network requests immediately.
 
+If a mutation or subscription already returns the record that changed, you can get
+this same behavior declaratively by tagging the field with `@refetch` instead of
+calling `refresh()` yourself — see [Refetching Changed Data](~/updating-data/mutations#refetching-changed-data).
+
 ## Lists
 
 Another primitive provided by the `cache` instance is `List` and it provide a programatic

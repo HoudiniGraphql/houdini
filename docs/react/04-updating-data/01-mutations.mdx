@@ -4,6 +4,7 @@ description: Sending mutations in Houdini's React framework
 ---
 
 import Dedupe from '@shared/_partials/dedupe.mdx'
+import Refetch from '@shared/_partials/refetch.mdx'
 
 The `useMutation` hook wraps a GraphQL mutation and returns a tuple of `[mutate, pending]`. Call `mutate` with your variables to execute it.
 
@@ -65,6 +66,10 @@ try {
 After a successful mutation, Houdini automatically updates any cached fields that appear in the mutation's response. If the mutation returns a type that's already in the cache, fields are merged and any components watching those fields re-render.
 
 For mutations that add or remove items from lists, see [Updating Lists](~/updating-data/updating-lists).
+
+## Refetching Changed Data
+
+<Refetch />
 
 ## Optimistic Updates
 

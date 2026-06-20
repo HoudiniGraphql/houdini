@@ -130,8 +130,17 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
+	// document-level operations applied after the response is written to the cache.
+	// @refetch records the path to a record that every dependent document should refetch.
+	operations?: readonly RootOperation[]
 	pluginData: Record<string, any>
 }>
+
+export type RootOperation = {
+	action: 'refetch'
+	type: string
+	path: readonly string[]
+}
 
 export type HoudiniFetchContext = {
 	variables: () => {}
@@ -286,6 +295,9 @@ export type CacheMessage<_Data = any> =
 
 export type SubscriptionSpec = Readonly<{
 	rootType: string
+	// the kind of document that registered this subscription. used to decide
+	// which documents a cache.refresh() should ask to refetch.
+	kind?: ArtifactKinds
 	selection: SubscriptionSelection
 	onMessage: (message: CacheMessage) => void
 	parentID?: string

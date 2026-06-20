@@ -1018,6 +1018,23 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @refetch on FIELD
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.RefetchDirective,
+		"description": "@refetch marks a record in a mutation response so the cache refetches every document that depends on it",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.RefetchDirective,
+		"location":  "FIELD",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.ComponentFieldDirective,

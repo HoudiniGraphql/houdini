@@ -50,6 +50,8 @@ const ComponentFieldDirective = "componentField"
 
 const RuntimeScalarDirective = "__houdini__runtimeScalar"
 
+const RefetchDirective = "refetch"
+
 const ListOperationSuffixInsert = "_insert"
 
 const ListOperationSuffixRemove = "_remove"
