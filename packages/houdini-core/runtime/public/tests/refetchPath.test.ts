@@ -4,19 +4,14 @@ import { recordsAtPath } from '../../plugins/cache.js'
 
 test('walks a path to a singular record', () => {
 	const data = { addFriend: { friend: { __typename: 'User', id: '1' } } }
-	expect(recordsAtPath(data, ['addFriend', 'friend'])).toEqual([
-		{ __typename: 'User', id: '1' },
-	])
+	expect(recordsAtPath(data, ['addFriend', 'friend'])).toEqual([{ __typename: 'User', id: '1' }])
 })
 
 test('fans out when a path segment is a list', () => {
 	const data = {
 		updateUsers: [{ bestFriend: { id: '2' } }, { bestFriend: { id: '3' } }],
 	}
-	expect(recordsAtPath(data, ['updateUsers', 'bestFriend'])).toEqual([
-		{ id: '2' },
-		{ id: '3' },
-	])
+	expect(recordsAtPath(data, ['updateUsers', 'bestFriend'])).toEqual([{ id: '2' }, { id: '3' }])
 })
 
 test('flattens nested lists along the path', () => {
