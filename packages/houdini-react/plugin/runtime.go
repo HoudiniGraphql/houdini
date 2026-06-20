@@ -607,12 +607,9 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 	docsByKind := map[string][]string{} // kind → []name
 	pluralFragments := map[string]bool{}
 	err = p.DB.StepQuery(ctx, `
-		SELECT d.name, d.kind,
-		       EXISTS (
-		         SELECT 1 FROM document_directives dd
-		         WHERE dd.document = d.id AND dd.directive = 'plural'
-		       ) AS plural
+		SELECT d.name, d.kind, dd.document IS NOT NULL AS plural
 		FROM documents d
+		LEFT JOIN document_directives dd ON dd.document = d.id AND dd.directive = 'plural'
 		WHERE d.visible = 1
 		ORDER BY d.name ASC
 	`, nil, func(q plugins.Row) {
