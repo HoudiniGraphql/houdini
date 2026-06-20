@@ -61,7 +61,7 @@ process.exit(0);}
 
 import * as conventions from '../router/conventions.js'
 import type { Config } from './config.js'
-import { create_schema, write_config } from './database.js'
+import { create_schema, schema_version, write_config } from './database.js'
 import { type Db, openDb } from './db.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
@@ -102,8 +102,31 @@ export type Adapter = ((args: {
 
 export async function connect_db(config: Config): Promise<[Db, string]> {
 	const filepath = conventions.db_path(config)
-	const db = await openDb(filepath)
+	let db = await openDb(filepath)
+
+	// if a database persisted from an older compiler (eg. via --preserve-database
+	// or across WASM sessions), its schema may not match what we expect. we don't
+	// migrate — we detect the mismatch via the version stamp and rebuild from scratch.
+	// a fresh/empty database has no prior schema to be stale, so skip the rebuild
+	// there (avoids a redundant wipe + reopen on the common non-preserve path).
+	const stamped = db.get<{ user_version: number }>('PRAGMA user_version')?.user_version ?? 0
+	const existing = db.get(`SELECT 1 FROM sqlite_master WHERE type = 'table' LIMIT 1`)
+	if (existing && stamped !== schema_version) {
+		db.close()
+		try {
+			await fs.remove(filepath)
+		} catch (_e) {}
+		try {
+			await fs.remove(`${filepath}-shm`)
+		} catch (_e) {}
+		try {
+			await fs.remove(`${filepath}-wal`)
+		} catch (_e) {}
+		db = await openDb(filepath)
+	}
+
 	db.exec(create_schema)
+	db.exec(`PRAGMA user_version = ${schema_version}`)
 	db.flush()
 	return [db, filepath]
 }

@@ -18,6 +18,7 @@
     "scripts": {
         "build": "scripts build-node",
         "compile": "scripts build-node",
+        "sync-schema": "node scripts/sync-schema.mjs",
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {

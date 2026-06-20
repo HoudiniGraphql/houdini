@@ -2,13 +2,13 @@
 
 ## Database
 
-**Schema location**: `plugins/tests/test.go` (`WriteDatabaseSchema` const). No migration system — update it directly when adding/changing tables.
+**Schema location**: the canonical schema is the `create_schema` const in `packages/houdini/src/lib/database.ts` (node is the authority — it's what runs in production). `plugins/tests/schema.sql` is generated from it via `pnpm --filter houdini sync-schema` and embedded by the Go test harness; never edit the `.sql` by hand. A vitest (`src/lib/schema.test.ts`) fails if the two drift. No migration system — on a schema change the orchestration DB is rebuilt; it's version-stamped via `schema_version` / `PRAGMA user_version` (see `connect_db`), so persisted databases from older compilers are detected as stale and recreated.
 
 **Dual SQLite backends**: `plugins/db_zombiezen.go` (native, `!wasip1`) and `plugins/db_ncruces.go` (WASI, `wasip1`). Both implement the `Conn`/`Stmt`/`Row` interfaces in `plugins/conn.go`. All DB code must go through the interface.
 
-**FK indices**: SQLite does not auto-create indices on FK columns, and none exist in this schema. Add an explicit `CREATE INDEX` in the schema const for any FK column that appears in a `WHERE` or `JOIN`.
+**FK indices**: SQLite does not auto-create indices on FK columns. Add an explicit `CREATE INDEX IF NOT EXISTS` in `create_schema` for any FK column that appears in a `WHERE` or `JOIN`.
 
-**DEFERRABLE constraints**: Nearly all FKs are `DEFERRABLE INITIALLY DEFERRED` — constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity.
+**FK deferral**: FKs use `ON DELETE CASCADE`; deferral is achieved at the connection level via `PRAGMA defer_foreign_keys = ON` (set in `openDb` on the TS side and in the Go connection pragmas), so constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity. (The Go test pool doesn't enforce FKs at all.)
 
 ## Testing
 
