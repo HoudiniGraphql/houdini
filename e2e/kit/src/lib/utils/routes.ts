@@ -73,6 +73,8 @@ export const routes = {
 	Pagination_fragment_required_arguments: '/pagination/fragment/required-arguments',
 	Pagination_fragment_forward_cursor_singlepage: '/pagination/fragment/forward-cursor-singlepage',
 
+	refetchable_fragment: '/refetchable-fragment',
+
 	nested_argument_fragments: '/nested-argument-fragments',
 	nested_argument_fragments_masking: '/nested-argument-fragments-masking',
 

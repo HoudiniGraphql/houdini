@@ -54,6 +54,8 @@ const RefetchDirective = "refetch"
 
 const PluralDirective = "plural"
 
+const RefetchableDirective = "refetchable"
+
 const ListOperationSuffixInsert = "_insert"
 
 const ListOperationSuffixRemove = "_remove"

@@ -6,6 +6,7 @@ import type {
 	BasePaginatedFragmentStore,
 	FragmentStorePaginated,
 } from './stores/pagination/fragment.js'
+import type { FragmentStoreRefetchable } from './stores/refetchable.js'
 
 // Accepts both FragmentStore (non-paginated) and paginated variants (FragmentStoreCursor /
 // FragmentStoreOffset). The paginated classes extend BasePaginatedFragmentStore, not
@@ -100,4 +101,29 @@ export function paginatedFragment<_Data extends GraphQLObject>(
 	// @ts-expect-error: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
 	return fragment(initialValue, store)
+}
+
+// refetchableFragment is just like fragment but the fragment is marked with @refetchable.
+// it returns a store whose value is `{ data, variables }` plus a `refetch` method that
+// re-runs the fragment with new argument values.
+export function refetchableFragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	initialValue: _Fragment | null | undefined,
+	document: FragmentStoreRefetchable<_Data, {}, any>
+): ReturnType<FragmentStoreRefetchable<_Data, {}, any>['get']>
+
+export function refetchableFragment<_Data extends GraphQLObject>(
+	initialValue: Fragment<_Data> | null | undefined,
+	store: FragmentStoreRefetchable<_Data, {}, any>
+): ReturnType<FragmentStoreRefetchable<_Data, {}, any>['get']> {
+	// make sure we got a fragment document
+	if (store.kind !== 'HoudiniFragment') {
+		throw new Error(`refetchableFragment() must be passed a fragment document: ${store.kind}`)
+	}
+	// if we don't have a refetchable fragment there is a problem
+	if (!('refetchable' in store)) {
+		throw new Error('refetchableFragment() must be passed a fragment with @refetchable')
+	}
+
+	// @ts-expect-error: ref is Fragment<_Data> but store.get() expects _Data | { [fragmentKey]: _ReferenceType }
+	return store.get(initialValue)
 }

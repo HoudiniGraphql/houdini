@@ -234,5 +234,10 @@ type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObjec
 					loadNext: OffsetHandlers<_Data, _Input>['loadNextPage']
 					loadNextPending: boolean
 				}
-			: // the artifact does not support a known pagination method, don't add anything
-				{}
+			: // a @refetchable fragment: embedded query keyed by id, re-run with new args
+				_Artifact extends { refetch: { paginated: false } }
+				? {
+						refetch: (variables?: Partial<_Input>) => Promise<_Data>
+					}
+				: // the artifact does not support a known pagination method, don't add anything
+					{}

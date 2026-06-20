@@ -2036,6 +2036,39 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@refetchable on a Node type (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnNode on User @refetchable {
+						firstName
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a type that is not a Node and has no resolve query",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnGhost on Ghost @refetchable {
+						name
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on Query is not allowed (queries are refetchable by default)",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnQuery on Query @refetchable {
+						rootScalar
+					}
+				`,
+				},
+			},
+			{
 				Name: "limit pagination requires first",
 				Pass: false,
 				Input: []string{

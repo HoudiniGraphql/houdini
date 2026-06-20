@@ -5,6 +5,7 @@ export * from './types.js'
 export {
 	computeID,
 	keyFieldsForType,
+	entityRefetchVariables,
 	setMockConfig,
 	getMockConfig,
 	getCurrentConfig,

@@ -24,6 +24,12 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 		return err
 	}
 
+	// and the embedded queries for @refetchable fragments
+	err = lists.PrepareRefetchableDocuments(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
 	// finally, add the necessary fields to ALL documents (including newly created ones)
 	err = documents.AddDocumentFields(ctx, p.DB)
 	if err != nil {

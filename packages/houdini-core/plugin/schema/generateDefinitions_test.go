@@ -126,6 +126,9 @@ directive @required on FIELD
 """@refetch marks a record in a mutation response so the cache refetches every document that depends on it"""
 directive @refetch on FIELD
 
+"""@refetchable marks a fragment so it can be refetched on its own with new argument values"""
+directive @refetchable on FRAGMENT_DEFINITION
+
 """@componentField is used to mark a field as a component field"""
 directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRAGMENT_DEFINITION | INLINE_FRAGMENT
 

@@ -267,6 +267,72 @@ func ValidatePaginateTypeCondition(
 	}
 }
 
+// ValidateRefetchableTypeCondition makes sure that every fragment tagged with
+// @refetchable lives on a type that can be looked up on its own — it either
+// implements Node or has a type_configs entry with a custom resolve_query.
+// Without that, the embedded refetch query we generate (node(id:) { ...Frag })
+// would be invalid, so we surface a clear error instead.
+func ValidateRefetchableTypeCondition(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// @refetchable is a document-level directive, so we look it up via
+	// document_directives (unlike @paginate which lives on a selection). The
+	// Node / resolve_query checks are the same as ValidatePaginateTypeCondition:
+	// the type must implement Node or have a custom resolve_query so the generated
+	// query can look it up by id.
+	//
+	// Unlike @paginate we do NOT exclude operation types — a fragment on Query is
+	// rejected here because queries are already refetchable on their own, so
+	// @refetchable is redundant (and we can't look one up by id).
+	query := `
+		SELECT DISTINCT
+			d.name AS documentName,
+			d.type_condition,
+			rd.filepath,
+			rd.offset_line,
+			rd.offset_column,
+			dd.row as line,
+			dd.column
+		FROM documents d
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN document_directives dd ON dd.document = d.id
+			LEFT JOIN possible_types pt ON pt.type = 'Node' AND d.type_condition = pt.member
+			LEFT JOIN type_configs tc ON tc.resolve_query IS NOT NULL AND d.type_condition = tc.name
+		WHERE d.kind = 'fragment'
+			AND dd.directive = $refetchable_directive
+			AND pt.member IS NULL
+			AND tc.name IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+	bindings := map[string]any{
+		"refetchable_directive": graphql.RefetchableDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		docName := stmt.ColumnText(0)
+		typeCondition := stmt.ColumnText(1)
+		filepath := stmt.ColumnText(2)
+		line := int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5))
+		column := int(stmt.ColumnInt(4)) + int(stmt.ColumnInt(6))
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query",
+				docName,
+				graphql.RefetchableDirective,
+				typeCondition,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: line, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidateSinglePaginateDirective(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],

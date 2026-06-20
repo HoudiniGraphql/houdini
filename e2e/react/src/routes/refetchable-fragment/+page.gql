@@ -1,0 +1,5 @@
+query RefetchableFragmentQuery {
+	user(id: "1", snapshot: "refetchable-fragment-react") {
+		...RefetchableUserInfo @with(size: 50)
+	}
+}

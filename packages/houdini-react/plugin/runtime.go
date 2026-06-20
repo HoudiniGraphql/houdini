@@ -623,10 +623,12 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	// Build the set of visible fragments that are paginated. We detect pagination
-	// via discovered_lists (populated during Validate) rather than looking for
-	// a pre-existing _Pagination_Query document, because GenerateRuntime runs
-	// concurrently with GenerateDocuments and the document may not exist yet.
+	// Build the set of visible fragments that get an embedded refetch query, so
+	// useFragmentHandle is wired up with the generated query as its refetchArtifact.
+	// This covers both @paginate fragments (detected via discovered_lists, populated
+	// during Validate) and @refetchable fragments (detected via the directive). We
+	// don't look for a pre-existing _Pagination_Query document because GenerateRuntime
+	// runs concurrently with GenerateDocuments and it may not exist yet.
 	paginatedFragments := map[string]string{}
 	err = p.DB.StepQuery(ctx, `
 		SELECT DISTINCT d.name
@@ -634,6 +636,14 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		JOIN discovered_lists dl ON dl.document = d.id
 		WHERE d.visible = 1 AND d.kind = 'fragment'
 		  AND dl.paginate IS NOT NULL
+
+		UNION
+
+		SELECT DISTINCT d.name
+		FROM documents d
+		JOIN document_directives dd ON dd.document = d.id
+		WHERE d.visible = 1 AND d.kind = 'fragment'
+		  AND dd.directive = 'refetchable'
 	`, nil, func(q plugins.Row) {
 		name := q.ColumnText(0)
 		paginatedFragments[name] = name + "_Pagination_Query"

@@ -1,4 +1,10 @@
-import { extractPageInfo, cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import {
+	extractPageInfo,
+	cursorHandlers,
+	offsetHandlers,
+	getCurrentConfig,
+	entityRefetchVariables,
+} from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
@@ -71,8 +77,44 @@ export function useFragmentHandle<
 		return (paginationData as any)[rootField] ?? null
 	}, [paginationData, refetchArtifact])
 
+	// @refetchable fragments embed the fragment in a query keyed by id (paginated: false).
+	// We observe that query so refetch() can swap in fresh data computed with new argument
+	// values, just like SinglePage pagination swaps in the latest page.
+	const isRefetchable = !!refetchArtifact?.refetch && !refetchArtifact.refetch.paginated
+
+	const refetchObserver = React.useMemo(() => {
+		if (!isRefetchable || !refetchArtifact) return null
+		return client.observe<_Data, _Input>({ artifact: refetchArtifact })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetchArtifact?.name, isRefetchable])
+
+	const subscribeToRefetch = React.useCallback(
+		(fn: () => void) => refetchObserver?.subscribe(() => fn()) ?? (() => {}),
+		[refetchObserver]
+	)
+	const getRefetchSnapshot = React.useCallback(
+		() => refetchObserver?.state.data ?? null,
+		[refetchObserver]
+	)
+	const refetchData = React.useSyncExternalStore(
+		subscribeToRefetch,
+		getRefetchSnapshot,
+		getRefetchSnapshot
+	)
+
+	const refetchEntityData = React.useMemo<_Data | null>(() => {
+		if (!refetchData || !refetchArtifact?.selection?.fields) return null
+		const rootField = Object.keys(refetchArtifact.selection.fields)[0]
+		if (!rootField) return null
+		return (refetchData as any)[rootField] ?? null
+	}, [refetchData, refetchArtifact])
+
 	const displayData =
-		isSinglePage && paginationEntityData !== null ? paginationEntityData : fragmentData
+		isSinglePage && paginationEntityData !== null
+			? paginationEntityData
+			: isRefetchable && refetchEntityData !== null
+			? refetchEntityData
+			: fragmentData
 
 	const wrapLoad = <_Result>(
 		setLoading: (val: boolean) => void,
@@ -170,9 +212,38 @@ export function useFragmentHandle<
 		return null
 	}, [refetchArtifact, paginationObserver, displayData, session, forwardPending, backwardPending])
 
+	// re-run the embedded query with new argument values. the entity's id is derived from
+	// the fragment data (the parent reference), which always carries the visible id. we must
+	// NOT derive it from displayData: after a refetch that becomes the embedded query result,
+	// which masks the entity's id out of its selection, so reading it back would yield
+	// `id: undefined` and clobber the real id on a second refetch.
+	const refetch = React.useMemo(() => {
+		if (!isRefetchable || !refetchObserver || !refetchArtifact) return undefined
+		return (newVariables?: _Input) => {
+			const idVariables = entityRefetchVariables(
+				getCurrentConfig(),
+				refetchArtifact.refetch?.targetType,
+				fragmentData as Record<string, any> | null
+			)
+			return refetchObserver.send({
+				variables: {
+					...(refetchObserver.state.variables ?? variables),
+					...idVariables,
+					...newVariables,
+				} as _Input,
+				// suppress loading-state placeholder data during the transition so the
+				// currently displayed value stays put until the fresh result arrives
+				stuff: { silenceLoading: true },
+				cacheParams: { disableSubscriptions: true, disablePartial: true },
+				session,
+			})
+		}
+	}, [isRefetchable, refetchObserver, refetchArtifact, fragmentData, variables, session])
+
 	return {
 		...handle,
 		variables,
 		data: displayData,
+		refetch,
 	}
 }

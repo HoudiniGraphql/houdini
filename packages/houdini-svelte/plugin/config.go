@@ -81,6 +81,10 @@ func (p *HoudiniSvelte) DefaultConfig(
 		pluginConfig.CustomStores.FragmentCursor = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/fragment.js#FragmentStoreCursor"
 	}
 
+	if pluginConfig.CustomStores.FragmentRefetchable == "" {
+		pluginConfig.CustomStores.FragmentRefetchable = "$houdini/plugins/houdini-svelte/runtime/stores/refetchable.js#FragmentStoreRefetchable"
+	}
+
 	return pluginConfig, nil
 }
 
