@@ -16,6 +16,10 @@ export default function ({ RefetchableCustomQuery }: PageProps) {
 	return (
 		<>
 			<div id="result">{handle.data?.avatarURL}</div>
+			{/* variables expose only the fragment args; the synthetic id (from resolve.arguments) must not leak */}
+			<div id="vars">
+				size={handle.variables?.size};id={(handle.variables as any)?.id ?? 'none'}
+			</div>
 
 			<button id="refetch" onClick={() => handle.refetch({ size: 100 })}>
 				refetch

@@ -20,6 +20,8 @@ $: entity = refetchableFragment(
 </script>
 
 <div id="result">{$entity.data?.avatarURL}</div>
+<!-- variables expose only the fragment args; the synthetic id (from resolve.arguments) must not leak -->
+<div id="vars">size={$entity.variables?.size};id={($entity.variables as any)?.id ?? 'none'}</div>
 
 <button id="refetch" on:click={() => entity.refetch({ size: 100 })}>refetch</button>
 <button id="refetch-large" on:click={() => entity.refetch({ size: 200 })}>refetch large</button>
