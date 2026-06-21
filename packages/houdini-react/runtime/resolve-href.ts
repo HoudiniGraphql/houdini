@@ -64,7 +64,7 @@ function decodeScalar(value: string): unknown {
 // unmarshalScalars turns the transport values a parsed query string carries back into rich
 // runtime values for every key that has a custom-scalar unmarshaler. Keys without one
 // (built-ins, UI-only keys) pass through untouched; List values are unmarshaled
-// element-wise. Used for both useRoute().location.search and the query variables the router feeds
+// element-wise. Used for both useRoute().search and the query variables the router feeds
 // back into marshalInputs, so a custom-scalar search param round-trips correctly. When
 // there's nothing to unmarshal the input object is returned as-is (no allocation).
 export function unmarshalScalars(

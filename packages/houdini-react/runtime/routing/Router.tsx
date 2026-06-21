@@ -60,7 +60,7 @@ export function Router({
 	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
 	// and search params arrive in their url transport form, so we unmarshal them once here
 	// — the rich values feed both the query variables (which marshalInputs re-marshals for
-	// the request) and useRoute()'s location.params/location.search.
+	// the request) and useRoute()'s params/search.
 	const [page, rawVariables, rawSearch] = find_match(manifest, currentURL)
 	const unmarshalers = scalarUnmarshalers(
 		[...(page?.params ?? []), ...(page?.searchParams ?? [])],
@@ -977,32 +977,29 @@ export function PageContextProvider({
 	return <PageContext.Provider value={{ params }}>{children}</PageContext.Provider>
 }
 
-// useRoute is the single hook for reading the current route. It returns a `location` with
-// the route's params (scoped to this route's path segments) and search, both typed when a
-// generated PageRoute/LayoutRoute is supplied, plus the current pathname and goto. This
-// replaces the old useLocation — params/search live here rather than on the component props.
+// useRoute is the single hook for reading the current route: the route's params (scoped to
+// this route's path segments) and search, both typed when a generated PageRoute/LayoutRoute
+// is supplied, plus the current pathname and goto. This replaces the old useLocation —
+// params/search live here rather than on the component props. Unlike a conventional
+// useLocation it also carries params and goto, which is why it's named for the route.
 export function useRoute<
-	_Route extends { params: any; search: any } = {
-		params: Record<string, string>
-		search: Record<string, any>
-	}
+	// the default leaves params/search empty (not a loose record) so that reading them
+	// without passing the route's generated PageRoute type is a compile error, while
+	// pathname and goto stay available for navigation-only code.
+	_Route extends { params: any; search: any } = { params: {}; search: {} }
 >(): {
-	location: {
-		pathname: string
-		params: _Route['params']
-		search: _Route['search']
-		goto: Goto
-	}
+	pathname: string
+	params: _Route['params']
+	search: _Route['search']
+	goto: Goto
 } {
 	const location = useLocationContext()
 	const route = useContext(PageContext)
 	return {
-		location: {
-			pathname: location.pathname,
-			params: route.params as _Route['params'],
-			search: location.search as _Route['search'],
-			goto: location.goto,
-		},
+		pathname: location.pathname,
+		params: route.params as _Route['params'],
+		search: location.search as _Route['search'],
+		goto: location.goto,
 	}
 }
 

@@ -61,7 +61,7 @@ The route's nullable query variables show up as typed keys, so a mistyped value 
 <Link to="/shows" search={{ tags: ['comedy', 'drama'] }}>Both</Link>
 ```
 
-A search param backed by a [custom scalar](~/guides/custom-scalars) is marshaled into the URL the same way a path param is, so a `DateTime` accepts a `Date` and serializes with your config's `marshal` function. On the read side, [`useRoute().location.search`](~/api-reference/useRoute) unmarshals it back to its runtime type (a `Date`). One caveat: because the URL is string-only, values are decoded with `JSON.parse` before unmarshaling, so a custom scalar whose value is `"true"` or `"123"` comes back as a boolean or number.
+A search param backed by a [custom scalar](~/guides/custom-scalars) is marshaled into the URL the same way a path param is, so a `DateTime` accepts a `Date` and serializes with your config's `marshal` function. On the read side, [`useRoute().search`](~/api-reference/useRoute) unmarshals it back to its runtime type (a `Date`). One caveat: because the URL is string-only, values are decoded with `JSON.parse` before unmarshaling, so a custom scalar whose value is `"true"` or `"123"` comes back as a boolean or number.
 
 These params aren't just decoration on the URL. They flow straight back into the route's query, and changing them re-runs it, so a `<Link>` that swaps `?genre=comedy` for `?genre=drama` refetches the page with the new filter. See [Search Params](~/loading-data/queries#search-params) for the data side of the story.
 
@@ -106,18 +106,18 @@ By default this fetches both the page component and its data. You can narrow it:
 
 ## Imperative Navigation
 
-When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useRoute().location`:
+When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useRoute`:
 
 ```tsx
 import { useRoute } from '$houdini'
 
 export function SearchForm() {
-  const { location } = useRoute()
+  const { goto } = useRoute()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const query = new FormData(e.currentTarget).get('q')
-    location.goto(`/search?q=${encodeURIComponent(query as string)}`)
+    goto(`/search?q=${encodeURIComponent(query as string)}`)
   }
 
   return (
@@ -129,15 +129,15 @@ export function SearchForm() {
 }
 ```
 
-`useRoute().location` also exposes `pathname`, `params`, and `search` if you need to read the current URL — for example, to mark a link as active:
+`useRoute` also exposes `pathname`, `params`, and `search` if you need to read the current URL — for example, to mark a link as active:
 
 ```tsx
 import { useRoute } from '$houdini'
 
 export function NavLink({ href, label }: { href: string; label: string }) {
-  const { location } = useRoute()
+  const { pathname } = useRoute()
   return (
-    <a href={href} aria-current={location.pathname === href ? 'page' : undefined}>
+    <a href={href} aria-current={pathname === href ? 'page' : undefined}>
       {label}
     </a>
   )

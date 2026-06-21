@@ -11,9 +11,8 @@ export default function ({ SearchParamsUsers }: PageProps) {
 	// the parsed query string: declared params (offset/limit) are coerced to numbers, a
 	// declared custom scalar (after: DateTime) is unmarshaled to a Date, and any other key
 	// (e.g. tab) passes through as a raw string
-	const {
-		location: { search, goto },
-	} = useRoute<PageRoute>()
+	const { search, goto } = useRoute<PageRoute>()
+
 
 	return (
 		<div>

@@ -5,9 +5,15 @@ import { Link, createMock, useRoute } from '$houdini'
 
 export {}
 
-const {
-	location: { goto },
-} = useRoute()
+// useRoute() with no Route type still gives pathname + goto for navigation-only code
+const { goto } = useRoute()
+
+// ...but params/search are empty without a PageRoute generic, so reading a key is an error
+const _bare = useRoute()
+// @ts-expect-error -- search is {} until you pass useRoute<PageRoute>()
+_bare.search.offset
+// @ts-expect-error -- params is {} until you pass useRoute<PageRoute>()
+_bare.params.id
 
 // ── valid usages ─────────────────────────────────────────────────────────────
 

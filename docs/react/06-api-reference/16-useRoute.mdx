@@ -3,7 +3,7 @@ title: useRoute
 description: Read the current route's params, search, and navigate imperatively.
 ---
 
-`useRoute` is the single hook for reading the current route. It returns a `location` with the route's `params` (the path segments), its `search` (the query string), the current `pathname`, and `goto` for imperative navigation.
+`useRoute` is the single hook for reading the current route. It returns the route's `params` (the path segments), its `search` (the query string), the current `pathname`, and `goto` for imperative navigation.
 
 Pass the `PageRoute` (or `LayoutRoute`) type generated for the current route file to type `params` and `search` against that route's query variables.
 
@@ -12,38 +12,36 @@ import type { PageRoute } from './$types'
 import { useRoute } from '$houdini'
 
 export function ShowBreadcrumb() {
-  const { location } = useRoute<PageRoute>()
-  // location.params.id  — typed from the route's [id] segment
-  // location.search.tab — typed from the query's nullable variables
-  return <span>Show #{location.params.id}</span>
+  const { params, search } = useRoute<PageRoute>()
+  // params.id  — typed from the route's [id] segment
+  // search.tab — typed from the query's nullable variables
+  return <span>Show #{params.id}</span>
 }
 ```
 
 `params` and `search` are derived from the route's query, so they carry the exact scalar types — including [custom scalars](~/guides/custom-scalars), which are unmarshaled back to their runtime type (e.g. a `DateTime` search param comes back as a `Date`). See [Search Params](~/routing/navigation#search-params) for how they get into the URL.
 
-Calling `useRoute()` without a type argument still works — `params` and `search` fall back to loose records, which is handy when you only need `pathname` or `goto`:
+Calling `useRoute()` without a type argument still works for `pathname` and `goto` — handy for navigation-only code. `params` and `search` fall back to empty objects, so reading a key off them without passing your `PageRoute` is a compile error (a nudge to type it):
 
 ```tsx
-const { location } = useRoute()
-location.goto('/login')
+const { goto } = useRoute()
+goto('/login')
 ```
 
 **Signature**
 
 ```ts
 function useRoute<Route>(): {
-  location: {
-    pathname: string
-    params: Route['params']
-    search: Route['search']
-    goto: Goto
-  }
+  pathname: string
+  params: Route['params']
+  search: Route['search']
+  goto: Goto
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
-| `location.pathname` | `string` | The current URL path (including the query string) |
-| `location.params` | `Route['params']` | The current route's path params, scoped to this route's segments |
-| `location.search` | `Route['search']` | The parsed query string — declared search params coerced/unmarshaled, other keys raw, repeated keys as arrays |
-| `location.goto` | `Goto` | Navigate imperatively — accepts a string or a typed `{ to, params, search }` target |
+| `pathname` | `string` | The current URL path (including the query string) |
+| `params` | `Route['params']` | The current route's path params, scoped to this route's segments |
+| `search` | `Route['search']` | The parsed query string — declared search params coerced/unmarshaled, other keys raw, repeated keys as arrays |
+| `goto` | `Goto` | Navigate imperatively — accepts a string or a typed `{ to, params, search }` target |
