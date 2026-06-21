@@ -333,10 +333,7 @@ function escapeRegex(str: string) {
 	)
 }
 
-export function parseScalar(
-	type: string,
-	value?: string
-): string | number | boolean | undefined {
+export function parseScalar(type: string, value?: string): string | number | boolean | undefined {
 	if (typeof value === 'undefined') {
 		return undefined
 	}

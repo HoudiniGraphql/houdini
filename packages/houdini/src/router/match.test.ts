@@ -218,7 +218,9 @@ describe('find_match search params', () => {
 
 	test('combines route params and search params', () => {
 		const page = pageFor('/user/[id]', {
-			documents: { Q: { artifact: null as any, loading: false, variables: { id: { type: 'ID' } } } },
+			documents: {
+				Q: { artifact: null as any, loading: false, variables: { id: { type: 'ID' } } },
+			},
 			searchParams: [{ name: 'ref', type: 'String', wrappers: [] }],
 		})
 		expect(match(page, '/user/42?ref=abc')).toEqual({ id: '42', ref: 'abc' })

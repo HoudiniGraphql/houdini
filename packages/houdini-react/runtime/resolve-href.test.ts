@@ -99,7 +99,9 @@ describe('serializeSearch', () => {
 		const a = new Date('2024-01-01T00:00:00.000Z')
 		const b = new Date('2024-02-01T00:00:00.000Z')
 		const marshalers = { on: (d: Date) => d.getTime() }
-		expect(serializeSearch({ on: [a, b] }, marshalers)).toBe(`?on=${a.getTime()}&on=${b.getTime()}`)
+		expect(serializeSearch({ on: [a, b] }, marshalers)).toBe(
+			`?on=${a.getTime()}&on=${b.getTime()}`
+		)
 	})
 })
 
@@ -137,8 +139,13 @@ describe('buildHref', () => {
 	const scalars = { DateTime: { marshal: (d: Date) => d.getTime() } }
 
 	test('fills path params and appends search', () => {
-		const route = { params: [{ name: 'id', type: 'ID' }], searchParams: [{ name: 'q', type: 'String' }] }
-		expect(buildHref('/users/[id]', route, scalars, { id: '1' }, { q: 'hi' })).toBe('/users/1?q=hi')
+		const route = {
+			params: [{ name: 'id', type: 'ID' }],
+			searchParams: [{ name: 'q', type: 'String' }],
+		}
+		expect(buildHref('/users/[id]', route, scalars, { id: '1' }, { q: 'hi' })).toBe(
+			'/users/1?q=hi'
+		)
 	})
 
 	test('marshals custom scalars in both params and search', () => {

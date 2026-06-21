@@ -124,7 +124,9 @@ export function Router({
 	// marshaled) exactly the way <Link> builds its href. The typed surface is the
 	// shared Goto contract; the implementation takes the loose runtime shape.
 	const goto = ((
-		target: string | { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
+		target:
+			| string
+			| { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
 	) => {
 		const url =
 			typeof target === 'string'
@@ -986,7 +988,7 @@ export function useRoute<
 	// the default leaves params/search empty (not a loose record) so that reading them
 	// without passing the route's generated PageRoute type is a compile error, while
 	// pathname and goto stay available for navigation-only code.
-	_Route extends { params: any; search: any } = { params: {}; search: {} }
+	_Route extends { params: any; search: any } = { params: {}; search: {} },
 >(): {
 	pathname: string
 	params: _Route['params']
