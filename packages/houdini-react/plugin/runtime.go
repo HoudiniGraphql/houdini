@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 
 	plugins "code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // TransformRuntime patches static runtime files as they are copied into the plugin directory.
@@ -600,20 +601,36 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	// Build the set of visible fragments that are paginated. We detect pagination
-	// via discovered_lists (populated during Validate) rather than looking for
-	// a pre-existing _Pagination_Query document, because GenerateRuntime runs
-	// concurrently with GenerateDocuments and the document may not exist yet.
-	paginatedFragments := map[string]string{}
+	// Build the set of visible fragments that get an embedded refetch query, so
+	// useFragmentHandle is wired up with the generated query as its refetchArtifact.
+	// This covers both @paginate fragments (detected via discovered_lists, populated
+	// during Validate) and @refetchable fragments (detected via the directive). We
+	// don't look for a pre-existing _Pagination_Query document because GenerateRuntime
+	// runs concurrently with GenerateDocuments and it may not exist yet.
+	refetchableFragments := map[string]string{}
 	err = p.DB.StepQuery(ctx, `
-		SELECT DISTINCT d.name
+		SELECT DISTINCT d.name, 0 AS refetchable
 		FROM documents d
 		JOIN discovered_lists dl ON dl.document = d.id
 		WHERE d.visible = 1 AND d.kind = 'fragment'
 		  AND dl.paginate IS NOT NULL
+
+		UNION
+
+		SELECT DISTINCT d.name, 1 AS refetchable
+		FROM documents d
+		JOIN document_directives dd ON dd.document = d.id
+		WHERE d.visible = 1 AND d.kind = 'fragment'
+		  AND dd.directive = 'refetchable'
 	`, nil, func(q plugins.Row) {
 		name := q.ColumnText(0)
-		paginatedFragments[name] = name + "_Pagination_Query"
+		// @paginate fragments embed a <name>_Pagination_Query; @refetchable fragments
+		// embed a <name>_Refetch_Query. both are wired up as the refetchArtifact.
+		if q.ColumnInt(1) == 1 {
+			refetchableFragments[name] = graphql.FragmentRefetchQueryName(name)
+		} else {
+			refetchableFragments[name] = graphql.FragmentPaginationQueryName(name)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -651,13 +668,13 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			top.WriteString("\n")
 		}
 		for _, name := range names {
-			top.WriteString(spec.imports(name, paginatedFragments[name], pluralFragments[name]))
+			top.WriteString(spec.imports(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		top.WriteString("\n")
 
 		var before strings.Builder
 		for _, name := range names {
-			before.WriteString(spec.overloads(name, paginatedFragments[name], pluralFragments[name]))
+			before.WriteString(spec.overloads(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		if spec.passthrough != "" {
 			before.WriteString(spec.passthrough + "\n")

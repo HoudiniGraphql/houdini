@@ -20,6 +20,10 @@ func TestValidate_Houdini(t *testing.T) {
 				"Ghost": {
 					Keys: []string{"aka", "name"},
 				},
+				"Cat": {
+					Keys:         []string{"name"},
+					ResolveQuery: "cat",
+				},
 			},
 			RuntimeScalars: map[string]string{
 				"ViewerIDFromSession": "ID",
@@ -77,6 +81,7 @@ func TestValidate_Houdini(t *testing.T) {
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 				ghost: Ghost!
+				cat(name: String!): Cat
 			}
 
 			input UserFilter {
@@ -2025,6 +2030,67 @@ func TestValidate_Houdini(t *testing.T) {
 					`
 					fragment UserCursorPaginatedA on User {
 						friendsConnection @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a Node type (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnNode on User @refetchable {
+						firstName
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a non-Node type that has a resolve query (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnCat on Cat @refetchable {
+						name
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a type that is not a Node and has no resolve query",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnGhost on Ghost @refetchable {
+						name
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on Query is not allowed (queries are refetchable by default)",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnQuery on Query @refetchable {
+						rootScalar
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable and @paginate on the same document is not allowed",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableAndPaginated on User @refetchable {
+						friendsConnection(first: 10) @paginate {
 							edges {
 								node {
 									id

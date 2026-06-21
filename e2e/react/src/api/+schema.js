@@ -144,10 +144,21 @@ export const typeDefs = /* GraphQL */ `
 		Get a monkey by its id
 		"""
 		monkey(id: ID!): Monkey
+		"""
+		A non-Node entity resolved by a custom query (exercises @refetchable on a
+		type that is refetchable via a resolve config rather than Node).
+		"""
+		refetchableEntity(id: ID!): RefetchableEntity
 	}
 
 	type Subscription {
 		userUpdate(id: ID!, snapshot: String): User
+	}
+
+	"A non-Node type that is refetchable via a custom resolve query."
+	type RefetchableEntity {
+		id: ID!
+		avatarURL(size: Int): String!
 	}
 
 	type User implements Node {

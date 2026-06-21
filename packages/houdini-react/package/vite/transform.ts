@@ -55,10 +55,16 @@ export async function transform_file(
 
 			const properties = [AST.objectProperty(AST.stringLiteral('artifact'), artifactRef)]
 
-			if (is_paginated(parsedDocument)) {
+			// both @paginate and @refetchable fragments embed the document in a
+			// separate query that useFragmentHandle uses to refetch.
+			if (is_paginated(parsedDocument) || is_refetchable(parsedDocument)) {
 				if (artifact.kind !== ArtifactKind.Query) {
-					// fragment/subscription pagination: the refetch artifact is a separate query
-					const refetchName = artifact.name + '_Pagination_Query'
+					// fragment/subscription pagination (and @refetchable): the refetch
+					// artifact is a separate query. @paginate embeds a _Pagination_Query;
+					// @refetchable embeds a _Refetch_Query.
+					const refetchName =
+						artifact.name +
+						(is_paginated(parsedDocument) ? '_Pagination_Query' : '_Refetch_Query')
 					const { id: refetchRef } = artifact_import({
 						page,
 						script,
@@ -120,4 +126,16 @@ function is_paginated(doc: graphql.DocumentNode): boolean {
 		},
 	})
 	return paginated
+}
+
+function is_refetchable(doc: graphql.DocumentNode): boolean {
+	let refetchable = false
+	graphql.visit(doc, {
+		Directive(node) {
+			if (node.name.value === 'refetchable') {
+				refetchable = true
+			}
+		},
+	})
+	return refetchable
 }

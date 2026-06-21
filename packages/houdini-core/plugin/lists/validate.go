@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -255,6 +253,129 @@ func ValidatePaginateTypeCondition(
 				docName,
 				graphql.PaginationDirective,
 				typeCondition,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: line, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+// ValidateRefetchableTypeCondition makes sure that every fragment tagged with
+// @refetchable lives on a type that can be looked up on its own — it either
+// implements Node or has a type_configs entry with a custom resolve_query.
+// Without that, the embedded refetch query we generate (node(id:) { ...Frag })
+// would be invalid, so we surface a clear error instead.
+func ValidateRefetchableTypeCondition(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// @refetchable is a document-level directive, so we look it up via
+	// document_directives (unlike @paginate which lives on a selection). The
+	// Node / resolve_query checks are the same as ValidatePaginateTypeCondition:
+	// the type must implement Node or have a custom resolve_query so the generated
+	// query can look it up by id.
+	//
+	// Unlike @paginate we do NOT exclude operation types — a fragment on Query is
+	// rejected here because queries are already refetchable on their own, so
+	// @refetchable is redundant (and we can't look one up by id).
+	query := `
+		SELECT DISTINCT
+			d.name AS documentName,
+			d.type_condition,
+			rd.filepath,
+			rd.offset_line,
+			rd.offset_column,
+			dd.row as line,
+			dd.column
+		FROM documents d
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN document_directives dd ON dd.document = d.id
+			LEFT JOIN possible_types pt ON pt.type = 'Node' AND d.type_condition = pt.member
+			LEFT JOIN type_configs tc ON tc.resolve_query IS NOT NULL AND d.type_condition = tc.name
+		WHERE d.kind = 'fragment'
+			AND dd.directive = $refetchable_directive
+			AND pt.member IS NULL
+			AND tc.name IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+	bindings := map[string]any{
+		"refetchable_directive": graphql.RefetchableDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		docName := stmt.ColumnText(0)
+		typeCondition := stmt.ColumnText(1)
+		filepath := stmt.ColumnText(2)
+		line := int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5))
+		column := int(stmt.ColumnInt(4)) + int(stmt.ColumnInt(6))
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query",
+				docName,
+				graphql.RefetchableDirective,
+				typeCondition,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: line, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+// ValidateRefetchablePaginateConflict rejects documents that carry both @refetchable
+// (a document-level directive) and @paginate (a selection-level directive). A paginated
+// fragment is already independently refetchable via its generated _Pagination_Query, so
+// @refetchable is redundant — and both want to own the embedded refetch query, so allowing
+// the combination would silently drop one. We surface a clear error instead.
+func ValidateRefetchablePaginateConflict(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// find documents that have a @refetchable document directive AND a @paginate selection
+	// directive. we report at the @refetchable location since that's the redundant one.
+	query := `
+		SELECT DISTINCT
+			d.name AS documentName,
+			rd.filepath,
+			rd.offset_line,
+			rd.offset_column,
+			dd.row as line,
+			dd.column
+		FROM documents d
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN document_directives dd ON dd.document = d.id
+				AND dd.directive = $refetchable_directive
+			JOIN selection_refs sr ON sr.document = d.id
+			JOIN selection_directives sd ON sd.selection_id = sr.child_id
+				AND sd.directive = $paginate_directive
+		WHERE (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+	bindings := map[string]any{
+		"refetchable_directive": graphql.RefetchableDirective,
+		"paginate_directive":    graphql.PaginationDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		docName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		line := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+		column := int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5))
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Document %q cannot use both @%s and @%s. A paginated fragment is already refetchable on its own, so @%s is redundant",
+				docName,
+				graphql.RefetchableDirective,
+				graphql.PaginationDirective,
+				graphql.RefetchableDirective,
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{

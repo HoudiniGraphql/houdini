@@ -22,14 +22,15 @@ func TestGenerateStores(t *testing.T) {
 			IncludeRuntime: "runtime",
 			Config: config.PluginConfig{
 				CustomStores: config.PluginConfigStorePaths{
-					Query:          "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStore",
-					QueryOffset:    "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreOffset",
-					QueryCursor:    "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreCursor",
-					Fragment:       "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStore",
-					FragmentOffset: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreOffset",
-					FragmentCursor: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreCursor",
-					Mutation:       "$houdini/plugins/houdini-svelte/runtime/stores/mutation.js#MutationStore",
-					Subscription:   "$houdini/plugins/houdini-svelte/runtime/stores/subscription.js#SubscriptionStore",
+					Query:               "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStore",
+					QueryOffset:         "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreOffset",
+					QueryCursor:         "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreCursor",
+					Fragment:            "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStore",
+					FragmentOffset:      "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreOffset",
+					FragmentCursor:      "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreCursor",
+					FragmentRefetchable: "$houdini/plugins/houdini-svelte/runtime/stores/refetchable.js#FragmentStoreRefetchable",
+					Mutation:            "$houdini/plugins/houdini-svelte/runtime/stores/mutation.js#MutationStore",
+					Subscription:        "$houdini/plugins/houdini-svelte/runtime/stores/subscription.js#SubscriptionStore",
 				},
 			},
 		},
@@ -41,6 +42,7 @@ func TestGenerateStores(t *testing.T) {
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				users: [User!]!
+				node(id: ID!): Node
 			}
 
 			type Mutation {
@@ -198,6 +200,35 @@ export * from './client'
 						        super({
 						            artifact,
 						            storeName: "TestFragmentStore",
+						        })
+						    }
+						}
+
+					`),
+				},
+			},
+			{
+				Name: "refetchable fragment store",
+				Pass: true,
+				Input: []string{
+					`fragment RefetchableUser on User @refetchable { name }`,
+				},
+				Extra: map[string]any{
+					"RefetchableUser": tests.Dedent(`
+						import { FragmentStoreRefetchable } from '$houdini/plugins/houdini-svelte/runtime/stores/refetchable.js'
+						import artifact from '$houdini/artifacts/RefetchableUser.js'
+						import type { RefetchableUser, RefetchableUser$data, RefetchableUser$input } from '$houdini/artifacts/RefetchableUser.js'
+						import _RefetchArtifact from '$houdini/artifacts/RefetchableUser_Refetch_Query.js'
+
+						export type { RefetchableUser }
+
+						export class RefetchableUserStore extends FragmentStoreRefetchable<RefetchableUser$data, { RefetchableUser: any }, RefetchableUser$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "RefetchableUserStore",
+						            variables: true,
+						            refetchArtifact: _RefetchArtifact,
 						        })
 						    }
 						}

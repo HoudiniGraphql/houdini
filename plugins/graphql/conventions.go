@@ -54,6 +54,8 @@ const RefetchDirective = "refetch"
 
 const PluralDirective = "plural"
 
+const RefetchableDirective = "refetchable"
+
 const ListOperationSuffixInsert = "_insert"
 
 const ListOperationSuffixRemove = "_remove"
@@ -79,3 +81,9 @@ func FragmentPaginationQueryName(fragmentName string) string {
 }
 
 const PaginationQuerySuffix = "_Pagination_Query"
+
+func FragmentRefetchQueryName(fragmentName string) string {
+	return fragmentName + RefetchQuerySuffix
+}
+
+const RefetchQuerySuffix = "_Refetch_Query"

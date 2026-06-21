@@ -145,6 +145,51 @@ query AllUsers {
 
 A `@plural` fragment has to be spread on a list field, since that's the only place the array of references can come from. Spreading it anywhere else is a codegen error.
 
+## Refetchable Fragments
+
+Sometimes a component needs to reload its own data with different arguments without dragging the route that rendered it into the conversation. Mark the fragment with `@refetchable` and load it with `refetchableFragment` instead of `fragment`:
+
+```svelte
+<script>
+	import { refetchableFragment, graphql } from '$houdini'
+	import type { UserInfo } from '$houdini'
+
+	let { user }: { user: UserInfo } = $props()
+
+	const userInfo = $derived(refetchableFragment(user, graphql(`
+		fragment UserInfo on User @refetchable @arguments(filter: { type: "String" }) {
+			friends(filter: $filter) {
+				name
+			}
+		}
+	`)))
+</script>
+
+{#each $userInfo.data.friends as friend}
+	<div>{friend.name}</div>
+{/each}
+
+<button onclick={() => userInfo.refetch({ filter: 'aki' })}>
+	filter friends
+</button>
+```
+
+`refetchableFragment` returns a store carrying the fragment's `data` and `variables`, plus a `refetch` method. Calling `refetch` re-runs the fragment against the network with the arguments we hand it, layered over whatever it was last loaded with, so we only pass the values we actually want to change. The record's id is figured out for us from the data already on screen.
+
+The initial values come from wherever the fragment is spread, the same as any fragment that takes arguments. The parent passes them with `@with`:
+
+```graphql
+query UserPage {
+	user {
+		...UserInfo @with(filter: "aki")
+	}
+}
+```
+
+The catch is that the fragment has to live on a type Houdini can look up on its own, which in practice means one that implements `Node` or has a [custom resolver](~/api-reference/config) configured. That's the same requirement paginated fragments carry, and for the same reason: under the hood we embed the fragment in a query keyed by the record's id and re-run that.
+
+`@refetchable` can't be combined with `@paginate` on the same fragment — a paginated fragment is already refetchable on its own, so the two together is a compile-time error.
+
 ## Fragment Masking
 
 Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.

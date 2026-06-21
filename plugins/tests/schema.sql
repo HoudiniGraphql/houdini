@@ -370,6 +370,24 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
     FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
+-- refetch_meta carries the "refetch" artifact-block metadata for documents that are
+-- refetchable but are NOT lists (e.g. @refetchable fragments). Lists keep their refetch
+-- metadata on discovered_lists since it is intrinsic to pagination; this table is for the
+-- list-less case so we don't have to fake a discovered_lists row.
+CREATE TABLE IF NOT EXISTS refetch_meta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document INTEGER NOT NULL,
+    selection INTEGER NOT NULL,
+    target_type TEXT NOT NULL,
+    method TEXT NOT NULL DEFAULT 'offset',
+    mode TEXT NOT NULL DEFAULT 'Infinite',
+    page_size INTEGER NOT NULL DEFAULT 0,
+    embedded BOOLEAN NOT NULL DEFAULT false,
+
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (selection) REFERENCES selections(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
   depends_on TEXT NOT NULL,
@@ -390,6 +408,10 @@ CREATE INDEX IF NOT EXISTS idx_discovered_lists_document ON discovered_lists(doc
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_node ON discovered_lists(node);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_list_field ON discovered_lists(list_field);
 -- note: no index on discovered_lists(connection) — boolean column, ~2 distinct values
+
+-- refetch_meta
+CREATE INDEX IF NOT EXISTS idx_refetch_meta_selection ON refetch_meta(selection);
+CREATE INDEX IF NOT EXISTS idx_refetch_meta_document ON refetch_meta(document);
 
 -- types
 CREATE INDEX IF NOT EXISTS idx_types_kind_operation ON types(kind, operation);

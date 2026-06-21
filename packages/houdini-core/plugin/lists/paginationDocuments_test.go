@@ -27,7 +27,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 
 			type Legend {
 				title: String!
-				believers(limit: Int, offset: Int): [User!]!
+				believers(title: String, limit: Int, offset: Int): [User!]!
 			}
 
 			type User implements Node {
@@ -617,6 +617,69 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "fragment @argument reuses the resolve key variable when names collide",
+				Pass: true,
+				Input: []string{
+					`
+fragment BelieverPages on Legend @arguments(title: { type: "String" }) {
+believers(title: $title, limit: 10) @paginate {
+firstName
+}
+}
+`,
+				},
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.TypeConfig["Legend"] = plugins.TypeConfig{
+						Keys:         []string{"title"},
+						ResolveQuery: "legend",
+					}
+				},
+				// the resolve key `title` and the fragment @argument `title` collapse to a single
+				// non-null variable on the pagination query; @with still references it by name.
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+fragment BelieverPages_paginated_3ovGOt on Legend {
+title
+__typename
+believers(title: $title, limit: $limit, offset: $offset) @paginate {
+firstName
+__typename
+id
+}
+}
+`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "title",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "limit",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "offset",
+							Type: "Int",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+query %s($limit: Int = 10, $offset: Int, $title: String!) @dedupe(match: Variables) {
+legend(title: $title) {
+...BelieverPages_paginated_3ovGOt @mask_disable @with(limit: $limit, offset: $offset, title: $title)
+__typename
+title
+}
+}
+`,
+							graphql.FragmentPaginationQueryName("BelieverPages"),
+						)),
+				},
+			},
+			{
 				Name: "fragment suppress dedupe",
 				Pass: true,
 				Input: []string{
@@ -889,7 +952,7 @@ func TestPaginationDocumentGeneration_multipleInvocations(t *testing.T) {
 
 			type Legend {
 				title: String!
-				believers(limit: Int, offset: Int): [User!]!
+				believers(title: String, limit: Int, offset: Int): [User!]!
 			}
 
 			type User implements Node {

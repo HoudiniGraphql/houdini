@@ -32,6 +32,27 @@ export function keyFieldsForType(configFile: ConfigFile, type: string) {
 	return withDefault.types?.[type]?.keys || withDefault.defaultKeys!
 }
 
+// entityRefetchVariables derives the variables needed to look an entity up by id
+// (e.g. { id: "..." } for a Node) from the entity's data. It powers both fragment
+// pagination and @refetchable fragments, which embed the fragment in a query keyed
+// by the entity. Mirrors the logic in Svelte's queryVariables().
+export function entityRefetchVariables(
+	configFile: ConfigFile,
+	targetType: string | undefined | null,
+	state: Record<string, any> | null | undefined
+): Record<string, any> {
+	if (!targetType || targetType === 'Query' || !state) {
+		return {}
+	}
+	const config = defaultConfigValues(configFile)
+	const typeConfig = config.types?.[targetType]
+	if (typeConfig?.resolve?.arguments) {
+		return (typeConfig.resolve.arguments(state) as Record<string, any>) ?? {}
+	}
+	const keys = keyFieldsForType(config, targetType)
+	return Object.fromEntries(keys.map((key) => [key, state[key]]))
+}
+
 export function computeID(configFile: ConfigFile, type: string, data: any): string {
 	const fields = keyFieldsForType(configFile, type)
 	let id = ''

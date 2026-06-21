@@ -16,9 +16,10 @@ const (
 type StorePaginationType = string
 
 const (
-	StorePaginationTypeNone   = ""
-	StorePaginationTypeCursor = "cursor"
-	StorePaginationTypeOffset = "offset"
+	StorePaginationTypeNone        = ""
+	StorePaginationTypeCursor      = "cursor"
+	StorePaginationTypeOffset      = "offset"
+	StorePaginationTypeRefetchable = "refetchable"
 )
 
 type PluginConfig struct {
@@ -28,14 +29,15 @@ type PluginConfig struct {
 }
 
 type PluginConfigStorePaths struct {
-	Query          string `json:"query"`
-	Mutation       string `json:"mutation"`
-	Fragment       string `json:"fragment"`
-	Subscription   string `json:"subscription"`
-	QueryCursor    string `json:"queryCursor"`
-	QueryOffset    string `json:"queryOffset"`
-	FragmentCursor string `json:"fragmentCursor"`
-	FragmentOffset string `json:"fragmentOffset"`
+	Query               string `json:"query"`
+	Mutation            string `json:"mutation"`
+	Fragment            string `json:"fragment"`
+	Subscription        string `json:"subscription"`
+	QueryCursor         string `json:"queryCursor"`
+	QueryOffset         string `json:"queryOffset"`
+	FragmentCursor      string `json:"fragmentCursor"`
+	FragmentOffset      string `json:"fragmentOffset"`
+	FragmentRefetchable string `json:"fragmentRefetchable"`
 }
 
 type Import struct {
@@ -62,6 +64,8 @@ func (c PluginConfig) StoreBaseClassImport(
 			importString = c.CustomStores.FragmentCursor
 		case StorePaginationTypeOffset:
 			importString = c.CustomStores.FragmentOffset
+		case StorePaginationTypeRefetchable:
+			importString = c.CustomStores.FragmentRefetchable
 		}
 	case "query":
 		switch paginated {

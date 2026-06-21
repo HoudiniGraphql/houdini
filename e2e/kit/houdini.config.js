@@ -32,6 +32,13 @@ const config = {
 		UnionAorB: {
 			keys: [],
 		},
+		RefetchableEntity: {
+			keys: ['id'],
+			resolve: {
+				queryField: 'refetchableEntity',
+				arguments: (entity) => ({ id: entity.id }),
+			},
+		},
 	},
 
 	plugins: {

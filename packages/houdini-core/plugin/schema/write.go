@@ -1052,6 +1052,23 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @refetchable on FRAGMENT_DEFINITION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.RefetchableDirective,
+		"description": "@refetchable marks a fragment so it can be refetched on its own with new argument values",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.RefetchableDirective,
+		"location":  "FRAGMENT_DEFINITION",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.ComponentFieldDirective,

@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -207,8 +204,14 @@ func PreparePaginationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer insertFragment.Finalize()
+	// resolve-key variables are inserted before the fragment's own @arguments. if a fragment
+	// @argument shares a name with a key (e.g. a custom-resolve type keyed by a field the
+	// fragment also takes as an argument), reuse the existing non-null key declaration instead
+	// of inserting a duplicate, which would violate UNIQUE(document, name). references resolve
+	// by name, so the @with argument still points at the same variable.
 	insertDocumentVariable, err := conn.Prepare(`
 		INSERT INTO document_variables (document, "name", type, type_modifiers, default_value, row, column) VALUES ($document, $name, $type, $type_modifiers, $default_value, 0, 0)
+		ON CONFLICT (document, "name") DO NOTHING
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
