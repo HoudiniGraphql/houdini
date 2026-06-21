@@ -9,6 +9,9 @@ export type YogaServerOptions = Parameters<typeof createYoga>[0]
 // to decide what bundle to load and render for a given url
 export type RouterManifest<_ComponentType> = {
 	pages: Record<string, RouterPageManifest<_ComponentType>>
+	// maps each route's url to its page id for O(1) lookup from a destination href
+	// (used by <Link> and goto). Built at codegen time.
+	pagesByUrl: Record<string, string>
 }
 
 export type { ServerAdapterFactory } from './server.js'

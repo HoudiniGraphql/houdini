@@ -31,12 +31,12 @@ export function Link<H extends RouteHrefs | ExternalHref>({
 	preload,
 	...rest
 }: LinkProps<H>): React.ReactElement {
-	// look up the destination route so custom-scalar param/search values can be
-	// marshaled into their transport form (e.g. a Date → timestamp) before they hit
-	// the URL. External hrefs won't match a page, so marshalers stay empty.
-	const page = Object.values((manifest as any).pages).find((p: any) => p.url === to) as
-		| RouteHrefInfo
-		| undefined
+	// look up the destination route (O(1) via the codegen'd pagesByUrl map) so custom-scalar
+	// param/search values can be marshaled into their transport form (e.g. a Date →
+	// timestamp) before they hit the URL. External hrefs won't match a page, so marshalers
+	// stay empty.
+	const m = manifest as any
+	const page = m.pages[m.pagesByUrl[to as string]] as RouteHrefInfo | undefined
 	const href = disabled
 		? undefined
 		: buildHref(

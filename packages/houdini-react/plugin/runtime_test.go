@@ -701,6 +701,8 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
+							pagesByUrl: {
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
@@ -778,6 +780,9 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__subRoute__nested"),
 								},
 							},
+							pagesByUrl: {
+								"/nested": "__subRoute__nested",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
@@ -823,7 +828,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
+										{ name: "id", optional: false, rest: false, chained: false, type: "ID" }
 									],
 									searchParams: [],
 									documents: {
@@ -835,6 +840,9 @@ func TestGenerateRuntime(t *testing.T) {
 									},
 									component: () => import("../units/entries/__id_"),
 								},
+							},
+							pagesByUrl: {
+								"/[id]": "__id_",
 							},
 						} as const satisfies RouterManifest<any>
 
@@ -898,6 +906,9 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/_search"),
 								},
 							},
+							pagesByUrl: {
+								"/search": "_search",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
@@ -940,6 +951,9 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/_"),
 								},
 							},
+							pagesByUrl: {
+								"/": "_",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
@@ -970,6 +984,9 @@ func TestGenerateRuntime(t *testing.T) {
 									},
 									component: () => import("../units/entries/_"),
 								},
+							},
+							pagesByUrl: {
+								"/": "_",
 							},
 						} as const satisfies RouterManifest<any>
 
@@ -1033,6 +1050,8 @@ func TestGenerateRuntime(t *testing.T) {
 
 						export default {
 							pages: {
+							},
+							pagesByUrl: {
 							},
 						} as const satisfies RouterManifest<any>
 

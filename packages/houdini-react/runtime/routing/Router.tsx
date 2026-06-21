@@ -133,7 +133,7 @@ export function Router({
 				? target
 				: buildHref(
 						target.to,
-						Object.values(manifest.pages).find((p) => p.url === target.to),
+						manifest.pages[manifest.pagesByUrl[target.to]],
 						getCurrentConfig()?.scalars,
 						target.params,
 						target.search

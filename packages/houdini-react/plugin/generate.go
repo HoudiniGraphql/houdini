@@ -830,8 +830,8 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 
 	// PageRoute / LayoutRoute / ErrorRoute — the route's params (from path segments) and
 	// search (the component's nullable, non-route query variables). Consumed via
-	// useRoute<PageRoute>().location. Both are derived from the query inputs so they carry
-	// the exact scalar types (including unmarshaled custom scalars like Date).
+	// useRoute<PageRoute>(). Both are derived from the query inputs so they carry the exact
+	// scalar types (including unmarshaled custom scalars like Date).
 	b.WriteString(formatRouteType("PageRoute", pageQueries, routeKeys, paramsType))
 	b.WriteString(formatRouteType("LayoutRoute", layoutQueries, routeKeys, paramsType))
 	b.WriteString(formatRouteType("ErrorRoute", errorQueries, routeKeys, paramsType))

@@ -29,7 +29,8 @@ export function buildMockPath(
 	}
 	// marshal custom-scalar search values the same way <Link> does, so tests exercise
 	// the real serialization path
-	const page = Object.values((manifest as any).pages).find((p: any) => p.url === pattern) as
+	const m = manifest as any
+	const page = m.pages[m.pagesByUrl[pattern]] as
 		| { searchParams?: ReadonlyArray<{ name: string; type: string }> }
 		| undefined
 	const marshalers = scalarMarshalers(page?.searchParams, getCurrentConfig()?.scalars)

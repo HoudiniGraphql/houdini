@@ -88,7 +88,7 @@ describe('route_params', () => {
 		},
 		{
 			name: 'Route with multiple optional chained parameters (first present)',
-			pattern: '/lang/[[lang=language]]/[[country=country]]',
+			pattern: '/lang/[[lang]]/[[country]]',
 			url: '/lang/en',
 			expected: {
 				variables: {
@@ -147,6 +147,7 @@ describe('find_match parse and match', async () => {
 					}),
 					{}
 				),
+				pagesByUrl: {},
 			}
 
 			// find the match
@@ -177,7 +178,7 @@ describe('find_match search params', () => {
 	}
 
 	function match(page: RouterManifest<any>['pages'][string], current: string) {
-		const [, variables] = find_match({ pages: { [page.id]: page } }, current)
+		const [, variables] = find_match({ pages: { [page.id]: page }, pagesByUrl: {} }, current)
 		return variables
 	}
 
@@ -236,7 +237,7 @@ describe('find_match search params', () => {
 	// the third tuple element is the parsed query string surfaced on
 	// useLocation().search
 	function searchOf(page: RouterManifest<any>['pages'][string], current: string) {
-		const [, , search] = find_match({ pages: { [page.id]: page } }, current)
+		const [, , search] = find_match({ pages: { [page.id]: page }, pagesByUrl: {} }, current)
 		return search
 	}
 

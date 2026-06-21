@@ -786,6 +786,15 @@ func formatManifest(
 	}
 
 	sb.WriteString("\t},\n")
+
+	// pagesByUrl maps each route's url to its page id so <Link> and goto can resolve a
+	// destination to its page in O(1), without scanning the manifest at runtime.
+	sb.WriteString("\tpagesByUrl: {\n")
+	for _, id := range sortedKeys(manifest.Pages) {
+		sb.WriteString(fmt.Sprintf("\t\t%q: %q,\n", stripRouteGroups(manifest.Pages[id].URL), id))
+	}
+	sb.WriteString("\t},\n")
+
 	sb.WriteString("} as const satisfies RouterManifest<any>\n")
 
 	// route_headers is a server-only export: it maps a page id to the ordered
@@ -870,7 +879,6 @@ func parsePagePattern(url string) (pattern string, params []routeParam, err erro
 
 type routeParam struct {
 	Name     string
-	Matcher  string
 	Optional bool
 	Rest     bool
 	Chained  bool
@@ -914,10 +922,6 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 	}
 	var parts []string
 	for _, p := range params {
-		matcher := ""
-		if p.Matcher != "" {
-			matcher = p.Matcher
-		}
 		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
 		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
 		gqlType := "String"
@@ -925,8 +929,8 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 			gqlType = info.Type
 		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
+			`{ name: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, p.Optional, p.Rest, p.Chained, gqlType,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"

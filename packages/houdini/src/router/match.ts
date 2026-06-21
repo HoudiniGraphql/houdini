@@ -3,7 +3,7 @@ import type { RouterManifest, RouterPageManifest } from './types.js'
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
  */
-const param_pattern = /^(\[)?(\.\.\.)?(\w+)(?:=(\w+))?(\])?$/
+const param_pattern = /^(\[)?(\.\.\.)?(\w+)(\])?$/
 
 type GraphQLScalar = string | number | boolean | null
 type GraphQLVariables = Record<string, GraphQLScalar | GraphQLScalar[]> | null
@@ -11,15 +11,12 @@ type ValueOf<T> = T extends Record<string, infer U> ? U : never
 
 export type RouteParam = {
 	name: string
-	matcher: string
 	optional: boolean
 	rest: boolean
 	chained: boolean
 	// GraphQL scalar name for this param (e.g. "ID", "String", "DateTime")
 	type?: string
 }
-
-export type ParamMatcher = (param: string) => boolean
 
 // find_prefix_match returns the page whose leading static URL segments (the
 // segments before the first dynamic [param] segment) match the most segments of
@@ -125,7 +122,7 @@ export function find_match<_ComponentType>(
 		}
 	}
 
-	// the parsed query string, surfaced to consumers via useLocation().search. every
+	// the parsed query string, surfaced to consumers via useRoute().search. every
 	// key present in the query string is included: declared search params are coerced
 	// (reusing the work below that fills query variables) while any other UI-only keys
 	// pass through as their raw string values. repeated keys collapse to arrays.
@@ -182,11 +179,10 @@ export function parse_page_pattern(id: string) {
 					`^${get_route_segments(id)
 						.map((segment) => {
 							// special case — /[...rest]/ could contain zero segments
-							const rest_match = /^\[\.\.\.(\w+)(?:=(\w+))?\]$/.exec(segment)
+							const rest_match = /^\[\.\.\.(\w+)\]$/.exec(segment)
 							if (rest_match) {
 								params.push({
 									name: rest_match[1],
-									matcher: rest_match[2],
 									optional: false,
 									rest: true,
 									chained: true,
@@ -194,11 +190,10 @@ export function parse_page_pattern(id: string) {
 								return '(?:/(.*))?'
 							}
 							// special case — /[[optional]]/ could contain zero segments
-							const optional_match = /^\[\[(\w+)(?:=(\w+))?\]\]$/.exec(segment)
+							const optional_match = /^\[\[(\w+)\]\]$/.exec(segment)
 							if (optional_match) {
 								params.push({
 									name: optional_match[1],
-									matcher: optional_match[2],
 									optional: true,
 									rest: false,
 									chained: true,
@@ -234,18 +229,17 @@ export function parse_page_pattern(id: string) {
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
+												`Invalid param: ${content}. Params can only have underscores and alphanumeric characters.`
 											)
 										}
 
-										const [, is_optional, is_rest, name, matcher] = match
+										const [, is_optional, is_rest, name] = match
 										// It's assumed that the following invalid route id cases are already checked
 										// - unbalanced brackets
 										// - optional param following rest param
 
 										params.push({
 											name,
-											matcher,
 											optional: !!is_optional,
 											rest: !!is_rest,
 											chained: is_rest ? i === 1 && parts[0] === '' : false,
