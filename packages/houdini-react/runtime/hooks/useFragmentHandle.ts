@@ -212,6 +212,11 @@ export function useFragmentHandle<
 		return null
 	}, [refetchArtifact, paginationObserver, displayData, session, forwardPending, backwardPending])
 
+	// the fragment's current argument values: the initial args overlaid with everything that
+	// has been passed to refetch() so far. we track these explicitly rather than reading them
+	// back off the embedded query, whose variables also carry the synthetic id-lookup keys.
+	const [refetchArgs, setRefetchArgs] = React.useState<Partial<_Input>>({})
+
 	// re-run the embedded query with new argument values. the entity's id is derived from
 	// the fragment data (the parent reference), which always carries the visible id. we must
 	// NOT derive it from displayData: after a refetch that becomes the embedded query result,
@@ -220,6 +225,7 @@ export function useFragmentHandle<
 	const refetch = React.useMemo(() => {
 		if (!isRefetchable || !refetchObserver || !refetchArtifact) return undefined
 		return (newVariables?: _Input) => {
+			setRefetchArgs((prev) => ({ ...prev, ...newVariables }))
 			const idVariables = entityRefetchVariables(
 				getCurrentConfig(),
 				refetchArtifact.refetch?.targetType,
@@ -240,9 +246,13 @@ export function useFragmentHandle<
 		}
 	}, [isRefetchable, refetchObserver, refetchArtifact, fragmentData, variables, session])
 
+	const displayVariables = isRefetchable
+		? ({ ...(variables as Record<string, any>), ...refetchArgs } as _Input)
+		: variables
+
 	return {
 		...handle,
-		variables,
+		variables: displayVariables,
 		data: displayData,
 		refetch,
 	}

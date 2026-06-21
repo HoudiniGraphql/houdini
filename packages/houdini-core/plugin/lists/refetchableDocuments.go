@@ -150,8 +150,14 @@ func PrepareRefetchableDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer insertArgumentValue.Finalize()
+	// the lookup key variables are inserted first (non-null, e.g. $id: ID!). if a fragment
+	// @argument happens to share a name with a key, reuse the existing declaration instead of
+	// inserting a duplicate (which would violate UNIQUE(document, name)). the key's non-null
+	// type is what the resolve field requires, so letting it win is correct; the @with
+	// reference resolves to it by name either way.
 	insertDocumentVariable, err := conn.Prepare(`
 		INSERT INTO document_variables (document, "name", type, type_modifiers, default_value, row, column) VALUES ($document, $name, $type, $type_modifiers, $default_value, 0, 0)
+		ON CONFLICT (document, "name") DO NOTHING
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))

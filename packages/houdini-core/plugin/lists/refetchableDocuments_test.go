@@ -29,6 +29,7 @@ func TestRefetchableDocumentGeneration(t *testing.T) {
 			type Legend {
 				title: String!
 				name: String!
+				nickname(title: String): String
 			}
 
 			interface Node {
@@ -130,6 +131,45 @@ func TestRefetchableDocumentGeneration(t *testing.T) {
 							}
 						`,
 							graphql.FragmentRefetchQueryName("LegendInfo"),
+						)).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name:          "title",
+							Type:          "String",
+							TypeModifiers: "!",
+						},
+					),
+				},
+			},
+			{
+				Name: "reuses the key variable when a fragment @argument shares its name",
+				Pass: true,
+				Input: []string{
+					`
+						fragment LegendCollision on Legend @refetchable @arguments(title: { type: "String" }) {
+							nickname(title: $title)
+						}
+					`,
+				},
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.TypeConfig["Legend"] = plugins.TypeConfig{
+						Keys:         []string{"title"},
+						ResolveQuery: "legend",
+					}
+				},
+				// the resolve key `title` and the fragment @argument `title` collapse to a
+				// single non-null variable; the @with reference points at that same variable.
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($title: String!) {
+								legend(title: $title) {
+									...LegendCollision_OqqDb @mask_disable @with(title: $title)
+									__typename
+									title
+								}
+							}
+						`,
+							graphql.FragmentRefetchQueryName("LegendCollision"),
 						)).WithVariables(
 						tests.ExpectedOperationVariable{
 							Name:          "title",

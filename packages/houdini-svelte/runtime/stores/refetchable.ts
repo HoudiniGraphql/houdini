@@ -8,7 +8,7 @@ import type {
 	QueryArtifact,
 } from 'houdini/runtime'
 import { CompiledFragmentKind, fragmentKey } from 'houdini/runtime'
-import { derived, get } from 'svelte/store'
+import { derived, get, writable } from 'svelte/store'
 import type { Readable, Subscriber } from 'svelte/store'
 
 import { getClient, initClient } from '../client.js'
@@ -91,6 +91,11 @@ export class FragmentStoreRefetchable<
 			return wrapped ? (wrapped as _Data) : null
 		}
 
+		// the fragment's current argument values: the initial args overlaid with everything that
+		// has been passed to refetch() so far. we track these explicitly rather than reading them
+		// back off the embedded query, whose variables also carry the synthetic id-lookup keys.
+		const fragmentArgs = writable<Partial<_Input>>({})
+
 		// re-run the embedded query with new argument values. the entity's id is derived
 		// from the parent fragment reference, which always carries the (visible) id. we must
 		// NOT derive it from the embedded query result: the fragment masks the entity's id
@@ -98,6 +103,7 @@ export class FragmentStoreRefetchable<
 		// the real id on a second refetch.
 		const refetch = async (variables?: Partial<_Input>) => {
 			await initClient()
+			fragmentArgs.update((prev) => ({ ...prev, ...variables }))
 			const state =
 				store.initialValue ??
 				(get({ subscribe: store.subscribe }) as _Data | null) ??
@@ -127,19 +133,22 @@ export class FragmentStoreRefetchable<
 			run: Subscriber<RefetchableFragmentResult<_Data, _Input>>,
 			invalidate?: (value?: RefetchableFragmentResult<_Data, _Input>) => void
 		): (() => void) => {
-			const combined = derived([parent, refetchStore], ([$parent, $refetch]) => {
-				let data = $parent as _Data | null
-				if (rootField) {
-					const wrapped = ($refetch.data as any)?.[rootField]
-					if (wrapped) {
-						data = wrapped as _Data
+			const combined = derived(
+				[parent, refetchStore, fragmentArgs],
+				([$parent, $refetch, $args]) => {
+					let data = $parent as _Data | null
+					if (rootField) {
+						const wrapped = ($refetch.data as any)?.[rootField]
+						if (wrapped) {
+							data = wrapped as _Data
+						}
+					}
+					return {
+						data,
+						variables: { ...(store.variables ?? {}), ...$args } as _Input,
 					}
 				}
-				return {
-					data,
-					variables: ($refetch.variables ?? store.variables) as _Input,
-				}
-			})
+			)
 			return combined.subscribe(run, invalidate)
 		}
 

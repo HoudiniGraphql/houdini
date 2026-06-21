@@ -17,6 +17,10 @@ export default function ({ RefetchableFragmentQuery }: PageProps) {
 			<div id="result">{handle.data?.avatarURL}</div>
 			{/* testField reflects the `param` argument; we refetch only `size`, so this must survive */}
 			<div id="merge">{handle.data?.testField}</div>
+			{/* variables reflect the fragment's current args (no id key), updated after refetch */}
+			<div id="vars">
+				size={handle.variables?.size};param={String(handle.variables?.param)}
+			</div>
 
 			<button id="refetch" onClick={() => handle.refetch({ size: 100 })}>
 				refetch
