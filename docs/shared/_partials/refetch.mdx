@@ -17,7 +17,7 @@ mutation FavoriteBook($id: ID!) {
 
 A few things to keep in mind:
 
-- `@refetch` goes on the field that **returns the entity**, not on its `id` — that's how
+- `@refetch` goes on the field that **returns the entity**, not on its `id`. That's how
   Houdini knows which record changed.
 - It also works on a field that returns a **list** of entities, in which case every record
   in the list is refreshed.

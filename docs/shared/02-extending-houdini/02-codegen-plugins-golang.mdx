@@ -5,7 +5,7 @@ description: Writing Houdini codegen plugins in Go
 
 import ViteSubmodule from '@shared/_partials/plugin-vite-submodule.mdx'
 
-Houdini's codegen pipeline is built in Go, and you can extend it by writing your own Go plugin. A plugin is a standalone binary that registers itself with the pipeline and responds to lifecycle hooks — schema modifications, validation, document generation, and more.
+Houdini's codegen pipeline is built in Go, and you can extend it by writing your own Go plugin. A plugin is a standalone binary that registers itself with the pipeline and responds to lifecycle hooks: schema modifications, validation, document generation, and more.
 
 ## Defining a Plugin
 
@@ -31,19 +31,19 @@ func (p *MyPlugin) Order() plugins.PluginOrder {
 }
 ```
 
-`plugins.Plugin[PluginConfig]` is a generic base that wires up the database and filesystem — embed it and you get `p.DB` and `p.Fs` for free. The type parameter is your plugin's config shape (see [Plugin Config](#plugin-config) below). If your plugin has no config, use `struct{}`.
+`plugins.Plugin[PluginConfig]` is a generic base that wires up the database and filesystem. Embed it and you get `p.DB` and `p.Fs` for free. The type parameter is your plugin's config shape (see [Plugin Config](#plugin-config) below). If your plugin has no config, use `struct{}`.
 
 ### Plugin Order
 
 The `Order()` method controls when your plugin runs relative to others:
 
-- `PluginOrderBefore` — runs before `houdini-core`
-- `PluginOrderCore` — reserved for `houdini-core` and framework plugins
-- `PluginOrderAfter` — runs after `houdini-core` (the right choice for most plugins)
+- `PluginOrderBefore`: runs before `houdini-core`
+- `PluginOrderCore`: reserved for `houdini-core` and framework plugins
+- `PluginOrderAfter`: runs after `houdini-core` (the right choice for most plugins)
 
 ### Entry Point
 
-The binary's `main.go` is minimal — create the plugin, set the filesystem, and hand it to `plugins.Run`:
+The binary's `main.go` is minimal: create the plugin, set the filesystem, and hand it to `plugins.Run`:
 
 ```go title="main.go"
 package main
@@ -72,7 +72,7 @@ func main() {
 
 ## Hook Interfaces
 
-Hooks are opt-in — implement only the interfaces for the lifecycle events you care about. The pipeline inspects your plugin at startup and only invokes the hooks you've registered.
+Hooks are opt-in: implement only the interfaces for the lifecycle events you care about. The pipeline inspects your plugin at startup and only invokes the hooks you've registered.
 
 | Interface | When it fires |
 |---|---|
@@ -99,11 +99,11 @@ func (p *MyPlugin) Validate(ctx context.Context) error {
 }
 ```
 
-The pipeline uses Go's interface system to detect which hooks you've implemented — no registration step needed.
+The pipeline uses Go's interface system to detect which hooks you've implemented, so no registration step is needed.
 
 ## Distributing via npm
 
-Go produces platform-native binaries, but npm packages need to work across operating systems and architectures. The standard approach — the same one Houdini uses for its own plugins — is to cross-compile once for every target platform and split the output into per-platform npm packages, then wire them together with a JavaScript shim.
+Go produces platform-native binaries, but npm packages need to work across operating systems and architectures. The standard approach (the same one Houdini uses for its own plugins) is to cross-compile once for every target platform and split the output into per-platform npm packages, then wire them together with a JavaScript shim.
 
 ### Cross-Compiling
 
@@ -116,17 +116,17 @@ GOOS=windows GOARCH=amd64 go build -o bin/my-plugin.exe
 # ... and so on for each target
 ```
 
-Each binary goes into its own package — `my-plugin-darwin-arm64`, `my-plugin-linux-x64`, etc. — with a `package.json` that declares the matching `os` and `cpu` fields. The root package lists all of them as `optionalDependencies`, so package managers install only the one that matches the current machine.
+Each binary goes into its own package (`my-plugin-darwin-arm64`, `my-plugin-linux-x64`, etc.) with a `package.json` that declares the matching `os` and `cpu` fields. The root package lists all of them as `optionalDependencies`, so package managers install only the one that matches the current machine.
 
 ### The Shim
 
 The root package's `bin` field points to a small Node.js shim rather than a binary directly. The shim's job is to find the right binary for the current platform and hand off execution to it via `execFileSync`. As a post-install optimization, the shim replaces itself with a hard link to the actual binary so subsequent invocations skip Node entirely.
 
-The shim also supports a `HOUDINI_PLATFORM` environment variable, which lets callers force a specific platform — useful in CI environments where the host architecture doesn't match the target.
+The shim also supports a `HOUDINI_PLATFORM` environment variable, which lets callers force a specific platform. This is useful in CI environments where the host architecture doesn't match the target.
 
 ## Static Runtimes
 
-The `StaticRuntime` interface lets a plugin copy a directory of files into the project during the `afterLoad` phase — before document discovery and codegen run.
+The `StaticRuntime` interface lets a plugin copy a directory of files into the project during the `afterLoad` phase, before document discovery and codegen run.
 
 ```go
 func (p *MyPlugin) StaticRuntime(ctx context.Context) (string, error) {
@@ -162,8 +162,8 @@ The main distinction from `IncludeRuntime` is timing: `IncludeRuntime` is copied
 
 Rather than maintaining these files by hand, Houdini generates everything through a build script. The templates and tooling live at:
 
-- [`packages/_scripts/buildGo.js`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/buildGo.js) — cross-compiles for all platforms, generates per-platform `package.json` files, and assembles the root package
-- [`packages/_scripts/templates/shim.cjs`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/templates/shim.cjs) — the shim template, with placeholders that `buildGo.js` replaces with the actual package and binary names
-- [`packages/_scripts/templates/postInstall.js`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/templates/postInstall.js) — the post-install script that downloads the binary if the platform package wasn't available, then attempts the hard-link optimization
+- [`packages/_scripts/buildGo.js`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/buildGo.js): cross-compiles for all platforms, generates per-platform `package.json` files, and assembles the root package
+- [`packages/_scripts/templates/shim.cjs`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/templates/shim.cjs): the shim template, with placeholders that `buildGo.js` replaces with the actual package and binary names
+- [`packages/_scripts/templates/postInstall.js`](https://github.com/HoudiniGraphQL/houdini/blob/main/packages/_scripts/templates/postInstall.js): the post-install script that downloads the binary if the platform package wasn't available, then attempts the hard-link optimization
 
-These files are written as templates — `my-package` and `my-binary` are replaced with the actual package name at build time — so you can adapt them directly for your own plugin.
+These files are written as templates (`my-package` and `my-binary` are replaced with the actual package name at build time), so you can adapt them directly for your own plugin.

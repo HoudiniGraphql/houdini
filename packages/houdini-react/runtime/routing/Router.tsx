@@ -185,26 +185,24 @@ export function Router({
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
-		<VariableContext.Provider value={variables}>
-			<LocationContext.Provider
-				value={{
-					pathname: currentURL,
-					goto,
-					params: variables ?? {},
-					search,
-				}}
-			>
-				<Is404Context.Provider value={is404}>
-					{is404 ? (
-						<NotFoundLayoutBoundary key={targetPage.id}>
-							<PageComponent url={currentURL} key={targetPage.id + '__404'} />
-						</NotFoundLayoutBoundary>
-					) : (
-						<PageComponent url={currentURL} key={targetPage.id} />
-					)}
-				</Is404Context.Provider>
-			</LocationContext.Provider>
-		</VariableContext.Provider>
+		<LocationContext.Provider
+			value={{
+				pathname: currentURL,
+				goto,
+				params: variables ?? {},
+				search,
+			}}
+		>
+			<Is404Context.Provider value={is404}>
+				{is404 ? (
+					<NotFoundLayoutBoundary key={targetPage.id}>
+						<PageComponent url={currentURL} key={targetPage.id + '__404'} />
+					</NotFoundLayoutBoundary>
+				) : (
+					<PageComponent url={currentURL} key={targetPage.id} />
+				)}
+			</Is404Context.Provider>
+		</LocationContext.Provider>
 	)
 }
 
@@ -673,12 +671,6 @@ export function useSession(): [App.Session, (newSession: Partial<App.Session>) =
 
 	return [ctx.session, updateSession]
 }
-
-export function useCurrentVariables(): GraphQLVariables {
-	return React.useContext(VariableContext)
-}
-
-const VariableContext = React.createContext<GraphQLVariables>(null)
 
 const LocationContext = React.createContext<{
 	pathname: string

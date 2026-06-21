@@ -62,4 +62,4 @@ We only pass the arguments we want to change; the record's id is derived from th
 function useFragmentHandle(reference, document): handle
 ```
 
-Returns the same `DocumentHandle` shape as [`useQueryHandle`](~/api-reference/useQueryHandle) — `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`, or a `refetch` method if it uses `@refetchable`.
+Returns the same `DocumentHandle` shape as [`useQueryHandle`](~/api-reference/useQueryHandle): `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`, or a `refetch` method if it uses `@refetchable`.

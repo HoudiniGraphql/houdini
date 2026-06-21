@@ -200,7 +200,7 @@ Then copy and paste this block as the last child of the `Container` component:
 
 ## Loading State
 
-Since Houdini's router starts fetching data the moment navigation begins, your component always receives fully-loaded data as props — there is no window where `Info.species` could be `null` on the initial render. You won't crash clicking those nav buttons.
+Since Houdini's router starts fetching data the moment navigation begins, your component always receives fully-loaded data as props. There is no window where `Info.species` could be `null` on the initial render. You won't crash clicking those nav buttons.
 
 If you want to show a visual indicator while a navigation is in flight, wrap the subtree in a `<Suspense>` boundary with a fallback:
 

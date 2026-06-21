@@ -50,11 +50,11 @@ query MyProfileInfo {
 
 A query store holds the following fields, accessed as `$store.fieldName`:
 
-- `data` — the result of the query, updated as mutations, subscriptions, and other queries bring in more recent values
-- `fetching` — `true` while a network request is in flight
-- `errors` — any errors returned by the server
-- `partial` — `true` if the result is a partial cache hit
-- `variables` — the variables used in the last request
+- `data`: the result of the query, updated as mutations, subscriptions, and other queries bring in more recent values
+- `fetching`: `true` while a network request is in flight
+- `errors`: any errors returned by the server
+- `partial`: `true` if the result is a partial cache hit
+- `variables`: the variables used in the last request
 
 ## Store Methods
 
@@ -90,7 +90,7 @@ The cleanest pattern for loading data in a component:
 
 ### Using `$effect`
 
-When the query depends on reactive state — a prop, a search input, a selected filter — use `$effect` to re-fetch whenever the dependency changes. This is the right pattern for non-SSR components like typeahead search or prop-driven queries:
+When the query depends on reactive state, such as a prop, a search input, or a selected filter, use `$effect` to re-fetch whenever the dependency changes. This is the right pattern for non-SSR components like typeahead search or prop-driven queries:
 
 ```svelte title="src/lib/UserProfile.svelte"
 <script>

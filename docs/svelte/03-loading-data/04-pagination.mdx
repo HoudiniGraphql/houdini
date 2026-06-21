@@ -7,7 +7,7 @@ Most APIs window large lists rather than returning everything at once, leaving i
 
 ## Cursor-based Pagination
 
-Cursor-based pagination is the approach popularized by GraphQL's [Relay connection model](https://relay.dev/graphql/connections.htm). Instead of page numbers, the server returns a cursor — an opaque pointer into the list — that you pass with the next request to pick up where you left off.
+Cursor-based pagination is the approach popularized by GraphQL's [Relay connection model](https://relay.dev/graphql/connections.htm). Instead of page numbers, the server returns a cursor (an opaque pointer into the list) that you pass with the next request to pick up where you left off.
 
 A field that supports cursor-based pagination returns a connection type with `edges`, `pageInfo`, and usually a `totalCount`:
 
@@ -67,7 +67,7 @@ query UserList {
 {/await}
 ```
 
-Houdini automatically includes the `pageInfo` fields — you don't need to select them yourself. The store gains:
+Houdini automatically includes the `pageInfo` fields, so you don't need to select them yourself. The store gains:
 
 ```ts
 type UserListStore = QueryStore & {
@@ -153,12 +153,12 @@ Fragments can also paginate. Use `paginatedFragment` instead of `fragment` and m
 
 `paginatedFragment` returns a store with the following fields:
 
-- `data` — the fragment's data
-- `loading` — `true` while a pagination request is in flight
-- `pageInfo` — current page info (`hasNextPage`, `hasPreviousPage`, etc.). Only valid for cursor-based pagination.
-- `partial` — `true` if the result is a partial cache hit
+- `data`: the fragment's data
+- `loading`: `true` while a pagination request is in flight
+- `pageInfo`: current page info (`hasNextPage`, `hasPreviousPage`, etc.). Only valid for cursor-based pagination.
+- `partial`: `true` if the result is a partial cache hit
 
 And one of the following methods depending on the pagination direction:
 
-- `loadNextPage(pageSize?)` — loads the next page
-- `loadPreviousPage(pageSize?)` — loads the previous page
+- `loadNextPage(pageSize?)`: loads the next page
+- `loadPreviousPage(pageSize?)`: loads the previous page

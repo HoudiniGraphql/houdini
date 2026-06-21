@@ -10,7 +10,7 @@ Specify the data requirements for a component.
 
 <AsideAccordion variant="think" title="Fragments are your building blocks">
 
-Rather than leaving it up to coincidence that the right fields happen to be in the route's query, we give each component its own fragment — and the parent query just spreads them in. As a component library grows, this keeps the coupling loose: adding a field to `UserAvatar` means updating `UserAvatar`'s fragment, not hunting down every query that renders it.
+Rather than leaving it up to coincidence that the right fields happen to be in the route's query, we give each component its own fragment, and the parent query just spreads them in. As a component library grows, this keeps the coupling loose: adding a field to `UserAvatar` means updating `UserAvatar`'s fragment, not hunting down every query that renders it.
 
 Think of fragments as the primary way to describe component data requirements in Houdini. A `UserAvatar` that starts out needing just initials can quietly grow to need an email and a favorite color without touching any of its callers.
 
@@ -188,11 +188,11 @@ query UserPage {
 
 The catch is that the fragment has to live on a type Houdini can look up on its own, which in practice means one that implements `Node` or has a [custom resolver](~/api-reference/config) configured. That's the same requirement paginated fragments carry, and for the same reason: under the hood we embed the fragment in a query keyed by the record's id and re-run that.
 
-`@refetchable` can't be combined with `@paginate` on the same fragment — a paginated fragment is already refetchable on its own, so the two together is a compile-time error.
+`@refetchable` can't be combined with `@paginate` on the same fragment. A paginated fragment is already refetchable on its own, so the two together is a compile-time error.
 
 ## Fragment Masking
 
-Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
+Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared, not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
 
 By default fields from a fragment are not included in a query to encourage separation of concerns.
 You can override this default behavior with the config option `defaultFragmentMasking: "disable"` for all fragment usages or individually per fragment:

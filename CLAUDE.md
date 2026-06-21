@@ -39,7 +39,9 @@ When making changes, update the relevant doc pages alongside the code. This incl
 
 **Mandatory check**: before finishing any code task, run `grep -rn <changed symbol> /docs` to find pages that reference it and verify they reflect the change. Do not skip this step.
 
-**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`.
+**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`. The path's section is the page's directory name with the numeric prefix stripped — `docs/shared/01-core/07-architecture.mdx` is linked as `~/core/architecture`, not `~/api/architecture`. Verify the section, not just the `~/` form.
+
+**Prose punctuation**: avoid em-dashes in doc prose. Reach for the mark that fits the clause relationship: a period between two complete sentences, a semicolon between two closely-linked independent clauses, a colon to introduce an explanation/example/list, a comma for an appositive or trailing dependent clause, and parentheses for a mid-sentence aside. In `- term — description` bullet lists, use a colon (`- term: description`). Keep an em-dash only when nothing else reads as well (emphasis or a conversational beat). Don't trade one awkward mark for another: no double colon (a mid-sentence colon directly before a code-fence-introducing colon — use a period there), no double comma (an intro phrase like "For mutations," followed by ", since …" — keep the em-dash), and use a semicolon before conjunctive adverbs like "otherwise"/"however" to avoid a comma splice.
 
 The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
 

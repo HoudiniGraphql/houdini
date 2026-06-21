@@ -44,17 +44,17 @@ src/routes/(app)/show/+page.jsx    → /show
 src/routes/(auth)/login/+page.jsx  → /login
 ```
 
-The `(app)` and `(auth)` segments are invisible to the router — they exist purely to let you share a `+layout.jsx` across a subset of routes without that grouping appearing in the URL.
+The `(app)` and `(auth)` segments are invisible to the router; they exist purely to let you share a `+layout.jsx` across a subset of routes without that grouping appearing in the URL.
 
 ## Route Parameters
 
 Dynamic segments are marked with square brackets:
 
-- `src/routes/show/[id]/+page.jsx` — matches `/show/1`, `/show/abc`, etc.
-- `src/routes/assets/[...filepath]/+page.jsx` — rest syntax, matches any number of segments
-- `src/routes/[[lang]]/home/+page.jsx` — double brackets mark an optional parameter
+- `src/routes/show/[id]/+page.jsx` matches `/show/1`, `/show/abc`, etc.
+- `src/routes/assets/[...filepath]/+page.jsx` uses rest syntax, matching any number of segments
+- `src/routes/[[lang]]/home/+page.jsx` uses double brackets to mark an optional parameter
 
-Optional parameters cannot follow rest parameters — the rest segment is greedy and will consume everything after it.
+Optional parameters cannot follow rest parameters, because the rest segment is greedy and will consume everything after it.
 
 A query's variables can come from the URL's query string too, not just its path. See [Search Params](~/loading-data/queries#search-params) for how a route's nullable variables map onto `?key=value`.
 

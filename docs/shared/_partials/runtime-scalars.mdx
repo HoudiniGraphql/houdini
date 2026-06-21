@@ -1,4 +1,4 @@
-Runtime scalars let you define custom scalar types whose values are resolved at runtime — from the current session, request context, or any other source — rather than passed explicitly by the caller. This is useful for variables like the current user's organization ID that are always available from session state and would otherwise need to be threaded through every query manually.
+Runtime scalars let you define custom scalar types whose values are resolved at runtime (from the current session, request context, or any other source) rather than passed explicitly by the caller. This is useful for variables like the current user's organization ID that are always available from session state and would otherwise need to be threaded through every query manually.
 
 Define runtime scalars in your `houdini.config.js` under `features.runtimeScalars`:
 
@@ -17,7 +17,7 @@ export default {
 
 The `resolve` function receives the same context as your client's `fetchParams`, including `session`, `metadata`, and `fetch`.
 
-Once defined, use the scalar as a variable type in any query. Houdini calls the configured `resolve` function automatically — no need to pass the value at the call site:
+Once defined, use the scalar as a variable type in any query. Houdini calls the configured `resolve` function automatically, so there's no need to pass the value at the call site:
 
 ```graphql
 query OrganizationInfo($id: OrganizationFromSession!) {

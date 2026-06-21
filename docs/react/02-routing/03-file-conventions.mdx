@@ -3,7 +3,7 @@ title: File Conventions
 description: Special files in Houdini's React framework
 ---
 
-Every file Houdini treats as special starts with `+`. Everything else — utility functions, shared components, stylesheets — is ignored by the router and can live wherever makes sense for your project. The `+` prefix might look a little odd at first, but it serves two purposes: it makes Houdini files instantly recognizable in any directory listing, and it lets Houdini add new reserved filenames in the future without any risk of colliding with files you've already created.
+Every file Houdini treats as special starts with `+`. Everything else (utility functions, shared components, stylesheets) is ignored by the router and can live wherever makes sense for your project. The `+` prefix might look a little odd at first, but it serves two purposes: it makes Houdini files instantly recognizable in any directory listing, and it lets Houdini add new reserved filenames in the future without any risk of colliding with files you've already created.
 
 ## Route Files
 
@@ -13,6 +13,7 @@ These files go inside `src/routes/` and can appear in any route directory.
 |---|---|
 | `+page.jsx` | The component rendered at this route. Receives query results as props when a `+page.gql` is present. |
 | `+layout.jsx` | Wraps all child routes. Receives a `children` prop for the nested content, plus query results from `+layout.gql` if defined. |
+| `+error.jsx` | Renders an [error boundary](~/routing/handling-errors) for this route and everything nested below it. Receives an `errors` prop plus any layout query results in scope. |
 | `+page.gql` | GraphQL query (or queries) for this page. Each query's result is passed as a prop named after the query. |
 | `+layout.gql` | GraphQL query for this layout. Results are available to the layout component and all of its descendants. |
 
@@ -25,7 +26,7 @@ These files go in `src/api/` and are only relevant if you're using a [local Grap
 | File | Purpose |
 |---|---|
 | `+schema.ts` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. |
-| `+yoga.ts` | Exports a custom Yoga instance — use this to inject context, add plugins, or customize behavior. Requires `+schema.ts` to also be present. |
+| `+yoga.ts` | Exports a custom Yoga instance. Use this to inject context, add plugins, or customize behavior. Requires `+schema.ts` to also be present. |
 
 ## App-Level Files
 

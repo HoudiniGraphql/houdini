@@ -198,7 +198,7 @@ query Info($id: Int! = 1) {
 }
 ```
 
-When a query has `@paginate`, Houdini threads a handle prop alongside the query result — `Info$handle` in our case. The handle gives you `loadNext` and `loadPrevious` functions to step through the list. We also ask for `pageInfo` in the query so we know whether there are more pages in either direction. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](~/loading-data/pagination).
+When a query has `@paginate`, Houdini threads a handle prop alongside the query result (`Info$handle` in our case). The handle gives you `loadNext` and `loadPrevious` functions to step through the list. We also ask for `pageInfo` in the query so we know whether there are more pages in either direction. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](~/loading-data/pagination).
 
 It's time to add some visuals. Update the component to destructure `Info$handle` instead of `Info`, then add an import for `MoveDisplay` and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
@@ -257,8 +257,8 @@ You can now verify that it all works by opening the network tab and clicking on 
 
 ## That's it!
 
-This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through —
-we really appreciate the dedication. You can 🪄 [share your achievement](http://twitter.com/intent/tweet?text=I%20just%20completed%20Houdini%27s%20guide%20%F0%9F%8E%A9%0A%F0%9F%AA%84%20And%20it%20was%20%5BYOUR%20MESSAGE%5D%0A%0AHandling%20data%20like%20a%20pro%21%20%0AWhat%20about%20you%3F%20%F0%9F%AB%B5%0Ahttps%3A%2F%2Fwww.houdinigraphql.com%2Fintro%0A%0A%F0%9F%91%80%20%40AlecAivazis%20%40jycouet) to help us!
+This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through.
+We really appreciate the dedication. You can 🪄 [share your achievement](http://twitter.com/intent/tweet?text=I%20just%20completed%20Houdini%27s%20guide%20%F0%9F%8E%A9%0A%F0%9F%AA%84%20And%20it%20was%20%5BYOUR%20MESSAGE%5D%0A%0AHandling%20data%20like%20a%20pro%21%20%0AWhat%20about%20you%3F%20%F0%9F%AB%B5%0Ahttps%3A%2F%2Fwww.houdinigraphql.com%2Fintro%0A%0A%F0%9F%91%80%20%40AlecAivazis%20%40jycouet) to help us!
 If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on GitHub.
 
 If you want to read more about what Houdini can do, we recommend checking out the [Queries](~/loading-data/queries) guide next.
