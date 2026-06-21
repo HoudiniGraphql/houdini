@@ -28,13 +28,13 @@ plugin({
 })
 ```
 
-`plugin()` handles all the transport plumbing — registering with the orchestrator, receiving hook invocations, and sending results back — so the script itself stays minimal.
+`plugin()` handles all the transport plumbing (registering with the orchestrator, receiving hook invocations, and sending results back) so the script itself stays minimal.
 
 ### Plugin Order
 
-- `'before'` — runs before `houdini-core`
-- `'core'` — reserved for `houdini-core` and framework plugins
-- `'after'` — runs after `houdini-core` (the right choice for most plugins)
+- `'before'`: runs before `houdini-core`
+- `'core'`: reserved for `houdini-core` and framework plugins
+- `'after'`: runs after `houdini-core` (the right choice for most plugins)
 
 ### Entry Point
 
@@ -116,8 +116,8 @@ type PluginContext = {
 }
 ```
 
-- `pluginDirectory` — absolute path to the directory containing your plugin's entry point. Use it to resolve bundled assets.
-- `db` — a connection to the shared SQLite database. Exposes `get`, `all`, and `run` for reading and writing pipeline data directly:
+- `pluginDirectory`: absolute path to the directory containing your plugin's entry point. Use it to resolve bundled assets.
+- `db`: a connection to the shared SQLite database. Exposes `get`, `all`, and `run` for reading and writing pipeline data directly:
 
 ```typescript
 async validate(ctx, payload) {
@@ -134,16 +134,16 @@ async validate(ctx, payload) {
 },
 ```
 
-- `invokeHook` — call another pipeline hook from within your handler. Results are keyed by plugin name.
+- `invokeHook`: call another pipeline hook from within your handler. Results are keyed by plugin name.
 
 ## Optional Fields
 
 The plugin config accepts a few additional fields for plugins that need to ship runtime code:
 
-- `includeRuntime` — a path (relative to your plugin entry point) to a directory that Houdini will copy into the project's generated runtime
-- `staticRuntime` — a path (relative to your plugin entry point) to a directory whose contents are copied **before codegen runs** (see below)
-- `configModule` — a path to a JavaScript module that exports config values to merge into the project config
-- `clientPlugins` — an object of client-side plugins to inject into the user's `HoudiniClient`
+- `includeRuntime`: a path (relative to your plugin entry point) to a directory that Houdini will copy into the project's generated runtime
+- `staticRuntime`: a path (relative to your plugin entry point) to a directory whose contents are copied **before codegen runs** (see below)
+- `configModule`: a path to a JavaScript module that exports config values to merge into the project config
+- `clientPlugins`: an object of client-side plugins to inject into the user's `HoudiniClient`
 
 ```typescript
 plugin({
@@ -159,7 +159,7 @@ plugin({
 
 ## Static Runtimes
 
-`staticRuntime` points to a directory (relative to your plugin entry point) whose contents are copied into the project during the `afterLoad` phase — before document discovery and codegen run.
+`staticRuntime` points to a directory (relative to your plugin entry point) whose contents are copied into the project during the `afterLoad` phase, before document discovery and codegen run.
 
 ```typescript
 plugin({

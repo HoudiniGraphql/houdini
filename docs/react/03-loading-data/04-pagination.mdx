@@ -3,7 +3,7 @@ title: Pagination
 description: Paginating data in Houdini's React framework
 ---
 
-Add `@paginate` to any list field and Houdini handles the cursor management, cache merging, and page tracking. The handle gives you the controls. Houdini supports both cursor-based and offset/limit pagination — the directive is the same either way, Houdini detects the strategy from the field's arguments.
+Add `@paginate` to any list field and Houdini handles the cursor management, cache merging, and page tracking. The handle gives you the controls. Houdini supports both cursor-based and offset/limit pagination. The directive is the same either way; Houdini detects the strategy from the field's arguments.
 
 ## Cursor-Based Pagination
 
@@ -78,7 +78,7 @@ query ShowList {
 
 ## Fragment Pagination
 
-Pagination can live in a fragment rather than the page query. Use `useFragmentHandle` instead of `useFragment` — it returns an object with the data and handle methods merged together:
+Pagination can live in a fragment rather than the page query. Use `useFragmentHandle` instead of `useFragment`; it returns an object with the data and handle methods merged together:
 
 ```jsx title="src/lib/ShowEpisodes.tsx&typescriptToggle=true"
 import { graphql, useFragmentHandle } from '$houdini'

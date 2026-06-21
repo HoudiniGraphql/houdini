@@ -18,11 +18,11 @@ export default function DashboardError({ errors, children }: ErrorProps) {
 }
 ```
 
-The `errors` prop is `Array<Error | GraphQLError>` — it will contain whichever error was thrown, whether that's a network failure, a GraphQL response error, or anything else thrown inside the page tree.
+The `errors` prop is `Array<Error | GraphQLError>`. It will contain whichever error was thrown, whether that's a network failure, a GraphQL response error, or anything else thrown inside the page tree.
 
 ## The `children` prop
 
-The error component also receives `children` — the page component that failed. You can render it if you want to show partial content alongside the error, but in most cases you won't. It's there when you need it.
+The error component also receives `children`, the page component that failed. You can render it if you want to show partial content alongside the error, but in most cases you won't. It's there when you need it.
 
 ## Query data
 
@@ -35,7 +35,7 @@ import type { ErrorProps } from './$types'
 export default function RootError({ RootQuery, errors }: ErrorProps) {
   return (
     <div>
-      <p>Welcome, {RootQuery.viewer.name} — but something went wrong.</p>
+      <p>Welcome, {RootQuery.viewer.name}, but something went wrong.</p>
       <p>{errors[0].message}</p>
     </div>
   )
@@ -62,11 +62,11 @@ By default Houdini throws GraphQL response errors so they're catchable by the er
 
 ### SSR and query errors
 
-Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) are different: Houdini streams the page shell to the browser immediately while queries are in flight. Components waiting on data are suspended and retried asynchronously once the response arrives. If a query returns an error during that retry, React is already mid-stream and cannot route the error to a class-based error boundary — the server returns a 500 and the browser shows a blank error page.
+Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) are different: Houdini streams the page shell to the browser immediately while queries are in flight. Components waiting on data are suspended and retried asynchronously once the response arrives. If a query returns an error during that retry, React is already mid-stream and cannot route the error to a class-based error boundary, so the server returns a 500 and the browser shows a blank error page.
 
 Routing errors (`notFound()`, `redirect()`, etc.) are not affected because they throw synchronously before any suspension happens.
 
-The recommended fix is to add a `@loading` directive to your page query. This tells Houdini to generate a Suspense boundary in the right place — between the error boundary and the suspended component — so React can hand off errors correctly during SSR. It also gives the browser something to show while the query is in flight. Place it as high up in your component tree as makes sense: the goal is to suspend on the minimum data needed for a usable first paint, so that lower-level errors have a boundary to land on.
+The recommended fix is to add a `@loading` directive to your page query. This tells Houdini to generate a Suspense boundary in the right place (between the error boundary and the suspended component) so React can hand off errors correctly during SSR. It also gives the browser something to show while the query is in flight. Place it as high up in your component tree as makes sense: the goal is to suspend on the minimum data needed for a usable first paint, so that lower-level errors have a boundary to land on.
 
 ```graphql title="src/routes/dashboard/+page.gql"
 query DashboardQuery @loading {
@@ -78,7 +78,7 @@ query DashboardQuery @loading {
 
 With `@loading` in place, Houdini generates a loading state component from your `+page.tsx` (see the [loading states guide](~/routing/loading-states) for how to define it). React sends that loading state in the initial HTML, holds the stream open until the query resolves, and either replaces it with the page content or lets the error reach the nearest `+error.tsx`. It's important to note that when you do this, your application will return a status code 200 even if an error is bubbled up to the error state. This is just how React's current implementation of streaming SSR works. There's no way around it.
 
-Client-side navigations don't need any of this — the error boundary catches query errors there regardless.
+Client-side navigations don't need any of this; the error boundary catches query errors there regardless.
 
 ## Routing utilities
 
@@ -116,7 +116,7 @@ export default function ShowError({ errors }: ErrorProps) {
 
 ### 404 and static URL matching
 
-When no exact route matches the incoming URL, Houdini automatically finds the deepest layout whose static URL prefix matches, renders its `+error.tsx` as the 404 page, and returns HTTP 404 before streaming begins — no catch-all route needed.
+When no exact route matches the incoming URL, Houdini automatically finds the deepest layout whose static URL prefix matches, renders its `+error.tsx` as the 404 page, and returns HTTP 404 before streaming begins. No catch-all route needed.
 
 ### redirect()
 

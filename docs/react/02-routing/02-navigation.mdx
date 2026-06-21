@@ -16,10 +16,10 @@ import { Link } from '$houdini'
 Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
 
 ```tsx
-// static route — TypeScript verifies "/shows" is a real page
+// static route: TypeScript verifies "/shows" is a real page
 <Link to="/shows">All Shows</Link>
 
-// parameterized route — TypeScript requires params.id
+// parameterized route: TypeScript requires params.id
 <Link to="/shows/[id]" params={{ id: show.id }}>
     {show.title}
 </Link>
@@ -65,7 +65,17 @@ A search param backed by a [custom scalar](~/guides/custom-scalars) is marshaled
 
 These params aren't just decoration on the URL. They flow straight back into the route's query, and changing them re-runs it, so a `<Link>` that swaps `?genre=comedy` for `?genre=drama` refetches the page with the new filter. See [Search Params](~/loading-data/queries#search-params) for the data side of the story.
 
-`goto` works the same way for query strings as it does for paths; pass the whole URL, search string included:
+`goto` accepts the same typed target as `<Link>` (a `to` route plus its `params` and `search`) and builds the URL for you, with the same compile-time checks:
+
+```tsx
+// → /shows?genre=comedy
+goto({ to: '/shows', search: { genre: 'comedy' } })
+
+// → /shows/123
+goto({ to: '/shows/[id]', params: { id: show.id } })
+```
+
+It also accepts a ready-made URL string as an escape hatch, which works the same way for query strings as it does for paths. Pass the whole URL, search string included:
 
 ```tsx
 goto(`/shows?genre=${encodeURIComponent(genre)}`)
@@ -96,9 +106,9 @@ Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers
 
 By default this fetches both the page component and its data. You can narrow it:
 
-- `"data"` — only the GraphQL data
-- `"component"` — only the JavaScript bundle
-- `"page"` — both (default)
+- `"data"`: only the GraphQL data
+- `"component"`: only the JavaScript bundle
+- `"page"`: both (default)
 
 ```tsx
 <Link to="/shows" preload="data">All Shows</Link>
@@ -106,18 +116,19 @@ By default this fetches both the page component and its data. You can narrow it:
 
 ## Imperative Navigation
 
-When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useRoute`:
+When you need to navigate in response to something other than a click (after a form submission, inside an effect, or from a callback), call `goto` from `useRoute`:
 
-```tsx
+```tsx title="src/routes/search/+page.tsx&typescriptToggle=true"
+import type { PageRoute } from './$types'
 import { useRoute } from '$houdini'
 
 export function SearchForm() {
-  const { goto } = useRoute()
+  const { goto } = useRoute<PageRoute>()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const query = new FormData(e.currentTarget).get('q')
-    goto(`/search?q=${encodeURIComponent(query as string)}`)
+    goto({ to: '/search', search: { q: query as string } })
   }
 
   return (
@@ -129,13 +140,14 @@ export function SearchForm() {
 }
 ```
 
-`useRoute` also exposes `pathname`, `params`, and `search` if you need to read the current URL — for example, to mark a link as active:
+`useRoute` also exposes `pathname`, `params`, and `search` if you need to read the current URL, for example to mark a link as active:
 
 ```tsx
+import type { PageRoute } from './$types'
 import { useRoute } from '$houdini'
 
 export function NavLink({ href, label }: { href: string; label: string }) {
-  const { pathname } = useRoute()
+  const { pathname } = useRoute<PageRoute>()
   return (
     <a href={href} aria-current={pathname === href ? 'page' : undefined}>
       {label}

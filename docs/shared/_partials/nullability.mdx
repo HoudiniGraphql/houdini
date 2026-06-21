@@ -1,4 +1,4 @@
-By default, a nullable field that returns `null` from the server stays `null` on that specific field — leaving the rest of the object intact. This means you often end up with deeply nested null checks scattered through your components.
+By default, a nullable field that returns `null` from the server stays `null` on that specific field, leaving the rest of the object intact. This means you often end up with deeply nested null checks scattered through your components.
 
 ```graphql
 type Query {
@@ -24,7 +24,7 @@ query UserProfile($id: ID!) {
 }
 ```
 
-Because `bestFriend` is nullable, you can't safely write `user.bestFriend.name` — you have to guard against `bestFriend` being null at every call site, even when your component only makes sense if a best friend exists.
+Because `bestFriend` is nullable, you can't safely write `user.bestFriend.name`. You have to guard against `bestFriend` being null at every call site, even when your component only makes sense if a best friend exists.
 
 The `@required` directive gives you control over where null surfaces. When a `@required` field is null, Houdini nulls out the parent object instead:
 
@@ -40,11 +40,11 @@ query UserProfile($id: ID!) {
 }
 ```
 
-If `bestFriend` is null, the entire `user` object becomes null. You only need to null-check `user` — if it's present, `bestFriend` is guaranteed to be non-null and `user.bestFriend.name` is safe to access. For more background on this pattern, see [this post](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog.
+If `bestFriend` is null, the entire `user` object becomes null. You only need to null-check `user`; if it's present, `bestFriend` is guaranteed to be non-null and `user.bestFriend.name` is safe to access. For more background on this pattern, see [this post](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog.
 
 ### Bubbling Through Parents
 
-Null bubbles up to the nearest nullable ancestor. If the parent is non-nullable in your schema, you can still use `@required` — as long as the parent is also marked `@required` to allow the null to continue propagating:
+Null bubbles up to the nearest nullable ancestor. If the parent is non-nullable in your schema, you can still use `@required`, as long as the parent is also marked `@required` to allow the null to continue propagating:
 
 ```graphql
 query UserProfile($id: ID!) {

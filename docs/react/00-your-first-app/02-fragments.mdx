@@ -110,7 +110,7 @@ That was pretty quick so let's review what we just did:
 
 1. We defined a new fragment in the `Sprite` component which ensured that its parent always delivered the two pieces of information it needs: the front image source and the name of the species.
 
-1. Instead of asking for those bits of data directly as two individual props, the component now has a single prop, `species`, which we pass to `useFragment` in order to get the data we need. Notice we don't use this prop for anything in our component except to pass it into Houdini — this ensures we are only using data we asked for in our fragment.
+1. Instead of asking for those bits of data directly as two individual props, the component now has a single prop, `species`, which we pass to `useFragment` in order to get the data we need. Notice we don't use this prop for anything in our component except to pass it into Houdini. This might seem surprising but it ensures we are only using data we asked for in our fragment.
 
 1. We then updated the route's query to use the fragment we defined in the component and passed the `Info.species` reference we got from the query into our `Sprite` component as the new prop.
 

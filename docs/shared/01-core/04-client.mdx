@@ -100,12 +100,12 @@ export default new HoudiniClient({
 
 Houdini's default pipeline is built from plugins exported from `$houdini/plugins`. You can import any of these to use in a custom `pipeline`:
 
-- `fetch` — resolves the pipeline by sending a standard HTTP request. The default terminating plugin. Accepts an optional handler function for fully custom request logic.
-- `query` — core behavior for queries: establishing cache subscriptions and accumulating variables.
-- `mutation` — core behavior for mutations, including optimistic responses.
-- `subscription` — core behavior for subscriptions. Accepts a `SubscriptionHandler` to wire up a WebSocket client such as `graphql-ws`.
-- `throwOnError` — included when `throwOnError` is configured on the client.
-- `fetchParams` — included when `fetchParams` is configured on the client.
+- `fetch`: resolves the pipeline by sending a standard HTTP request. The default terminating plugin. Accepts an optional handler function for fully custom request logic.
+- `query`: core behavior for queries, establishing cache subscriptions and accumulating variables.
+- `mutation`: core behavior for mutations, including optimistic responses.
+- `subscription`: core behavior for subscriptions. Accepts a `SubscriptionHandler` to wire up a WebSocket client such as `graphql-ws`.
+- `throwOnError`: included when `throwOnError` is configured on the client.
+- `fetchParams`: included when `fetchParams` is configured on the client.
 
 ## Adding Plugins
 

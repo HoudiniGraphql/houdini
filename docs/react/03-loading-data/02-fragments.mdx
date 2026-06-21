@@ -55,11 +55,11 @@ export default function ShowsPage({ ShowList }) {
 }
 ```
 
-The `show` prop passed to `ShowCard` is an opaque reference — `useFragment` unwraps it into the typed data the component actually needs.
+The `show` prop passed to `ShowCard` is an opaque reference; `useFragment` unwraps it into the typed data the component actually needs.
 
 ## Fragment Arguments
 
-When a component needs to parameterize its data requirements — for example, requesting a profile picture at a specific size — use `@arguments` to declare the parameters and `@with` to pass values when spreading the fragment.
+When a component needs to parameterize its data requirements (for example, requesting a profile picture at a specific size), use `@arguments` to declare the parameters and `@with` to pass values when spreading the fragment.
 
 Default values are provided with the `default` key:
 
@@ -178,11 +178,11 @@ query UserPage {
 
 The fragment has to live on a type Houdini can look up on its own, which in practice means one that implements `Node` or has a custom resolver configured. That's the same requirement paginated fragments carry: under the hood we embed the fragment in a query keyed by the record's id and re-run that.
 
-`@refetchable` can't be combined with `@paginate` on the same fragment — a paginated fragment is already refetchable on its own, so the two together is a compile-time error.
+`@refetchable` can't be combined with `@paginate` on the same fragment. A paginated fragment is already refetchable on its own, so the two together is a compile-time error.
 
 ## Fragment Masking
 
-Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
+Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared, not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
 
 By default, fields selected by a fragment are not accessible directly on the parent object. You can disable masking globally with `defaultFragmentMasking: "disable"` in your config, or per-fragment with `@mask_disable`:
 
@@ -198,7 +198,7 @@ query CurrentUser {
 
 With `@mask_disable`, all fields from `UserProfile` are accessible directly on `me` alongside `uuid`. `UserMeta` fields remain masked. This does not apply recursively unless inner fragments also carry the directive.
 
-{/* TODO: wire up the TS/JS toggle for the Component Fields examples — the JS version uses graphql() + prop param, not derivable by simple transformation */}
+{/* TODO: wire up the TS/JS toggle for the Component Fields examples; the JS version uses graphql() + prop param, not derivable by simple transformation */}
 
 ## Component Fields
 
@@ -238,7 +238,7 @@ export default function UserAvatar({ user }) {
 }
 ```
 
-The registered field can then be used directly in queries and rendered as a component — no imports needed in the route:
+The registered field can then be used directly in queries and rendered as a component, with no imports needed in the route:
 
 ```graphql
 query Profile {

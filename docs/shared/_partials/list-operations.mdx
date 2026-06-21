@@ -18,7 +18,7 @@ Some things worth mentioning:
 
 ## `@parentID`
 
-When the same list name appears under multiple parent records — for example, `friends @list(name: "User_Friends")` loaded for several different users — the runtime can't tell which parent's list a mutation should target. Pass `@parentID` on the fragment spread to identify the specific parent:
+When the same list name appears under multiple parent records (for example, `friends @list(name: "User_Friends")` loaded for several different users), the runtime can't tell which parent's list a mutation should target. Pass `@parentID` on the fragment spread to identify the specific parent:
 
 ```graphql
 mutation AddFriend($friendID: ID!, $userID: ID!) {
@@ -34,7 +34,7 @@ The `value` argument must be the ID of the parent record that owns the list. Wit
 
 ## `@listID` and `@includeListID`
 
-`@parentID` requires knowing the parent record's ID at mutation time, but that isn't always possible — the parent type may not expose an ID field, or the ID may not appear anywhere in the query document. `@includeListID` and `@listID` solve this by letting the cache identify the list for you.
+`@parentID` requires knowing the parent record's ID at mutation time, but that isn't always possible. The parent type may not expose an ID field, or the ID may not appear anywhere in the query document. `@includeListID` and `@listID` solve this by letting the cache identify the list for you.
 
 Add `@includeListID` to the list field alongside `@list` or `@paginate`. The cache will stamp an opaque `__id` value directly onto the returned list, and the generated TypeScript type will include `__id: string` so you can read it without any casting:
 
@@ -50,7 +50,7 @@ query AllItems {
 
 ```tsx
 const items = data?.userNodes.items
-const listId = items?.__id  // string | undefined — typed by codegen
+const listId = items?.__id  // string | undefined, typed by codegen
 ```
 
 Then pass that value to `@listID` on the mutation fragment spread instead of `@parentID`:
@@ -65,11 +65,11 @@ mutation NewItem($input: AddItemInput!, $listId: ID!) {
 }
 ```
 
-Unlike `@parentID`, `@listID` works even when the parent has no usable ID in the document — the opaque key encodes everything the cache needs to find the right list instance.
+Unlike `@parentID`, `@listID` works even when the parent has no usable ID in the document: the opaque key encodes everything the cache needs to find the right list instance.
 
 ## Operations
 
-Once a list is tagged, Houdini generates a set of fragments named after the list — `All_Items_insert`, `All_Items_remove`, `All_Items_toggle`, `All_Items_upsert`, `All_Items_update` — that you spread into mutation responses to tell the cache what to do. The cache updates immediately on the client without waiting for a refetch.
+Once a list is tagged, Houdini generates a set of fragments named after the list (`All_Items_insert`, `All_Items_remove`, `All_Items_toggle`, `All_Items_upsert`, `All_Items_update`) that you spread into mutation responses to tell the cache what to do. The cache updates immediately on the client without waiting for a refetch.
 
 ### Inserting a record
 

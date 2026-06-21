@@ -43,7 +43,7 @@ export function AddCommentForm({ postId }: { postId: string }) {
 
 ## Error Handling
 
-Mutations always throw on error — unlike queries, there's no opt-in. Wrap calls in `try/catch` and inspect the `RuntimeGraphQLError`:
+Mutations always throw on error; unlike queries, there's no opt-in. Wrap calls in `try/catch` and inspect the `RuntimeGraphQLError`:
 
 ```jsx
 import { graphql, useMutation, RuntimeGraphQLError } from '$houdini'

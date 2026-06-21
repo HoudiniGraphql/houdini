@@ -45,7 +45,7 @@ When you know what a mutation will return assuming everything goes right, you ca
 
 When the mutation resolves, the optimistic values are replaced with the real response. If the mutation fails, the optimistic changes are reverted and the promise rejects with the error.
 
-Always include `id` in your selection when using optimistic responses so the cache knows which record to update. You don't need to provide a complete response — the cache will write whatever fields you include.
+Always include `id` in your selection when using optimistic responses so the cache knows which record to update. You don't need to provide a complete response; the cache will write whatever fields you include.
 
 ## Optimistic Keys
 
@@ -53,6 +53,6 @@ Always include `id` in your selection when using optimistic responses so the cac
 
 ## Why is TypeScript Missing Fields?
 
-The generated types for optimistic responses don't include fields from fragments you've spread in. This is intentional — tightly coupling a mutation invocation to a fragment defined elsewhere creates a fragile dependency. If the fragment changes, the type mismatch won't surface until runtime.
+The generated types for optimistic responses don't include fields from fragments you've spread in. This is intentional: tightly coupling a mutation invocation to a fragment defined elsewhere creates a fragile dependency. If the fragment changes, the type mismatch won't surface until runtime.
 
 The safe practice is to duplicate any fields you need in the mutation's own selection set.

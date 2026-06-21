@@ -1,6 +1,6 @@
 ## Vite Integration
 
-If your plugin needs to add transforms to the user's Vite build, export a `/vite` sub-module from your npm package. Houdini picks it up automatically and includes it in the project's Vite config — no manual wiring required on the user's end.
+If your plugin needs to add transforms to the user's Vite build, export a `/vite` sub-module from your npm package. Houdini picks it up automatically and includes it in the project's Vite config, with no manual wiring required on the user's end.
 
 The sub-module just needs to export a default function that returns a Vite plugin:
 
