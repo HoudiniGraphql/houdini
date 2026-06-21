@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 3.0.0-next.36
+
+### Minor Changes
+
+- [#1690](https://github.com/HoudiniGraphql/houdini/pull/1690) [`981a38f`](https://github.com/HoudiniGraphql/houdini/commit/981a38f7302c7f40c40a2a3afa2630f8577a100b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add the `@plural` fragment directive for spreading a fragment on a list field and reading it back as an array of data through `useFragment` (React) or `fragment` (Svelte).
+
+### Patch Changes
+
+- Updated dependencies [[`981a38f`](https://github.com/HoudiniGraphql/houdini/commit/981a38f7302c7f40c40a2a3afa2630f8577a100b), [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956), [`de10b1f`](https://github.com/HoudiniGraphql/houdini/commit/de10b1f824c3ada960254968a455b963a1d8ad2f)]:
+  - houdini@2.0.0-next.44
+
 ## 3.0.0-next.35
 
 ### Patch Changes
