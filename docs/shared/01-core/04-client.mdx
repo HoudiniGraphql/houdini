@@ -32,7 +32,7 @@ The `HoudiniClient` constructor takes the following arguments
 
 - `url` (required): the URL that your application will use to query the API
 - `fetchParams` (optional): a function that takes a [FetchParamsInput](#type-definitions) and returns additional parameters to `fetch` and other network calls made by the client.
-- `plugins` (optional): a list of [ClientPlugins](/svelte/api/client-plugins) that will be added to the Client's default list
+- `plugins` (optional): a list of [ClientPlugins](~/extending-houdini/client-plugins) that will be added to the Client's default list
 - `pipeline` (optional): a function that returns the full list of plugins that the client will use. This is only for very advanced use cases.
   If you find yourself needing this level of control, please open an issue to discuss your situation.
 - `throwOnError` (optional): takes an object of type [ThrowOnErrorParams](#type-definitions) and configures your client's error handling (see [Error Handling](#error-handling) below)

@@ -58,7 +58,7 @@ src/routes/
 
 ## GraphQL errors
 
-By default Houdini throws GraphQL response errors so they're catchable by the error boundary. The thrown value is unwrapped into the `errors` array, so each entry is a `GraphQLError` object with at least a `message` field (and optionally `path`, `locations`, and `extensions`). [Learn how to type the `extensions` field.](~/guides/error-handling/#typing-error-extensions)
+By default Houdini throws GraphQL response errors so they're catchable by the error boundary. The thrown value is unwrapped into the `errors` array, so each entry is a `GraphQLError` object with at least a `message` field (and optionally `path`, `locations`, and `extensions`). [Learn how to type the `extensions` field.](~/guides/error-handling#typing-error-extensions)
 
 ### SSR and query errors
 
@@ -76,7 +76,7 @@ query DashboardQuery @loading {
 }
 ```
 
-With `@loading` in place, Houdini generates a loading state component from your `+page.tsx` (see the [loading states guide](~/routing/loading-states) for how to define it). React sends that loading state in the initial HTML, holds the stream open until the query resolves, and either replaces it with the page content or lets the error reach the nearest `+error.tsx`. It's important to note that when you do this, your application will return a status code 200 even if an error is bubbled up to the error state. This is just how React's current implementation of streaming SSR works. There's no way around it.
+With `@loading` in place, Houdini generates a loading state component from your `+page.tsx` (see the [loading states guide](~/loading-data/loading-states) for how to define it). React sends that loading state in the initial HTML, holds the stream open until the query resolves, and either replaces it with the page content or lets the error reach the nearest `+error.tsx`. It's important to note that when you do this, your application will return a status code 200 even if an error is bubbled up to the error state. This is just how React's current implementation of streaming SSR works. There's no way around it.
 
 Client-side navigations don't need any of this; the error boundary catches query errors there regardless.
 

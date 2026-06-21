@@ -186,7 +186,7 @@ query UserPage {
 }
 ```
 
-The catch is that the fragment has to live on a type Houdini can look up on its own, which in practice means one that implements `Node` or has a [custom resolver](~/api-reference/config) configured. That's the same requirement paginated fragments carry, and for the same reason: under the hood we embed the fragment in a query keyed by the record's id and re-run that.
+The catch is that the fragment has to live on a type Houdini can look up on its own, which in practice means one that implements `Node` or has a [custom resolver](~/core/config) configured. That's the same requirement paginated fragments carry, and for the same reason: under the hood we embed the fragment in a query keyed by the record's id and re-run that.
 
 `@refetchable` can't be combined with `@paginate` on the same fragment. A paginated fragment is already refetchable on its own, so the two together is a compile-time error.
 
