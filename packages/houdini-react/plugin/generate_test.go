@@ -920,32 +920,44 @@ func TestGenerateTypeRoots(t *testing.T) {
 					// runtime:   ../../plugins/houdini-react/runtime  (no extra .houdini/)
 					// artifacts: ../../artifacts/
 					"expected": map[string]string{
-						"src/routes/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../plugins/houdini-react/runtime'
+						"src/routes/$types.d.ts": `import { DocumentHandle } from '../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../artifacts/LayoutQuery'
 import type { GraphQLError } from 'houdini/runtime'
 import type { RoutingError } from '../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
-	Params: {},
 	LayoutQuery: LayoutQuery$result,
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 }
 
 export type LayoutProps = {
-	Params: {},
 	children: React.ReactNode,
 }
 
 export type ErrorProps = {
-	Params: {},
 	errors: Array<Error | GraphQLError | RoutingError>,
 	children: React.ReactNode,
 	LayoutQuery: LayoutQuery$result,
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 }
+
+export type PageRoute = {
+	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
+	search: Omit<LayoutQuery$input, never>,
+}
+
+export type LayoutRoute = {
+	params: {},
+	search: {},
+}
+
+export type ErrorRoute = {
+	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
+	search: Omit<LayoutQuery$input, never>,
+}
 `,
-						"src/routes/(subRoute)/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'
+						"src/routes/(subRoute)/$types.d.ts": `import { DocumentHandle } from '../../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../../artifacts/LayoutQuery'
 import type { RootQuery$result, RootQuery$artifact, RootQuery$input } from '../../../../artifacts/RootQuery'
@@ -954,7 +966,6 @@ import type { GraphQLError } from 'houdini/runtime'
 import type { RoutingError } from '../../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
-	Params: {},
 	LayoutQuery: LayoutQuery$result,
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 	RootQuery: RootQuery$result,
@@ -964,18 +975,31 @@ export type PageProps = {
 }
 
 export type LayoutProps = {
-	Params: {},
 	children: React.ReactNode,
 }
 
 export type ErrorProps = {
-	Params: {},
 	errors: Array<Error | GraphQLError | RoutingError>,
 	children: React.ReactNode,
 	LayoutQuery: LayoutQuery$result,
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 	RootQuery: RootQuery$result,
 	RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,
+}
+
+export type PageRoute = {
+	params: Pick<(LayoutQuery$input & RootQuery$input & FinalQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input & FinalQuery$input), never>>,
+	search: Omit<(LayoutQuery$input & RootQuery$input & FinalQuery$input), never>,
+}
+
+export type LayoutRoute = {
+	params: {},
+	search: {},
+}
+
+export type ErrorRoute = {
+	params: Pick<(LayoutQuery$input & RootQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input), never>>,
+	search: Omit<(LayoutQuery$input & RootQuery$input), never>,
 }
 `,
 					},
@@ -996,29 +1020,41 @@ export type ErrorProps = {
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
 					"expected": map[string]string{
-						"src/routes/[id]/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'
+						"src/routes/[id]/$types.d.ts": `import { DocumentHandle } from '../../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '../../../../artifacts/MyQuery'
 import type { GraphQLError } from 'houdini/runtime'
 import type { RoutingError } from '../../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
-	Params: { id: string },
 	MyQuery: MyQuery$result,
 	MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
 }
 
 export type LayoutProps = {
-	Params: { id: string },
 	children: React.ReactNode,
 }
 
 export type ErrorProps = {
-	Params: { id: string },
 	errors: Array<Error | GraphQLError | RoutingError>,
 	children: React.ReactNode,
 	MyQuery: MyQuery$result,
 	MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
+}
+
+export type PageRoute = {
+	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
+	search: Omit<MyQuery$input, 'id'>,
+}
+
+export type LayoutRoute = {
+	params: { id: string },
+	search: {},
+}
+
+export type ErrorRoute = {
+	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
+	search: Omit<MyQuery$input, 'id'>,
 }
 `,
 					},

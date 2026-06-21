@@ -263,7 +263,14 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 	var sb strings.Builder
 
 	sb.WriteString("import React from 'react'\n")
-	sb.WriteString("import { _createMock } from './testing'\n")
+	sb.WriteString("import { _createMock, buildMockPath } from './testing'\n")
+
+	// Per-route param/search typing is shared with <Link> and goto (defined in routes.ts,
+	// derived from the manifest) so createMock accepts exactly the params and search the
+	// route declares, with no duplicate rules generated here.
+	if len(manifest.Pages) > 0 {
+		sb.WriteString("import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n")
+	}
 
 	// Collect unique query and mutation names across all pages.
 	// Both import $unmasked (fully-resolved server payload, fragments inlined, no masks) and $input.
@@ -310,8 +317,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 
 	if len(manifest.Pages) == 0 {
 		// No routes yet — simple stub so the file is still importable.
-		sb.WriteString("export function createMock({ url, params = {}, data }: { url: string; params?: Record<string, string>; data: Record<string, any> }): React.ComponentType<{}> {\n")
-		sb.WriteString("\treturn _createMock({ url, params, data })\n")
+		sb.WriteString("export function createMock({ url, params = {}, search, data }: { url: string; params?: Record<string, string>; search?: Record<string, unknown>; data: Record<string, any> }): React.ComponentType<{}> {\n")
+		sb.WriteString("\treturn _createMock({ path: buildMockPath(url, params, search), data })\n")
 		sb.WriteString("}\n")
 		return sb.String(), nil
 	}
@@ -334,39 +341,9 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 		sb.WriteString("}\n\n")
 	}
 
-	// _RouteParams maps parameterised URL strings to their concrete param objects.
-	// Only routes that actually have URL params appear here; param-free routes fall
-	// through to `{ params?: never }` in _ParamsForRoute.
-	routeParamIDs := []string{}
-	for _, id := range sortedKeys(manifest.Pages) {
-		if len(manifest.Pages[id].Params) > 0 {
-			routeParamIDs = append(routeParamIDs, id)
-		}
-	}
-	if len(routeParamIDs) > 0 {
-		sb.WriteString("type _RouteParams = {\n")
-		for _, id := range routeParamIDs {
-			page := manifest.Pages[id]
-			cleanURL := stripRouteGroups(page.URL)
-			sb.WriteString(fmt.Sprintf("\t%q: %s\n", cleanURL, formatParamsType(page.Params)))
-		}
-		sb.WriteString("}\n")
-	}
-	sb.WriteString("type _ParamsForRoute<H extends string> = ")
-	if len(routeParamIDs) > 0 {
-		sb.WriteString("H extends keyof _RouteParams ? { params: _RouteParams[H] } : { params?: never }\n\n")
-	} else {
-		sb.WriteString("{ params?: never }\n\n")
-	}
-
-	// RouteHrefs is the union of all known route URL strings.
-	hrefs := make([]string, 0, len(manifest.Pages))
-	for _, id := range sortedKeys(manifest.Pages) {
-		hrefs = append(hrefs, fmt.Sprintf("%q", stripRouteGroups(manifest.Pages[id].URL)))
-	}
-	sb.WriteString(fmt.Sprintf("type RouteHrefs = %s\n\n", strings.Join(hrefs, " | ")))
-
-	// _RouteData maps each URL literal to its per-route data type.
+	// _RouteData maps each URL literal to its per-route mock-data type. This is the only
+	// route→type map the mock owns; the param and search typing comes from the shared
+	// ParamsForRoute / SearchForRoute imported above.
 	sb.WriteString("type _RouteData = {\n")
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
@@ -376,8 +353,8 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 	sb.WriteString("}\n")
 	sb.WriteString("type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n")
 
-	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & _ParamsForRoute<H>): React.ComponentType<{}> {\n")
-	sb.WriteString("\treturn _createMock({ url: args.url as string, params: (args as any).params ?? {}, data: args.data as Record<string, any> })\n")
+	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n")
+	sb.WriteString("\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n")
 	sb.WriteString("}\n")
 
 	return sb.String(), nil
@@ -749,6 +726,7 @@ func formatManifest(
 		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
 		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tsearchParams: %s,\n", formatSearchParams(page.SearchParams)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -808,6 +786,15 @@ func formatManifest(
 	}
 
 	sb.WriteString("\t},\n")
+
+	// pagesByUrl maps each route's url to its page id so <Link> and goto can resolve a
+	// destination to its page in O(1), without scanning the manifest at runtime.
+	sb.WriteString("\tpagesByUrl: {\n")
+	for _, id := range sortedKeys(manifest.Pages) {
+		sb.WriteString(fmt.Sprintf("\t\t%q: %q,\n", stripRouteGroups(manifest.Pages[id].URL), id))
+	}
+	sb.WriteString("\t},\n")
+
 	sb.WriteString("} as const satisfies RouterManifest<any>\n")
 
 	// route_headers is a server-only export: it maps a page id to the ordered
@@ -825,16 +812,31 @@ func formatManifest(
 		sb.WriteString("}\n")
 	}
 
-	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
-	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
+	// Export a name→TS-type map for custom scalars, plus the _TSType resolver that maps
+	// a GQL scalar name to its TS type. Both Link.tsx and the generated mock import
+	// _TSType from here so the resolution lives in exactly one place.
 	sb.WriteString("\nexport type RouteScalars = {\n")
 	for _, name := range sortedKeys(scalars) {
 		sb.WriteString(fmt.Sprintf("\t%s: %s\n", name, scalars[name].Type))
 	}
 	sb.WriteString("}\n")
+	sb.WriteString(tsTypeResolver)
 
 	return sb.String(), nil
 }
+
+// tsTypeResolver is the shared _TSType<T> definition emitted into manifest.ts: custom
+// scalars come from RouteScalars, built-ins map to their JS types, everything else is a
+// string. Link.tsx and the mock file both import it rather than redefining it.
+const tsTypeResolver = "\nexport type _TSType<T extends string> = T extends keyof RouteScalars\n" +
+	"\t? RouteScalars[T]\n" +
+	"\t: T extends 'Int' | 'Float'\n" +
+	"\t\t? number\n" +
+	"\t\t: T extends 'ID'\n" +
+	"\t\t\t? string | number\n" +
+	"\t\t\t: T extends 'Boolean'\n" +
+	"\t\t\t\t? boolean\n" +
+	"\t\t\t\t: string\n"
 
 // parsePagePattern converts a page URL (e.g. "/(group)/[id]/nested") into a
 // TypeScript regex literal and a params array. Route groups like (foo) are
@@ -877,7 +879,6 @@ func parsePagePattern(url string) (pattern string, params []routeParam, err erro
 
 type routeParam struct {
 	Name     string
-	Matcher  string
 	Optional bool
 	Rest     bool
 	Chained  bool
@@ -921,10 +922,6 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 	}
 	var parts []string
 	for _, p := range params {
-		matcher := ""
-		if p.Matcher != "" {
-			matcher = p.Matcher
-		}
 		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
 		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
 		gqlType := "String"
@@ -932,8 +929,39 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 			gqlType = info.Type
 		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
+			`{ name: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, p.Optional, p.Rest, p.Chained, gqlType,
+		))
+	}
+	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
+}
+
+// formatSearchParams renders the page's searchParams as a TypeScript array literal.
+// Each entry carries the GQL type name (resolved against RouteScalars / built-in
+// scalars by _TSType<T>) and the wrapper chain so list-typed params can be
+// serialized as repeated query keys. All search params are optional by construction.
+func formatSearchParams(searchParams map[string]*ParamTypeInfo) string {
+	if len(searchParams) == 0 {
+		return "[]"
+	}
+	var parts []string
+	for _, name := range sortedKeys(searchParams) {
+		info := searchParams[name]
+		gqlType := "String"
+		wrappers := "[]"
+		if info != nil {
+			gqlType = info.Type
+			if len(info.Wrappers) > 0 {
+				quoted := make([]string, len(info.Wrappers))
+				for i, w := range info.Wrappers {
+					quoted[i] = fmt.Sprintf("%q", w)
+				}
+				wrappers = "[" + strings.Join(quoted, ", ") + "]"
+			}
+		}
+		parts = append(parts, fmt.Sprintf(
+			`{ name: %q, type: %q, wrappers: %s }`,
+			name, gqlType, wrappers,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -1133,7 +1161,6 @@ func stripRouteGroups(url string) string {
 	}
 	return "/" + strings.Join(out, "/")
 }
-
 
 // GenerateTsConfig writes .houdini/tsconfig.json by copying the template from the
 // plugin runtime directory (written there by IncludeRuntime).

@@ -112,7 +112,7 @@ export function hydrate_page(
 	hydrateRoot(
 		document,
 		<App
-			initialURL={window.location.pathname}
+			initialURL={window.location.pathname + window.location.search}
 			cache={window.__houdini__cache__}
 			session={window.__houdini__initial__session__}
 			{...window.__houdini__nav_caches__}
@@ -145,7 +145,7 @@ export function mount_static_app(App: React.ComponentType<any>, manifest: any) {
 
 	root.render(
 		React.createElement(App, {
-			initialURL: window.location.pathname,
+			initialURL: window.location.pathname + window.location.search,
 			cache: cacheRef,
 			session: null,
 			manifest,

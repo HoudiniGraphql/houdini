@@ -45,6 +45,32 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 <Link to="./sibling">Relative</Link>
 ```
 
+## Search Params
+
+The `search` prop configures the query string of a `Link`. Pass an object and Houdini will serialize it into the URL:
+
+```tsx
+// → /shows?genre=comedy
+<Link to="/shows" search={{ genre: 'comedy' }}>Comedies</Link>
+```
+
+The route's nullable query variables show up as typed keys, so a mistyped value (a string where the query wants an `Int`) is a compile error rather than a silently empty result. `search` isn't limited to them, though: extra keys are allowed so the query string can also hold UI-only state that no query reads (a selected tab, an open modal). A list variable accepts an array and serializes as repeated keys:
+
+```tsx
+// → /shows?tag=comedy&tag=drama
+<Link to="/shows" search={{ tags: ['comedy', 'drama'] }}>Both</Link>
+```
+
+A search param backed by a [custom scalar](~/guides/custom-scalars) is marshaled into the URL the same way a path param is, so a `DateTime` accepts a `Date` and serializes with your config's `marshal` function. On the read side, [`useRoute().search`](~/api-reference/useRoute) unmarshals it back to its runtime type (a `Date`). One caveat: because the URL is string-only, values are decoded with `JSON.parse` before unmarshaling, so a custom scalar whose value is `"true"` or `"123"` comes back as a boolean or number.
+
+These params aren't just decoration on the URL. They flow straight back into the route's query, and changing them re-runs it, so a `<Link>` that swaps `?genre=comedy` for `?genre=drama` refetches the page with the new filter. See [Search Params](~/loading-data/queries#search-params) for the data side of the story.
+
+`goto` works the same way for query strings as it does for paths; pass the whole URL, search string included:
+
+```tsx
+goto(`/shows?genre=${encodeURIComponent(genre)}`)
+```
+
 ## Disabled
 
 Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
@@ -80,13 +106,13 @@ By default this fetches both the page component and its data. You can narrow it:
 
 ## Imperative Navigation
 
-When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useLocation`:
+When you need to navigate in response to something other than a click — after a form submission, inside an effect, or from a callback — call `goto` from `useRoute`:
 
 ```tsx
-import { useLocation } from '$houdini'
+import { useRoute } from '$houdini'
 
 export function SearchForm() {
-  const { goto } = useLocation()
+  const { goto } = useRoute()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -103,13 +129,13 @@ export function SearchForm() {
 }
 ```
 
-`useLocation` also exposes `pathname` and `params` if you need to read the current URL — for example, to mark a link as active:
+`useRoute` also exposes `pathname`, `params`, and `search` if you need to read the current URL — for example, to mark a link as active:
 
 ```tsx
-import { useLocation } from '$houdini'
+import { useRoute } from '$houdini'
 
 export function NavLink({ href, label }: { href: string; label: string }) {
-  const { pathname } = useLocation()
+  const { pathname } = useRoute()
   return (
     <a href={href} aria-current={pathname === href ? 'page' : undefined}>
       {label}
@@ -118,4 +144,4 @@ export function NavLink({ href, label }: { href: string; label: string }) {
 }
 ```
 
-See [`useLocation`](~/api-reference/useLocation) for the full API.
+See [`useRoute`](~/api-reference/useRoute) for the full API.

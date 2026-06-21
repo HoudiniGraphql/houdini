@@ -24,10 +24,20 @@ export function Nav() {
 |---|---|---|
 | `to` | route href | The destination route. Must be a known route in your manifest. |
 | `params` | object | Required when `to` contains dynamic segments. Typed per-route. |
+| `search` | object | Optional. Search params for the destination route, typed from its query variables. Serialized onto the query string. |
 | `disabled` | `boolean` | When true, renders without an `href` (effectively inert). |
 | `preload` | `boolean \| 'data' \| 'component' \| 'page'` | Start loading on hover. `true` is equivalent to `'page'`. |
 
-All standard `<a>` attributes are also accepted (except `href`, which is derived from `to` and `params`).
+All standard `<a>` attributes are also accepted (except `href`, which is derived from `to`, `params`, and `search`).
+
+**Search params**
+
+`search` serializes an object onto the query string. The route's nullable query variables appear as typed keys (their value types come from the `+page.gql`), and a list variable accepts an array that serializes as repeated keys. Extra keys are allowed too, for query string state that drives the UI rather than the query. See [Query Variables](~/loading-data/queries#search-params) for how the declared values flow back into the query.
+
+```tsx
+<Link to="/shows" search={{ genre: 'comedy' }}>Comedies</Link>
+<Link to="/shows" search={{ tags: ['comedy', 'drama'] }}>Both</Link>
+```
 
 **External links**
 

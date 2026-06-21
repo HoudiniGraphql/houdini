@@ -22,6 +22,12 @@
 
 Canonical example: `packages/houdini-core/plugin/validate_test.go`. TypeScript test helpers: `testConfig()` / `testConfigFile()` in `packages/houdini/src/test/index.ts`.
 
+## React route typing
+
+Per-route TypeScript typing (which `params` and `search` a route accepts, the `RouteHrefs` union, scalar resolution) lives in **one** place: `packages/houdini-react/runtime/routes.ts`. It derives everything from the generated manifest's shape via `typeof rawManifest`, and exports `RouteHrefs`, `ParamsForRoute<H>`, `SearchForRoute<H>`, `NavTarget<H>`, and `Goto`.
+
+Anything that navigates to or references a route (`<Link>`, `goto`, `createMock`, and any future navigation/href API) must consume these shared types rather than re-deriving the rules or generating per-route type maps in Go. `formatMockFile` in `packages/houdini-react/plugin/runtime.go` is the example to follow: it imports the shared types and only generates its own mock-data types. URL construction (filling params, appending search, marshaling custom scalars) similarly goes through `buildHref` in `runtime/resolve-href.ts` — don't hand-roll it.
+
 ## Documentation
 
 Docs live in `/docs` — framework-specific content under `/docs/svelte` and `/docs/react`, shared content (reference, extending-houdini, meta) under `/docs/shared`.

@@ -5,6 +5,7 @@ import { DataSource } from 'houdini/runtime/types'
 import { HoudiniClient } from '$houdini/runtime/client'
 import React from 'react'
 
+import { scalarMarshalers, serializeSearch } from './resolve-href.js'
 import { Router as RouterImpl, RouterContextProvider, router_cache } from './routing/index.js'
 import manifest from './manifest.js'
 
@@ -14,16 +15,38 @@ type MockValue =
 	| AsyncIterable<Record<string, unknown>>
 	| ((vars: any) => AsyncIterable<Record<string, unknown>>)
 
+// buildMockPath turns a route pattern, its params, and an optional search object into
+// the concrete path a test wants to render. The typed createMock wrapper calls this so
+// that param substitution (and its missing-param error) and search serialization both
+// happen before the path reaches _createMock.
+export function buildMockPath(
+	pattern: string,
+	params: Record<string, string>,
+	search?: Record<string, unknown>
+): string {
+	if (!search) {
+		return buildURL(pattern, params)
+	}
+	// marshal custom-scalar search values the same way <Link> does, so tests exercise
+	// the real serialization path
+	const m = manifest as any
+	const page = m.pages[m.pagesByUrl[pattern]] as
+		| { searchParams?: ReadonlyArray<{ name: string; type: string }> }
+		| undefined
+	const marshalers = scalarMarshalers(page?.searchParams, getCurrentConfig()?.scalars)
+	return buildURL(pattern, params) + serializeSearch(search, marshalers)
+}
+
 export function _createMock({
-	url: routePattern,
-	params,
+	path,
 	data: mocks,
 }: {
-	url: string
-	params: Record<string, string>
+	path: string
 	data: Record<string, MockValue>
 }): React.ComponentType<{}> {
-	const url = buildURL(routePattern, params)
+	// the route patterns are anchored to the path, so strip any search string
+	// before matching
+	const pathname = path.split('?')[0]
 
 	// Validate required mocks up-front at the call site so the error points
 	// directly to the createMock() call rather than surfacing during rendering.
@@ -31,12 +54,12 @@ export function _createMock({
 		string,
 		{ pattern: RegExp; documents: Record<string, unknown> }
 	>
-	const page = Object.values(pages).find((p) => p.pattern.test(url))
+	const page = Object.values(pages).find((p) => p.pattern.test(pathname))
 	if (page) {
 		const missing = Object.keys(page.documents).filter((name) => !(name in mocks))
 		if (missing.length > 0) {
 			throw new Error(
-				`createMock: missing mock data for ${missing.map((n) => `"${n}"`).join(', ')} on route "${routePattern}". Add ${missing.length === 1 ? 'it' : 'them'} to the data object passed to createMock.`
+				`createMock: missing mock data for ${missing.map((n) => `"${n}"`).join(', ')} on route "${pathname}". Add ${missing.length === 1 ? 'it' : 'them'} to the data object passed to createMock.`
 			)
 		}
 	}
@@ -122,7 +145,7 @@ export function _createMock({
 				last_variables={caches.last_variables}
 			>
 				<React.Suspense fallback={null}>
-					<RouterImpl manifest={manifest} initialURL={url} assetPrefix="" />
+					<RouterImpl manifest={manifest} initialURL={path} assetPrefix="" />
 				</React.Suspense>
 			</RouterContextProvider>
 		)

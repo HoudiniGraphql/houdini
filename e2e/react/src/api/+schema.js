@@ -129,7 +129,7 @@ export const typeDefs = /* GraphQL */ `
 			last: Int
 			snapshot: String!
 		): UserConnection!
-		usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+		usersList(limit: Int = 4, offset: Int, bornAfter: DateTime, names: [String!], dates: [DateTime!], snapshot: String!): [User!]!
 		userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
 		userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 		session: String

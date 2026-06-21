@@ -592,7 +592,7 @@ export const on_render =
 			{ webStream: production, userAgent: 'Vite' }
 		)
 
-		injectToStream(` + "`" + `
+		injectToStream(`+"`"+`
 		<script>
 			window.__houdini__initial__cache__ = ${cache.serialize()};
 			window.__houdini__initial__session__ = ${JSON.stringify(session)};
@@ -601,7 +601,7 @@ export const on_render =
 		${documentPremable ?? ''}
 
 		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '" async=""></script>' : ''}
-	` + "`" + `)
+	`+"`"+`)
 
 		if (pipeTo && pipe) {
 			// route headers must be set on the underlying response before any of
@@ -791,7 +791,7 @@ func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) 
 func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries, layoutQueries, errorQueries []string, params map[string]*ParamTypeInfo) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("import { DocumentHandle, RouteProp } from '%s'\n", runtimeRel))
+	b.WriteString(fmt.Sprintf("import { DocumentHandle } from '%s'\n", runtimeRel))
 	b.WriteString("import React from 'react'\n")
 	for _, q := range allQueries {
 		b.WriteString(fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '%s/%s'\n",
@@ -801,9 +801,11 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString(fmt.Sprintf("import type { RoutingError } from '%s'\n", runtimeRel))
 
 	paramsType := formatParamsType(params)
+	routeKeys := formatRouteKeyUnion(params)
 
-	// PageProps
-	b.WriteString(fmt.Sprintf("\nexport type PageProps = {\n\tParams: %s,\n", paramsType))
+	// PageProps — only the page's query results + handles. Route params and search live
+	// on PageRoute (read via useRoute), so they can't be accidentally destructured here.
+	b.WriteString("\nexport type PageProps = {\n")
 	for _, q := range pageQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
@@ -811,7 +813,7 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString("}\n")
 
 	// LayoutProps
-	b.WriteString(fmt.Sprintf("\nexport type LayoutProps = {\n\tParams: %s,\n\tchildren: React.ReactNode,\n", paramsType))
+	b.WriteString("\nexport type LayoutProps = {\n\tchildren: React.ReactNode,\n")
 	for _, q := range layoutQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
@@ -819,12 +821,20 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString("}\n")
 
 	// ErrorProps
-	b.WriteString(fmt.Sprintf("\nexport type ErrorProps = {\n\tParams: %s,\n\terrors: Array<Error | GraphQLError | RoutingError>,\n\tchildren: React.ReactNode,\n", paramsType))
+	b.WriteString("\nexport type ErrorProps = {\n\terrors: Array<Error | GraphQLError | RoutingError>,\n\tchildren: React.ReactNode,\n")
 	for _, q := range errorQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
 	}
 	b.WriteString("}\n")
+
+	// PageRoute / LayoutRoute / ErrorRoute — the route's params (from path segments) and
+	// search (the component's nullable, non-route query variables). Consumed via
+	// useRoute<PageRoute>(). Both are derived from the query inputs so they carry the exact
+	// scalar types (including unmarshaled custom scalars like Date).
+	b.WriteString(formatRouteType("PageRoute", pageQueries, routeKeys, paramsType))
+	b.WriteString(formatRouteType("LayoutRoute", layoutQueries, routeKeys, paramsType))
+	b.WriteString(formatRouteType("ErrorRoute", errorQueries, routeKeys, paramsType))
 
 	return b.String()
 }
@@ -839,6 +849,45 @@ func formatParamsType(params map[string]*ParamTypeInfo) string {
 		parts = append(parts, fmt.Sprintf("%s: string", k))
 	}
 	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// formatRouteKeyUnion returns the route's param names as a string-literal union (e.g.
+// "'id' | 'postId'"), or "never" when the route has no dynamic segments. Used to split a
+// query's input into its path-param and search halves.
+func formatRouteKeyUnion(params map[string]*ParamTypeInfo) string {
+	if len(params) == 0 {
+		return "never"
+	}
+	keys := sortedKeys(params)
+	var quoted []string
+	for _, k := range keys {
+		quoted = append(quoted, fmt.Sprintf("'%s'", k))
+	}
+	return strings.Join(quoted, " | ")
+}
+
+// formatRouteType emits a PageRoute/LayoutRoute/ErrorRoute type: params are the route-key
+// subset of the component's query inputs and search is everything else (the nullable,
+// non-route variables). With no queries there's no input to derive from, so params falls
+// back to the path-segment names typed as string and search is empty.
+func formatRouteType(name string, queries []string, routeKeys, paramsType string) string {
+	var params, search string
+	if len(queries) == 0 {
+		params = paramsType
+		search = "{}"
+	} else {
+		inputs := make([]string, 0, len(queries))
+		for _, q := range queries {
+			inputs = append(inputs, q+"$input")
+		}
+		combined := strings.Join(inputs, " & ")
+		if len(inputs) > 1 {
+			combined = "(" + combined + ")"
+		}
+		params = fmt.Sprintf("Pick<%s, Extract<keyof %s, %s>>", combined, combined, routeKeys)
+		search = fmt.Sprintf("Omit<%s, %s>", combined, routeKeys)
+	}
+	return fmt.Sprintf("\nexport type %s = {\n\tparams: %s,\n\tsearch: %s,\n}\n", name, params, search)
 }
 
 // ---- component field helpers ----

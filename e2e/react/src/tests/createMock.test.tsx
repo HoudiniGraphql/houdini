@@ -113,6 +113,104 @@ describe('route params', () => {
 	})
 })
 
+// ─── Search params → query variables ─────────────────────────────────────────
+
+describe('search params', () => {
+	test('a typed search value becomes a (coerced) query variable', async () => {
+		const mockFn = vi.fn().mockReturnValue({
+			usersList: [{ id: '1', __typename: 'User', name: 'Offset User' }],
+		})
+
+		const App = createMock({
+			url: '/search_params',
+			search: { offset: 2 },
+			data: { SearchParamsUsers: mockFn },
+		})
+
+		render(<App />)
+		await screen.findByText('Offset User')
+
+		// offset is declared Int, so the string from the URL is coerced back to a number
+		expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ offset: 2 }))
+	})
+
+	test('multiple search values are all threaded through', async () => {
+		const mockFn = vi.fn().mockReturnValue({
+			usersList: [{ id: '1', __typename: 'User', name: 'Both' }],
+		})
+
+		const App = createMock({
+			url: '/search_params',
+			search: { offset: 1, limit: 3 },
+			data: { SearchParamsUsers: mockFn },
+		})
+
+		render(<App />)
+		await screen.findByText('Both')
+		expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ offset: 1, limit: 3 }))
+	})
+
+	test('omitting search leaves the variables unset', async () => {
+		const mockFn = vi.fn().mockReturnValue({
+			usersList: [{ id: '1', __typename: 'User', name: 'Default' }],
+		})
+
+		const App = createMock({
+			url: '/search_params',
+			data: { SearchParamsUsers: mockFn },
+		})
+
+		render(<App />)
+		await screen.findByText('Default')
+
+		const vars = mockFn.mock.calls[0][0]
+		expect(vars.offset).toBeUndefined()
+		expect(vars.limit).toBeUndefined()
+	})
+
+	// ── negative cases ──────────────────────────────────────────────────────────
+
+	test('an extra (non-query) search key is allowed but never becomes a query variable', async () => {
+		const mockFn = vi.fn().mockReturnValue({
+			usersList: [{ id: '1', __typename: 'User', name: 'Ignored' }],
+		})
+
+		const App = createMock({
+			url: '/search_params',
+			// `tab` isn't a query variable — it's UI-only state. The type allows it, and
+			// the router leaves it in the URL without ever passing it to the query.
+			search: { tab: 'reviews' },
+			data: { SearchParamsUsers: mockFn },
+		})
+
+		render(<App />)
+		await screen.findByText('Ignored')
+
+		const vars = mockFn.mock.calls[0][0]
+		expect(vars.tab).toBeUndefined()
+		expect(vars.offset).toBeUndefined()
+	})
+
+	test('a value that cannot coerce to the scalar leaves the variable unset rather than NaN', async () => {
+		const mockFn = vi.fn().mockReturnValue({
+			usersList: [{ id: '1', __typename: 'User', name: 'Unset' }],
+		})
+
+		const App = createMock({
+			url: '/search_params',
+			// offset is an Int; a non-numeric value can't parse, so it must drop out
+			search: { offset: 'abc' } as any,
+			data: { SearchParamsUsers: mockFn },
+		})
+
+		render(<App />)
+		await screen.findByText('Unset')
+
+		const vars = mockFn.mock.calls[0][0]
+		expect(vars.offset).toBeUndefined()
+	})
+})
+
 // ─── Function mock ────────────────────────────────────────────────────────────
 
 describe('function mock', () => {

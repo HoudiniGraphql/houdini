@@ -12,6 +12,8 @@ import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
 
+import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
+import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
@@ -51,11 +53,21 @@ export function Router({
 }) {
 	// the current route is just a string in state.
 	const [currentURL, setCurrentURL] = React.useState(() => {
-		return initialURL || window.location.pathname
+		return initialURL || window.location.pathname + window.location.search
 	})
 
-	// find the matching page for the current route
-	const [page, variables] = find_match(configFile, manifest, currentURL)
+	// find the matching page for the current route. find_match also hands back the parsed
+	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
+	// and search params arrive in their url transport form, so we unmarshal them once here
+	// — the rich values feed both the query variables (which marshalInputs re-marshals for
+	// the request) and useRoute()'s params/search.
+	const [page, rawVariables, rawSearch] = find_match(manifest, currentURL)
+	const unmarshalers = scalarUnmarshalers(
+		[...(page?.params ?? []), ...(page?.searchParams ?? [])],
+		getCurrentConfig()?.scalars
+	)
+	const variables = unmarshalScalars(rawVariables ?? {}, unmarshalers)
+	const search = unmarshalScalars(rawSearch, unmarshalers)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -88,7 +100,7 @@ export function Router({
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (globalThis.window && window.location.pathname !== currentURL) {
+		if (globalThis.window && window.location.pathname + window.location.search !== currentURL) {
 			window.history.pushState({}, '', currentURL)
 		}
 	}, [currentURL])
@@ -99,7 +111,7 @@ export function Router({
 			return
 		}
 		const onChange = (_evt: PopStateEvent) => {
-			setCurrentURL(window.location.pathname)
+			setCurrentURL(window.location.pathname + window.location.search)
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {
@@ -107,8 +119,26 @@ export function Router({
 		}
 	}, [])
 
-	// the function to call to navigate to a url
-	const goto = (url: string) => {
+	// the function to call to navigate. accepts either a ready-made url string or a
+	// typed target { to, params, search } that is assembled (and custom scalars
+	// marshaled) exactly the way <Link> builds its href. The typed surface is the
+	// shared Goto contract; the implementation takes the loose runtime shape.
+	const goto = ((
+		target:
+			| string
+			| { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
+	) => {
+		const url =
+			typeof target === 'string'
+				? target
+				: buildHref(
+						target.to,
+						manifest.pages[manifest.pagesByUrl[target.to]],
+						getCurrentConfig()?.scalars,
+						target.params,
+						target.search
+					)
+
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()
 		// clear pending signals so the next render starts fresh load_query calls
@@ -116,7 +146,7 @@ export function Router({
 
 		// perform the navigation
 		setCurrentURL(url)
-	}
+	}) as Goto
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
@@ -125,10 +155,19 @@ export function Router({
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
-			const [page, variables] = find_match(configFile, manifest, url)
+			const [page, rawVariables] = find_match(manifest, url)
 			if (!page) {
 				return
 			}
+			// unmarshal any custom-scalar route/search params so the preloaded query
+			// marshals them the same way the rendered one does
+			const variables = unmarshalScalars(
+				rawVariables ?? {},
+				scalarUnmarshalers(
+					[...page.params, ...page.searchParams],
+					getCurrentConfig()?.scalars
+				)
+			)
 
 			// load the page component if necessary
 			if (['page', 'component'].includes(which)) {
@@ -152,6 +191,7 @@ export function Router({
 					pathname: currentURL,
 					goto,
 					params: variables ?? {},
+					search,
 				}}
 			>
 				<Is404Context.Provider value={is404}>
@@ -168,11 +208,13 @@ export function Router({
 	)
 }
 
-// export the location information in context
-export const useLocation = () => useContext(LocationContext)
+// internal accessor for the raw location context. the public surface is useRoute, which
+// layers the per-route param/search types on top of this. not re-exported from the package
+// index, so it isn't part of the public API.
+export const useLocationContext = () => useContext(LocationContext)
 
 export const ClientRedirect = ({ to }: { to: string }) => {
-	const { goto } = useLocation()
+	const { goto } = useLocationContext()
 	useEffect(() => {
 		goto(to)
 	}, [to])
@@ -641,11 +683,15 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 const LocationContext = React.createContext<{
 	pathname: string
 	params: Record<string, any>
+	// the parsed query string of the current url (declared search params coerced to
+	// their scalar type, other keys raw; repeated keys are arrays).
+	search: Record<string, any>
 	// a function to imperatively navigate to a url
-	goto: (url: string) => void
+	goto: Goto
 }>({
 	pathname: '',
 	params: {},
+	search: {},
 	goto: () => {},
 })
 
@@ -686,7 +732,7 @@ function useLinkBehavior({
 	goto,
 	preload,
 }: {
-	goto: (url: string) => void
+	goto: Goto
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
 	// always use the click handler
@@ -702,7 +748,7 @@ function useLinkBehavior({
 	}
 }
 
-function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
+function useLinkNavigation({ goto }: { goto: Goto }) {
 	// navigations need to be registered as transitions
 	const [_pending, startTransition] = React.useTransition()
 
@@ -925,7 +971,7 @@ export function PageContextProvider({
 	keys: string[]
 	children: React.ReactNode
 }) {
-	const location = useLocation()
+	const location = useLocationContext()
 	const params = Object.fromEntries(
 		Object.entries(location.params).filter(([key]) => keys.includes(key))
 	)
@@ -933,12 +979,42 @@ export function PageContextProvider({
 	return <PageContext.Provider value={{ params }}>{children}</PageContext.Provider>
 }
 
-export function useRoute<PageProps extends { Params: {} }>(): RouteProp<PageProps['Params']> {
-	return useContext(PageContext)
+// useRoute is the single hook for reading the current route: the route's params (scoped to
+// this route's path segments) and search, both typed when a generated PageRoute/LayoutRoute
+// is supplied, plus the current pathname and goto. This replaces the old useLocation —
+// params/search live here rather than on the component props. Unlike a conventional
+// useLocation it also carries params and goto, which is why it's named for the route.
+export function useRoute<
+	// the default leaves params/search empty (not a loose record) so that reading them
+	// without passing the route's generated PageRoute type is a compile error, while
+	// pathname and goto stay available for navigation-only code.
+	_Route extends { params: any; search: any } = { params: {}; search: {} },
+>(): {
+	pathname: string
+	params: _Route['params']
+	search: _Route['search']
+	goto: Goto
+} {
+	const location = useLocationContext()
+	const route = useContext(PageContext)
+	return {
+		pathname: location.pathname,
+		params: route.params as _Route['params'],
+		search: location.search as _Route['search'],
+		goto: location.goto,
+	}
 }
 
-export type RouteProp<Params> = {
-	params: Params
+// A route shape for useRoute. A route's generated PageRoute/LayoutRoute already satisfies the
+// `{ params; search }` shape, so the common case is useRoute<PageRoute>(). For a route-agnostic
+// component (e.g. a reusable paginator that assumes its route exposes `after`/`first` search
+// params) there's no single generated type to pass — use GenericRoute to type the axis you
+// depend on and leave the other `never` (which falls back to a loose record). Search comes
+// first since that's the usual reason to reach for it, so a search-only component writes
+// GenericRoute<{ ... }> and a params-only one writes GenericRoute<never, { ... }>.
+export type GenericRoute<Search = never, Params = never> = {
+	params: [Params] extends [never] ? Record<string, any> : Params
+	search: [Search] extends [never] ? Record<string, any> : Search
 }
 
 // a signal promise is a promise is used to send signals by having listeners attach

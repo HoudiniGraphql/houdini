@@ -1,0 +1,6 @@
+query RouteParamDate($day: DateTime!) {
+	usersList(bornAfter: $day, snapshot: "search_params") {
+		id
+		name
+	}
+}

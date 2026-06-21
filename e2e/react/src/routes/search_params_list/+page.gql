@@ -1,0 +1,6 @@
+query SearchListUsers($tags: [String!], $dates: [DateTime!]) {
+	usersList(names: $tags, dates: $dates, snapshot: "search_params") {
+		id
+		name
+	}
+}

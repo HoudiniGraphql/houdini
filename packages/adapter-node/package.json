@@ -24,6 +24,7 @@
         "build:build": "pnpm build: && pnpm build"
     },
     "devDependencies": {
+        "@types/node": "^25.9.1",
         "houdini": "workspace:^",
         "scripts": "workspace:^",
         "tsup": "^8.5.1"

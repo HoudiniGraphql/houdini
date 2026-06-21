@@ -1,25 +1,22 @@
-import type { ConfigFile } from '../lib/index.js'
 import type { RouterManifest, RouterPageManifest } from './types.js'
 
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
  */
-const param_pattern = /^(\[)?(\.\.\.)?(\w+)(?:=(\w+))?(\])?$/
+const param_pattern = /^(\[)?(\.\.\.)?(\w+)(\])?$/
 
-type GraphQLVariables = Record<string, string | number | boolean | null> | null
+type GraphQLScalar = string | number | boolean | null
+type GraphQLVariables = Record<string, GraphQLScalar | GraphQLScalar[]> | null
 type ValueOf<T> = T extends Record<string, infer U> ? U : never
 
 export type RouteParam = {
 	name: string
-	matcher: string
 	optional: boolean
 	rest: boolean
 	chained: boolean
 	// GraphQL scalar name for this param (e.g. "ID", "String", "DateTime")
 	type?: string
 }
-
-export type ParamMatcher = (param: string) => boolean
 
 // find_prefix_match returns the page whose leading static URL segments (the
 // segments before the first dynamic [param] segment) match the most segments of
@@ -29,7 +26,9 @@ export function find_prefix_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	url: string
 ): RouterPageManifest<_ComponentType> | null {
-	const urlSegments = url.split('/').filter(Boolean)
+	// the prefix logic operates on path segments, so drop any query string first
+	const path = url.split('?')[0]
+	const urlSegments = path.split('/').filter(Boolean)
 	let best: RouterPageManifest<_ComponentType> | null = null
 	let bestCount = -1
 
@@ -64,30 +63,33 @@ export function find_prefix_match<_ComponentType>(
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: true
-): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
+): [RouterPageManifest<_ComponentType> | null, GraphQLVariables, Record<string, any>]
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull?: false
-): [RouterPageManifest<_ComponentType>, GraphQLVariables]
+): [RouterPageManifest<_ComponentType>, GraphQLVariables, Record<string, any>]
 export function find_match<_ComponentType>(
-	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: boolean = true
-): [RouterPageManifest<_ComponentType> | null, GraphQLVariables] {
+): [RouterPageManifest<_ComponentType> | null, GraphQLVariables, Record<string, any>] {
+	// the patterns only describe the path, so split the query string off before
+	// matching and keep it around to populate search params below
+	const queryIndex = current.indexOf('?')
+	const path = queryIndex === -1 ? current : current.slice(0, queryIndex)
+	const search = queryIndex === -1 ? '' : current.slice(queryIndex + 1)
+
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
 	let matchVariables: GraphQLVariables = null
 
 	for (const page of Object.values(manifest.pages)) {
 		// check if the current url matches
-		const urlMatch = current.match(page.pattern)
+		const urlMatch = path.match(page.pattern)
 		if (!urlMatch) {
 			continue
 		}
@@ -113,7 +115,6 @@ export function find_match<_ComponentType>(
 		for (const [variable, { type }] of Object.entries(document.variables)) {
 			if (matchVariables?.[variable]) {
 				variables[variable] = parseScalar(
-					config,
 					type,
 					matchVariables[variable] as string
 				) as ValueOf<GraphQLVariables>
@@ -121,7 +122,48 @@ export function find_match<_ComponentType>(
 		}
 	}
 
-	return [match, variables]
+	// the parsed query string, surfaced to consumers via useRoute().search. every
+	// key present in the query string is included: declared search params are coerced
+	// (reusing the work below that fills query variables) while any other UI-only keys
+	// pass through as their raw string values. repeated keys collapse to arrays.
+	const searchObject: Record<string, any> = {}
+	if (search) {
+		const searchParams = new URLSearchParams(search)
+		for (const key of new Set(searchParams.keys())) {
+			const values = searchParams.getAll(key)
+			searchObject[key] = values.length > 1 ? values : values[0]
+		}
+
+		// fill any nullable search params the matched page declares from the query
+		// string. a route param of the same name always wins, so we only touch
+		// variables that the path didn't already provide. missing params are simply
+		// left unset (they're nullable), so this can never make a query fail.
+		for (const { name, type, wrappers } of match?.searchParams ?? []) {
+			if (variables[name] != null) {
+				continue
+			}
+			if (wrappers.includes('List')) {
+				const raw = searchParams.getAll(name)
+				if (raw.length === 0) {
+					continue
+				}
+				variables[name] = raw
+					.map((value) => parseScalar(type, value))
+					.filter((value): value is Exclude<GraphQLScalar, null> => value !== undefined)
+			} else if (searchParams.has(name)) {
+				const parsed = parseScalar(type, searchParams.get(name) ?? undefined)
+				if (parsed !== undefined) {
+					variables[name] = parsed
+				}
+			}
+			// reflect the coerced value (not the raw string) for declared params
+			if (name in searchObject && variables[name] != null) {
+				searchObject[name] = variables[name]
+			}
+		}
+	}
+
+	return [match, variables, searchObject]
 }
 
 /**
@@ -137,11 +179,10 @@ export function parse_page_pattern(id: string) {
 					`^${get_route_segments(id)
 						.map((segment) => {
 							// special case — /[...rest]/ could contain zero segments
-							const rest_match = /^\[\.\.\.(\w+)(?:=(\w+))?\]$/.exec(segment)
+							const rest_match = /^\[\.\.\.(\w+)\]$/.exec(segment)
 							if (rest_match) {
 								params.push({
 									name: rest_match[1],
-									matcher: rest_match[2],
 									optional: false,
 									rest: true,
 									chained: true,
@@ -149,11 +190,10 @@ export function parse_page_pattern(id: string) {
 								return '(?:/(.*))?'
 							}
 							// special case — /[[optional]]/ could contain zero segments
-							const optional_match = /^\[\[(\w+)(?:=(\w+))?\]\]$/.exec(segment)
+							const optional_match = /^\[\[(\w+)\]\]$/.exec(segment)
 							if (optional_match) {
 								params.push({
 									name: optional_match[1],
-									matcher: optional_match[2],
 									optional: true,
 									rest: false,
 									chained: true,
@@ -189,18 +229,17 @@ export function parse_page_pattern(id: string) {
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
+												`Invalid param: ${content}. Params can only have underscores and alphanumeric characters.`
 											)
 										}
 
-										const [, is_optional, is_rest, name, matcher] = match
+										const [, is_optional, is_rest, name] = match
 										// It's assumed that the following invalid route id cases are already checked
 										// - unbalanced brackets
 										// - optional param following rest param
 
 										params.push({
 											name,
-											matcher,
 											optional: !!is_optional,
 											rest: !!is_rest,
 											chained: is_rest ? i === 1 && parts[0] === '' : false,
@@ -288,11 +327,7 @@ function escapeRegex(str: string) {
 	)
 }
 
-export function parseScalar(
-	config: ConfigFile,
-	type: string,
-	value?: string
-): string | number | boolean | undefined {
+export function parseScalar(type: string, value?: string): string | number | boolean | undefined {
 	if (typeof value === 'undefined') {
 		return undefined
 	}
@@ -321,12 +356,10 @@ export function parseScalar(
 		return result
 	}
 
-	// if we have a special parse function, use it
-	if (config.scalars?.[type]?.marshal) {
-		return config.scalars[type]!.marshal!(value)
-	}
-
-	// we dont recognize the type, just use the string value
+	// custom scalars (and anything we don't recognize) are written into the URL in
+	// their already-marshaled transport form, so there's nothing to do on the way back
+	// out — the value is used directly. (Putting, say, a Date object in the URL would be
+	// meaningless; it's the marshaled form that round-trips.)
 	return value
 }
 
