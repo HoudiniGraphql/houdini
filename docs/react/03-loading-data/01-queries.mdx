@@ -134,7 +134,7 @@ The methods available on the handle depend on the query's directives. A query wi
 
 ## TypeScript
 
-Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results, handles, and route params are all typed automatically:
+Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results and handles are typed automatically. (Route params and search live on the generated `PageRoute` type, read via [`useRoute`](~/api-reference/useRoute), so they can't be accidentally destructured off the component props.)
 
 ```tsx title="src/routes/shows/+page.tsx"
 import type { PageProps } from './$types'
