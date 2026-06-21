@@ -1005,6 +1005,18 @@ export function useRoute<
 	}
 }
 
+// A route shape for useRoute. A route's generated PageRoute/LayoutRoute already satisfies the
+// `{ params; search }` shape, so the common case is useRoute<PageRoute>(). For a route-agnostic
+// component (e.g. a reusable paginator that assumes its route exposes `after`/`first` search
+// params) there's no single generated type to pass — use GenericRoute to type the axis you
+// depend on and leave the other `never` (which falls back to a loose record). Search comes
+// first since that's the usual reason to reach for it, so a search-only component writes
+// GenericRoute<{ ... }> and a params-only one writes GenericRoute<never, { ... }>.
+export type GenericRoute<Search = never, Params = never> = {
+	params: [Params] extends [never] ? Record<string, any> : Params
+	search: [Search] extends [never] ? Record<string, any> : Search
+}
+
 // a signal promise is a promise is used to send signals by having listeners attach
 // actions to the then()
 function signal_promise(): Promise<void> & { resolve: () => void; reject: () => void } {

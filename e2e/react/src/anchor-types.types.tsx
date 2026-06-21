@@ -1,7 +1,7 @@
 // Compile-time type assertions for <Link>, createMock, and goto prop typing.
 // Verified by `tsc --noEmit` — not a Playwright test.
 
-import { Link, createMock, useRoute } from '$houdini'
+import { Link, createMock, useRoute, type GenericRoute } from '$houdini'
 
 export {}
 
@@ -14,6 +14,15 @@ const _bare = useRoute()
 _bare.search.offset
 // @ts-expect-error -- params is {} until you pass useRoute<PageRoute>()
 _bare.params.id
+
+// a route-agnostic component (e.g. a reusable paginator) can type just the search keys it
+// depends on via GenericRoute — search comes first, params defaults to never (no assumption)
+const _paginator = useRoute<GenericRoute<{ after?: string | null; first?: number | null }>>()
+const _after: string | null | undefined = _paginator.search.after
+// @ts-expect-error -- limit was not declared on the GenericRoute search shape
+_paginator.search.limit
+// params was opted out (defaulted to never), so it's a loose record — reading a key is allowed
+const _anyParam: unknown = _paginator.params.anything
 
 // ── valid usages ─────────────────────────────────────────────────────────────
 
