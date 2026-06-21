@@ -1,5 +1,18 @@
 # houdini
 
+## 2.0.0-next.45
+
+### Minor Changes
+
+- [#1692](https://github.com/HoudiniGraphql/houdini/pull/1692) [`0f4ae4a`](https://github.com/HoudiniGraphql/houdini/commit/0f4ae4ab652e292f798fd181e577fd1bfb250343) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add the `@refetchable` directive to mark a fragment as refetchable on its own with new argument values.
+
+- [#1691](https://github.com/HoudiniGraphql/houdini/pull/1691) [`257e195`](https://github.com/HoudiniGraphql/houdini/commit/257e195565013c25367c727fd44c2c73c289e791) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add search param integration into queries, Link, and goto, with custom scalars marshaled into the URL and unmarshaled on read. Route params and search are now read through useRoute() (typed per route via the generated PageRoute type), replacing useLocation.
+
+### Patch Changes
+
+- Updated dependencies [[`0f4ae4a`](https://github.com/HoudiniGraphql/houdini/commit/0f4ae4ab652e292f798fd181e577fd1bfb250343)]:
+  - houdini-core@2.0.0-next.31
+
 ## 2.0.0-next.44
 
 ### Minor Changes
