@@ -10,11 +10,10 @@ describe('entityRefetchVariables', () => {
 	})
 
 	test('falls back to the config default keys for an arbitrary type', () => {
-		const vars = entityRefetchVariables(
-			{ defaultKeys: ['uuid'] } as ConfigFile,
-			'User',
-			{ uuid: 'abc', name: 'Alec' }
-		)
+		const vars = entityRefetchVariables({ defaultKeys: ['uuid'] } as ConfigFile, 'User', {
+			uuid: 'abc',
+			name: 'Alec',
+		})
 		expect(vars).toEqual({ uuid: 'abc' })
 	})
 

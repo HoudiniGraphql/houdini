@@ -113,8 +113,8 @@ export function useFragmentHandle<
 		isSinglePage && paginationEntityData !== null
 			? paginationEntityData
 			: isRefetchable && refetchEntityData !== null
-			? refetchEntityData
-			: fragmentData
+				? refetchEntityData
+				: fragmentData
 
 	const wrapLoad = <_Result>(
 		setLoading: (val: boolean) => void,
