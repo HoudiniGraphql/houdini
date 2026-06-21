@@ -1,6 +1,49 @@
-import { test, expect, describe } from 'vitest'
+import { test, expect, describe, vi } from 'vitest'
 
-import { collect_response_headers } from './server.js'
+import { _serverHandler, collect_response_headers } from './server.js'
+
+describe('_serverHandler url handling', () => {
+	function handlerFor(onRender: (args: any) => any, requestHandler?: any) {
+		return _serverHandler({
+			// a fake yoga server whose init() returns our request handler spy, so the
+			// graphql-endpoint branch is exercised without a real schema
+			schema: requestHandler ? ({} as any) : undefined,
+			server: requestHandler ? ({ init: () => requestHandler } as any) : undefined,
+			client: { componentCache: {}, registerProxy: vi.fn() } as any,
+			production: true,
+			manifest: { pages: {} } as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: {} as any,
+			on_render: onRender,
+		})
+	}
+
+	test('passes the full url (pathname + query string) to on_render', async () => {
+		let seen: string | undefined
+		const handler = handlerFor((args) => {
+			seen = args.url
+			return new Response('ok')
+		})
+
+		await handler(new Request('http://localhost/search_params?after=1704067200000&tab=x'))
+
+		// the query string must survive so search params reach find_match / initialURL
+		expect(seen).toBe('/search_params?after=1704067200000&tab=x')
+	})
+
+	test('routes to the graphql endpoint by pathname even with a query string', async () => {
+		const requestHandler = vi.fn(() => new Response('gql'))
+		const onRender = vi.fn(() => new Response('page'))
+		const handler = handlerFor(onRender, requestHandler)
+
+		await handler(new Request('http://localhost/_api?whatever=1'))
+
+		expect(requestHandler).toHaveBeenCalledTimes(1)
+		expect(onRender).not.toHaveBeenCalled()
+	})
+})
 
 describe('collect_response_headers', () => {
 	test('returns an empty object when there are no headers loaders', async () => {
