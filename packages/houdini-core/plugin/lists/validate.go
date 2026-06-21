@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -321,6 +319,63 @@ func ValidateRefetchableTypeCondition(
 				docName,
 				graphql.RefetchableDirective,
 				typeCondition,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: line, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+// ValidateRefetchablePaginateConflict rejects documents that carry both @refetchable
+// (a document-level directive) and @paginate (a selection-level directive). A paginated
+// fragment is already independently refetchable via its generated _Pagination_Query, so
+// @refetchable is redundant — and both want to own the embedded refetch query, so allowing
+// the combination would silently drop one. We surface a clear error instead.
+func ValidateRefetchablePaginateConflict(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// find documents that have a @refetchable document directive AND a @paginate selection
+	// directive. we report at the @refetchable location since that's the redundant one.
+	query := `
+		SELECT DISTINCT
+			d.name AS documentName,
+			rd.filepath,
+			rd.offset_line,
+			rd.offset_column,
+			dd.row as line,
+			dd.column
+		FROM documents d
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN document_directives dd ON dd.document = d.id
+				AND dd.directive = $refetchable_directive
+			JOIN selection_refs sr ON sr.document = d.id
+			JOIN selection_directives sd ON sd.selection_id = sr.child_id
+				AND sd.directive = $paginate_directive
+		WHERE (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+	bindings := map[string]any{
+		"refetchable_directive": graphql.RefetchableDirective,
+		"paginate_directive":    graphql.PaginationDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		docName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		line := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+		column := int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5))
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Document %q cannot use both @%s and @%s. A paginated fragment is already refetchable on its own, so @%s is redundant",
+				docName,
+				graphql.RefetchableDirective,
+				graphql.PaginationDirective,
+				graphql.RefetchableDirective,
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{

@@ -29,12 +29,12 @@ type PluginConfig struct {
 }
 
 type PluginConfigStorePaths struct {
-	Query          string `json:"query"`
-	Mutation       string `json:"mutation"`
-	Fragment       string `json:"fragment"`
-	Subscription   string `json:"subscription"`
-	QueryCursor    string `json:"queryCursor"`
-	QueryOffset    string `json:"queryOffset"`
+	Query               string `json:"query"`
+	Mutation            string `json:"mutation"`
+	Fragment            string `json:"fragment"`
+	Subscription        string `json:"subscription"`
+	QueryCursor         string `json:"queryCursor"`
+	QueryOffset         string `json:"queryOffset"`
 	FragmentCursor      string `json:"fragmentCursor"`
 	FragmentOffset      string `json:"fragmentOffset"`
 	FragmentRefetchable string `json:"fragmentRefetchable"`

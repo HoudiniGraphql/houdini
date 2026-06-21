@@ -20,7 +20,7 @@ type RefetchableFragmentStoreConfig<_Data extends GraphQLObject, _Input> = Store
 	_Data,
 	_Input,
 	FragmentArtifact
-> & { paginationArtifact: QueryArtifact }
+> & { refetchArtifact: QueryArtifact }
 
 // the value handed back to components subscribing to a refetchable fragment store
 export type RefetchableFragmentResult<_Data extends GraphQLObject, _Input> = {
@@ -53,7 +53,7 @@ export class FragmentStoreRefetchable<
 	constructor(config: RefetchableFragmentStoreConfig<_Data, _Input>) {
 		this.artifact = config.artifact
 		this.name = config.storeName
-		this.refetchArtifact = config.paginationArtifact
+		this.refetchArtifact = config.refetchArtifact
 	}
 
 	get(initialValue: _Data | { [fragmentKey]: _ReferenceType } | null) {

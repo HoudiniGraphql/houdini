@@ -383,9 +383,6 @@ CREATE TABLE IF NOT EXISTS refetch_meta (
     mode TEXT NOT NULL DEFAULT 'Infinite',
     page_size INTEGER NOT NULL DEFAULT 0,
     embedded BOOLEAN NOT NULL DEFAULT false,
-    supports_forward BOOLEAN NOT NULL DEFAULT false,
-    supports_backward BOOLEAN NOT NULL DEFAULT false,
-    cursor_type TEXT,
 
     FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
     FOREIGN KEY (selection) REFERENCES selections(id) ON DELETE CASCADE

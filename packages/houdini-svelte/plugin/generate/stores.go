@@ -356,20 +356,25 @@ func generateFragmentStore(
 	extraFields := ""
 	if refetchMethod != config.StorePaginationTypeNone {
 		variablesRequired = true
-		// @refetchable fragments embed a <name>_Refetch_Query; paginated fragments a
-		// <name>_Pagination_Query. both are passed to the store as paginationArtifact.
+		// @refetchable fragments embed a <name>_Refetch_Query passed as refetchArtifact;
+		// paginated fragments a <name>_Pagination_Query passed as paginationArtifact.
 		embeddedQueryName := graphql.FragmentPaginationQueryName(name)
+		artifactBinding := "_PaginationArtifact"
+		artifactField := "paginationArtifact"
 		if refetchMethod == config.StorePaginationTypeRefetchable {
 			embeddedQueryName = graphql.FragmentRefetchQueryName(name)
+			artifactBinding = "_RefetchArtifact"
+			artifactField = "refetchArtifact"
 		}
 		extraImport = fmt.Sprintf(
 			`
-import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
+import %s from '$houdini/artifacts/%s.js'`,
+			artifactBinding,
 			embeddedQueryName,
 		)
 		extraFields = fmt.Sprintf(`
             variables: %t,
-            paginationArtifact: _PaginationArtifact,`, variablesRequired)
+            %s: %s,`, variablesRequired, artifactField, artifactBinding)
 	}
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'

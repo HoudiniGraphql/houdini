@@ -2085,6 +2085,23 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@refetchable and @paginate on the same document is not allowed",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableAndPaginated on User @refetchable {
+						friendsConnection(first: 10) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+				},
+			},
+			{
 				Name: "limit pagination requires first",
 				Pass: false,
 				Input: []string{

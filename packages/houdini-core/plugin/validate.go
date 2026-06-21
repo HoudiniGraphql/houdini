@@ -54,6 +54,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		lists.ValidateIncludeListID,
 		lists.ValidatePaginateTypeCondition,
 		lists.ValidateRefetchableTypeCondition,
+		lists.ValidateRefetchablePaginateConflict,
 		lists.ValidateSinglePaginateDirective,
 		lists.ValidateParentID,
 		fragmentArguments.ValidateFragmentArgumentValues,

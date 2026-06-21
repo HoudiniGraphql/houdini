@@ -140,7 +140,7 @@ A `@plural` fragment has to be spread on a list field, since that's the only pla
 
 ## Refetchable Fragments
 
-Sometimes a component needs to reload its own data with different arguments without dragging the route that rendered it into the conversation. Mark the fragment with `@refetchable` and read it with [`useFragmentHandle`](~/api-reference/useFragmentHandle) instead of `useFragment`. The handle hands back a `refetch` method alongside the data:
+Sometimes a component needs to reload its own data with different arguments. Mark the fragment with `@refetchable` and read it with [`useFragmentHandle`](~/api-reference/useFragmentHandle) instead of `useFragment`. The handle hands back a `refetch` method alongside the data:
 
 ```tsx
 import { graphql, useFragmentHandle } from '$houdini'

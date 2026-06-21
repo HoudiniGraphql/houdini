@@ -9,7 +9,7 @@ test.describe('refetchableFragment (custom resolve)', () => {
 		// the fragment loads with the default size argument
 		await expectToContain(page, '?size=50', 'div[id=result]')
 
-		// refetching re-runs the embedded customEntity(id:) query with new arguments
+		// refetching re-runs the embedded refetchableEntity(id:) query with new arguments
 		await expect_1_gql(page, 'button[id=refetch]')
 		await expectToContain(page, '?size=100', 'div[id=result]')
 

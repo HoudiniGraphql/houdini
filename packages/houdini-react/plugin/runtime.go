@@ -630,7 +630,7 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 	// during Validate) and @refetchable fragments (detected via the directive). We
 	// don't look for a pre-existing _Pagination_Query document because GenerateRuntime
 	// runs concurrently with GenerateDocuments and it may not exist yet.
-	paginatedFragments := map[string]string{}
+	refetchableFragments := map[string]string{}
 	err = p.DB.StepQuery(ctx, `
 		SELECT DISTINCT d.name, 0 AS refetchable
 		FROM documents d
@@ -650,9 +650,9 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		// @paginate fragments embed a <name>_Pagination_Query; @refetchable fragments
 		// embed a <name>_Refetch_Query. both are wired up as the refetchArtifact.
 		if q.ColumnInt(1) == 1 {
-			paginatedFragments[name] = graphql.FragmentRefetchQueryName(name)
+			refetchableFragments[name] = graphql.FragmentRefetchQueryName(name)
 		} else {
-			paginatedFragments[name] = graphql.FragmentPaginationQueryName(name)
+			refetchableFragments[name] = graphql.FragmentPaginationQueryName(name)
 		}
 	})
 	if err != nil {
@@ -691,13 +691,13 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			top.WriteString("\n")
 		}
 		for _, name := range names {
-			top.WriteString(spec.imports(name, paginatedFragments[name], pluralFragments[name]))
+			top.WriteString(spec.imports(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		top.WriteString("\n")
 
 		var before strings.Builder
 		for _, name := range names {
-			before.WriteString(spec.overloads(name, paginatedFragments[name], pluralFragments[name]))
+			before.WriteString(spec.overloads(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		if spec.passthrough != "" {
 			before.WriteString(spec.passthrough + "\n")
