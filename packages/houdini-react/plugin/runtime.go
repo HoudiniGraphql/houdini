@@ -484,6 +484,21 @@ var hookSpecs = []hookSpec{
 		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
 	},
 	{
+		file:   "useMutationForm.tsx",
+		kind:   "mutation",
+		marker: "export function useMutationForm<",
+		imports: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf("import type { %s$result, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
+		},
+		overloads: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf(
+				"export function useMutationForm(document: { artifact: %s$artifact }, opts?: UseMutationFormOptions<%s$result>): MutationForm<%s$result>\n",
+				name, name, name,
+			)
+		},
+		passthrough: "export function useMutationForm<_Result extends GraphQLObject, _Input extends GraphQLVariables>(document: { artifact: MutationArtifact }, opts?: UseMutationFormOptions<_Result>): MutationForm<_Result>",
+	},
+	{
 		file:   "useSubscription.ts",
 		kind:   "subscription",
 		marker: "export function useSubscription<",

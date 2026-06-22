@@ -545,6 +545,7 @@ export function RouterContextProvider({
 	ssr_signals,
 	last_variables,
 	session: ssrSession = {},
+	formResult = null,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -555,6 +556,7 @@ export function RouterContextProvider({
 	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
+	formResult?: FormResult | null
 }) {
 	// the session is top level state
 	// on the server, we can just use
@@ -586,6 +588,7 @@ export function RouterContextProvider({
 				last_variables,
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
+				formResult,
 			}}
 		>
 			{children}
@@ -619,7 +622,15 @@ type RouterContext = {
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
+
+	// the result of a no-JS form submission (keyed by form id), injected by the server on
+	// the PRG error re-render so useMutationForm can seed its initial state inline.
+	formResult: FormResult | null
 }
+
+// FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
+// form id (the mutation name, or an explicit useMutationForm({ id })).
+export type FormResult = Record<string, { data: any; errors: any }>
 
 export type PendingCache = SuspenseCache<
 	Promise<void> & { resolve: () => void; reject: (message: string) => void }
@@ -635,6 +646,14 @@ export const useRouterContext = () => {
 	}
 
 	return ctx
+}
+
+// useFormResult returns the server-injected result for a given form id, or null. The
+// result is threaded through the router context on both render paths (the server passes it
+// as a prop; the client hydration entry reads it from the streamed window global), so the
+// enhanced form's initial state matches the no-JS re-rendered HTML.
+export function useFormResult(formId: string): { data: any; errors: any } | null {
+	return useRouterContext().formResult?.[formId] ?? null
 }
 
 export function useClient() {

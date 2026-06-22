@@ -251,61 +251,50 @@ ourselves.
 
 ## Runtime hook
 
-`useMutationForm` renders a string-action form and intercepts `onSubmit`:
+`useMutationForm` returns props for a string-action form plus the hidden markers, and
+intercepts `onSubmit`:
 
 ```tsx
-// packages/houdini-react/runtime/hooks/useMutationForm.ts
-import { useState } from 'react'
-import { useMutation } from './useMutation.js'
-
-export function useMutationForm(artifact, opts = {}) {
-  const [send] = useMutation({ artifact })            // the normal send; coerced values marshal as usual
-  const formId = opts.id ?? artifact.name
-  const injected = useFormResults(formId)             // SSR-injected result, null when enhanced
-
-  const [state, setState] = useState(injected)
-  const [pending, setPending] = useState(false)
-
-  async function onSubmit(event) {
-    event.preventDefault()                            // only reached after hydration
-    setPending(true)
-    try {
-      const variables = coerceFormData(new FormData(event.currentTarget), artifact.input)
-      const data = await send({ variables })          // optimistic + cache for free
-      setState({ data, errors: null })
-      opts.onSuccess?.(data)                          // e.g. setSession, goto(redirect)
-    } catch (e) {
-      const errors = e.raw ?? [{ message: String(e) }]
-      setState({ data: null, errors })
-      opts.onError?.(errors)
-    } finally {
-      setPending(false)
+function NewUser() {
+  const { form, hidden, state, pending } = useMutationForm(graphql(`
+    mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
+      createUser(name: $name) { id }
     }
-  }
+  `))
 
-  return {
-    // a plain string action: native POST before hydration, intercepted after.
-    // identical on server and client → clean hydration.
-    form: {
-      action: currentUrl,           // the page URL; server marks + dispatches the mutation
-      method: 'post',
-      onSubmit,
-      // encType: 'multipart/form-data' when the mutation has Upload vars
-    },
-    state,                          // { data, errors } | null
-    pending,                        // also exposed via useMutationFormStatus() context
-  }
+  return (
+    <form {...form}>
+      {hidden}
+      <input name="name" />
+      {state?.errors && <p role="alert">{state.errors[0].message}</p>}
+      <button disabled={pending}>Create user</button>
+    </form>
+  )
 }
 ```
 
-`pending` is also published on a React context so a `useMutationFormStatus()` hook can read
-it from any child (the no-prop-drilling ergonomic of `useFormStatus`, but for our forms,
-since React's built-in only tracks function-action submissions).
+Internally it builds the send off `useDocumentStore` directly (not the `useMutation`
+wrapper, which discards the result): `onSubmit` does `coerceFormData(new FormData(form),
+artifact.input)` → `observer.send({ variables, session })`, sets `state` to the
+`{ data, errors }` result, and on success interpolates `artifact.endpoint.redirect` against
+the data and `goto()`s there. `pending` comes from the store's fetching state plus a local
+submitting flag.
 
-Hidden marker fields (`__houdini_form`, `__houdini_form_id`, and the CSRF token) are
-rendered into the form by the hook so the no-JS POST carries everything the server handler
-needs. `state` is seeded from the SSR-injected result (`injected`), so the no-JS re-render
-path and the enhanced path converge on the same `{ data, errors }` shape.
+Because `{...form}` is a plain prop spread it can't add children, so the hook returns a
+separate **`hidden`** node (the `__houdini_form` / `__houdini_form_id` markers) the user
+renders inside the form. `form.action` is the current page URL (read from the router so it
+is identical on server and client → clean hydration); `form.encType` is
+`multipart/form-data` when `artifact.endpoint.multipart` is set. `state` is seeded from the
+SSR-injected result (`useFormResult(formId)`, threaded through the router context on both
+render paths), so the no-JS re-render and the enhanced path converge on the same shape.
+
+The injected `formResult` is keyed by `formId` (`opts.id` ?? `@endpoint(id:)` ?? mutation
+name), so only the submitted form shows a non-null initial `state`.
+
+> **Deferred from v1:** a `useMutationFormStatus()` context hook (the no-prop-drilling
+> `useFormStatus` ergonomic). A plain `{...form}` spread can't provide a context for
+> children to read, so `pending` is returned directly for now; a context-backed status hook
+> would need the hook to render a wrapper/provider (see [Open questions](#open-questions)).
 
 ### `onSuccess` / `onError`
 

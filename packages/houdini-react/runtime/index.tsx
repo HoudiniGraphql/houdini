@@ -34,6 +34,7 @@ export function Router({
 	ssr_signals,
 	last_variables,
 	session,
+	formResult,
 	assetPrefix,
 	injectToStream,
 }: {
@@ -41,6 +42,7 @@ export function Router({
 	initialVariables: GraphQLObject
 	cache: Cache
 	session?: App.Session
+	formResult?: Record<string, { data: any; errors: any }> | null
 	assetPrefix: string
 	injectToStream?: (chunk: string) => void
 } & RouterCache) {
@@ -54,6 +56,7 @@ export function Router({
 			ssr_signals={ssr_signals}
 			last_variables={last_variables}
 			session={session}
+			formResult={formResult}
 		>
 			<RouterImpl
 				initialURL={initialURL}

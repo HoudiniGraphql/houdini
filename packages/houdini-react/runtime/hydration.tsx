@@ -17,6 +17,7 @@ declare global {
 		__houdini__hydration__layer__?: any
 		__houdini__initial__cache__?: any
 		__houdini__initial__session__?: any
+		__houdini__form_result__?: Record<string, { data: any; errors: any }> | null
 		__houdini__pending_artifacts__?: Record<string, QueryArtifact>
 		__houdini__pending_data__?: Record<string, any>
 		__houdini__pending_variables__?: Record<string, GraphQLVariables>
@@ -132,6 +133,7 @@ export function hydrate_page(
 			initialURL={window.location.pathname + window.location.search}
 			cache={window.__houdini__cache__}
 			session={window.__houdini__initial__session__}
+			formResult={window.__houdini__form_result__}
 			{...window.__houdini__nav_caches__}
 		/>
 	)
