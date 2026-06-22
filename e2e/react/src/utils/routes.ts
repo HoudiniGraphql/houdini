@@ -47,4 +47,5 @@ export const routes = {
 	search_params: '/search_params',
 	mutation_form: '/mutation-form',
 	mutation_form_created: '/mutation-form/created',
+	mutation_form_upload: '/mutation-form/upload',
 } as const

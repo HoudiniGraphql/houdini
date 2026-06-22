@@ -9,10 +9,10 @@ import (
 	"code.houdinigraphql.com/plugins/graphql"
 )
 
-// uploadScalar is the conventional GraphQL scalar name for file uploads (the
-// graphql-multipart-request spec). A mutation with an Upload-typed variable gets a
-// multipart form so the browser POSTs files natively.
-const uploadScalar = "Upload"
+// uploadScalars are the conventional GraphQL scalar names for file uploads — "File" is
+// Houdini's convention, "Upload" the graphql-multipart-request spec's. A mutation with a
+// variable of either type gets a multipart form so the browser POSTs files natively.
+var uploadScalars = map[string]bool{"File": true, "Upload": true}
 
 // buildEndpointArtifact returns the `"endpoint": { ... },` block for a document's
 // compiled artifact, or "" when the document has no @endpoint directive. The presence
@@ -73,11 +73,11 @@ func buildEndpointArtifact(doc *collected.Document) string {
     },`, fields.String())
 }
 
-// documentHasUpload reports whether any of the document's variables is the Upload scalar
-// (regardless of list/non-null wrappers — variable.Type holds the base type name).
+// documentHasUpload reports whether any of the document's variables is a file-upload
+// scalar (regardless of list/non-null wrappers — variable.Type holds the base type name).
 func documentHasUpload(doc *collected.Document) bool {
 	for _, variable := range doc.Variables {
-		if variable.Type == uploadScalar {
+		if uploadScalars[variable.Type] {
 			return true
 		}
 	}
