@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "3.0.0-next.36",
+    "version": "3.0.0-next.37",
     "scripts": {
         "compile": "scripts build-go",
         "typedefs": "scripts typedefs --plugin --go-package"
