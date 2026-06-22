@@ -3,17 +3,12 @@ package documents
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
-
-// redirectInterpolation matches a `{ path.to.field }` template segment in an
-// @endpoint(redirect:) value, capturing the dotted path between the braces.
-var redirectInterpolation = regexp.MustCompile(`\{\s*([^}]*?)\s*\}`)
 
 // endpointUsage collects everything we need to validate a single @endpoint usage.
 type endpointUsage struct {
@@ -127,7 +122,7 @@ func ValidateEndpointDirective(
 
 		// every { path } in the redirect must resolve to a leaf scalar in the
 		// mutation's selection set so the runtime/server can interpolate it.
-		paths := redirectInterpolationPaths(usage.redirect)
+		paths := graphql.RedirectInterpolationPaths(usage.redirect)
 		if len(paths) == 0 {
 			continue
 		}
@@ -148,26 +143,6 @@ func isRelativePath(value string) bool {
 		return false
 	}
 	return true
-}
-
-// redirectInterpolationPaths extracts the dotted paths from a redirect template,
-// e.g. "/users/{ createUser.id }" → [["createUser", "id"]]. Empty interpolations are
-// skipped.
-func redirectInterpolationPaths(redirect string) [][]string {
-	matches := redirectInterpolation.FindAllStringSubmatch(redirect, -1)
-	paths := make([][]string, 0, len(matches))
-	for _, match := range matches {
-		raw := strings.TrimSpace(match[1])
-		if raw == "" {
-			continue
-		}
-		segments := strings.Split(raw, ".")
-		for i := range segments {
-			segments[i] = strings.TrimSpace(segments[i])
-		}
-		paths = append(paths, segments)
-	}
-	return paths
 }
 
 // endpointSelectionNode is a field in a document's selection set, indexed by the name it

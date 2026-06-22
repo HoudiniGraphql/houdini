@@ -323,6 +323,10 @@ func GenerateSelectionDocument(
     "partial": %v`, partial)
 	}
 
+	// @endpoint emits the form metadata (parsed redirect, multipart flag, form id)
+	// the runtime hook and server form handler consume
+	endpointValue := buildEndpointArtifact(doc)
+
 	// we need to track the optimistic keys
 	optimistic := ""
 	if flags.OptimisticKeys {
@@ -482,7 +486,7 @@ const artifact = {
 
     "selection": %s,%s
 
-    "pluginData": %s,%s%s%s%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s%s%s%s
 } as const
 
 export default artifact
@@ -504,6 +508,7 @@ export default artifact
 		componentFields,
 		dedupe,
 		pluralValue,
+		endpointValue,
 		inputTypes,
 		loadingValue,
 		policyValue,

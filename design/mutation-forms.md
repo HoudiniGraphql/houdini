@@ -109,9 +109,18 @@ Compiler responsibilities:
 
 1. **Register** the mutation in a server-side form-action manifest (name/hash → document
    + the existing `InputObject` coercion metadata).
-2. **Emit** the artifact bits the runtime needs (the form marker name/hash, whether the
-   mutation has `Upload` variables so the hook sets `multipart` enctype) and, when present,
-   the parsed `redirect` template. The form `action` itself is just the current page URL.
+2. **Emit** the artifact bits the runtime needs as an operation-level `endpoint` field
+   whose presence marks the mutation as form-submittable (the form marker itself is just
+   the artifact `name`/`hash`). The form `action` is the current page URL. The field
+   carries: `multipart: true` when the mutation has `Upload` variables (so the hook sets
+   the enctype); the explicit `id`; and, when present, the parsed `redirect` template as a
+   **compact mixed array** — literal segments are strings, interpolation paths are nested
+   arrays — so both the server and client interpolate it identically without re-parsing:
+
+   ```js
+   // @endpoint(redirect: "/users/{ createUser.id }")
+   "endpoint": { "redirect": ["/users/", ["createUser", "id"]] }
+   ```
 3. **Validate** (table tests):
    - `@endpoint` only sits on mutation documents.
    - Each `redirect` interpolation path (`createUser.id`) exists in the selection set and
