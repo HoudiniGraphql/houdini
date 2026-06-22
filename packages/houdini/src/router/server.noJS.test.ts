@@ -17,9 +17,11 @@ const schema = createSchema({
 			id: ID!
 			name: String!
 		}
+		scalar File
 		type Mutation {
 			createUser(name: String!): User!
 			boom: User!
+			uploadAvatar(file: File!): User!
 		}
 	`,
 	resolvers: {
@@ -28,6 +30,12 @@ const schema = createSchema({
 			boom: () => {
 				throw new Error('kaboom')
 			},
+			// name the user after the uploaded file's contents so the test can prove the
+			// file actually made it through the multipart request to the resolver
+			uploadAvatar: async (_: unknown, { file }: { file: File }) => ({
+				id: '9',
+				name: await file.text(),
+			}),
 		},
 	},
 })
@@ -48,6 +56,14 @@ const boomArtifact = {
 	endpoint: { redirect: ['/users/', ['boom', 'id']] },
 }
 
+const uploadArtifact = {
+	name: 'UploadAvatar',
+	kind: 'HoudiniMutation',
+	raw: 'mutation UploadAvatar($file: File!) { uploadAvatar(file: $file) { id } }',
+	input: { fields: { file: 'File' }, types: {}, defaults: {}, runtimeScalars: {} },
+	endpoint: { redirect: ['/users/', ['uploadAvatar', 'id']] },
+}
+
 function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 	return _serverHandler({
 		// a real schema → _serverHandler builds a real Yoga internally
@@ -60,6 +76,7 @@ function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 			formActions: {
 				CreateUser: () => Promise.resolve({ default: createUserArtifact as any }),
 				Boom: () => Promise.resolve({ default: boomArtifact as any }),
+				UploadAvatar: () => Promise.resolve({ default: uploadArtifact as any }),
 			},
 		} as any,
 		assetPrefix: '',
@@ -104,6 +121,25 @@ describe('no-JS form submission (real Yoga)', () => {
 		// the real GraphQL errors are threaded through (Yoga masks the message in
 		// production, but the error is present and keyed by form id)
 		expect(seen.formResult.Boom.errors.length).toBeGreaterThan(0)
+	})
+
+	test('a multipart form with a file uploads it through to the mutation', async () => {
+		const handler = serverWith()
+		const form = new FormData()
+		form.set('__houdini_form', 'UploadAvatar')
+		// a native <form enctype="multipart/form-data"> with a file input posts this shape
+		form.set('file', new Blob(['avatar-bytes'], { type: 'text/plain' }), 'avatar.txt')
+		const res = await handler(
+			new Request('http://localhost/x', {
+				method: 'POST',
+				headers: { origin: 'http://localhost' }, // FormData sets the multipart content-type
+				body: form,
+			})
+		)
+		// uploadAvatar(file: File!) succeeding (303, not a 422 non-null error) proves the
+		// file survived coercion + the multipart request all the way to the resolver
+		expect(res.status).toBe(303)
+		expect(res.headers.get('location')).toBe('/users/9')
 	})
 
 	test('the GraphQL endpoint rejects a form-encoded body (no bypass around the form handler)', async () => {

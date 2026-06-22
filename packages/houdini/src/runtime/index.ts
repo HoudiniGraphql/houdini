@@ -3,6 +3,7 @@ export { decodeScalar, unmarshalValue, type Unmarshaler } from './coerce.js'
 export { deepEquals } from './deepEquals.js'
 export { interpolateRedirect } from './endpoint.js'
 export { coerceFormData } from './formData.js'
+export { buildGraphQLBody } from './multipart.js'
 export * from './scalars.js'
 export * from './types.js'
 export {

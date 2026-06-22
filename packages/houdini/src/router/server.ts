@@ -11,6 +11,7 @@ import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
 import { interpolateRedirect } from '../runtime/endpoint.js'
 import { coerceFormData } from '../runtime/formData.js'
+import { buildGraphQLBody } from '../runtime/multipart.js'
 import { serialize as encodeCookie } from './cookies.js'
 import { find_match, find_prefix_match } from './match.js'
 import { get_session, handle_request, session_cookie_name } from './session.js'
@@ -187,20 +188,22 @@ export function _serverHandler<ComponentType = unknown>({
 		const { default: artifact } = await loadArtifact()
 
 		// coerce the body into variables and run the mutation through the local yoga proxy,
-		// inheriting the session
+		// inheriting the session. when the form carried files the coercer yields File
+		// objects, so buildGraphQLBody assembles a multipart request (else plain JSON).
 		const input = artifact.input ?? { fields: {}, types: {}, defaults: {}, runtimeScalars: {} }
 		const variables = coerceFormData(formData, input, config_file)
 		const session = await get_session(request.headers, session_keys)
+		const { contentType: bodyContentType, body } = buildGraphQLBody(artifact.raw, variables)
 		const response = await handler(
 			new Request(`http://localhost/${graphqlEndpoint}`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
+					...(bodyContentType ? { 'Content-Type': bodyContentType } : {}),
 					Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
 						httpOnly: true,
 					}),
 				},
-				body: JSON.stringify({ query: artifact.raw, variables }),
+				body,
 			})
 		)
 		const result = (await response.json()) as { data?: any; errors?: any[] }
