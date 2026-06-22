@@ -20,6 +20,7 @@ declare global {
 		__houdini__pending_artifacts__?: Record<string, QueryArtifact>
 		__houdini__pending_data__?: Record<string, any>
 		__houdini__pending_variables__?: Record<string, GraphQLVariables>
+		__houdini__pending_cache__?: any[]
 		__houdini__nav_caches__?: RouterCache
 	}
 }
@@ -56,6 +57,22 @@ export function hydrate_page(
 		window.__houdini__initial__cache__,
 		window.__houdini__hydration__layer__
 	)
+
+	// apply any cache snapshots that streamed in before this module ran. an @loading query
+	// resolves while the document is still open, so its resolution script runs before this
+	// (deferred) module and couldn't hydrate the cache directly — it queued its snapshot here
+	// instead. drain the queue now that the cache exists so the observers below read the
+	// resolved data rather than the loading-state placeholder. each snapshot goes into its own
+	// layer (hydrate() replaces a layer's contents wholesale, so reusing one would keep only
+	// the last snapshot) and is then merged down so we end up with a single hydration layer.
+	const storage = window.__houdini__cache__?._internal_unstable.storage
+	for (const snapshot of window.__houdini__pending_cache__ ?? []) {
+		const layer = window.__houdini__cache__?.hydrate(snapshot)
+		if (layer && storage) {
+			storage.resolveLayer(layer.id)
+		}
+	}
+	window.__houdini__pending_cache__ = []
 
 	// prime the data/artifact caches from anything the server streamed
 	const initialData: Record<string, any> = {}

@@ -349,6 +349,10 @@ export class InMemoryStorage {
 		layer ??= this.createLayer(true)
 		layer.fields = fields
 		layer.links = links
+
+		// return the layer so callers that hydrate several snapshots can merge them back down
+		// (via resolveLayer) instead of reusing — and clobbering — a single shared layer
+		return layer
 	}
 
 	// fast typename lookup with lazy-populate fallback for records written via hydrate()

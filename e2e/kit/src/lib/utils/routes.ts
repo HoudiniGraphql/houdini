@@ -13,6 +13,7 @@ export const routes = {
 	fragment_masking_partial: '/fragment-masking-partial',
 	conditional_fragment_spread: '/conditional-fragment-spread',
 	loading_state: '/loading-state',
+	paginated_fragment_at_loading: '/bug/paginated-fragment-at-loading',
 	required_field: '/required-field',
 	Cache_Refresh: '/cache/refresh',
 	Cache_Refetch: '/cache/refetch',

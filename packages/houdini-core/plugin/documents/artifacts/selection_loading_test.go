@@ -1242,6 +1242,8 @@ const artifact = {
 
                         "typeMap": {},
                     },
+
+                    "loadingTypes": ["Cat", "User"],
                 },
 
                 "loading": {
@@ -1498,6 +1500,8 @@ const artifact = {
 
                         "typeMap": {},
                     },
+
+                    "loadingTypes": ["Cat", "User"],
                 },
 
                 "loading": {
@@ -1590,6 +1594,162 @@ export type Query$unmasked = {
 export type Query$artifact = typeof artifact
 
 "HoudiniHash=8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877"`,
+					),
+				},
+			},
+			{
+				// a document-level @loading must cascade onto fragment spreads, not just
+				// fields. without this the spread is omitted from the loading-state
+				// selection (no "loading": true), so the runtime can't bind it during the
+				// loading frame.
+				Name: "global @loading cascades to fragment spreads",
+				Pass: true,
+				Input: []string{
+					`
+            query GlobalLoadingSpreadQuery @loading {
+              monkeys {
+                ...ConnectionInfo
+              }
+            }
+          `,
+					`
+            fragment ConnectionInfo on AnimalConnection {
+              pageInfo {
+                hasNextPage
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"GlobalLoadingSpreadQuery": tests.Dedent(
+						`import type { LoadingType } from "houdini/runtime";
+const artifact = {
+    "name": "GlobalLoadingSpreadQuery",
+    "kind": "HoudiniQuery",
+    "hash": "f68f32cc631419ea7b0fcbdf8849a91e66be8fbd77af9543cfda312e02438370",
+    "raw": ` + "`" + `fragment ConnectionInfo on AnimalConnection {
+    pageInfo {
+        hasNextPage
+        __typename
+    }
+    __typename
+}
+
+query GlobalLoadingSpreadQuery {
+    monkeys {
+        ...ConnectionInfo
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "monkeys": {
+                "type": "MonkeyConnection",
+                "keyRaw": "monkeys",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "loading": {
+                                "kind": "value",
+                            },
+                        },
+
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "loading": {
+                                            "kind": "value",
+                                        },
+                                    },
+
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "loading": {
+                                            "kind": "value",
+                                        },
+                                    },
+                                },
+                            },
+
+                            "loading": {
+                                "kind": "continue",
+                            },
+                        },
+                    },
+
+                    "fragments": {
+                        "ConnectionInfo": {
+                            "arguments": {},
+                            "loading": true,
+                        },
+                    },
+                },
+
+                "loading": {
+                    "kind": "continue",
+                },
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "enableLoadingState": "global",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type GlobalLoadingSpreadQuery = {
+	readonly "input"?: GlobalLoadingSpreadQuery$input;
+	readonly "result": GlobalLoadingSpreadQuery$result | undefined;
+};
+
+export type GlobalLoadingSpreadQuery$result = {
+	readonly monkeys: {
+		readonly " $fragments": {
+			ConnectionInfo: {};
+		};
+	};
+} | {
+	readonly monkeys: {
+		readonly " $fragments": {
+			ConnectionInfo: {};
+		};
+	};
+};
+
+export type GlobalLoadingSpreadQuery$input = null | undefined;
+
+export type GlobalLoadingSpreadQuery$unmasked = {
+	readonly monkeys: {
+		readonly __typename: "MonkeyConnection";
+		readonly pageInfo: {
+			readonly __typename: "PageInfo";
+			readonly hasNextPage: boolean;
+		};
+	};
+};
+
+export type GlobalLoadingSpreadQuery$artifact = typeof artifact
+
+"HoudiniHash=f68f32cc631419ea7b0fcbdf8849a91e66be8fbd77af9543cfda312e02438370"`,
 					),
 				},
 			},

@@ -560,6 +560,166 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				},
 			},
 			{
+				// regression: a fragment whose name contains "paginated" must still get its
+				// pagination documents generated. discovery used `NOT LIKE '%_paginated%'` to
+				// skip the internal "<name>_paginated" docs, but LIKE's '_' is a single-char
+				// wildcard, so "MyPaginatedFriends" was wrongly skipped (issue surfaced via #1408).
+				Name: "fragment whose name contains 'paginated'",
+				Pass: true,
+				Input: []string{
+					`
+						fragment MyPaginatedFriends on User {
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment MyPaginatedFriends_paginated_c9Zhk  on User {
+              __typename
+              friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+								__typename
+							}
+							id
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...MyPaginatedFriends_paginated_c9Zhk @mask_disable @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("MyPaginatedFriends"),
+						)),
+				},
+			},
+			{
+				// companion to the case above: "paginated" at the very START of the name has no
+				// preceding character, so the buggy `%_paginated%` LIKE never matched it. testing
+				// it guards against an over-eager fix (e.g. `GLOB '*paginated*'` dropping the
+				// underscore) that would wrongly exclude it.
+				Name: "fragment whose name starts with 'paginated'",
+				Pass: true,
+				Input: []string{
+					`
+						fragment PaginatedFriends on User {
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment PaginatedFriends_paginated_c9Zhk  on User {
+              __typename
+              friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+								__typename
+							}
+							id
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...PaginatedFriends_paginated_c9Zhk @mask_disable @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("PaginatedFriends"),
+						)),
+				},
+			},
+			{
 				Name: "fragment on custom resolve query",
 				Pass: true,
 				Input: []string{

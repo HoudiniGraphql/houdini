@@ -172,7 +172,11 @@ func PreparePaginationDocuments(
 				AND tf.name = je.value
 			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $pagination_suffix
 		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
-	 	  AND documents.name NOT LIKE '%_paginated%'
+	 	  -- exclude the internally-generated "<name>_paginated" fragments. GLOB (not LIKE)
+	 	  -- so the underscore is matched literally and case-sensitively; LIKE's '_' is a
+	 	  -- single-char wildcard, which wrongly excluded any user document whose name merely
+	 	  -- contained "paginated" (e.g. "MyPaginatedList").
+	 	  AND documents.name NOT GLOB '*_paginated*'
 		  AND existing_operations.id IS NULL
 		  AND (documents.processed = false OR documents.processed IS NULL)
 		GROUP BY discovered_lists.id

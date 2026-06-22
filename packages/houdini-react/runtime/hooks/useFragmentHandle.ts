@@ -31,7 +31,10 @@ export function useFragmentHandle<
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
 ): any {
 	const fragmentData = useFragment<_Data, _ReferenceType, _Input>(reference, document)
-	const { variables } = fragmentReference<_Data, _Input, _ReferenceType>(reference, document)
+	const { variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
+		reference,
+		document
+	)
 
 	const client = useClient()
 	const [session] = useSession()
@@ -172,6 +175,8 @@ export function useFragmentHandle<
 				getState: () => displayData as _Data | null,
 				getVariables: () =>
 					(paginationObserver.state.variables ?? variables) as NonNullable<_Input>,
+				// no-op pagination while the parent is still in its @loading state (issue #1408)
+				getLoading: () => loading,
 				fetch: fetchFn,
 				fetchUpdate,
 				getSession: async () => session,
@@ -196,6 +201,8 @@ export function useFragmentHandle<
 				getState: () => displayData as _Data | null,
 				getVariables: () =>
 					(paginationObserver.state.variables ?? variables) as NonNullable<_Input>,
+				// no-op pagination while the parent is still in its @loading state (issue #1408)
+				getLoading: () => loading,
 				storeName: refetchArtifact.name,
 				fetch: fetchFn,
 				fetchUpdate: async (args: any, updates = ['append']) =>
@@ -210,7 +217,15 @@ export function useFragmentHandle<
 		}
 
 		return null
-	}, [refetchArtifact, paginationObserver, displayData, session, forwardPending, backwardPending])
+	}, [
+		refetchArtifact,
+		paginationObserver,
+		displayData,
+		session,
+		forwardPending,
+		backwardPending,
+		loading,
+	])
 
 	// the fragment's current argument values: the initial args overlaid with everything that
 	// has been passed to refetch() so far. we track these explicitly rather than reading them
