@@ -1,4 +1,4 @@
-package plugin
+package documents
 
 import (
 	"context"
@@ -6,79 +6,17 @@ import (
 	"regexp"
 	"strings"
 
-	houdiniSchema "code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
-// endpointDirective marks a mutation so the compiler generates a server endpoint that
-// accepts a native (form-encoded) POST and redirects per the PRG pattern — the no-JS
-// half of a progressively-enhanced form. It currently lives in houdini-react because
-// only the React router consumes it, but nothing about the directive or its validation
-// is React-specific; it is expected to move to the shared layer once the router does.
-const endpointDirective = "endpoint"
-
-// Schema registers the directives this plugin owns. We reuse the core schema-insert
-// statements so the directive lands in the same tables every other internal directive
-// uses; the inserts are idempotent upserts, so running this alongside the core schema
-// hook is safe.
-func (p *HoudiniReact) Schema(ctx context.Context) error {
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		return err
-	}
-	defer p.DB.Put(conn)
-
-	statements, finalize := houdiniSchema.PrepareSchemaInsertStatements(conn)
-	defer finalize()
-
-	closeTx := p.DB.Transaction(conn)
-	commit := func(err error) error {
-		closeTx(&err)
-		return err
-	}
-
-	// @endpoint(redirect: String, id: String) on MUTATION
-	err = p.DB.ExecStatement(statements.InsertInternalDirective, map[string]any{
-		"name":        endpointDirective,
-		"description": "@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms.",
-		"visible":     true,
-	})
-	if err != nil {
-		return commit(err)
-	}
-	err = p.DB.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
-		"directive": endpointDirective,
-		"location":  "MUTATION",
-	})
-	if err != nil {
-		return commit(err)
-	}
-	err = p.DB.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
-		"directive": endpointDirective,
-		"name":      "redirect",
-		"type":      "String",
-	})
-	if err != nil {
-		return commit(err)
-	}
-	err = p.DB.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
-		"directive": endpointDirective,
-		"name":      "id",
-		"type":      "String",
-	})
-	if err != nil {
-		return commit(err)
-	}
-
-	return commit(nil)
-}
-
-// redirectInterpolation matches a `{ path.to.field }` template segment in a
+// redirectInterpolation matches a `{ path.to.field }` template segment in an
 // @endpoint(redirect:) value, capturing the dotted path between the braces.
 var redirectInterpolation = regexp.MustCompile(`\{\s*([^}]*?)\s*\}`)
 
-// endpoint collects everything we need to validate a single @endpoint usage.
-type endpoint struct {
+// endpointUsage collects everything we need to validate a single @endpoint usage.
+type endpointUsage struct {
 	documentID  int
 	docKind     string
 	docName     string
@@ -89,13 +27,17 @@ type endpoint struct {
 	hasRedirect bool
 }
 
-// validateEndpoint enforces the build-time guarantees for @endpoint:
+// ValidateEndpointDirective enforces the build-time guarantees for @endpoint:
 //   - it only sits on mutation documents
 //   - its redirect (when present) is a relative path, which is what closes
 //     open-redirect at build time
 //   - every redirect interpolation path resolves to a leaf scalar in the
 //     mutation's selection set, so we can never emit /users/undefined
-func (p *HoudiniReact) validateEndpoint(ctx context.Context, errs *plugins.ErrorList) {
+func ValidateEndpointDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// gather every @endpoint usage along with its document and redirect value.
 	// the redirect arg is optional (no redirect → PRG back to the page), so we LEFT
 	// JOIN it; av.kind is empty when the argument is absent.
@@ -114,15 +56,15 @@ func (p *HoudiniReact) validateEndpoint(ctx context.Context, errs *plugins.Error
 			JOIN raw_documents rd ON rd.id = d.raw_document
 			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'redirect'
 			LEFT JOIN argument_values av ON av.id = dda.value
-		WHERE dd.directive = $mutation_form_directive
+		WHERE dd.directive = $endpoint_directive
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 
-	forms := []endpoint{}
-	err := p.DB.StepQuery(ctx, query, map[string]any{
-		"mutation_form_directive": endpointDirective,
+	usages := []endpointUsage{}
+	err := db.StepQuery(ctx, query, map[string]any{
+		"endpoint_directive": graphql.EndpointDirective,
 	}, func(row plugins.Row) {
-		f := endpoint{
+		usage := endpointUsage{
 			documentID: int(row.ColumnInt(0)),
 			docKind:    row.ColumnText(1),
 			docName:    row.ColumnText(2),
@@ -133,31 +75,31 @@ func (p *HoudiniReact) validateEndpoint(ctx context.Context, errs *plugins.Error
 		// only treat the redirect as present when it was supplied as a string literal.
 		// a non-string value is a type error that core's argument validation reports.
 		if row.ColumnText(6) == "String" {
-			f.hasRedirect = true
-			f.redirect = row.ColumnText(7)
+			usage.hasRedirect = true
+			usage.redirect = row.ColumnText(7)
 		}
-		forms = append(forms, f)
+		usages = append(usages, usage)
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
 
-	for _, form := range forms {
+	for _, usage := range usages {
 		location := []*plugins.ErrorLocation{{
-			Filepath: form.filepath,
-			Line:     form.row,
-			Column:   form.column,
+			Filepath: usage.filepath,
+			Line:     usage.row,
+			Column:   usage.column,
 		}}
 
 		// @endpoint describes a form that runs a mutation; it is meaningless on a
 		// query or fragment. flag it and move on — the redirect checks below assume a
 		// mutation selection set.
-		if form.docKind != "mutation" {
+		if usage.docKind != "mutation" {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s can only be used on a mutation, but %q is a %s",
-					endpointDirective, form.docName, form.docKind,
+					graphql.EndpointDirective, usage.docName, usage.docKind,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,
@@ -165,17 +107,17 @@ func (p *HoudiniReact) validateEndpoint(ctx context.Context, errs *plugins.Error
 			continue
 		}
 
-		if !form.hasRedirect {
+		if !usage.hasRedirect {
 			continue
 		}
 
 		// the redirect has to be a relative path. rejecting anything with a scheme or a
 		// protocol-relative prefix is what closes open-redirect at build time.
-		if !isRelativePath(form.redirect) {
+		if !isRelativePath(usage.redirect) {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s redirect %q must be a relative path (start with a single '/', no scheme or '//')",
-					endpointDirective, form.redirect,
+					graphql.EndpointDirective, usage.redirect,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,
@@ -185,11 +127,11 @@ func (p *HoudiniReact) validateEndpoint(ctx context.Context, errs *plugins.Error
 
 		// every { path } in the redirect must resolve to a leaf scalar in the
 		// mutation's selection set so the runtime/server can interpolate it.
-		paths := redirectInterpolationPaths(form.redirect)
+		paths := redirectInterpolationPaths(usage.redirect)
 		if len(paths) == 0 {
 			continue
 		}
-		p.validateRedirectPaths(ctx, form, paths, location, errs)
+		validateRedirectPaths(ctx, db, usage, paths, location, errs)
 	}
 }
 
@@ -228,18 +170,19 @@ func redirectInterpolationPaths(redirect string) [][]string {
 	return paths
 }
 
-// selectionNode is a field in a document's selection set, indexed by the name it
+// endpointSelectionNode is a field in a document's selection set, indexed by the name it
 // appears under in the response (its alias, or field name when unaliased).
-type selectionNode struct {
+type endpointSelectionNode struct {
 	id       int
 	typeKind string // OBJECT / INTERFACE / UNION / SCALAR / ENUM ...
 }
 
 // validateRedirectPaths walks each interpolation path through the mutation's selection
 // tree and reports any segment that doesn't exist or doesn't resolve to a leaf scalar.
-func (p *HoudiniReact) validateRedirectPaths(
+func validateRedirectPaths(
 	ctx context.Context,
-	form endpoint,
+	db plugins.DatabasePool[config.PluginConfig],
+	usage endpointUsage,
 	paths [][]string,
 	location []*plugins.ErrorLocation,
 	errs *plugins.ErrorList,
@@ -247,7 +190,7 @@ func (p *HoudiniReact) validateRedirectPaths(
 	// load the document's field selections, indexed by parent selection id (0 = root).
 	// only fields can be referenced by a redirect path; fragment spreads are out of
 	// scope for v1 forms.
-	children := map[int]map[string]selectionNode{}
+	children := map[int]map[string]endpointSelectionNode{}
 	query := `
 		SELECT
 			COALESCE(sr.parent_id, 0) AS parent,
@@ -261,15 +204,15 @@ func (p *HoudiniReact) validateRedirectPaths(
 		WHERE sr.document = $document_id
 			AND s.kind = 'field'
 	`
-	err := p.DB.StepQuery(ctx, query, map[string]any{
-		"document_id": form.documentID,
+	err := db.StepQuery(ctx, query, map[string]any{
+		"document_id": usage.documentID,
 	}, func(row plugins.Row) {
 		parent := int(row.ColumnInt(0))
 		name := row.ColumnText(2)
 		if children[parent] == nil {
-			children[parent] = map[string]selectionNode{}
+			children[parent] = map[string]endpointSelectionNode{}
 		}
-		children[parent][name] = selectionNode{
+		children[parent][name] = endpointSelectionNode{
 			id:       int(row.ColumnInt(1)),
 			typeKind: row.ColumnText(3),
 		}
@@ -282,7 +225,7 @@ func (p *HoudiniReact) validateRedirectPaths(
 	for _, segments := range paths {
 		parent := 0
 		ok := true
-		var node selectionNode
+		var node endpointSelectionNode
 		for _, segment := range segments {
 			next, found := children[parent][segment]
 			if !found {
@@ -298,7 +241,7 @@ func (p *HoudiniReact) validateRedirectPaths(
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s redirect path { %s } does not exist in the selection set of %q",
-					endpointDirective, display, form.docName,
+					graphql.EndpointDirective, display, usage.docName,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,
@@ -310,7 +253,7 @@ func (p *HoudiniReact) validateRedirectPaths(
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s redirect path { %s } in %q must resolve to a leaf scalar, but it is a %s",
-					endpointDirective, display, form.docName, node.typeKind,
+					graphql.EndpointDirective, display, usage.docName, node.typeKind,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,

@@ -1069,6 +1069,39 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @endpoint(redirect: String, id: String) on MUTATION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.EndpointDirective,
+		"description": "@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"location":  "MUTATION",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"name":      "redirect",
+		"type":      "String",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"name":      "id",
+		"type":      "String",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.ComponentFieldDirective,

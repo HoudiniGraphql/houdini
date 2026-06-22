@@ -19,7 +19,7 @@ import { graphql, useMutationForm, useMutationFormStatus } from '$houdini'
 function NewUser() {
   const { form, state } = useMutationForm(graphql(`
     mutation CreateUser($name: String!, $email: String!)
-      @mutationForm(redirect: "/users/{ createUser.id }") {
+      @endpoint(redirect: "/users/{ createUser.id }") {
       createUser(name: $name, email: $email) { id }
     }
   `))
@@ -78,14 +78,29 @@ The form element is identical on server and client (a plain string `action` + `m
 so hydration is clean. See [Why not React function actions](#why-not-react-function-actions)
 for why we do not use `useActionState`/`useFormStatus` directly.
 
-## The `@mutationForm` directive
+## The `@endpoint` directive
 
-`@mutationForm` is the static-analysis key. It marks a mutation as form-submittable and
+`@endpoint` is the static-analysis key. It marks a mutation as form-submittable and
 is how the Go compiler knows to generate the endpoint and wire the runtime. It follows
 the same document-directive pattern as `@plural`, `@refetch`, and friends.
 
+The directive and everything the compiler does with it (registration, artifact emission,
+validation) are **framework-neutral** — the form is the only per-framework surface
+(`useMutationForm` in React, a `use:enhance` store action in Svelte, a signal-based action
+in Solid). So it all lives in the **shared layer**, not in any one framework adapter:
+
+- **`houdini-core`** (Go) owns the directive definition, extraction, validation, and
+  artifact emission — registered in `schema/write.go` and validated as a rule in
+  `documents/`, the same place `@plural`/`@refetch` live.
+- **`houdini`** owns the shared runtime that both server paths and all framework adapters
+  depend on (the `coerceFormData` coercer, the server form handler).
+
+Each framework then needs only its thin runtime adapter (the hook/action) — none of the
+compiler-side or shared-runtime work is duplicated per framework. The React router is the
+first consumer; Svelte/Solid adapters slot in later without touching the directive.
+
 ```graphql
-mutation CreateUser($name: String!) @mutationForm(redirect: "/users/{ createUser.id }") {
+mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
   createUser(name: $name) { id }
 }
 ```
@@ -98,12 +113,12 @@ Compiler responsibilities:
    mutation has `Upload` variables so the hook sets `multipart` enctype) and, when present,
    the parsed `redirect` template. The form `action` itself is just the current page URL.
 3. **Validate** (table tests):
-   - `@mutationForm` only sits on mutation documents.
+   - `@endpoint` only sits on mutation documents.
    - Each `redirect` interpolation path (`createUser.id`) exists in the selection set and
      resolves to a leaf scalar.
    - The `redirect` value is a relative path (starts with a single `/`, no scheme, no
      `//`). This is what closes open-redirect at build time.
-   - Duplicate `@mutationForm` usages of the same mutation on one route require an
+   - Duplicate `@endpoint` usages of the same mutation on one route require an
      explicit `id` (see [Form identity](#form-identity)).
 
 ## Server
@@ -149,7 +164,7 @@ which page to re-render.
 2. Coerce body → variables (shared coercer + InputObject metadata).
 3. Run the mutation via the local Yoga proxy (client.registerProxy, already wired).
 4. Branch:
-   success + @mutationForm(redirect:)     → 303 to the interpolated target
+   success + @endpoint(redirect:)     → 303 to the interpolated target
    success, no redirect                   → 303 back to the page URL (PRG, refresh-safe)
    error / validation failure             → re-render this page, status 4xx,
                                             with the result injected
@@ -186,7 +201,7 @@ The injected result must land on the form that was submitted.
   one-form-per-mutation-per-page case.
 - Two forms using the same mutation on one page require an explicit
   `useMutationForm(doc, { id: 'invite' })`. The compiler warns (table test) when it sees
-  duplicate `@mutationForm` usage on a route with no id.
+  duplicate `@endpoint` usage on a route with no id.
 
 The hidden `__houdini_form_id` carries the id on submit; the server keys `formResult` by
 it; only the submitted form receives a non-null initial state.
@@ -385,24 +400,31 @@ it cannot be used as a bypass around the form handler (one-line test).
 
 Per the project testing heuristic, browser-verifiable behavior needs two layers:
 
-- **Go table tests** (`packages/houdini-core/plugin/`): `@mutationForm` placement
-  validation, redirect interpolation-path and relative-path validation, duplicate-form-id
-  warning, and the generated artifact shape (form marker, upload-enctype flag, redirect
-  template, registration in the form-action manifest).
+- **Go table tests** (`packages/houdini-core/plugin/`): `@endpoint` placement validation,
+  redirect interpolation-path and relative-path validation, duplicate-form-id warning, and
+  the generated artifact shape (form marker, upload-enctype flag, redirect template,
+  registration in the form-action manifest).
 - **Playwright e2e** (`e2e/react/`): the no-JS native POST path (submit with JS disabled,
   assert redirect / inline errors) and the enhanced path (optimistic update, pending via
   `useMutationFormStatus`, `state` errors), plus a CSRF test (cross-origin POST rejected).
 
 ## Affected areas
 
-- `packages/houdini-core/plugin/` — `@mutationForm` extraction, validation, artifact
-  emission.
+Shared (framework-neutral — see [The `@endpoint` directive](#the-endpoint-directive)):
+
+- `packages/houdini-core/plugin/` — `@endpoint` definition (`schema/write.go`), extraction,
+  validation (`documents/endpoint.go`), and artifact emission.
 - `packages/houdini/src/router/server.ts` — the `handleForm()` branch and the `on_render`
   `formResult` field.
 - `packages/houdini/src/router/types.ts` — `on_render` signature.
+- Houdini core runtime (`houdini`) — the shared `coerceFormData`.
+
+Per-framework runtime adapters (the only framework-specific surface):
+
 - `packages/houdini-react/` — `useMutationForm`, `useMutationFormStatus` + its context,
   the router-context plumbing for `formResult`, and the React adapter's `on_render`.
-- Houdini core runtime — the shared `coerceFormData`.
+- `packages/houdini-svelte/` (future) — a `use:enhance` store action and the Svelte
+  adapter's `on_render` equivalent.
 
 ## Open questions
 

@@ -129,6 +129,9 @@ directive @refetch on FIELD
 """@refetchable marks a fragment so it can be refetched on its own with new argument values"""
 directive @refetchable on FRAGMENT_DEFINITION
 
+"""@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms."""
+directive @endpoint(id: String, redirect: String) on MUTATION
+
 """@componentField is used to mark a field as a component field"""
 directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRAGMENT_DEFINITION | INLINE_FRAGMENT
 

@@ -2709,6 +2709,78 @@ func TestValidate_Houdini(t *testing.T) {
 					}`,
 				},
 			},
+			{
+				Name: "@endpoint on a mutation with a valid relative redirect and leaf path (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.id }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint without a redirect (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @endpoint {
+						user(name: "x") { id }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with an absolute URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "https://evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with a protocol-relative URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "//evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect without a leading slash (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "users/new") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.nope }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path resolving to an object (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
 		},
 	})
 }
