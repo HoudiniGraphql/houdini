@@ -404,8 +404,13 @@ Recommendation (mirrors SvelteKit's default CSRF protection):
    existing `session_keys` / `jwt.ts`, rendered as a hidden field at SSR) for hardened
    shared-domain deployments. Deferred from v1.
 
-Verify during implementation that the Yoga GraphQL endpoint rejects form-encoded bodies, so
-it cannot be used as a bypass around the form handler (one-line test).
+**Implementation finding:** Yoga does *not* reject form-encoded bodies on its own — it
+accepts `application/x-www-form-urlencoded` per the GraphQL-over-HTTP spec, which would let
+a same-site `<form>` POST a mutation straight to the GraphQL endpoint (carrying the
+`SameSite=Lax` cookie) and bypass the form handler's Origin check. So `_serverHandler`
+rejects (`415`) `x-www-form-urlencoded` POSTs to the GraphQL endpoint, keeping the form
+handler the only form-driven path. `multipart/form-data` is *not* rejected there because
+the enhanced upload path legitimately posts the GraphQL multipart spec to that endpoint.
 
 ## Test plan
 

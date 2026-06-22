@@ -247,6 +247,19 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// if its a request we can process with yoga, do it.
 		if (requestHandler && parsedURL.pathname === graphqlEndpoint) {
+			// our client only ever POSTs JSON (or multipart for uploads) to the graphql
+			// endpoint. Yoga also accepts x-www-form-urlencoded bodies per the
+			// GraphQL-over-HTTP spec, which would let a same-site <form> POST a mutation
+			// straight here — carrying the SameSite=Lax cookie and bypassing the form
+			// handler's Origin check. Reject that content-type so the form handler stays
+			// the only form-driven path.
+			const contentType = request.headers.get('content-type') ?? ''
+			if (
+				request.method === 'POST' &&
+				contentType.includes('application/x-www-form-urlencoded')
+			) {
+				return new Response('Unsupported Media Type', { status: 415 })
+			}
 			return requestHandler(request, ...extraContext)
 		}
 
