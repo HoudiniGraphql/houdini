@@ -31,9 +31,22 @@ export type MutationForm<_Result = any> = {
 	}
 	// the hidden marker fields the no-JS POST needs; render inside the <form>
 	hidden: React.ReactNode
+	// an ergonomic alternative to `{...form}` + `hidden`: a <Form> that renders the form,
+	// injects the markers, and publishes `pending` to useMutationFormStatus() for any child.
+	Form: React.FC<React.PropsWithChildren<React.FormHTMLAttributes<HTMLFormElement>>>
 	// { data, errors } | null — seeded from the server's no-JS result, then the enhanced result
 	state: { data: _Result; errors: any } | null
 	pending: boolean
+}
+
+// FormStatusContext carries the nearest <Form>'s pending state to useMutationFormStatus(),
+// the no-prop-drilling ergonomic of React's useFormStatus (which only tracks function-action
+// submissions, so it can't see our forms).
+const FormStatusContext = React.createContext<{ pending: boolean }>({ pending: false })
+
+/** useMutationFormStatus reads the pending state of the nearest <Form> from a child. */
+export function useMutationFormStatus(): { pending: boolean } {
+	return React.useContext(FormStatusContext)
 }
 
 /**
@@ -112,5 +125,29 @@ export function useMutationForm<
 		</>
 	)
 
-	return { form, hidden, state, pending: submitting || storeValue.fetching }
+	const pending = submitting || storeValue.fetching
+
+	// the <Form> wrapper reads the latest props/pending from a ref so its component identity
+	// stays stable across renders — otherwise React would remount the form (and lose input
+	// focus) every time pending flips.
+	const live = React.useRef<{ form: typeof form; hidden: React.ReactNode; pending: boolean }>(
+		null as any
+	)
+	live.current = { form, hidden, pending }
+	const FormRef = React.useRef<MutationForm<_Result>['Form']>(null as any)
+	if (!FormRef.current) {
+		FormRef.current = ({ children, ...rest }) => {
+			const current = live.current
+			return (
+				<FormStatusContext.Provider value={{ pending: current.pending }}>
+					<form {...current.form} {...rest}>
+						{current.hidden}
+						{children}
+					</form>
+				</FormStatusContext.Provider>
+			)
+		}
+	}
+
+	return { form, hidden, Form: FormRef.current, state, pending }
 }

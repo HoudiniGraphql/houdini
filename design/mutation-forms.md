@@ -291,10 +291,21 @@ render paths), so the no-JS re-render and the enhanced path converge on the same
 The injected `formResult` is keyed by `formId` (`opts.id` ?? `@endpoint(id:)` ?? mutation
 name), so only the submitted form shows a non-null initial `state`.
 
-> **Deferred from v1:** a `useMutationFormStatus()` context hook (the no-prop-drilling
-> `useFormStatus` ergonomic). A plain `{...form}` spread can't provide a context for
-> children to read, so `pending` is returned directly for now; a context-backed status hook
-> would need the hook to render a wrapper/provider (see [Open questions](#open-questions)).
+For the no-prop-drilling `useFormStatus` ergonomic, the hook also returns a **`Form`**
+component — `<Form>…children…</Form>` renders the form, injects the markers, and provides a
+context so **`useMutationFormStatus()`** can read `pending` from any child (a plain
+`{...form}` spread can't, since it adds no provider). `Form` keeps a stable identity across
+renders (live values via a ref) so flipping `pending` never remounts the form / drops input
+focus.
+
+```tsx
+const { Form } = useMutationForm(doc)
+// <Form><input name="name" /><Submit /></Form>
+function Submit() {
+  const { pending } = useMutationFormStatus()   // reads the nearest <Form>'s state
+  return <button disabled={pending}>Create</button>
+}
+```
 
 ### `onSuccess` / `onError`
 

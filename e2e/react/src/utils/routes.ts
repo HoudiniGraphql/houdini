@@ -48,4 +48,5 @@ export const routes = {
 	mutation_form: '/mutation-form',
 	mutation_form_created: '/mutation-form/created',
 	mutation_form_upload: '/mutation-form/upload',
+	mutation_form_status: '/mutation-form/status',
 } as const
