@@ -573,6 +573,16 @@ export const on_render =
 		// HoudiniErrorBoundary can set the correct HTTP status/location before streaming.
 		const statusRef = { status: is404 ? 404 : 200, location: undefined }
 
+		// renderToStream only hands back injectToStream as a return value, i.e. after <App> has
+		// already been constructed — too late to pass it down as a prop for the first render.
+		// We thread a stable wrapper that delegates to this holder, then fill the holder once
+		// renderToStream resolves. @loading queries resolve after the shell flushes (so the
+		// holder is set by the time their resolution scripts stream); non-@loading queries
+		// resolve before the shell and simply no-op the wrapper, falling back to the initial
+		// cache as before. Sourcing it this way (rather than react-streaming's useStream context)
+		// keeps the bare react-streaming import out of the isomorphic runtime, which trips a
+		// "loaded in browser" poison-pill assertion under browser-like test environments.
+		const streamHolder = {}
 		const {
 			readable,
 			injectToStream,
@@ -586,11 +596,13 @@ export const on_render =
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
+					injectToStream: (chunk) => streamHolder.injectToStream?.(chunk),
 					...router_cache()
 				})
 			),
 			{ webStream: production, userAgent: 'Vite' }
 		)
+		streamHolder.injectToStream = injectToStream
 
 		// The page bootstrap below is intentionally not async. On a streaming page (e.g. an
 		// @loading query renders its loading state inside a Suspense boundary, so the shell

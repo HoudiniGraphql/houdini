@@ -64,16 +64,10 @@ const REACT_TSCONFIG_STUB = `{
 // rolldown picks up even in SSR builds.
 const _require = createRequire(import.meta.url)
 let reactStreamingServerPath = ''
-let reactStreamingHooksPath = ''
 try {
 	const main = _require.resolve('react-streaming')
 	const pkgDir = main.replace(/\/dist\/.*$/, '')
 	reactStreamingServerPath = path.join(pkgDir, 'dist/server/index.node-and-web.js')
-	// The bare `react-streaming` entry resolves to the browser hooks (whose useStream is a
-	// no-op returning null) when rolldown picks the "browser" condition, which it does even in
-	// SSR builds. The runtime calls useStreamOptional() during SSR to grab injectToStream, so
-	// in the SSR build we must point the bare import at the server hooks instead.
-	reactStreamingHooksPath = path.join(pkgDir, 'dist/server/hooks.js')
 } catch {}
 
 export default function (ctx: VitePluginContext): PluginOption {
@@ -110,21 +104,7 @@ export default function (ctx: VitePluginContext): PluginOption {
 			// transform hook registered on this plugin instance.
 			if (userConfig.build?.ssr) {
 				return reactStreamingServerPath
-					? {
-							resolve: {
-								alias: [
-									{
-										find: 'react-streaming/server',
-										replacement: reactStreamingServerPath,
-									},
-									// exact match so we don't also rewrite react-streaming/server
-									{
-										find: /^react-streaming$/,
-										replacement: reactStreamingHooksPath,
-									},
-								],
-							},
-					  }
+					? { resolve: { alias: { 'react-streaming/server': reactStreamingServerPath } } }
 					: {}
 			}
 
