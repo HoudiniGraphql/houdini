@@ -35,6 +35,7 @@ export function Router({
 	last_variables,
 	session,
 	formResult,
+	formToken,
 	assetPrefix,
 	injectToStream,
 }: {
@@ -43,6 +44,7 @@ export function Router({
 	cache: Cache
 	session?: App.Session
 	formResult?: Record<string, { data: any; errors: any }> | null
+	formToken?: string | null
 	assetPrefix: string
 	injectToStream?: (chunk: string) => void
 } & RouterCache) {
@@ -57,6 +59,7 @@ export function Router({
 			last_variables={last_variables}
 			session={session}
 			formResult={formResult}
+			formToken={formToken}
 		>
 			<RouterImpl
 				initialURL={initialURL}

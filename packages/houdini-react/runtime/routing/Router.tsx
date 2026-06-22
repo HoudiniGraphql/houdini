@@ -546,6 +546,7 @@ export function RouterContextProvider({
 	last_variables,
 	session: ssrSession = {},
 	formResult = null,
+	formToken = null,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -557,6 +558,7 @@ export function RouterContextProvider({
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
 	formResult?: FormResult | null
+	formToken?: string | null
 }) {
 	// the session is top level state
 	// on the server, we can just use
@@ -589,6 +591,7 @@ export function RouterContextProvider({
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
 				formResult,
+				formToken,
 			}}
 		>
 			{children}
@@ -626,6 +629,9 @@ type RouterContext = {
 	// the result of a no-JS form submission (keyed by form id), injected by the server on
 	// the PRG error re-render so useMutationForm can seed its initial state inline.
 	formResult: FormResult | null
+
+	// the signed CSRF token forms render in their hidden field, when router.formToken is on.
+	formToken: string | null
 }
 
 // FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
@@ -654,6 +660,12 @@ export const useRouterContext = () => {
 // enhanced form's initial state matches the no-JS re-rendered HTML.
 export function useFormResult(formId: string): { data: any; errors: any } | null {
 	return useRouterContext().formResult?.[formId] ?? null
+}
+
+// useFormToken returns the signed CSRF token to render in a form's hidden field, or null
+// when router.formToken is disabled.
+export function useFormToken(): string | null {
+	return useRouterContext().formToken
 }
 
 export function useClient() {

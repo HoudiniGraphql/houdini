@@ -14,6 +14,7 @@ import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
 import { marshalInputs } from '../runtime/scalars.js'
 import { serialize as encodeCookie } from './cookies.js'
+import { encode as encodeJWT, verify as verifyJWT } from './jwt.js'
 import { find_match, find_prefix_match } from './match.js'
 import { get_session, handle_request, session_cookie_name } from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
@@ -22,6 +23,10 @@ import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './ty
 // explicit @endpoint(id:)). Injected into the page tree on the error re-render so the
 // submitted form renders its result/errors inline.
 export type FormResult = Record<string, { data: any; errors: any }>
+
+// the hidden field carrying the opt-in CSRF token, and the signed payload it holds.
+const CSRF_FIELD = '__houdini_csrf'
+const CSRF_PAYLOAD = { houdiniForm: true }
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
@@ -53,10 +58,22 @@ export function _serverHandler<ComponentType = unknown>({
 		// the result of a no-JS form submission, keyed by form id, injected on the
 		// PRG error re-render so the submitted form can show its result/errors inline.
 		formResult?: FormResult
+		// the signed CSRF token forms render in a hidden field (only when router.formToken
+		// is enabled); undefined otherwise.
+		formToken?: string
 	}) => Response | Promise<Response | undefined> | undefined
 	config_file: ConfigFile
 } & Omit<YogaServerOptions, 'schema'>) {
 	const session_keys = localApiSessionKeys(config_file)
+
+	// fall back to a random per-process key when none are configured, so both auth sessions
+	// and form CSRF tokens work out of the box. Configuring session keys is about
+	// persistence — surviving redeploys and verifying across a load-balanced fleet — not
+	// about turning these on. (Random key ⇒ sessions/tokens don't survive a restart, which
+	// is fine in dev/single-server; production should configure keys.)
+	if (session_keys.length === 0) {
+		session_keys.push(crypto.randomUUID())
+	}
 
 	if (schema && !server) {
 		server = new Server({
@@ -117,6 +134,9 @@ export function _serverHandler<ComponentType = unknown>({
 		// adapter can apply them before streaming begins
 		const headers = await collect_response_headers(match)
 
+		// mint the signed token forms render in their hidden CSRF field
+		const formToken = await encodeJWT(CSRF_PAYLOAD, session_keys[0])
+
 		const rendered = await on_render({
 			url,
 			match,
@@ -126,6 +146,7 @@ export function _serverHandler<ComponentType = unknown>({
 			componentCache,
 			headers,
 			formResult: opts?.formResult,
+			formToken,
 		})
 		if (!rendered) {
 			// if we got this far its not a page we recognize
@@ -170,6 +191,23 @@ export function _serverHandler<ComponentType = unknown>({
 		}
 
 		const formData = await request.formData()
+
+		// hardened CSRF: the form must carry the token we signed at render time. A
+		// cross-origin page can't read it, so it can't forge a valid submission even on a
+		// shared parent domain.
+		const token = formData.get(CSRF_FIELD)
+		let validToken = false
+		if (typeof token === 'string') {
+			// verify throws on a malformed token, so treat any failure as invalid
+			try {
+				validToken = await verifyJWT(token, session_keys[0])
+			} catch {
+				validToken = false
+			}
+		}
+		if (!validToken) {
+			return new Response('Forbidden', { status: 403 })
+		}
 		const mutationName = formData.get('__houdini_form')
 		if (typeof mutationName !== 'string') {
 			return new Response('Bad Request', { status: 400 })

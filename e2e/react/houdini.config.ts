@@ -46,6 +46,8 @@ const config: ConfigFile = {
 	router: {
 		auth: {
 			redirect: '/auth/token',
+			// sessionKeys present → forms automatically carry a signed CSRF token the
+			// server verifies on submit (on top of the always-on Origin check)
 			sessionKeys: ['supersecret'],
 		},
 	},

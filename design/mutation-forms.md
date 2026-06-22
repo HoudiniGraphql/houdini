@@ -411,9 +411,15 @@ Recommendation (mirrors SvelteKit's default CSRF protection):
    Stateless, no anon/auth special-casing, and it closes the subdomain hole.
 3. Config: an allowed-origins allowlist for legitimate multi-origin deployments (mirrors
    the existing `router.auth` config).
-4. Optional, opt-in: a signed double-submit token (HMAC over a per-session value using the
-   existing `session_keys` / `jwt.ts`, rendered as a hidden field at SSR) for hardened
-   shared-domain deployments. Deferred from v1.
+4. **Always-on signed token** (defense in depth, closes the same-site/subdomain gap): the
+   server signs a token with `jwt.ts` at render, the hook renders it in a hidden
+   `__houdini_csrf` field, and `handleForm` verifies it on submit. A cross-origin page
+   can't read the token, so it can't forge a valid POST even on a shared parent domain.
+   The signing key is `session_keys[0]` when configured, otherwise a **random per-process
+   key** — so it's never something to opt into. This same fallback is applied to
+   `session_keys` itself, so auth sessions also work out of the box; configuring keys is
+   purely about *persistence* (surviving redeploys, verifying across a load-balanced
+   fleet), and production should configure them.
 
 **Implementation finding:** Yoga does *not* reject form-encoded bodies on its own — it
 accepts `application/x-www-form-urlencoded` per the GraphQL-over-HTTP spec, which would let

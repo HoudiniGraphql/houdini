@@ -1,6 +1,15 @@
-import { test, expect, describe, vi } from 'vitest'
+import { test, expect, describe, vi, beforeAll } from 'vitest'
 
+import { encode } from './jwt.js'
 import { _serverHandler, collect_response_headers } from './server.js'
+
+// form submissions carry an always-on CSRF token; configure a known session key so tests
+// can mint a valid one
+const TOKEN_KEY = 'test-secret'
+let validToken: string
+beforeAll(async () => {
+	validToken = await encode({ houdiniForm: true }, TOKEN_KEY)
+})
 
 describe('_serverHandler url handling', () => {
 	function handlerFor(onRender: (args: any) => any, requestHandler?: any) {
@@ -75,7 +84,7 @@ describe('_serverHandler form submissions', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: (opts.config ?? { router: {} }) as any,
+			config_file: (opts.config ?? { router: { auth: { sessionKeys: [TOKEN_KEY] } } }) as any,
 			on_render: opts.onRender ?? (() => new Response('page')),
 		})
 	}
@@ -84,10 +93,11 @@ describe('_serverHandler form submissions', () => {
 		body: Record<string, string>,
 		headers: Record<string, string> = { origin: 'http://localhost' }
 	) {
+		// carry a valid CSRF token by default (body can override or omit it)
 		return new Request('http://localhost/users/new', {
 			method: 'POST',
 			headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
-			body: new URLSearchParams(body),
+			body: new URLSearchParams({ __houdini_csrf: validToken, ...body }),
 		})
 	}
 

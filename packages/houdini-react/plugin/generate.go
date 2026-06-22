@@ -563,6 +563,7 @@ export const on_render =
 		componentCache,
 		headers,
 		formResult,
+		formToken,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -600,6 +601,7 @@ export const on_render =
 					cache: cache,
 					session: session,
 					formResult: formResult ?? null,
+					formToken: formToken ?? null,
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
@@ -622,6 +624,7 @@ export const on_render =
 			window.__houdini__initial__cache__ = ${cache.serialize()};
 			window.__houdini__initial__session__ = ${JSON.stringify(session)};
 			window.__houdini__form_result__ = ${JSON.stringify(formResult ?? null)};
+			window.__houdini__form_token__ = ${JSON.stringify(formToken ?? null)};
 		</script>
 
 		${documentPremable ?? ''}

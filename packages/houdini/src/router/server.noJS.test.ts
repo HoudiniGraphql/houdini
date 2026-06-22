@@ -1,7 +1,16 @@
 import { createSchema } from 'graphql-yoga'
-import { test, expect, describe, vi } from 'vitest'
+import { test, expect, describe, vi, beforeAll } from 'vitest'
 
+import { encode } from './jwt.js'
 import { _serverHandler } from './server.js'
+
+// the form CSRF token is always on; tests use a known session key so they can mint a valid
+// token (the server falls back to a random per-process key when none is configured)
+const TOKEN_KEY = 'test-secret'
+let validToken: string
+beforeAll(async () => {
+	validToken = await encode({ houdiniForm: true }, TOKEN_KEY)
+})
 
 // An end-to-end test of the no-JS form path: a native form POST is run through the real
 // Yoga server (real coercion → real GraphQL execution → real redirect interpolation), with
@@ -83,7 +92,7 @@ const eventArtifact = {
 // a config with a custom scalar that marshals a Date to its timestamp (like the e2e app's
 // DateTime), so the server path's marshal step is observable
 const scalarConfig = {
-	router: {},
+	router: { auth: { sessionKeys: [TOKEN_KEY] } },
 	scalars: {
 		Timestamp: {
 			type: 'Date',
@@ -122,10 +131,11 @@ function formPOST(
 	body: Record<string, string>,
 	headers: Record<string, string> = { origin: 'http://localhost' }
 ) {
+	// carry a valid CSRF token by default (body can override or omit it)
 	return new Request(url, {
 		method: 'POST',
 		headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
-		body: new URLSearchParams(body),
+		body: new URLSearchParams({ __houdini_csrf: validToken, ...body }),
 	})
 }
 
@@ -157,6 +167,7 @@ describe('no-JS form submission (real Yoga)', () => {
 		const handler = serverWith()
 		const form = new FormData()
 		form.set('__houdini_form', 'UploadAvatar')
+		form.set('__houdini_csrf', validToken)
 		// a native <form enctype="multipart/form-data"> with a file input posts this shape
 		form.set('file', new Blob(['avatar-bytes'], { type: 'text/plain' }), 'avatar.txt')
 		const res = await handler(
@@ -182,6 +193,37 @@ describe('no-JS form submission (real Yoga)', () => {
 		// "/events/marshaled" only happens if the resolver received a number (the marshaled
 		// Date); a Date's default JSON serialization (ISO string) would give "/events/wrong:string"
 		expect(res.headers.get('location')).toBe('/events/marshaled')
+	})
+
+	describe('CSRF token (always on)', () => {
+		// the success-path tests above already prove a valid token is accepted (formPOST
+		// carries one); here we prove a missing or forged token is rejected.
+		test('rejects a form POST without the token', async () => {
+			const handler = serverWith()
+			const res = await handler(
+				new Request('http://localhost/x', {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						origin: 'http://localhost',
+					},
+					body: new URLSearchParams({ __houdini_form: 'CreateUser', name: 'A' }),
+				})
+			)
+			expect(res.status).toBe(403)
+		})
+
+		test('rejects a form POST with a forged/invalid token', async () => {
+			const handler = serverWith()
+			const res = await handler(
+				formPOST('http://localhost/x', {
+					__houdini_form: 'CreateUser',
+					name: 'A',
+					__houdini_csrf: 'not.a.valid.token',
+				})
+			)
+			expect(res.status).toBe(403)
+		})
 	})
 
 	test('the GraphQL endpoint rejects a form-encoded body (no bypass around the form handler)', async () => {

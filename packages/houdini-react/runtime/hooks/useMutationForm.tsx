@@ -3,7 +3,7 @@ import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/
 import { coerceFormData, interpolateRedirect } from 'houdini/runtime'
 import React from 'react'
 
-import { useSession, useRoute, useFormResult } from '../routing/Router.js'
+import { useSession, useRoute, useFormResult, useFormToken } from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'
 
 // a document with no variables still needs an InputObject shape for the coercer
@@ -70,6 +70,9 @@ export function useMutationForm<
 
 	const formId = opts.id ?? artifact.endpoint?.id ?? artifact.name
 
+	// the opt-in CSRF token (null unless router.formToken is enabled)
+	const csrfToken = useFormToken()
+
 	// seed from the server-injected result so the no-JS re-render and the enhanced path
 	// converge; null on a fresh form or once enhanced
 	const injected = useFormResult(formId)
@@ -122,6 +125,7 @@ export function useMutationForm<
 		<>
 			<input type="hidden" name="__houdini_form" value={artifact.name} />
 			<input type="hidden" name="__houdini_form_id" value={formId} />
+			{csrfToken && <input type="hidden" name="__houdini_csrf" value={csrfToken} />}
 		</>
 	)
 

@@ -7,6 +7,10 @@ import { goto } from '~/utils/testsHelper.js'
 test('enhanced submit runs the mutation and navigates to the redirect', async ({ page }) => {
 	await goto(page, routes.mutation_form)
 
+	// with router.formToken enabled, the form renders the signed CSRF token that the
+	// server verifies on submit (this whole test passing proves the round-trip works)
+	await expect(page.locator('input[name="__houdini_csrf"]')).toHaveCount(1)
+
 	await page.fill('[data-testid="name-input"]', 'Enhanced Alice')
 	await page.click('[data-testid="submit"]')
 
