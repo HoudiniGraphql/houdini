@@ -592,6 +592,12 @@ export const on_render =
 			{ webStream: production, userAgent: 'Vite' }
 		)
 
+		// The page bootstrap below is intentionally not async. On a streaming page (e.g. an
+		// @loading query renders its loading state inside a Suspense boundary, so the shell
+		// flushes immediately and the document stays open), an async module runs the moment
+		// it loads — before the deferred react-refresh preamble, which waits for the still-open
+		// document to finish parsing. That makes every JSX import throw "can't detect preamble".
+		// A plain (deferred) module runs in document order, after the preamble.
 		injectToStream(`+"`"+`
 		<script>
 			window.__houdini__initial__cache__ = ${cache.serialize()};
@@ -600,7 +606,7 @@ export const on_render =
 
 		${documentPremable ?? ''}
 
-		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '" async=""></script>' : ''}
+		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '"></script>' : ''}
 	`+"`"+`)
 
 		if (pipeTo && pipe) {

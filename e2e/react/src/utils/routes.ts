@@ -23,6 +23,8 @@ export const routes = {
 	pagination_fragment_cursor_forwards_singlepage: '/pagination/fragment/connection-forwards-singlepage',
 	pagination_fragment_cursor_backwards_singlepage: '/pagination/fragment/connection-backwards-singlepage',
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
+	loading_paginated_fragment: '/loading-paginated-fragment',
+	loading_interactive: '/loading-interactive',
 	refetchable_fragment: '/refetchable-fragment',
 	refetchable_fragment_custom: '/refetchable-fragment-custom',
 	optimistic_keys: '/optimistic-keys',

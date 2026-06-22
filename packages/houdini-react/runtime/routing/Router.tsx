@@ -11,6 +11,7 @@ import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
+import { useStreamOptional } from 'react-streaming'
 
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
@@ -80,13 +81,22 @@ export function Router({
 	// is if we don't have the component source. Dependencies on query results or artifacts
 	// will be resolved by the component itself
 
+	// On the server we stream the resolved data for @loading queries back to the client as
+	// the boundaries resolve (see load_query). The injectToStream handle for that comes from
+	// react-streaming's context rather than a prop: the server entry only receives it as a
+	// return value of renderToStream(), after <App> has already been constructed, so it can't
+	// be threaded down as a prop in time for the first render. useStreamOptional() returns null
+	// on the client (and in non-streaming renders), leaving the prop as the fallback.
+	const stream = useStreamOptional()
+	const effectiveInjectToStream = injectToStream ?? stream?.injectToStream
+
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
 	const { loadData, loadComponent } = usePageData({
 		page: targetPage,
 		variables,
 		assetPrefix,
-		injectToStream,
+		injectToStream: effectiveInjectToStream,
 	})
 	// if we get this far, it's safe to load the component
 	const { component_cache, data_cache, ssr_signals } = useRouterContext()
@@ -314,7 +324,18 @@ function usePageData({
 					injectToStream?.(`
 						<script>
 						{
-								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer__)
+								// the resolved cache snapshot for this streamed query. when the bootstrap
+								// module has already run (data arrived after hydration) we hydrate the live
+								// cache directly; otherwise the module is still deferred (an @loading query
+								// streams its data while the document is open) so we queue the snapshot for
+								// hydrate_page to apply once it creates the cache. without this the snapshot
+								// would be dropped and the query would hydrate with null data.
+								const __houdini__snapshot__ = ${cache.serialize()}
+								if (window.__houdini__cache__) {
+									window.__houdini__cache__.hydrate(__houdini__snapshot__, window.__houdini__hydration__layer__)
+								} else {
+									(window.__houdini__pending_cache__ = window.__houdini__pending_cache__ || []).push(__houdini__snapshot__)
+								}
 
 								const artifactName = "${artifact.name}"
 								const value = ${JSON.stringify(

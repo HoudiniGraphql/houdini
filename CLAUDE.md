@@ -22,6 +22,8 @@
 
 Canonical example: `packages/houdini-core/plugin/validate_test.go`. TypeScript test helpers: `testConfig()` / `testConfigFile()` in `packages/houdini/src/test/index.ts`.
 
+**Updating a golden artifact**: the artifact table tests (e.g. `selection_*_test.go`) compare the whole generated artifact with `require.Equal`, so when a codegen change shifts the expected output, do NOT hand-edit the golden surgically — that's error-prone and has caused confusion. Instead: replace the entire expected value for that case with a placeholder (`tests.Dedent(\`PLACEHOLDER\`)`), run the test, copy the `actual:` string from the failure into place, then re-run and eyeball the diff to confirm the shape changed only the way you intended. Two tips: the failure prints `actual` already Go-escaped, so it can be pasted as a plain double-quoted string (no `Dedent`/backtick juggling needed); and when a change ripples across several cases, capture each `actual:` and splice it in (anchor on the case's unique hash if keys repeat) rather than editing by hand.
+
 ## React route typing
 
 Per-route TypeScript typing (which `params` and `search` a route accepts, the `RouteHrefs` union, scalar resolution) lives in **one** place: `packages/houdini-react/runtime/routes.ts`. It derives everything from the generated manifest's shape via `typeof rawManifest`, and exports `RouteHrefs`, `ParamsForRoute<H>`, `SearchForRoute<H>`, `NavTarget<H>`, and `Goto`.

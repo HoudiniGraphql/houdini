@@ -655,7 +655,12 @@ func stringifySelection(
 	loadingTypes := []string{}
 
 	for _, selection := range selections {
-		hasLoading := false
+		// inherit the cascading loading state (a document-level @loading, or a parent
+		// field's @loading(cascade: true)) so that fragment spreads participate in the
+		// loading state just like fields do. without this a spread under a global @loading
+		// is omitted from the loading-state selection entirely. mirrors the field path,
+		// which seeds hasLoading from forceLoading.
+		hasLoading := forceLoading
 		for _, directive := range selection.Directives {
 			switch directive.Name {
 			case graphql.LoadingDirective:

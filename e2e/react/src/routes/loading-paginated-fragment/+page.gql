@@ -1,0 +1,6 @@
+query LoadingFragmentQuery @loading {
+	user(id: "1", snapshot: "loading-paginated-fragment", delay: 400) {
+		name
+		...LoadingFragmentList
+	}
+}
