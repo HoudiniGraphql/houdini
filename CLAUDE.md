@@ -49,6 +49,8 @@ The marketing site at `../marketing` symlinks directly into these directories, s
 
 ## Changesets
 
-Every non-documentation change needs a changeset. Doc-only changes do not need one. Each branch should have exactly one changeset. Keep the description to one or two sentences — no bullet lists.
+Every non-documentation change needs a changeset. Doc-only changes do not need one. Keep the description to one or two sentences — no bullet lists.
+
+**Exactly one changeset per feature branch, total** — not one per commit or per addition. A branch is a single unit of release, even when it spans many commits across an epic. Before creating a changeset, check whether one already exists on the branch (`ls .changeset/*.md`, ignoring `README.md`); if it does, **edit that changeset** to cover the new work instead of adding another. Only create a changeset when the branch has none. When later changes broaden the scope, widen the existing description (and add any newly-affected package bumps to its frontmatter) rather than writing a second file.
 
 Whenever a changeset bumps `houdini-core`, it must include a matching bump for `houdini` (the published runtime ships from `houdini`, so a core change needs a corresponding `houdini` release).
