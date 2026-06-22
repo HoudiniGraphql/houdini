@@ -1,5 +1,7 @@
 export * from './client.js'
+export { decodeScalar, unmarshalValue, type Unmarshaler } from './coerce.js'
 export { deepEquals } from './deepEquals.js'
+export { coerceFormData } from './formData.js'
 export * from './scalars.js'
 export * from './types.js'
 export {

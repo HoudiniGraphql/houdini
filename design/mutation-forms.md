@@ -253,7 +253,7 @@ import { useState } from 'react'
 import { useMutation } from './useMutation.js'
 
 export function useMutationForm(artifact, opts = {}) {
-  const [send] = useMutation({ artifact })            // lower-level send; see coercion note
+  const [send] = useMutation({ artifact })            // the normal send; coerced values marshal as usual
   const formId = opts.id ?? artifact.name
   const injected = useFormResults(formId)             // SSR-injected result, null when enhanced
 
@@ -309,10 +309,17 @@ are no-ops without JS, which is the correct degradation. This is the home for
 
 ## FormData coercion
 
-A single shared `coerceFormData(formData, inputMeta)` lives in the Houdini core runtime and
-is used by the client enhanced path, the dev server, and the built server. One
-implementation means the two paths are symmetric by construction. It is driven by the
-artifact's `InputObject` (`fields` / `types` / `defaults` / `runtimeScalars`).
+A single shared `coerceFormData(formData, input, config)` lives in the shared Houdini
+runtime (`houdini/runtime`, alongside `marshalInputs`) and is used by the client enhanced
+path, the dev server, and the built server. One implementation means the two paths are
+symmetric by construction. It is driven by the artifact's `InputObject`
+(`fields` / `types` / `defaults` / `runtimeScalars`).
+
+It is a **domain wrapper over a shared coercion core** (`unmarshalValue` / `decodeScalar`
+in `houdini/runtime/coerce`), the same core the router uses to turn search/route-param
+strings back into rich values (`unmarshalScalars` in the React runtime). So a value coerces
+identically whether it arrives via a URL or a form. The wrapper owns only what is genuinely
+form-specific: the FormData fold and the HTML-form rules below.
 
 Rules:
 
@@ -321,19 +328,19 @@ Rules:
   not guessed.
 - **Checkbox absence → `false`** for Boolean-typed fields (unchecked boxes vanish from
   FormData).
-- **Empty string → `null`** for numeric and custom-scalar fields; `""` passes through for
+- **Empty string → `null`** for numeric/enum/custom-scalar fields; `""` passes through for
   String/ID.
 - **Required fields lean on native HTML** `required`, which the browser enforces before
   POST on both paths.
-- **Scalar coercion to transport types**: Int/Float → JSON number, Boolean → real
-  boolean (GraphQL variable coercion rejects `"42"` for an `Int`); String/ID/enum/custom
-  scalars pass through as strings and are validated by the schema's `parseValue`.
+- **Scalar coercion**: Int/Float → number, Boolean → real boolean (a present checkbox
+  sends `"on"`); String/ID/enum pass through as strings; a **custom scalar runs through its
+  `unmarshal`** (via the shared core) to a rich value.
 
-Because a form value is already a transport-level string, **both paths skip Houdini's
-client marshaler**. The enhanced path therefore needs a lower-level send that bypasses the
-normal marshal step, so form strings are not double-processed. Residual edge case: a
-custom scalar whose normal input is a JS object cannot be expressed as a form string and
-falls back to `parseValue`.
+The coercer produces **rich** runtime values, exactly like the URL path, so the enhanced
+path sends them through the normal mutation pipeline — `marshalInputs` re-marshals them for
+the request. No special marshal-bypassing send is needed; reusing the unmarshal core is
+what makes that work. Residual edge case: a custom scalar whose input can't be expressed as
+a form string at all is out of scope.
 
 ### File uploads
 
