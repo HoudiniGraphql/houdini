@@ -332,7 +332,12 @@ function usePageData({
 								// would be dropped and the query would hydrate with null data.
 								const __houdini__snapshot__ = ${cache.serialize()}
 								if (window.__houdini__cache__) {
-									window.__houdini__cache__.hydrate(__houdini__snapshot__, window.__houdini__hydration__layer__)
+									// hydrate into a fresh layer and merge it down, rather than clobbering the
+									// shared hydration layer (which would drop everything hydrated before it)
+									const __houdini__layer__ = window.__houdini__cache__.hydrate(__houdini__snapshot__)
+									if (__houdini__layer__) {
+										window.__houdini__cache__._internal_unstable.storage.resolveLayer(__houdini__layer__.id)
+									}
 								} else {
 									(window.__houdini__pending_cache__ = window.__houdini__pending_cache__ || []).push(__houdini__snapshot__)
 								}

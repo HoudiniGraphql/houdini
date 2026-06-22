@@ -62,9 +62,15 @@ export function hydrate_page(
 	// resolves while the document is still open, so its resolution script runs before this
 	// (deferred) module and couldn't hydrate the cache directly — it queued its snapshot here
 	// instead. drain the queue now that the cache exists so the observers below read the
-	// resolved data rather than the loading-state placeholder.
+	// resolved data rather than the loading-state placeholder. each snapshot goes into its own
+	// layer (hydrate() replaces a layer's contents wholesale, so reusing one would keep only
+	// the last snapshot) and is then merged down so we end up with a single hydration layer.
+	const storage = window.__houdini__cache__?._internal_unstable.storage
 	for (const snapshot of window.__houdini__pending_cache__ ?? []) {
-		window.__houdini__cache__?.hydrate(snapshot, window.__houdini__hydration__layer__)
+		const layer = window.__houdini__cache__?.hydrate(snapshot)
+		if (layer && storage) {
+			storage.resolveLayer(layer.id)
+		}
 	}
 	window.__houdini__pending_cache__ = []
 
