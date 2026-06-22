@@ -102,6 +102,11 @@ export class FragmentStoreCursor<
 		})
 		const store = base.get(initialValue)
 
+		// the cache stamps a `loading` flag onto the fragment reference while its parent is
+		// rendering an @loading state. the pagination handlers key off this to no-op rather than
+		// firing a node(id: PendingValue) request that can't resolve (issue #1408).
+		const getLoading = () => Boolean((initialValue as any)?.[fragmentKey]?.loading)
+
 		const isSinglePage = this.paginationArtifact.refetch?.mode === 'SinglePage'
 
 		let paginationStore: DocumentStore<_Data, _Input>
@@ -169,7 +174,8 @@ export class FragmentStoreCursor<
 				return store.variables as NonNullable<_Input>
 			},
 			previousCursors,
-			nextCursors
+			nextCursors,
+			getLoading
 		)
 
 		const subscribe = (
@@ -213,11 +219,13 @@ export class FragmentStoreCursor<
 		getState: () => _Data | null,
 		getVariables: () => NonNullable<_Input>,
 		previousCursors?: (string | null)[],
-		nextCursors?: (string | null)[]
+		nextCursors?: (string | null)[],
+		getLoading?: () => boolean
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			getState,
 			getVariables,
+			getLoading,
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
 				await initClient()
@@ -294,10 +302,14 @@ export class FragmentStoreOffset<
 
 		const getState = () => get(store)
 
+		// no-op pagination while the parent is rendering an @loading state (issue #1408)
+		const getLoading = () => Boolean((initialValue as any)?.[fragmentKey]?.loading)
+
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
 			getState,
 			getVariables: () => store.variables as _Input,
+			getLoading,
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
 				return paginationStore.send({
