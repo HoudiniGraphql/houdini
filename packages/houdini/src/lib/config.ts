@@ -171,6 +171,10 @@ export type RuntimeScalarPayload = {
 type RouterConfig = {
 	auth?: AuthStrategy
 	apiEndpoint?: string
+	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint.
+	// The form handler's CSRF check is fail-closed: a form POST whose Origin is absent or
+	// matches neither the request's own origin nor this allowlist is rejected (403).
+	allowedOrigins?: string[]
 }
 
 type AuthStrategy =

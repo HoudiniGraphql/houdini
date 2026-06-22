@@ -107,8 +107,14 @@ mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id 
 
 Compiler responsibilities:
 
-1. **Register** the mutation in a server-side form-action manifest (name/hash → document
-   + the existing `InputObject` coercion metadata).
+1. **Register** the mutation in a server-side form-action manifest. Realized as a
+   `form_actions` export on the generated router manifest: a map of mutation name → a lazy
+   literal-import thunk for its artifact (`() => import('$houdini/artifacts/CreateUser')`),
+   one per `@endpoint` mutation. It mirrors how page-query artifacts are loaded (literal
+   specifier so bundlers follow it; lazy so it's code-split and edge-safe) and is attached
+   to `manifest.formActions` in the server entry, keeping mutation artifacts out of the
+   client bundle. The handler does `await manifest.formActions[name]()` to get the
+   artifact's `raw` query, `input` coercion metadata, and `endpoint` field.
 2. **Emit** the artifact bits the runtime needs as an operation-level `endpoint` field
    whose presence marks the mutation as form-submittable (the form marker itself is just
    the artifact `name`/`hash`). The form `action` is the current page URL. The field

@@ -363,10 +363,10 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 
 // hookSpec describes how to inject per-document overloads into one hook file.
 type hookSpec struct {
-	file        string // filename within the hooks/ directory
-	kind        string // "query", "mutation", "subscription", or "fragment"
-	marker      string // text immediately before which overloads are inserted
-	preamble    string // extra import line to prepend (empty if not needed)
+	file     string // filename within the hooks/ directory
+	kind     string // "query", "mutation", "subscription", or "fragment"
+	marker   string // text immediately before which overloads are inserted
+	preamble string // extra import line to prepend (empty if not needed)
 	// paginationQuery is the name of the pagination query document for paginated fragments, or "";
 	// plural is true when the document is a @plural fragment.
 	imports     func(name string, paginationQuery string, plural bool) string
@@ -825,6 +825,23 @@ func formatManifest(
 				sb.WriteString(fmt.Sprintf("\t\t%s,\n", loader))
 			}
 			sb.WriteString("\t],\n")
+		}
+		sb.WriteString("}\n")
+	}
+
+	// form_actions is a server-only export: lazy literal-import thunks for the artifacts of
+	// mutations carrying @endpoint, keyed by mutation name. The no-JS form handler looks a
+	// submitted form's mutation up here. Kept out of the default manifest so the client
+	// build tree-shakes the mutation artifacts away.
+	if len(manifest.FormActions) > 0 {
+		sb.WriteString("\nexport const form_actions = {\n")
+		for _, name := range manifest.FormActions {
+			artifactAbs := filepath.Join(artifactDir, name)
+			artifactRel, err := filepath.Rel(runtimeDir, artifactAbs)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fmt.Sprintf("\t%s: () => import(%q),\n", name, filepath.ToSlash(artifactRel)))
 		}
 		sb.WriteString("}\n")
 	}

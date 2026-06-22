@@ -112,6 +112,20 @@ export type InputObject = {
 	runtimeScalars: Record<string, string>
 }
 
+// the parsed @endpoint(redirect:) template: literal string segments interleaved with
+// interpolation paths (each a dotted field path as a string array), e.g.
+// ["/users/", ["createUser", "id"]]. Built by the compiler; interpolated identically by
+// the server form handler and the client form hook.
+export type RedirectTemplate = ReadonlyArray<string | readonly string[]>
+
+// @endpoint metadata on a mutation artifact: the marker that a mutation is form-submittable
+// plus what the runtime/server need to drive the form.
+export type EndpointSpec = {
+	redirect?: RedirectTemplate
+	multipart?: boolean
+	id?: string
+}
+
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	name: string
 	kind: _Kind
@@ -120,6 +134,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
+	endpoint?: EndpointSpec
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {

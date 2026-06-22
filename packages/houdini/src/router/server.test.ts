@@ -45,6 +45,119 @@ describe('_serverHandler url handling', () => {
 	})
 })
 
+describe('_serverHandler form submissions', () => {
+	const baseArtifact = {
+		name: 'CreateUser',
+		kind: 'HoudiniMutation',
+		raw: 'mutation CreateUser($name: String!) { createUser(name: $name) { id } }',
+		input: { fields: { name: 'String' }, types: {}, defaults: {}, runtimeScalars: {} },
+		endpoint: { redirect: ['/users/', ['createUser', 'id']] },
+	}
+
+	function formHandlerFor(opts: {
+		graphqlResult: any
+		onRender?: (args: any) => any
+		artifact?: any
+		config?: any
+	}) {
+		const artifact = opts.artifact ?? baseArtifact
+		const requestHandler = vi.fn(async () => new Response(JSON.stringify(opts.graphqlResult)))
+		return _serverHandler({
+			schema: {} as any,
+			server: { init: () => requestHandler } as any,
+			client: { componentCache: {}, registerProxy: vi.fn() } as any,
+			production: true,
+			manifest: {
+				pages: {},
+				pagesByUrl: {},
+				formActions: { CreateUser: () => Promise.resolve({ default: artifact }) },
+			} as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: (opts.config ?? { router: {} }) as any,
+			on_render: opts.onRender ?? (() => new Response('page')),
+		})
+	}
+
+	function formRequest(
+		body: Record<string, string>,
+		headers: Record<string, string> = { origin: 'http://localhost' }
+	) {
+		return new Request('http://localhost/users/new', {
+			method: 'POST',
+			headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
+			body: new URLSearchParams(body),
+		})
+	}
+
+	test('rejects a form POST with a missing Origin (CSRF, fail-closed)', async () => {
+		const handler = formHandlerFor({ graphqlResult: {} })
+		const res = await handler(formRequest({ __houdini_form: 'CreateUser', name: 'A' }, {}))
+		expect(res.status).toBe(403)
+	})
+
+	test('rejects a form POST from a disallowed Origin', async () => {
+		const handler = formHandlerFor({ graphqlResult: {} })
+		const res = await handler(
+			formRequest({ __houdini_form: 'CreateUser', name: 'A' }, { origin: 'http://evil.com' })
+		)
+		expect(res.status).toBe(403)
+	})
+
+	test('success with a redirect → 303 to the interpolated target', async () => {
+		const handler = formHandlerFor({ graphqlResult: { data: { createUser: { id: '7' } } } })
+		const res = await handler(formRequest({ __houdini_form: 'CreateUser', name: 'Alice' }))
+		expect(res.status).toBe(303)
+		expect(res.headers.get('location')).toBe('/users/7')
+	})
+
+	test('success without a redirect → 303 back to the page (PRG)', async () => {
+		const handler = formHandlerFor({
+			graphqlResult: { data: { createUser: { id: '7' } } },
+			artifact: { ...baseArtifact, endpoint: {} },
+		})
+		const res = await handler(formRequest({ __houdini_form: 'CreateUser', name: 'Alice' }))
+		expect(res.status).toBe(303)
+		expect(res.headers.get('location')).toBe('/users/new')
+	})
+
+	test('errors → re-render the page with formResult injected, status 422', async () => {
+		let seen: any
+		const handler = formHandlerFor({
+			graphqlResult: { data: null, errors: [{ message: 'nope' }] },
+			onRender: (args) => {
+				seen = args
+				return new Response('page', { status: 200 })
+			},
+		})
+		const res = await handler(formRequest({ __houdini_form: 'CreateUser', name: 'Alice' }))
+		expect(res.status).toBe(422)
+		expect(seen.formResult).toEqual({ CreateUser: { data: null, errors: [{ message: 'nope' }] } })
+	})
+
+	test('keys formResult by an explicit form id', async () => {
+		let seen: any
+		const handler = formHandlerFor({
+			graphqlResult: { errors: [{ message: 'nope' }] },
+			onRender: (args) => {
+				seen = args
+				return new Response('page')
+			},
+		})
+		await handler(
+			formRequest({ __houdini_form: 'CreateUser', __houdini_form_id: 'invite', name: 'A' })
+		)
+		expect(Object.keys(seen.formResult)).toEqual(['invite'])
+	})
+
+	test('unknown form mutation → 400', async () => {
+		const handler = formHandlerFor({ graphqlResult: {} })
+		const res = await handler(formRequest({ __houdini_form: 'Nope', name: 'A' }))
+		expect(res.status).toBe(400)
+	})
+})
+
 describe('collect_response_headers', () => {
 	test('returns an empty object when there are no headers loaders', async () => {
 		expect(await collect_response_headers(null)).toEqual({})

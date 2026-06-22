@@ -546,6 +546,11 @@ for (const id of Object.keys(manifest_module.route_headers ?? {})) {
 		router_manifest.pages[id].headers = manifest_module.route_headers[id]
 	}
 }
+// form_actions is server-only too: attach the @endpoint mutation loaders so the no-JS
+// form handler can resolve a submitted form's mutation artifact.
+if (manifest_module.form_actions) {
+	router_manifest.formActions = manifest_module.form_actions
+}
 
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable, cssLinks }) =>
@@ -557,6 +562,7 @@ export const on_render =
 		manifest,
 		componentCache,
 		headers,
+		formResult,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -593,6 +599,7 @@ export const on_render =
 					initialURL: url,
 					cache: cache,
 					session: session,
+					formResult: formResult ?? null,
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
@@ -614,6 +621,7 @@ export const on_render =
 		<script>
 			window.__houdini__initial__cache__ = ${cache.serialize()};
 			window.__houdini__initial__session__ = ${JSON.stringify(session)};
+			window.__houdini__form_result__ = ${JSON.stringify(formResult ?? null)};
 		</script>
 
 		${documentPremable ?? ''}

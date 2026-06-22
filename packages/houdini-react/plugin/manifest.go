@@ -27,6 +27,9 @@ type ProjectManifest struct {
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
 	Mutations       []string                      `json:"mutations"`
 	Subscriptions   []string                      `json:"subscriptions"`
+	// FormActions are the names of mutations carrying @endpoint — the form-submittable
+	// ones whose artifacts the no-JS form handler loads server-side.
+	FormActions []string `json:"form_actions"`
 }
 
 type PageManifest struct {
@@ -112,7 +115,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	// Load all route GQL documents from the database, plus mutation/subscription names.
 	var pageDocByDir map[string]routeDoc
 	var layoutDocByDir map[string]routeDoc
-	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, manifest.FormActions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -309,7 +312,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 	ctx context.Context,
 	projectRoot string,
 	routesDir string,
-) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, err error) {
+) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, endpointMutations []string, err error) {
 	pageDocByDir = map[string]routeDoc{}
 	layoutDocByDir = map[string]routeDoc{}
 
@@ -329,7 +332,11 @@ func (p *HoudiniReact) loadRouteDocuments(
 		       ) THEN 1 ELSE 0 END AS loading,
 		       dv.name,
 		       dv.type,
-		       COALESCE(dv.type_modifiers, '')
+		       COALESCE(dv.type_modifiers, ''),
+		       CASE WHEN EXISTS(
+		           SELECT 1 FROM document_directives dd
+		           WHERE dd.document = d.id AND dd.directive = 'endpoint'
+		       ) THEN 1 ELSE 0 END AS has_endpoint
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
 		LEFT JOIN document_variables dv ON dv.document = d.id
@@ -346,6 +353,11 @@ func (p *HoudiniReact) loadRouteDocuments(
 				docsByID[id] = nil // mark as seen so we don't double-append
 				if kind == "mutation" {
 					mutations = append(mutations, name)
+					// mutations carrying @endpoint are form-submittable; the no-JS form
+					// handler needs their artifacts reachable on the server.
+					if q.ColumnInt(8) == 1 {
+						endpointMutations = append(endpointMutations, name)
+					}
 				} else {
 					subscriptions = append(subscriptions, name)
 				}
@@ -379,7 +391,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 		}
 	})
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	for _, entry := range docsByID {
@@ -395,7 +407,8 @@ func (p *HoudiniReact) loadRouteDocuments(
 
 	sort.Strings(mutations)
 	sort.Strings(subscriptions)
-	return pageDocByDir, layoutDocByDir, mutations, subscriptions, nil
+	sort.Strings(endpointMutations)
+	return pageDocByDir, layoutDocByDir, mutations, subscriptions, endpointMutations, nil
 }
 
 type viewInfo struct {
