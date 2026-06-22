@@ -45,4 +45,6 @@ export const routes = {
 	plural_fragment_args: '/plural-fragment-args',
 	plural_fragment_empty: '/plural-fragment-empty',
 	search_params: '/search_params',
+	mutation_form: '/mutation-form',
+	mutation_form_created: '/mutation-form/created',
 } as const

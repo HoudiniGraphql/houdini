@@ -1,5 +1,6 @@
+import { getCurrentConfig } from '$houdini/runtime'
 import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { coerceFormData, interpolateRedirect, getCurrentConfig } from 'houdini/runtime'
+import { coerceFormData, interpolateRedirect } from 'houdini/runtime'
 import React from 'react'
 
 import { useSession, useRoute, useFormResult } from '../routing/Router.js'

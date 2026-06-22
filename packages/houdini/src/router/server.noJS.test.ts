@@ -18,10 +18,12 @@ const schema = createSchema({
 			name: String!
 		}
 		scalar File
+		scalar Timestamp
 		type Mutation {
 			createUser(name: String!): User!
 			boom: User!
 			uploadAvatar(file: File!): User!
+			createEvent(at: Timestamp!): User!
 		}
 	`,
 	resolvers: {
@@ -35,6 +37,12 @@ const schema = createSchema({
 			uploadAvatar: async (_: unknown, { file }: { file: File }) => ({
 				id: '9',
 				name: await file.text(),
+			}),
+			// a custom scalar must arrive marshaled (the timestamp number), not a Date's
+			// default ISO-string serialization — id reflects which the resolver got
+			createEvent: (_: unknown, { at }: { at: unknown }) => ({
+				id: typeof at === 'number' ? 'marshaled' : `wrong:${typeof at}`,
+				name: 'event',
 			}),
 		},
 	},
@@ -64,6 +72,27 @@ const uploadArtifact = {
 	endpoint: { redirect: ['/users/', ['uploadAvatar', 'id']] },
 }
 
+const eventArtifact = {
+	name: 'CreateEvent',
+	kind: 'HoudiniMutation',
+	raw: 'mutation CreateEvent($at: Timestamp!) { createEvent(at: $at) { id } }',
+	input: { fields: { at: 'Timestamp' }, types: {}, defaults: {}, runtimeScalars: {} },
+	endpoint: { redirect: ['/events/', ['createEvent', 'id']] },
+}
+
+// a config with a custom scalar that marshals a Date to its timestamp (like the e2e app's
+// DateTime), so the server path's marshal step is observable
+const scalarConfig = {
+	router: {},
+	scalars: {
+		Timestamp: {
+			type: 'Date',
+			marshal: (date: Date) => date.getTime(),
+			unmarshal: (value: number) => new Date(value),
+		},
+	},
+}
+
 function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 	return _serverHandler({
 		// a real schema → _serverHandler builds a real Yoga internally
@@ -77,12 +106,13 @@ function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 				CreateUser: () => Promise.resolve({ default: createUserArtifact as any }),
 				Boom: () => Promise.resolve({ default: boomArtifact as any }),
 				UploadAvatar: () => Promise.resolve({ default: uploadArtifact as any }),
+				CreateEvent: () => Promise.resolve({ default: eventArtifact as any }),
 			},
 		} as any,
 		assetPrefix: '',
 		graphqlEndpoint: '/_api',
 		componentCache: {},
-		config_file: { router: {} } as any,
+		config_file: scalarConfig as any,
 		on_render: onRender,
 	})
 }
@@ -140,6 +170,18 @@ describe('no-JS form submission (real Yoga)', () => {
 		// file survived coercion + the multipart request all the way to the resolver
 		expect(res.status).toBe(303)
 		expect(res.headers.get('location')).toBe('/users/9')
+	})
+
+	test('custom scalars are marshaled to transport form before the mutation runs', async () => {
+		const handler = serverWith()
+		const res = await handler(
+			// the form carries the timestamp as a string, like a hidden input would
+			formPOST('http://localhost/x', { __houdini_form: 'CreateEvent', at: '1700000000000' })
+		)
+		expect(res.status).toBe(303)
+		// "/events/marshaled" only happens if the resolver received a number (the marshaled
+		// Date); a Date's default JSON serialization (ISO string) would give "/events/wrong:string"
+		expect(res.headers.get('location')).toBe('/events/marshaled')
 	})
 
 	test('the GraphQL endpoint rejects a form-encoded body (no bypass around the form handler)', async () => {
