@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.32
+
+### Patch Changes
+
+- [#1696](https://github.com/HoudiniGraphql/houdini/pull/1696) [`d3137c4`](https://github.com/HoudiniGraphql/houdini/commit/d3137c4d823c93d48fbc16d28d0a0852fb281c6c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix React `@loading` pages failing to hydrate on the client, which left them non-interactive and prevented paginated fragments spread on an `@loading` query from rendering or paginating once the data resolved.
+
 ## 2.0.0-next.31
 
 ### Minor Changes
