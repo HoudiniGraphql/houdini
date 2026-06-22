@@ -18,6 +18,34 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
+// newPluginUnderTest instantiates the plugin being exercised by a table, wires it to
+// the shared test pool, and hands it the project config + filesystem. It is used both
+// to run the plugin's Schema hook before extraction and to drive the test itself.
+func newPluginUnderTest[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
+	db plugins.DatabasePool[config.PluginConfig],
+	fs afero.Fs,
+	projectConfig plugins.ProjectConfig,
+) PluginType {
+	var plugin PluginType
+
+	// handle pointer types by creating a new instance
+	pluginType := reflect.TypeOf(plugin)
+	if pluginType.Kind() == reflect.Ptr {
+		plugin = reflect.New(pluginType.Elem()).Interface().(PluginType)
+	}
+
+	pluginDB := plugins.DatabasePool[PluginConfig]{
+		Pool:       db.Pool,
+		PluginName: plugin.Name(),
+		Test:       true,
+	}
+	pluginDB.SetProjectConfig(projectConfig)
+	plugin.SetDatabase(pluginDB)
+	plugin.SetFilesystem(fs)
+
+	return plugin
+}
+
 type Table[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]] struct {
 	Schema        string
 	ProjectConfig plugins.ProjectConfig
@@ -222,6 +250,20 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 				t.Fatalf("failed to execute schema: %v", err)
 			}
 
+			// the plugin under test may contribute its own schema elements (e.g. a
+			// plugin-owned directive). core ran its Schema hook above; run the
+			// plugin's too — before extraction — so its directives are registered.
+			// the inserts are idempotent upserts, so this is safe; we skip core to
+			// avoid re-running the (expensive) full schema import a second time.
+			if schemaPlugin := newPluginUnderTest[PluginConfig, PluginType](db, fs, projectConfig); schemaPlugin.Name() != core.Name() {
+				if hook, ok := any(schemaPlugin).(plugins.Schema); ok {
+					if err := hook.Schema(context.Background()); err != nil {
+						db.Put(conn)
+						t.Fatalf("failed to execute %s schema: %v", schemaPlugin.Name(), err)
+					}
+				}
+			}
+
 			// insert the raw document (assume id becomes 1).
 			insertRaw, err := conn.Prepare(
 				"insert into raw_documents (content, filepath) values ($content, $filepath)",
@@ -340,23 +382,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			}
 
 			// and now we need to instantiate the specific plugin we're using
-			var plugin PluginType
-
-			// Handle pointer types by creating a new instance
-			pluginType := reflect.TypeOf(plugin)
-			if pluginType.Kind() == reflect.Ptr {
-				// Create a new instance of the underlying type
-				plugin = reflect.New(pluginType.Elem()).Interface().(PluginType)
-			}
-
-			pluginDB := plugins.DatabasePool[PluginConfig]{
-				Pool:       db.Pool,
-				PluginName: plugin.Name(),
-				Test:       true,
-			}
-			pluginDB.SetProjectConfig(projectConfig)
-			plugin.SetDatabase(pluginDB)
-			plugin.SetFilesystem(fs)
+			plugin := newPluginUnderTest[PluginConfig, PluginType](db, fs, projectConfig)
 
 			if table.SetupTest != nil {
 				table.SetupTest(t, plugin, test)

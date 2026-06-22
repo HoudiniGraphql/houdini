@@ -39,6 +39,9 @@ func (p *HoudiniReact) Validate(ctx context.Context) error {
 		ORDER BY d.name, dv.name
 	`
 
+	// @endpoint placement, redirect, and interpolation-path checks
+	p.validateEndpoint(ctx, errs)
+
 	err := p.DB.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		docName := row.ColumnText(0)
 		filepath := row.ColumnText(1)

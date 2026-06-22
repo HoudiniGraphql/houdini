@@ -76,3 +76,124 @@ func TestValidateRouteVariables(t *testing.T) {
 		},
 	})
 }
+
+func TestValidateEndpoint(t *testing.T) {
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `
+			type Query {
+				node(id: ID!): Node
+			}
+			type Mutation {
+				createUser(name: String!): User
+				ping: String
+			}
+			type User {
+				id: ID!
+				bestFriend: User
+			}
+			interface Node { id: ID! }
+		`,
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			err := p.Validate(context.Background())
+			if test.Pass {
+				if err != nil {
+					if list, ok := err.(*plugins.ErrorList); ok && list.Len() > 0 {
+						t.Fatal(list.GetItems()[0].Message)
+					}
+					require.NoError(t, err)
+				}
+				return
+			}
+
+			require.Error(t, err)
+			list, ok := err.(*plugins.ErrorList)
+			require.True(t, ok, "expected an ErrorList")
+			require.Equal(t, plugins.ErrorKindValidation, list.GetItems()[0].Kind)
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "mutation with a valid relative redirect and leaf interpolation path",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "nested leaf interpolation path is allowed",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.bestFriend.id }") {
+						createUser(name: $name) { bestFriend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint without a redirect is allowed",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint on a query is rejected",
+				Pass: false,
+				Input: []string{
+					`query Whoami @endpoint {
+						node(id: "1") { id }
+					}`,
+				},
+			},
+			{
+				Name: "redirect with an absolute URL is rejected",
+				Pass: false,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "https://evil.com/users") {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "redirect with a protocol-relative URL is rejected",
+				Pass: false,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "//evil.com/users") {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "redirect without a leading slash is rejected",
+				Pass: false,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "users/new") {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "redirect interpolation path missing from the selection set is rejected",
+				Pass: false,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.email }") {
+						createUser(name: $name) { id }
+					}`,
+				},
+			},
+			{
+				Name: "redirect interpolation path resolving to an object is rejected",
+				Pass: false,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.bestFriend }") {
+						createUser(name: $name) { bestFriend { id } }
+					}`,
+				},
+			},
+		},
+	})
+}
