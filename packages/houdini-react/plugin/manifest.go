@@ -13,6 +13,7 @@ import (
 
 	plugins "code.houdinigraphql.com/plugins"
 	pluginglob "code.houdinigraphql.com/plugins/glob"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // ProjectManifest is the static description of a project's routes and queries.
@@ -328,14 +329,14 @@ func (p *HoudiniReact) loadRouteDocuments(
 		SELECT d.id, d.name, d.kind, rd.filepath,
 		       CASE WHEN EXISTS(
 		           SELECT 1 FROM document_directives dd
-		           WHERE dd.document = d.id AND dd.directive = 'loading'
+		           WHERE dd.document = d.id AND dd.directive = $loading_directive
 		       ) THEN 1 ELSE 0 END AS loading,
 		       dv.name,
 		       dv.type,
 		       COALESCE(dv.type_modifiers, ''),
 		       CASE WHEN EXISTS(
 		           SELECT 1 FROM document_directives dd
-		           WHERE dd.document = d.id AND dd.directive = 'endpoint'
+		           WHERE dd.document = d.id AND dd.directive = $endpoint_directive
 		       ) THEN 1 ELSE 0 END AS has_endpoint
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
@@ -343,7 +344,10 @@ func (p *HoudiniReact) loadRouteDocuments(
 		WHERE d.kind IN ('query', 'mutation', 'subscription')
 		  AND (d.kind != 'query' OR rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
 		ORDER BY d.id
-	`, nil, func(q plugins.Row) {
+	`, map[string]any{
+		"loading_directive":  graphql.LoadingDirective,
+		"endpoint_directive": graphql.EndpointDirective,
+	}, func(q plugins.Row) {
 		id := q.ColumnInt64(0)
 		name := q.ColumnText(1)
 		kind := q.ColumnText(2)

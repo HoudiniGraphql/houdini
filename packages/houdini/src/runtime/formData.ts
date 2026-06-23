@@ -1,6 +1,6 @@
 import type { ConfigFile } from 'houdini'
 
-import { unmarshalValue } from './coerce.js'
+import { isFile, unmarshalValue } from './coerce.js'
 import { getCurrentConfig } from './config.js'
 import type { InputObject } from './types.js'
 
@@ -160,16 +160,4 @@ function coerceLeaf(value: any, type: string, config: ConfigFile): any {
 			// enums (and anything unrecognized) pass through; "" means absent
 			return text === '' ? null : text
 	}
-}
-
-// isFile reports whether a value is a File/Blob, guarding for environments (e.g. older
-// Node) where those globals may be missing.
-function isFile(value: any): boolean {
-	if (typeof Blob !== 'undefined' && value instanceof Blob) {
-		return true
-	}
-	if (typeof File !== 'undefined' && value instanceof File) {
-		return true
-	}
-	return false
 }

@@ -1105,7 +1105,7 @@ then the request will never be deduplicated.`,
 		"directive":      graphql.EndpointDirective,
 		"name":           "fields",
 		"type":           "String",
-		"type_modifiers": "]",
+		"type_modifiers": "!]",
 	})
 	if err != nil {
 		return err

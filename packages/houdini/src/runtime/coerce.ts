@@ -6,6 +6,19 @@
 // a Date). It is a custom scalar's `unmarshal` from the config.
 export type Unmarshaler = (value: any) => any
 
+// isFile reports whether a value is a File/Blob (an upload), guarding for environments
+// (e.g. older Node) where those globals may be missing. Shared by form coercion (files ride
+// through untouched) and multipart body building (files become separate request parts).
+export function isFile(value: any): value is Blob {
+	if (typeof Blob !== 'undefined' && value instanceof Blob) {
+		return true
+	}
+	if (typeof File !== 'undefined' && value instanceof File) {
+		return true
+	}
+	return false
+}
+
 // decodeScalar recovers the marshaled value from the string a transport carries. The value
 // was written with String(), which dropped its type, so we JSON.parse to get numbers,
 // booleans and null back, falling back to the raw string when it isn't valid JSON (e.g. a

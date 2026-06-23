@@ -4896,6 +4896,111 @@ export type UploadAvatarForm$artifact = typeof artifact
 "HoudiniHash=5498a8444058d726f6fcff5bca136c8e1c79e516c51a4d4815039536423f1398"`),
 				},
 			},
+			{
+				Name: "@endpoint emits the fields allowlist",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUserFieldsForm($name: String!) @endpoint(fields: ["name"]) {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"CreateUserFieldsForm": tests.Dedent(`const artifact = {
+    "name": "CreateUserFieldsForm",
+    "kind": "HoudiniMutation",
+    "hash": "6321c3d3f53f1dd60ad57d5796e97c44f6eabb2d4df2b0ea23789d7f936aba38",
+    "raw": ` + "`" + `mutation CreateUserFieldsForm($name: String!) {
+    createUser(name: $name) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "createUser": {
+                "type": "User",
+                "keyRaw": "createUser(name: $name)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "endpoint": {
+        "fields": ["name"],
+    },
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type CreateUserFieldsForm = {
+	readonly "input": CreateUserFieldsForm$input;
+	readonly "result": CreateUserFieldsForm$result;
+};
+
+export type CreateUserFieldsForm$result = {
+	readonly createUser: {
+		readonly id: string;
+	};
+};
+
+export type CreateUserFieldsForm$input = {
+	name: string;
+};
+
+export type CreateUserFieldsForm$optimistic = {
+	readonly createUser?: {
+		readonly id?: string;
+	};
+};
+
+export type CreateUserFieldsForm$unmasked = {
+	readonly createUser: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type CreateUserFieldsForm$artifact = typeof artifact
+
+"HoudiniHash=6321c3d3f53f1dd60ad57d5796e97c44f6eabb2d4df2b0ea23789d7f936aba38"`),
+				},
+			},
 		},
 	})
 }

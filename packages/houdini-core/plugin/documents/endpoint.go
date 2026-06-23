@@ -83,10 +83,11 @@ func ValidateEndpointDirective(
 		return
 	}
 
-	// bulk-load everything the fields-allowlist check needs, so we touch the database a
-	// fixed number of times instead of once per @endpoint usage: the list entries (keyed by
-	// directive id) and the declared variables (keyed by document id).
-	fieldsByDirective, variablesByDocument, err := loadEndpointFieldData(ctx, db)
+	// bulk-load everything the per-usage checks need, so we touch the database a fixed
+	// number of times instead of once per @endpoint usage: the `fields` list entries (keyed
+	// by directive id), the declared variables (keyed by document id), and the field
+	// selections used to resolve redirect interpolation paths (keyed by document id).
+	fieldsByDirective, variablesByDocument, selectionsByDocument, err := loadEndpointData(ctx, db)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
@@ -148,17 +149,19 @@ func ValidateEndpointDirective(
 		if len(paths) == 0 {
 			continue
 		}
-		validateRedirectPaths(ctx, db, usage, paths, location, errs)
+		validateRedirectPaths(usage, paths, selectionsByDocument[usage.documentID], location, errs)
 	}
 }
 
-// loadEndpointFieldData bulk-loads, in two queries, the data the fields-allowlist check
-// needs across every @endpoint usage: the list entries (keyed by directive id, in source
-// order) and the declared variable names (keyed by document id).
-func loadEndpointFieldData(
+// loadEndpointData bulk-loads, in three queries, the data the per-usage checks need across
+// every @endpoint usage: the `fields` list entries (keyed by directive id, in source
+// order), the declared variable names (keyed by document id), and the field selections used
+// to resolve redirect interpolation paths (keyed by document id, then by parent selection
+// id with 0 = root).
+func loadEndpointData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-) (map[int][]string, map[int]map[string]bool, error) {
+) (map[int][]string, map[int]map[string]bool, map[int]map[int]map[string]endpointSelectionNode, error) {
 	// every `fields` list entry for every @endpoint, in one pass
 	fieldsByDirective := map[int][]string{}
 	err := db.StepQuery(ctx, `
@@ -175,7 +178,7 @@ func loadEndpointFieldData(
 		fieldsByDirective[id] = append(fieldsByDirective[id], row.ColumnText(1))
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// the declared variables of every document that carries an @endpoint, in one pass
@@ -193,10 +196,46 @@ func loadEndpointFieldData(
 		variablesByDocument[id][row.ColumnText(1)] = true
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	return fieldsByDirective, variablesByDocument, nil
+	// the field selections of every document that carries an @endpoint, in one pass, indexed
+	// by document and then by parent selection id (0 = root). only fields can be referenced
+	// by a redirect path; fragment spreads are out of scope for v1 forms.
+	selectionsByDocument := map[int]map[int]map[string]endpointSelectionNode{}
+	err = db.StepQuery(ctx, `
+		SELECT
+			sr.document,
+			COALESCE(sr.parent_id, 0) AS parent,
+			s.id,
+			COALESCE(s.alias, s.field_name) AS name,
+			t.kind AS type_kind
+		FROM selection_refs sr
+			JOIN selections s ON s.id = sr.child_id
+			JOIN document_directives dd ON dd.document = sr.document AND dd.directive = $endpoint_directive
+			LEFT JOIN type_fields tf ON s.type = tf.id
+			LEFT JOIN types t ON tf.type = t.name
+		WHERE s.kind = 'field'
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		document := int(row.ColumnInt(0))
+		parent := int(row.ColumnInt(1))
+		name := row.ColumnText(3)
+		if selectionsByDocument[document] == nil {
+			selectionsByDocument[document] = map[int]map[string]endpointSelectionNode{}
+		}
+		if selectionsByDocument[document][parent] == nil {
+			selectionsByDocument[document][parent] = map[string]endpointSelectionNode{}
+		}
+		selectionsByDocument[document][parent][name] = endpointSelectionNode{
+			id:       int(row.ColumnInt(2)),
+			typeKind: row.ColumnText(4),
+		}
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return fieldsByDirective, variablesByDocument, selectionsByDocument, nil
 }
 
 // checkEndpointFields validates the optional `@endpoint(fields: [...])` allowlist against
@@ -258,51 +297,16 @@ type endpointSelectionNode struct {
 	typeKind string // OBJECT / INTERFACE / UNION / SCALAR / ENUM ...
 }
 
-// validateRedirectPaths walks each interpolation path through the mutation's selection
-// tree and reports any segment that doesn't exist or doesn't resolve to a leaf scalar.
+// validateRedirectPaths walks each interpolation path through the mutation's selection tree
+// (pre-loaded by loadEndpointData, indexed by parent selection id with 0 = root) and reports
+// any segment that doesn't exist or doesn't resolve to a leaf scalar. No database access.
 func validateRedirectPaths(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
 	usage endpointUsage,
 	paths [][]string,
+	children map[int]map[string]endpointSelectionNode,
 	location []*plugins.ErrorLocation,
 	errs *plugins.ErrorList,
 ) {
-	// load the document's field selections, indexed by parent selection id (0 = root).
-	// only fields can be referenced by a redirect path; fragment spreads are out of
-	// scope for v1 forms.
-	children := map[int]map[string]endpointSelectionNode{}
-	query := `
-		SELECT
-			COALESCE(sr.parent_id, 0) AS parent,
-			s.id,
-			COALESCE(s.alias, s.field_name) AS name,
-			t.kind AS type_kind
-		FROM selection_refs sr
-			JOIN selections s ON s.id = sr.child_id
-			LEFT JOIN type_fields tf ON s.type = tf.id
-			LEFT JOIN types t ON tf.type = t.name
-		WHERE sr.document = $document_id
-			AND s.kind = 'field'
-	`
-	err := db.StepQuery(ctx, query, map[string]any{
-		"document_id": usage.documentID,
-	}, func(row plugins.Row) {
-		parent := int(row.ColumnInt(0))
-		name := row.ColumnText(2)
-		if children[parent] == nil {
-			children[parent] = map[string]endpointSelectionNode{}
-		}
-		children[parent][name] = endpointSelectionNode{
-			id:       int(row.ColumnInt(1)),
-			typeKind: row.ColumnText(3),
-		}
-	})
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-
 	for _, segments := range paths {
 		parent := 0
 		ok := true

@@ -6,7 +6,7 @@ import type { HoudiniClient } from '$houdini/runtime/client'
 import cacheRef from '$houdini/runtime/cache'
 
 import { injectComponents } from './componentFields.js'
-import { router_cache, type RouterCache } from './routing/index.js'
+import { router_cache, type RouterCache, type FormResult } from './routing/index.js'
 import clientFactory from './client.js'
 
 declare global {
@@ -17,7 +17,7 @@ declare global {
 		__houdini__hydration__layer__?: any
 		__houdini__initial__cache__?: any
 		__houdini__initial__session__?: any
-		__houdini__form_result__?: Record<string, { data: any; errors: any }> | null
+		__houdini__form_result__?: FormResult | null
 		__houdini__form_token__?: string | null
 		__houdini__pending_artifacts__?: Record<string, QueryArtifact>
 		__houdini__pending_data__?: Record<string, any>

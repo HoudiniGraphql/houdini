@@ -36,4 +36,31 @@ describe('buildGraphQLBody', () => {
 		const form = result.body as FormData
 		expect(JSON.parse(form.get('map') as string)).toEqual({ '1': ['variables.input.avatar'] })
 	})
+
+	test('the same file referenced twice collapses to one part with both paths', () => {
+		// the spec wants a single file part whose map entry lists every location it appears at
+		const file = new Blob(['x'])
+		const result = buildGraphQLBody('mutation M { ok }', { avatar: file, cover: file })
+		const form = result.body as FormData
+		expect(JSON.parse(form.get('map') as string)).toEqual({
+			'1': ['variables.avatar', 'variables.cover'],
+		})
+		// one part, not two
+		expect(form.getAll('1')).toHaveLength(1)
+		expect(form.get('2')).toBeNull()
+	})
+
+	test('records index paths for files inside a list', () => {
+		const a = new Blob(['a'])
+		const b = new Blob(['b'])
+		const result = buildGraphQLBody('mutation M($files: [Upload!]!) { ok }', { files: [a, b] })
+		const form = result.body as FormData
+		// the array branch builds an index segment per element
+		expect(JSON.parse(form.get('map') as string)).toEqual({
+			'1': ['variables.files.0'],
+			'2': ['variables.files.1'],
+		})
+		const operations = JSON.parse(form.get('operations') as string)
+		expect(operations.variables).toEqual({ files: [null, null] })
+	})
 })

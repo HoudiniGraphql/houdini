@@ -415,19 +415,10 @@ func generateEnumFiles(
 }
 
 // renderGraphQLType reconstructs the GraphQL type string from a base type and its
-// inner→outer type-modifier encoding ("]" = list wrapper, "!" = non-null), e.g.
-// ("String", "]") → "[String]", ("String", "!]!") → "[String!]!".
+// inner→outer type-modifier encoding, e.g. ("String", "]") → "[String]". It decodes the
+// modifiers with the canonical ParseTypeRef so the encoding is interpreted in one place.
 func renderGraphQLType(base, modifier string) string {
-	out := base
-	for _, ch := range modifier {
-		switch ch {
-		case '!':
-			out += "!"
-		case ']':
-			out = "[" + out + "]"
-		}
-	}
-	return out
+	return ParseTypeRef(modifier).Render(base)
 }
 
 // helper

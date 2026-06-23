@@ -240,6 +240,43 @@ describe('no-JS form submission (real Yoga)', () => {
 		})
 	})
 
+	describe('Origin allowlist', () => {
+		// fail-closed/disallowed-origin rejection is unit-tested in server.test.ts; here we
+		// prove the other direction end-to-end: an allowlisted cross-origin is admitted and
+		// the real mutation runs.
+		test('accepts a form POST from an origin in allowedOrigins (303)', async () => {
+			const handler = _serverHandler({
+				schema,
+				client: { componentCache: {}, registerProxy: vi.fn() } as any,
+				production: true,
+				manifest: {
+					pages: {},
+					pagesByUrl: {},
+					formActions: {
+						CreateUser: () => Promise.resolve({ default: createUserArtifact as any }),
+					},
+				} as any,
+				assetPrefix: '',
+				graphqlEndpoint: '/_api',
+				componentCache: {},
+				config_file: {
+					router: { auth: { sessionKeys: [TOKEN_KEY] }, allowedOrigins: ['http://trusted.com'] },
+				} as any,
+				on_render: () => new Response('page'),
+			})
+			const res = await handler(
+				formPOST(
+					'http://localhost/users/new',
+					{ __houdini_form: 'CreateUser', name: 'Alice' },
+					{ origin: 'http://trusted.com' }
+				)
+			)
+			// passes the Origin gate via the allowlist, then the token + mutation run for real
+			expect(res.status).toBe(303)
+			expect(res.headers.get('location')).toBe('/users/7')
+		})
+	})
+
 	test('rejects a form body larger than formMaxBodyBytes (413)', async () => {
 		// a tiny cap so a normal body trips it; the guard runs before the body is buffered
 		const handler = _serverHandler({
@@ -271,6 +308,52 @@ describe('no-JS form submission (real Yoga)', () => {
 			})
 		)
 		expect(res.status).toBe(413)
+	})
+
+	test('a body with no Content-Length bypasses the size guard (host/proxy enforces)', async () => {
+		// the guard only trips on a known Content-Length; a streamed/chunked body has none, so
+		// it must NOT be rejected here even under a tiny cap — the host/proxy is the backstop.
+		const handler = _serverHandler({
+			schema,
+			client: { componentCache: {}, registerProxy: vi.fn() } as any,
+			production: true,
+			manifest: {
+				pages: {},
+				pagesByUrl: {},
+				formActions: {
+					CreateUser: () => Promise.resolve({ default: createUserArtifact as any }),
+				},
+			} as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: { router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 } } as any,
+			on_render: () => new Response('page'),
+		})
+		const payload = new URLSearchParams({
+			__houdini_csrf: validToken,
+			__houdini_form: 'CreateUser',
+			name: 'Alice',
+		}).toString()
+		// a ReadableStream body sends chunked with no Content-Length header
+		const body = new ReadableStream({
+			start(controller) {
+				controller.enqueue(new TextEncoder().encode(payload))
+				controller.close()
+			},
+		})
+		const res = await handler(
+			new Request('http://localhost/users/new', {
+				method: 'POST',
+				headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'http://localhost' },
+				body,
+				duplex: 'half',
+			} as any)
+		)
+		// not a 413 — it ran the mutation for real (proving the guard was skipped, not that the
+		// request silently failed)
+		expect(res.status).toBe(303)
+		expect(res.headers.get('location')).toBe('/users/7')
 	})
 
 	describe('GraphQL endpoint CSRF guard (CORS-simple POSTs)', () => {

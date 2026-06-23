@@ -9,7 +9,8 @@ import { useDocumentStore } from './useDocumentStore.js'
 // a document with no variables still needs an InputObject shape for the coercer
 const EMPTY_INPUT = { fields: {}, types: {}, defaults: {}, runtimeScalars: {} }
 
-export type MutationFormState = { data: any; errors: any } | null
+// data is null on the error path (and before any submission), populated on success
+export type MutationFormState<_Result = any> = { data: _Result | null; errors: any } | null
 
 export type UseMutationFormOptions<_Result = any> = {
 	// disambiguates multiple forms for the same mutation on one page, and is the key the
@@ -35,7 +36,7 @@ export type MutationForm<_Result = any> = {
 	// injects the markers, and publishes `pending` to useMutationFormStatus() for any child.
 	Form: React.FC<React.PropsWithChildren<React.FormHTMLAttributes<HTMLFormElement>>>
 	// { data, errors } | null — seeded from the server's no-JS result, then the enhanced result
-	state: { data: _Result; errors: any } | null
+	state: MutationFormState<_Result>
 	pending: boolean
 }
 
@@ -76,7 +77,7 @@ export function useMutationForm<
 	// seed from the server-injected result so the no-JS re-render and the enhanced path
 	// converge; null on a fresh form or once enhanced
 	const injected = useFormResult(formId)
-	const [state, setState] = React.useState<MutationFormState>(injected)
+	const [state, setState] = React.useState<MutationFormState<_Result>>(injected)
 	const [submitting, setSubmitting] = React.useState(false)
 
 	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {

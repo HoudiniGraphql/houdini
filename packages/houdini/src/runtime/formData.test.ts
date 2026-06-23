@@ -63,6 +63,19 @@ describe('coerceFormData', () => {
 		expect(result).toEqual({ name: 'Alice', age: 30, score: 9.5, active: true })
 	})
 
+	test('an unparseable number coerces to null', () => {
+		const result = coerceFormData(
+			form([
+				['age', 'abc'],
+				['score', 'not-a-number'],
+			]),
+			input,
+			config
+		)
+		expect(result.age).toBe(null)
+		expect(result.score).toBe(null)
+	})
+
 	test('absent checkbox becomes false', () => {
 		const result = coerceFormData(form([['name', 'Alice']]), input, config)
 		expect(result.active).toBe(false)

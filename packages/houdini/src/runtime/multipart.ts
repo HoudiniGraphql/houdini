@@ -1,3 +1,5 @@
+import { isFile } from './coerce.js'
+
 // Builds the HTTP body for a GraphQL operation. When the variables carry File/Blob values
 // (e.g. from a progressively-enhanced form with a file input) it produces a
 // multipart/form-data body per the GraphQL multipart request spec
@@ -63,14 +65,4 @@ function extractFiles(value: any, path: string[], files: Map<Blob, string[]>): a
 		return clone
 	}
 	return value
-}
-
-function isFile(value: any): value is Blob {
-	if (typeof Blob !== 'undefined' && value instanceof Blob) {
-		return true
-	}
-	if (typeof File !== 'undefined' && value instanceof File) {
-		return true
-	}
-	return false
 }
