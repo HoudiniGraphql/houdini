@@ -54,3 +54,9 @@ export const sessionRelay = (): ClientPlugin => () => ({
 		resolve(ctx)
 	},
 })
+
+// default export so the React codegen can inject this as a client plugin via the
+// ClientPlugins hook (generated injectedPlugins.ts does `import plugin from "<path>"`).
+// @session is React-only, so the relay is injected from houdini-react rather than added
+// to the shared core pipeline that Svelte also runs.
+export default sessionRelay
