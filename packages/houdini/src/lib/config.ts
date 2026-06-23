@@ -181,17 +181,15 @@ type RouterConfig = {
 	formMaxBodyBytes?: number
 }
 
-type AuthStrategy =
-	| {
-			redirect: string
-			sessionKeys: string[]
-			url?: string
-	  }
-	| {
-			mutation: string
-			sessionKeys: string[]
-			url?: string
-	  }
+type AuthStrategy = {
+	sessionKeys: string[]
+	// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is
+	// always mounted. It serves both an external redirect-based auth flow (GET with the
+	// session in query params, e.g. an OAuth callback) and progressively-enhanced
+	// `@auth` forms (POST a server-signed session token). Override only to
+	// mount it elsewhere.
+	url?: string
+}
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
 

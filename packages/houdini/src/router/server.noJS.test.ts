@@ -2,6 +2,7 @@ import { createSchema } from 'graphql-yoga'
 import { test, expect, describe, vi, beforeAll } from 'vitest'
 
 import { _serverHandler, signFormToken } from './server.js'
+import { get_session } from './session.js'
 
 // the form CSRF token is always on; tests use a known session key so they can mint a valid
 // token through the real path (the test requests carry no cookie, so the bound session is
@@ -28,16 +29,31 @@ const schema = createSchema({
 		}
 		scalar File
 		scalar Timestamp
+		type SessionInfo {
+			token: String!
+		}
+		type LoginResult {
+			session: SessionInfo!
+		}
+		type MaybeLoginResult {
+			session: SessionInfo
+		}
 		type Mutation {
 			createUser(name: String!): User!
 			boom: User!
 			uploadAvatar(file: File!): User!
 			createEvent(at: Timestamp!): User!
+			login(email: String!): LoginResult!
+			maybeLogin(ok: Boolean!): MaybeLoginResult!
 		}
 	`,
 	resolvers: {
 		Mutation: {
 			createUser: (_: unknown, { name }: { name: string }) => ({ id: '7', name }),
+			// the resolver decides the session payload (server-authoritative)
+			login: (_: unknown, { email }: { email: string }) => ({ session: { token: 'tok-' + email } }),
+			// a failed login returns a null session — must NOT clear the existing session
+			maybeLogin: (_: unknown, { ok }: { ok: boolean }) => ({ session: ok ? { token: 'ok' } : null }),
 			boom: () => {
 				throw new Error('kaboom')
 			},
@@ -89,6 +105,26 @@ const eventArtifact = {
 	endpoint: { redirect: ['/events/', ['createEvent', 'id']] },
 }
 
+// a login mutation that is both a form (@endpoint) and session-establishing (@auth) — its
+// `login.session` result subtree becomes the session cookie
+const loginArtifact = {
+	name: 'Login',
+	kind: 'HoudiniMutation',
+	raw: 'mutation Login($email: String!) { login(email: $email) { session { token } } }',
+	input: { fields: { email: 'String' }, types: {}, defaults: {}, runtimeScalars: {} },
+	endpoint: { redirect: ['/dashboard'] },
+	sessionPath: 'login.session',
+}
+
+const maybeLoginArtifact = {
+	name: 'MaybeLogin',
+	kind: 'HoudiniMutation',
+	raw: 'mutation MaybeLogin($ok: Boolean!) { maybeLogin(ok: $ok) { session { token } } }',
+	input: { fields: { ok: 'Boolean' }, types: {}, defaults: {}, runtimeScalars: {} },
+	endpoint: { redirect: ['/dashboard'] },
+	sessionPath: 'maybeLogin.session',
+}
+
 // a config with a custom scalar that marshals a Date to its timestamp (like the e2e app's
 // DateTime), so the server path's marshal step is observable
 const scalarConfig = {
@@ -116,7 +152,10 @@ function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 				Boom: () => Promise.resolve({ default: boomArtifact as any }),
 				UploadAvatar: () => Promise.resolve({ default: uploadArtifact as any }),
 				CreateEvent: () => Promise.resolve({ default: eventArtifact as any }),
+				Login: () => Promise.resolve({ default: loginArtifact as any }),
+				MaybeLogin: () => Promise.resolve({ default: maybeLoginArtifact as any }),
 			},
+			authMutations: { Login: 'login.session', MaybeLogin: 'maybeLogin.session' },
 		} as any,
 		assetPrefix: '',
 		graphqlEndpoint: '/_api',
@@ -193,6 +232,62 @@ describe('no-JS form submission (real Yoga)', () => {
 		// "/events/marshaled" only happens if the resolver received a number (the marshaled
 		// Date); a Date's default JSON serialization (ISO string) would give "/events/wrong:string"
 		expect(res.headers.get('location')).toBe('/events/marshaled')
+	})
+
+	test('a no-JS @auth login sets the session cookie from the resolver', async () => {
+		const handler = serverWith()
+		const res = await handler(
+			formPOST('http://localhost/login', { __houdini_form: 'Login', email: 'a@b.co' })
+		)
+		expect(res.status).toBe(303)
+		expect(res.headers.get('location')).toBe('/dashboard')
+		// the resolver's session subtree (login.session) was written to the cookie, server-side
+		const setCookie = res.headers.get('set-cookie') ?? ''
+		expect(setCookie).toContain('__houdini__=')
+		const session = await get_session(
+			new Headers({ cookie: setCookie.split(';')[0] }),
+			[TOKEN_KEY]
+		)
+		expect((session as any).token).toBe('tok-a@b.co')
+	})
+
+	test('a no-JS @auth mutation that succeeds with a null session clears the cookie (logout)', async () => {
+		// a successful @auth whose session field comes back null is a server-side logout — it
+		// deletes the cookie (Max-Age=0)
+		const handler = serverWith()
+		const res = await handler(
+			formPOST('http://localhost/login', { __houdini_form: 'MaybeLogin', ok: '' })
+		)
+		expect(res.status).toBe(303)
+		expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+	})
+
+	test('the session-mint plugin mints a token for an @auth mutation but skips the internal form request', async () => {
+		const handler = serverWith()
+		const query = 'mutation Login($email: String!) { login(email: $email) { session { token } } }'
+		const body = JSON.stringify({ query, variables: { email: 'a@b.co' } })
+
+		// a normal GraphQL execution mints the server-signed token into extensions (the enhanced
+		// path the client relays); proves the plugin is wired and reads context.request
+		const normal = await handler(
+			new Request('http://localhost/_api', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body,
+			})
+		)
+		expect((await normal.json()).extensions?.houdiniSession).toBeTruthy()
+
+		// the same execution marked as the no-JS form's internal request is skipped (the form
+		// handler sets the cookie itself, so a token here would be minted and discarded)
+		const internal = await handler(
+			new Request('http://localhost/_api', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json', 'x-houdini-internal-form': '1' },
+				body,
+			})
+		)
+		expect((await internal.json()).extensions?.houdiniSession).toBeUndefined()
 	})
 
 	describe('CSRF token (always on)', () => {
@@ -388,6 +483,79 @@ describe('no-JS form submission (real Yoga)', () => {
 				})
 			)
 			expect(res.status).toBe(200)
+		})
+	})
+
+	describe('logout / clear endpoint', () => {
+		const authUrl = 'http://localhost/__houdini__/auth'
+
+		test('POST { session: null } clears the session cookie (updateSession(null))', async () => {
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json', origin: 'http://localhost' },
+					body: JSON.stringify({ session: null }),
+				})
+			)
+			expect(res.status).toBe(200)
+			expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+		})
+
+		test('POST { session: {...} } still merges (not a logout)', async () => {
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json', origin: 'http://localhost' },
+					body: JSON.stringify({ session: { token: 'x' } }),
+				})
+			)
+			expect(res.status).toBe(200)
+			// a merge writes a normal (non-expiring) cookie
+			expect(res.headers.get('set-cookie')).not.toContain('Max-Age=0')
+		})
+
+		test('a native form logout clears the cookie and 303s to redirectTo', async () => {
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						origin: 'http://localhost',
+					},
+					body: new URLSearchParams({ __houdini_logout: '1', redirectTo: '/bye' }),
+				})
+			)
+			expect(res.status).toBe(303)
+			expect(res.headers.get('location')).toBe('/bye')
+			expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+		})
+
+		test('a logout redirectTo to an external URL falls back to / (no open redirect)', async () => {
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						origin: 'http://localhost',
+					},
+					body: new URLSearchParams({ __houdini_logout: '1', redirectTo: 'https://evil.com' }),
+				})
+			)
+			expect(res.headers.get('location')).toBe('/')
+		})
+
+		test('a cross-origin logout is rejected (Origin fail-closed)', async () => {
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						origin: 'http://evil.com',
+					},
+					body: new URLSearchParams({ __houdini_logout: '1' }),
+				})
+			)
+			expect(res.status).toBe(403)
 		})
 	})
 })

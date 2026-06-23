@@ -13,6 +13,8 @@ export {
 	setMockConfig,
 	getMockConfig,
 	getCurrentConfig,
+	getAuthUrl,
+	DEFAULT_AUTH_URL,
 } from './config.js'
 export { getFieldsForType } from './selection.js'
 export { flatten } from './flatten.js'

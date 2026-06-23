@@ -1,6 +1,6 @@
 import { getCurrentConfig } from '$houdini/runtime'
 import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { coerceFormData, interpolateRedirect } from 'houdini/runtime'
+import { coerceFormData, interpolateRedirect, getAuthUrl } from 'houdini/runtime'
 import React from 'react'
 
 import { useSession, useRoute, useFormResult, useFormToken } from '../routing/Router.js'
@@ -97,6 +97,20 @@ export function useMutationForm<
 			if (errors && errors.length > 0) {
 				opts.onError?.(errors)
 			} else {
+				// @auth — relay the server-signed session token (minted into the response
+				// extensions) to the auth endpoint, which verifies and sets the cookie. The
+				// token, not the raw value, is what crosses the wire, so the session stays
+				// server-authoritative. Await it so the cookie is set before we navigate.
+				if (artifact.sessionPath) {
+					const token = result.extensions?.houdiniSession
+					if (token) {
+						await fetch(getAuthUrl(getCurrentConfig()), {
+							method: 'POST',
+							body: JSON.stringify({ token }),
+							headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+						})
+					}
+				}
 				opts.onSuccess?.(result.data as _Result)
 				// navigate to the same target the server would 303 to
 				const redirect = artifact.endpoint?.redirect

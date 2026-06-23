@@ -5001,6 +5001,109 @@ export type CreateUserFieldsForm$artifact = typeof artifact
 "HoudiniHash=6321c3d3f53f1dd60ad57d5796e97c44f6eabb2d4df2b0ea23789d7f936aba38"`),
 				},
 			},
+			{
+				Name: "@auth emits a top-level sessionPath",
+				Pass: true,
+				Input: []string{
+					`mutation LoginForm($name: String!) @auth(sessionPath: "createUser") {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"LoginForm": tests.Dedent(`const artifact = {
+    "name": "LoginForm",
+    "kind": "HoudiniMutation",
+    "hash": "7781e7aef13f15dc275ab44769bc456f5af795fc04864518008fbbb1e05fe4e7",
+    "raw": ` + "`" + `mutation LoginForm($name: String!) {
+    createUser(name: $name) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "createUser": {
+                "type": "User",
+                "keyRaw": "createUser(name: $name)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "sessionPath": "createUser",
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type LoginForm = {
+	readonly "input": LoginForm$input;
+	readonly "result": LoginForm$result;
+};
+
+export type LoginForm$result = {
+	readonly createUser: {
+		readonly id: string;
+	};
+};
+
+export type LoginForm$input = {
+	name: string;
+};
+
+export type LoginForm$optimistic = {
+	readonly createUser?: {
+		readonly id?: string;
+	};
+};
+
+export type LoginForm$unmasked = {
+	readonly createUser: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type LoginForm$artifact = typeof artifact
+
+"HoudiniHash=7781e7aef13f15dc275ab44769bc456f5af795fc04864518008fbbb1e05fe4e7"`),
+				},
+			},
 		},
 	})
 }

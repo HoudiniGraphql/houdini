@@ -1,5 +1,17 @@
 import type { ConfigFile } from 'houdini'
 
+// The reserved path the auth endpoint is mounted at when `router.auth.url` is not set. It is
+// always available (the router mounts it regardless of auth config) so progressively-enhanced
+// `@auth` forms work out of the box. Shared by the server (mint/verify) and the
+// client (where useSession/useMutationForm POST the session token).
+export const DEFAULT_AUTH_URL = '/__houdini__/auth'
+
+// getAuthUrl resolves the session endpoint for a config — the configured override or the
+// default — so the default lives in exactly one place across server and client.
+export function getAuthUrl(config: ConfigFile): string {
+	return config.router?.auth?.url ?? DEFAULT_AUTH_URL
+}
+
 let mockConfig: ConfigFile | null = null
 
 export function getMockConfig() {

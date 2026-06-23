@@ -31,6 +31,10 @@ type ProjectManifest struct {
 	// FormActions are the names of mutations carrying @endpoint — the form-submittable
 	// ones whose artifacts the no-JS form handler loads server-side.
 	FormActions []string `json:"form_actions"`
+	// AuthMutations maps each @auth mutation's name to its sessionPath — the result field
+	// whose value becomes the session. Used by the session-mint plugin (any execution) and
+	// the no-JS form handler (inline cookie write). Independent of FormActions.
+	AuthMutations map[string]string `json:"auth_mutations"`
 }
 
 type PageManifest struct {
@@ -117,6 +121,13 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	var pageDocByDir map[string]routeDoc
 	var layoutDocByDir map[string]routeDoc
 	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, manifest.FormActions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	if err != nil {
+		return ProjectManifest{}, err
+	}
+
+	// @auth mutations (name → sessionPath) — independent of the route documents above, since a
+	// session-establishing mutation need not be a form.
+	manifest.AuthMutations, err = p.loadAuthMutations(ctx)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -305,6 +316,32 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	}
 
 	return manifest, nil
+}
+
+// loadAuthMutations returns every @auth mutation keyed to its sessionPath argument — the
+// result field whose value becomes the session.
+func (p *HoudiniReact) loadAuthMutations(ctx context.Context) (map[string]string, error) {
+	// allocated lazily so it stays nil (not an empty map) when no mutation carries @auth,
+	// matching how FormActions is left nil when empty
+	var result map[string]string
+	err := p.DB.StepQuery(ctx, `
+		SELECT d.name, av.raw
+		FROM documents d
+			JOIN document_directives dd ON dd.document = d.id AND dd.directive = $auth_directive
+			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'sessionPath'
+			LEFT JOIN argument_values av ON av.id = dda.value
+		WHERE d.kind = 'mutation'
+	`, map[string]any{"auth_directive": graphql.AuthDirective}, func(q plugins.Row) {
+		name := q.ColumnText(0)
+		path := q.ColumnText(1)
+		if name != "" && path != "" {
+			if result == nil {
+				result = map[string]string{}
+			}
+			result[name] = path
+		}
+	})
+	return result, err
 }
 
 // loadRouteDocuments queries the database for all +page.gql and +layout.gql documents

@@ -1,0 +1,43 @@
+---
+title: useLogoutForm
+description: A progressively-enhanced logout form.
+---
+
+Renders a logout form that works with or without client-side JavaScript. Without JS the native
+form POST deletes the session cookie and redirects; after hydration it clears the session
+client-side and navigates. It's the logout counterpart to
+[`useMutationForm`](~/api-reference/useMutationForm) — there's no mutation, logout is just "clear the
+session". See [Authentication](~/guides/authentication) for the full picture.
+
+```tsx
+import { useLogoutForm } from '$houdini'
+
+export function LogoutButton() {
+	const { form, hidden } = useLogoutForm({ redirectTo: '/login' })
+
+	return (
+		<form {...form}>
+			{hidden}
+			<button>Log out</button>
+		</form>
+	)
+}
+```
+
+**Options**
+
+| Option | Type | Description |
+|---|---|---|
+| `redirectTo` | `string` | Where to navigate after logout (default `/`). The no-JS path 303s here from the server; the enhanced path navigates with `goto`. |
+| `onSuccess` | `() => void` | Enhanced-path-only side effect after logout (no-op without JS). |
+
+**Returns**
+
+| Field | Type | Description |
+|---|---|---|
+| `form` | object | Spread onto a `<form>`: a real string `action`, `method`, and an `onSubmit` that intercepts after hydration. |
+| `hidden` | `ReactNode` | The hidden marker fields the no-JS POST needs; render inside the `<form>`. |
+
+Logout goes through the always-on auth endpoint (Origin-gated). For a programmatic logout in a
+client component, `updateSession(null)` from [`useSession`](~/api-reference/useSession) does the same
+thing without a form.

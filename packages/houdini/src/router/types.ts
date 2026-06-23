@@ -17,6 +17,10 @@ export type RouterManifest<_ComponentType> = {
 	// to the manifest in the server entry), so mutation artifacts stay out of the client
 	// bundle; absent when no mutation carries @endpoint.
 	formActions?: Record<string, () => Promise<{ default: MutationArtifact }>>
+	// maps each @auth mutation's name to its sessionPath (the result field that becomes the
+	// session). Server-only; consumed by the session-mint plugin and the no-JS form handler.
+	// Independent of formActions — a session-establishing mutation need not be a form.
+	authMutations?: Record<string, string>
 }
 
 export type { ServerAdapterFactory } from './server.js'

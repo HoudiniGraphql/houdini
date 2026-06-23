@@ -2,6 +2,7 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
+import { getAuthUrl } from '../runtime/config.js'
 import { houdini_root, local_api_dir } from '../router/conventions.js'
 import { Config, type ConfigFile } from './config.js'
 import { HoudiniError } from './error.js'
@@ -249,8 +250,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
-	if (config.config_file.router?.auth && 'redirect' in config.config_file.router.auth) {
-		routes.push(config.config_file.router.auth.redirect)
+	// the auth endpoint is always mounted for a router app (default path when unconfigured),
+	// so register it as an internal route rather than a 404
+	if (config.config_file.router) {
+		routes.push(getAuthUrl(config.config_file))
 	}
 
 	return routes

@@ -6,7 +6,7 @@ import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
 import type { LRUCache } from 'houdini/runtime'
-import { marshalSelection, marshalInputs } from 'houdini/runtime'
+import { marshalSelection, marshalInputs, getAuthUrl } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
@@ -590,6 +590,7 @@ export function RouterContextProvider({
 				last_variables,
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
+				clearSession: () => setSession({}),
 				formResult,
 				formToken,
 			}}
@@ -625,6 +626,9 @@ type RouterContext = {
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
+
+	// replace the client-side session with an empty one (logout); pairs with the server clear
+	clearSession: () => void
 
 	// the result of a no-JS form submission (keyed by form id), injected by the server on
 	// the PRG error re-render so useMutationForm can seed its initial state inline.
@@ -686,30 +690,31 @@ export function updateLocalSession(session: App.Session) {
 	)
 }
 
-export function useSession(): [App.Session, (newSession: Partial<App.Session>) => void] {
+export function useSession(): [
+	App.Session,
+	(newSession: Partial<App.Session> | null) => Promise<void>,
+] {
 	const ctx = useRouterContext()
 
-	// when we update the session we have to do 2 things. (1) we have to update the local state
-	// that we will use on the client (2) we have to send a request to the server so that it
-	// can update the cookie that we use for the session
-	const updateSession = (newSession: Partial<App.Session>) => {
+	// updateSession does two things: (1) update the local client state, and (2) persist to the
+	// session cookie through the always-on auth endpoint (Origin-gated, so a cross-origin page
+	// can't forge a write). Pass a partial object to merge it into the session, or `null` to
+	// log out — clearing the local session and deleting the cookie. It's awaitable so callers
+	// can wait for the cookie to settle before navigating.
+	const updateSession = async (newSession: Partial<App.Session> | null) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		ctx.data_cache.clear()
 		ctx.ssr_signals.clear()
 
-		// update the local state
-		ctx.setSession(newSession)
-
-		// figure out the url that we will use to send values to the server
-		const auth = configFile.router?.auth
-		if (!auth) {
-			return
+		if (newSession === null) {
+			ctx.clearSession()
+		} else {
+			ctx.setSession(newSession)
 		}
-		const url = 'redirect' in auth ? auth.redirect : auth.url
 
-		fetch(url!, {
+		await fetch(getAuthUrl(configFile), {
 			method: 'POST',
-			body: JSON.stringify(newSession),
+			body: JSON.stringify({ session: newSession }),
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',

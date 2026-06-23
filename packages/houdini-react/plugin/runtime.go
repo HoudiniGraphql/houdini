@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -857,6 +858,22 @@ func formatManifest(
 				return "", err
 			}
 			sb.WriteString(fmt.Sprintf("\t%s: () => import(%q),\n", name, filepath.ToSlash(artifactRel)))
+		}
+		sb.WriteString("}\n")
+	}
+
+	// auth_mutations maps each @auth mutation to its sessionPath. Server-only: the session-mint
+	// plugin and the no-JS form handler use it to find the result field that becomes the
+	// session. A plain string map (sorted for stable output), independent of form_actions.
+	if len(manifest.AuthMutations) > 0 {
+		authNames := make([]string, 0, len(manifest.AuthMutations))
+		for name := range manifest.AuthMutations {
+			authNames = append(authNames, name)
+		}
+		sort.Strings(authNames)
+		sb.WriteString("\nexport const auth_mutations = {\n")
+		for _, name := range authNames {
+			sb.WriteString(fmt.Sprintf("\t%s: %q,\n", name, manifest.AuthMutations[name]))
 		}
 		sb.WriteString("}\n")
 	}

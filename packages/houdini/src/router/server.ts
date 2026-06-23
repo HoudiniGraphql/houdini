@@ -9,108 +9,101 @@ import {
 
 import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
-import { interpolateRedirect } from '../runtime/endpoint.js'
+import { interpolateRedirect, valueAtPath } from '../runtime/endpoint.js'
 import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
 import { marshalInputs } from '../runtime/scalars.js'
+import { CSRF_FIELD, signFormToken, verifyFormToken, signSessionToken } from './auth-token.js'
 import { serialize as encodeCookie } from './cookies.js'
-import { encode as encodeJWT, verify as verifyJWT, decode as decodeJWT } from './jwt.js'
 import { find_match, find_prefix_match } from './match.js'
-import { get_session, handle_request, session_cookie_name } from './session.js'
+import {
+	clear_session,
+	get_session,
+	handle_request,
+	session_cookie_name,
+	set_session,
+} from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
+
+// re-exported for tests that mint tokens through the real path
+export { signFormToken }
 
 // the outcome of a no-JS form submission, keyed by form id (the mutation name, or the
 // explicit @endpoint(id:)). Injected into the page tree on the error re-render so the
 // submitted form renders its result/errors inline.
 export type FormResult = Record<string, { data: any; errors: any }>
 
-// the hidden field carrying the CSRF token.
-const CSRF_FIELD = '__houdini_csrf'
-// how long a rendered form's token stays valid (seconds)
-const CSRF_TTL_SECONDS = 60 * 60 * 2
-
-// formTokenKey derives a CSRF-token signing key that is domain-separated from the session
-// cookie key, so a session cookie (also a JWT signed with session_keys[0]) can never be
-// presented as a valid CSRF token, and vice versa.
-function formTokenKey(sessionKeys: string[]): string {
-	return sessionKeys[0] + '|houdini-form-csrf'
-}
-
-// stableStringify serializes with sorted keys so the session fingerprint is deterministic
-// across the render and the submit.
-function stableStringify(value: any): string {
-	if (value && typeof value === 'object' && !Array.isArray(value)) {
-		return (
-			'{' +
-			Object.keys(value)
-				.sort()
-				.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k]))
-				.join(',') +
-			'}'
-		)
-	}
-	return JSON.stringify(value ?? null)
-}
-
-// sessionFingerprint is a keyed (HMAC) hash of the session — it binds a token to a specific
-// session without leaking the session contents into the rendered page (the token payload is
-// readable base64).
-async function sessionFingerprint(session: App.Session, key: string): Promise<string> {
-	const enc = new TextEncoder()
-	const cryptoKey = await crypto.subtle.importKey(
-		'raw',
-		enc.encode(key),
-		{ name: 'HMAC', hash: 'SHA-256' },
-		false,
-		['sign']
-	)
-	const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(stableStringify(session)))
-	return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-// signFormToken mints the CSRF token a form renders: a JWT bound to the current session,
-// time-limited, carrying a purpose claim, signed with the domain-separated form key.
-// Exported so tests mint tokens through the real path.
-export async function signFormToken(session: App.Session, sessionKeys: string[]): Promise<string> {
-	const key = formTokenKey(sessionKeys)
-	const sid = await sessionFingerprint(session, key)
-	return encodeJWT(
-		{ houdiniForm: true, sid, exp: Math.floor(Date.now() / 1000) + CSRF_TTL_SECONDS },
-		key
-	)
-}
-
-// verifyFormToken checks the token submitted with a form: valid signature, not expired,
-// carries the purpose claim, and is bound to *this* request's session.
-export async function verifyFormToken(
-	token: unknown,
-	session: App.Session,
-	sessionKeys: string[]
-): Promise<boolean> {
-	if (typeof token !== 'string') {
-		return false
-	}
-	const key = formTokenKey(sessionKeys)
-	try {
-		// signature + exp (verify enforces exp); throws on a malformed token
-		if (!(await verifyJWT(token, key))) {
-			return false
-		}
-		const payload = decodeJWT(token).payload as any
-		if (!payload || payload.houdiniForm !== true) {
-			return false
-		}
-		// session binding: the token must have been minted for this session
-		return payload.sid === (await sessionFingerprint(session, key))
-	} catch {
-		return false
-	}
-}
-
 // a header the Houdini client always sets (see fetch.ts) and a cross-origin CORS-simple
 // request cannot. Required for CORS-simple POSTs to the graphql endpoint so they can't be a
 // CSRF channel. Must stay in sync with the header set in fetch.ts.
 const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
+
+// sessionMintPlugin is the server side of the enhanced @auth path. After a session mutation
+// (any @auth mutation, form or not) executes over GraphQL it mints a server-signed token of
+// the resolver's session subtree into `extensions.houdiniSession`. The client relays that
+// token to the auth endpoint, which verifies and sets the cookie — so the value that becomes
+// the session is always server-authoritative (the client can't forge a signed token). It
+// keys off the manifest's authMutations (name → sessionPath), independent of forms.
+function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: string[]): any {
+	return {
+		onExecute() {
+			return {
+				async onExecuteDone({ args, result, setResult }: any) {
+					// only single results carry a session subtree (skip streamed responses)
+					if (!result || typeof result[Symbol.asyncIterator] === 'function' || !result.data) {
+						return
+					}
+					// the no-JS form handler runs the mutation through this same Yoga and sets the
+					// cookie directly from the result, so a token here would be minted and thrown
+					// away. It marks its internal request with a header; skip those.
+					if (args?.contextValue?.request?.headers?.get(INTERNAL_FORM_HEADER)) {
+						return
+					}
+					// a failed @auth mutation must never touch the session — auth failure is
+					// signalled by a GraphQL error, and only a *successful* execution mints a token.
+					if (result.errors?.length) {
+						return
+					}
+					const name = operationNameOf(args)
+					const sessionPath = name ? manifest?.authMutations?.[name] : undefined
+					if (!sessionPath) {
+						return
+					}
+					// on success: a non-null session value replaces the session (login); a null one
+					// clears it (logout — e.g. a server-side logout mutation whose session field
+					// comes back null). signSessionToken encodes which, so the client just relays it.
+					const value = valueAtPath(result.data, sessionPath.split('.'))
+					const token = await signSessionToken((value ?? null) as App.Session | null, sessionKeys)
+					setResult({
+						...result,
+						extensions: { ...result.extensions, houdiniSession: token },
+					})
+				},
+			}
+		},
+	}
+}
+
+// a header the no-JS form handler sets on its internal GraphQL request so the session-mint
+// plugin can skip it (the handler writes the cookie itself).
+const INTERNAL_FORM_HEADER = 'x-houdini-internal-form'
+
+// operationNameOf resolves the executed operation's name from the envelop args. The client
+// proxy doesn't send an explicit operationName, so fall back to the document's operation
+// definition — but only when there's exactly one, so we never guess the wrong operation in a
+// (Houdini-impossible today) multi-operation document.
+function operationNameOf(args: any): string | null {
+	if (args?.operationName) {
+		return args.operationName
+	}
+	const ops = (args?.document?.definitions ?? []).filter(
+		(def: any) => def.kind === 'OperationDefinition'
+	)
+	if (ops.length === 1 && ops[0].name?.value) {
+		return ops[0].name.value
+	}
+	return null
+}
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
@@ -163,6 +156,18 @@ export function _serverHandler<ComponentType = unknown>({
 		server = new Server({
 			landingPage: !production,
 		})
+	}
+
+	// the enhanced (post-hydration) @auth path needs a Yoga plugin that mints a server-signed
+	// token of a session mutation's subtree into the response extensions (so the client can
+	// relay it without ever seeing or forging the value). Attach it to whatever Server we use —
+	// created above OR provided by an adapter — by merging into its opts before init, so the
+	// path can never silently break depending on how the server was supplied.
+	if (server instanceof Server) {
+		server.opts = {
+			...(server.opts ?? {}),
+			plugins: [...(server.opts?.plugins ?? []), sessionMintPlugin(manifest, session_keys)],
+		}
 	}
 
 	// initialize the server with the project schema and graphql endpoint
@@ -325,6 +330,9 @@ export function _serverHandler<ComponentType = unknown>({
 				method: 'POST',
 				headers: {
 					...(bodyContentType ? { 'Content-Type': bodyContentType } : {}),
+					// mark this as the no-JS form's internal execution so the session-mint plugin
+					// skips it (we set the cookie directly below)
+					[INTERNAL_FORM_HEADER]: '1',
 					Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
 						httpOnly: true,
 					}),
@@ -357,7 +365,26 @@ export function _serverHandler<ComponentType = unknown>({
 				)
 			}
 		}
-		return new Response(null, { status: 303, headers: { Location: location } })
+		const formResponse = new Response(null, { status: 303, headers: { Location: location } })
+
+		// progressively-enhanced auth: when the submitted mutation also carries @auth, write the
+		// session before redirecting (this branch is only reached on success — errors 422'd
+		// above). The value is server-authoritative (resolver output): a non-null object replaces
+		// the session (login), a null one clears it (server-side logout).
+		const sessionPath = nonNullManifest.authMutations?.[mutationName]
+		if (sessionPath) {
+			const value = valueAtPath(result.data, sessionPath.split('.'))
+			if (value != null) {
+				await set_session(
+					{ request, config: config_file, session_keys },
+					formResponse,
+					value as App.Session
+				)
+			} else {
+				clear_session(formResponse)
+			}
+		}
+		return formResponse
 	}
 
 	return async (request: Request, ...extraContext: Array<any>) => {

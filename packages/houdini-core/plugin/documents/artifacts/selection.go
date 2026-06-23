@@ -327,6 +327,9 @@ func GenerateSelectionDocument(
 	// the runtime hook and server form handler consume
 	endpointValue := buildEndpointArtifact(doc)
 
+	// @auth emits the sessionPath — the result field whose value becomes the session
+	authValue := buildAuthArtifact(doc)
+
 	// we need to track the optimistic keys
 	optimistic := ""
 	if flags.OptimisticKeys {
@@ -486,7 +489,7 @@ const artifact = {
 
     "selection": %s,%s
 
-    "pluginData": %s,%s%s%s%s%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s%s%s%s%s
 } as const
 
 export default artifact
@@ -509,6 +512,7 @@ export default artifact
 		dedupe,
 		pluralValue,
 		endpointValue,
+		authValue,
 		inputTypes,
 		loadingValue,
 		policyValue,

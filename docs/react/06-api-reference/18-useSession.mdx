@@ -8,13 +8,14 @@ Returns the current session and an updater function. Calling the updater patches
 ```tsx
 import { useSession } from '$houdini'
 
-export function LogoutButton() {
+export function Account() {
   const [session, updateSession] = useSession()
 
   return (
-    <button onClick={() => updateSession({ token: null })}>
-      Log out ({session.user?.name})
-    </button>
+    <div>
+      Signed in as {session.user?.name}
+      <button onClick={() => updateSession(null)}>Log out</button>
+    </div>
   )
 }
 ```
@@ -22,7 +23,15 @@ export function LogoutButton() {
 **Signature**
 
 ```ts
-function useSession(): [App.Session, (patch: Partial<App.Session>) => void]
+function useSession(): [
+  App.Session,
+  (patch: Partial<App.Session> | null) => Promise<void>,
+]
 ```
 
-The updater sends a `POST` request to the session endpoint defined in your router config, clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
+The updater sends a `POST` request to the session endpoint defined in your router config (defaulting to `/__houdini__/auth`), clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
+
+- **`updateSession(patch)`** — merges `patch` into the session and persists it to the `httpOnly` cookie.
+- **`updateSession(null)`** — logs out: empties the local session and deletes the cookie.
+
+The updater is awaitable (`Promise<void>`), so you can wait for the cookie to settle before navigating. For a logout button that works without JavaScript, use [`useLogoutForm`](~/api-reference/useLogoutForm). To set the session from a mutation, see [`@auth`](~/guides/authentication).

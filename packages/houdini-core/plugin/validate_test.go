@@ -2808,6 +2808,51 @@ func TestValidate_Houdini(t *testing.T) {
 					}`,
 				},
 			},
+			{
+				Name: "@auth sessionPath resolving to an object (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation LoginForm @auth(sessionPath: "addFriend.friend") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@auth sessionPath resolving to a scalar (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @auth(sessionPath: "addFriend.friend.id") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@auth sessionPath missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @auth(sessionPath: "addFriend.nope") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@auth without a sessionPath (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @auth {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@auth on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @auth(sessionPath: "user") {
+						user(name: "x") { id }
+					}`,
+				},
+			},
 		},
 	})
 }

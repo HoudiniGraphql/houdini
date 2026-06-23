@@ -140,6 +140,9 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	rootType: string
 	input?: InputObject
 	endpoint?: EndpointSpec
+	// @auth: a dotted path into the mutation result whose object value becomes App.Session.
+	// Orthogonal to `endpoint` — present on any session-establishing mutation, form or not.
+	sessionPath?: string
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {
@@ -347,6 +350,9 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 	stale: boolean
 	source: DataSources | null
 	variables: _Input | null
+	// response-level GraphQL extensions (e.g. the @auth mint token under
+	// `houdiniSession`); present when the network response carried an extensions object
+	extensions?: Record<string, any>
 }
 
 export type RequestPayload<GraphQLObject = any> = {

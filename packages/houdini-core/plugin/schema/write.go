@@ -1110,6 +1110,32 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
+	// @auth(sessionPath: String) on MUTATION — orthogonal to @endpoint: it marks a mutation as
+	// session-establishing (the named result field becomes App.Session) independent of whether
+	// it's also a progressively-enhanced form.
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.AuthDirective,
+		"description": "@auth marks a mutation as session-establishing: the result field named by sessionPath becomes the user's session.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.AuthDirective,
+		"location":  "MUTATION",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.AuthDirective,
+		"name":      "sessionPath",
+		"type":      "String",
+	})
+	if err != nil {
+		return err
+	}
 
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{

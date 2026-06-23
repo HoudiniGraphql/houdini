@@ -28,7 +28,7 @@ export function interpolateRedirect(template: RedirectTemplate, data: any): stri
 }
 
 // valueAtPath walks a dotted field path (as a segment array) into the result object.
-function valueAtPath(data: any, path: readonly string[]): any {
+export function valueAtPath(data: any, path: readonly string[]): any {
 	let cursor = data
 	for (const key of path) {
 		if (cursor == null) {
