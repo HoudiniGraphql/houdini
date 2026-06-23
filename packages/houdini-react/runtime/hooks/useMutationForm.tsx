@@ -1,9 +1,15 @@
 import { getCurrentConfig } from '$houdini/runtime'
 import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { coerceFormData, interpolateRedirect, getAuthUrl } from 'houdini/runtime'
+import { coerceFormData, interpolateRedirect, getAuthUrl, valueAtPath } from 'houdini/runtime'
 import React from 'react'
 
-import { useSession, useRoute, useFormResult, useFormToken } from '../routing/Router.js'
+import {
+	useSession,
+	useRoute,
+	useFormResult,
+	useFormToken,
+	useRouterContext,
+} from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'
 
 // a document with no variables still needs an InputObject shape for the coercer
@@ -67,6 +73,7 @@ export function useMutationForm<
 	const { artifact } = document
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 	const [session] = useSession()
+	const { replaceSession } = useRouterContext()
 	const { pathname, goto } = useRoute()
 
 	const formId = opts.id ?? artifact.endpoint?.id ?? artifact.name
@@ -110,6 +117,11 @@ export function useMutationForm<
 							headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 						})
 					}
+					// reflect the new session in local state immediately so useSession() updates
+					// without a reload (the cookie above is the source of truth; this mirrors it).
+					// A non-null subtree replaces the session (login); a null one clears it (logout).
+					const next = valueAtPath(result.data, artifact.sessionPath.split('.'))
+					replaceSession((next ?? {}) as App.Session)
 				}
 				opts.onSuccess?.(result.data as _Result)
 				// navigate to the same target the server would 303 to

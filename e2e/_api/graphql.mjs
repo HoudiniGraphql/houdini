@@ -632,6 +632,10 @@ export const resolvers = {
 	},
 
 	Mutation: {
+		// @auth login: the resolver is the authority on the session payload
+		login: (_, { username }) => ({ session: { token: 'tok-' + username } }),
+		// @auth logout: a successful mutation with a null session clears the cookie
+		logout: () => ({ session: null }),
 		addNonNullUser(...args) {
 			return this.addUser(...args)
 		},

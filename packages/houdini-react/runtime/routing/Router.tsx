@@ -590,6 +590,7 @@ export function RouterContextProvider({
 				last_variables,
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
+				replaceSession: (next) => setSession(next),
 				clearSession: () => setSession({}),
 				formResult,
 				formToken,
@@ -626,6 +627,10 @@ type RouterContext = {
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
+
+	// replace the client-side session wholesale (login establishes a fresh session). Local
+	// state only — the cookie is set separately (the @auth token relay / server form handler).
+	replaceSession: (next: App.Session) => void
 
 	// replace the client-side session with an empty one (logout); pairs with the server clear
 	clearSession: () => void
