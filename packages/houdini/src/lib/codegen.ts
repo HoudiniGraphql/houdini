@@ -260,8 +260,7 @@ export async function codegen_setup(
 							hooks: new Set(JSON.parse(row.hooks)),
 							order: row.plugin_order as 'before' | 'after' | 'core',
 							directory:
-								config.plugins.find((p) => p.name === configKey)?.directory ||
-								'',
+								config.plugins.find((p) => p.name === configKey)?.directory || '',
 						}
 						spec_results[configKey] = spec
 
