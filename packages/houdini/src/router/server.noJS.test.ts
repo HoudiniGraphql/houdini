@@ -139,7 +139,17 @@ const scalarConfig = {
 	},
 }
 
-function serverWith(onRender: (args: any) => any = () => new Response('page')) {
+function serverWith(
+	onRender: (args: any) => any = () => new Response('page'),
+	authOverride: Record<string, any> = {}
+) {
+	const config_file = {
+		...scalarConfig,
+		router: {
+			...scalarConfig.router,
+			auth: { ...scalarConfig.router.auth, ...authOverride },
+		},
+	}
 	return _serverHandler({
 		// a real schema → _serverHandler builds a real Yoga internally
 		schema,
@@ -164,7 +174,7 @@ function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 		assetPrefix: '',
 		graphqlEndpoint: '/_api',
 		componentCache: {},
-		config_file: scalarConfig as any,
+		config_file: config_file as any,
 		on_render: onRender,
 	})
 }
@@ -548,6 +558,16 @@ describe('no-JS form submission (real Yoga)', () => {
 			expect(res.headers.get('location')).toBe('/')
 		})
 
+		// relay a token bound to (sid) the given session cookie, as the mint plugin would
+		const relay = (handler: any, cookie: string, token: string) =>
+			handler(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json', origin: 'http://localhost', cookie },
+					body: JSON.stringify({ token }),
+				})
+			)
+
 		test('a merge session token upserts into the existing session (preferences)', async () => {
 			const handler = serverWith()
 			// log in first → session cookie carries { token }
@@ -555,16 +575,12 @@ describe('no-JS form submission (real Yoga)', () => {
 				formPOST('http://localhost/login', { __houdini_form: 'Login', email: 'a@b.co' })
 			)
 			const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]
+			// the mint binds the token to the session it ran under, so derive that session here
+			const prior = await get_session(new Headers({ cookie }), [TOKEN_KEY])
 
 			// relay a merge token that adds { theme: 'dark' } — like a @session(merge: true) pref
-			const mergeToken = await signSessionToken({ theme: 'dark' } as any, [TOKEN_KEY], true)
-			const res = await handler(
-				new Request(authUrl, {
-					method: 'POST',
-					headers: { 'content-type': 'application/json', origin: 'http://localhost', cookie },
-					body: JSON.stringify({ token: mergeToken }),
-				})
-			)
+			const mergeToken = await signSessionToken({ theme: 'dark' } as any, [TOKEN_KEY], true, prior)
+			const res = await relay(handler, cookie, mergeToken)
 			expect(res.status).toBe(200)
 			const session = await get_session(
 				new Headers({ cookie: (res.headers.get('set-cookie') ?? '').split(';')[0] }),
@@ -572,6 +588,64 @@ describe('no-JS form submission (real Yoga)', () => {
 			)
 			expect((session as any).token).toBe('tok-a@b.co') // kept from login
 			expect((session as any).theme).toBe('dark') // merged in
+		})
+
+		test('a token minted under a different session is rejected (sid binding)', async () => {
+			const handler = serverWith()
+			const login = await handler(
+				formPOST('http://localhost/login', { __houdini_form: 'Login', email: 'a@b.co' })
+			)
+			const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]
+			// token bound to a DIFFERENT session than the one presenting it
+			const token = await signSessionToken({ theme: 'dark' } as any, [TOKEN_KEY], true, {
+				token: 'someone-else',
+			} as any)
+			expect((await relay(handler, cookie, token)).status).toBe(403)
+		})
+
+		test('a session-mint token cannot be replayed (single-use jti)', async () => {
+			const handler = serverWith()
+			// no prior session → token bound to the empty session, presented with no cookie
+			const token = await signSessionToken({ token: 'tok-x' } as any, [TOKEN_KEY], false, {})
+			expect((await relay(handler, '', token)).status).toBe(200)
+			// the same token a second time is rejected
+			expect((await relay(handler, '', token)).status).toBe(403)
+		})
+
+		// Login-CSRF guard: the GET cookie-write sink must not be exposed by default, and even
+		// when enabled it must not turn raw query params into a signed session.
+		test('a GET with raw param session sets NO cookie when redirect is off (default)', async () => {
+			const handler = serverWith()
+			const res = await handler(
+				new Request(`${authUrl}?role=admin&userId=evil&redirectTo=/`, { method: 'GET' })
+			)
+			// gated off → the sink isn't mounted; nothing writes a session cookie
+			expect(res?.headers.get('set-cookie') ?? null).toBeNull()
+		})
+
+		test('a GET with raw params (no signed token) is rejected even when redirect is enabled', async () => {
+			const handler = serverWith(undefined, { redirect: true })
+			const res = await handler(
+				new Request(`${authUrl}?role=admin&userId=evil&redirectTo=/`, { method: 'GET' })
+			)
+			expect(res!.status).toBe(403)
+			expect(res!.headers.get('set-cookie') ?? null).toBeNull()
+		})
+
+		test('a GET with a valid signed token sets the session when redirect is enabled', async () => {
+			const handler = serverWith(undefined, { redirect: true })
+			// minted bound to the empty (anonymous) session the browser presents
+			const token = await signSessionToken({ token: 'tok-oauth' } as any, [TOKEN_KEY], false, {})
+			const res = await handler(
+				new Request(`${authUrl}?token=${token}&redirectTo=/home`, { method: 'GET' })
+			)
+			expect(res!.status).toBe(302)
+			expect(res!.headers.get('location')).toBe('/home')
+			const session = await get_session(
+				new Headers({ cookie: (res!.headers.get('set-cookie') ?? '').split(';')[0] }),
+				[TOKEN_KEY]
+			)
+			expect((session as any).token).toBe('tok-oauth')
 		})
 
 		test('a cross-origin logout is rejected (Origin fail-closed)', async () => {

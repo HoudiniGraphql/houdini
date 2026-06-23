@@ -72,12 +72,18 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 					// on success: a non-null value writes the session (merge or replace per the
 					// directive); a null one clears it (logout — e.g. a server-side logout mutation
 					// whose session field comes back null). signSessionToken encodes which action,
-					// so the client just relays it.
+					// so the client just relays it. Bind the token to the session the mutation ran
+					// under (sid) so a leaked token can't be replayed from a different session.
 					const value = valueAtPath(result.data, session.sessionPath.split('.'))
+					const priorSession = await get_session(
+						args.contextValue.request.headers,
+						sessionKeys
+					)
 					const token = await signSessionToken(
 						(value ?? null) as App.Session | null,
 						sessionKeys,
-						session.merge
+						session.merge,
+						priorSession
 					)
 					setResult({
 						...result,

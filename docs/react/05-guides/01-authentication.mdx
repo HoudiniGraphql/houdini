@@ -117,3 +117,13 @@ There are three ways to clear the session, matching how it was set — and `null
   ```
 
 - **A `@session` mutation returning a null session** — when logout has a server-side component (invalidating a refresh token, etc.), mark that mutation `@session` and have its session field come back `null`; the successful mutation clears the cookie. Add `@endpoint` to make it work without JS too.
+
+## Security model
+
+Keep these properties in mind so the session stays trustworthy:
+
+- **The cookie is the source of truth, not `useSession()`.** The `httpOnly` session cookie is signed by the server; resolvers receive its verified contents as `ctx.session`. The value `useSession()` returns is in-memory UI state that mirrors the cookie — convenient for rendering, but **never make an authorization decision from it**, on the server or the client. Authorize against `ctx.session`.
+- **The session is a same-origin-writable store.** `updateSession()` (and therefore any same-origin script) can write arbitrary values to it. Store *credentials your backend issued and can re-verify* (an opaque token, a signed user id) — not raw authorization claims like `role: "admin"` that you then trust verbatim. Derive privileges server-side from the verified token.
+- **`router.allowedOrigins` entries are full session-write delegates.** Any origin you add can POST to the session endpoint and set a session; only list origins you fully trust.
+- **Don't share `sessionKeys` across trust domains.** The keys sign the session cookie and the relay token; a separate service that holds them can mint sessions for your app.
+- **`@session(merge:)` and `@session` writes are server-authoritative** — the value is relayed as a server-signed, session-bound, single-use token, so a client can't forge or replay what becomes the session. The redirect-based login callback (`router.auth.redirect`) is off by default and, when enabled, accepts only such a token.

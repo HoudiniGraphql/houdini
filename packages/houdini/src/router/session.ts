@@ -1,6 +1,6 @@
 import type { ConfigFile } from '../lib/index.js'
 import { getAuthUrl } from '../runtime/config.js'
-import { verifySessionToken } from './auth-token.js'
+import { sessionTokenFingerprint, verifySessionToken } from './auth-token.js'
 import { parse } from './cookies.js'
 import { decode, encode, verify } from './jwt.js'
 
@@ -8,6 +8,55 @@ type ServerHandlerArgs = {
 	request: Request
 	config: ConfigFile
 	session_keys: string[]
+}
+
+// single-use store for relayed session-mint tokens, keyed by jti (per process). A token can be
+// consumed exactly once; combined with its short TTL and sid binding this rejects replays of a
+// leaked token. Per-process is sufficient because the legitimate relay consumes the jti within
+// milliseconds of the mint; the sid binding covers the cross-session case fleet-wide.
+const SESSION_TOKEN_TTL_MS = 60 * 1000
+const consumedSessionTokens = new Map<string, number>()
+function consumeSessionToken(jti: string): boolean {
+	const now = Date.now()
+	for (const [id, expiry] of consumedSessionTokens) {
+		if (expiry <= now) {
+			consumedSessionTokens.delete(id)
+		}
+	}
+	if (consumedSessionTokens.has(jti)) {
+		return false
+	}
+	consumedSessionTokens.set(jti, now + SESSION_TOKEN_TTL_MS)
+	return true
+}
+
+// applySessionToken verifies a relayed session-mint token and, if it checks out, writes the
+// session it encodes onto `response`. The token must (1) carry a valid signature, (2) be bound
+// (sid) to the session presenting it, and (3) not have been consumed before (jti) — so a leaked
+// token can't be replayed from another session or replayed twice. Shared by the POST relay and
+// the GET redirect callback so both paths are identically hardened. Returns false on any failure.
+async function applySessionToken(
+	args: ServerHandlerArgs,
+	response: Response,
+	token: unknown
+): Promise<boolean> {
+	const verified = await verifySessionToken(token, args.session_keys)
+	if (!verified) {
+		return false
+	}
+	const presenter = await get_session(args.request.headers, args.session_keys)
+	const presenterSid = await sessionTokenFingerprint(presenter, args.session_keys)
+	if (verified.sid !== presenterSid || !consumeSessionToken(verified.jti)) {
+		return false
+	}
+	if ('clear' in verified) {
+		clear_session(response)
+	} else if (verified.merge) {
+		await set_session(args, response, { ...presenter, ...verified.session })
+	} else {
+		await set_session(args, response, verified.session)
+	}
+	return true
 }
 
 // the actual server implementation changes from runtime to runtime
@@ -26,21 +75,25 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 // session-mint token (the @session enhanced path — server-authoritative) or, for
 // same-origin app code (useSession's updateSession), a raw values body.
 async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefined> {
-	// GET: the session and redirect target are passed as query parameters
+	// GET: the redirect-based login callback. Opt-in (router.auth.redirect) so it isn't mounted
+	// in apps that don't use it, and it only accepts a server-signed `token` (never raw query
+	// params, which a cross-site GET could forge) — applySessionToken enforces the same
+	// signature + session-binding + single-use checks as the POST relay.
 	if (args.request.method === 'GET') {
+		if (!args.config.router?.auth?.redirect) {
+			return undefined
+		}
 		const { searchParams } = new URL(
 			args.request.url!,
 			`http://${args.request.headers.get('host')}`
 		)
-		const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
-
 		const response = new Response('ok', {
 			status: 302,
-			headers: {
-				Location: safeRelative(redirectTo),
-			},
+			headers: { Location: safeRelative(searchParams.get('redirectTo')) },
 		})
-		await set_session(args, response, session)
+		if (!(await applySessionToken(args, response, searchParams.get('token')))) {
+			return new Response('Forbidden', { status: 403 })
+		}
 		return response
 	}
 
@@ -85,17 +138,8 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 		// server during the mutation's execution, so the client cannot tamper with it — a
 		// non-null session replaces the cookie (login), a null one clears it (logout).
 		if (typeof body.token === 'string') {
-			const verified = await verifySessionToken(body.token, args.session_keys)
-			if (!verified) {
+			if (!(await applySessionToken(args, response, body.token))) {
 				return new Response('Forbidden', { status: 403 })
-			}
-			if ('clear' in verified) {
-				clear_session(response)
-			} else if (verified.merge) {
-				const existing = await get_session(args.request.headers, args.session_keys)
-				await set_session(args, response, { ...existing, ...verified.session })
-			} else {
-				await set_session(args, response, verified.session)
 			}
 			return response
 		}
@@ -183,20 +227,26 @@ export async function get_session(req: Headers, secrets: string[]): Promise<App.
 		return {}
 	}
 
-	// decode it with any of the available secrets
+	// decode it with any of the available secrets. A malformed (non-JWT) cookie — e.g. a raw
+	// value injected by a proxy or a client — must fail closed to {} rather than throw out of
+	// the context factory, so an unsigned value can never become the session.
 	for (const secret of secrets) {
-		// check if its valid
-		if (!(await verify(cookie, secret))) {
+		try {
+			// check if its valid
+			if (!(await verify(cookie, secret))) {
+				continue
+			}
+
+			// parse the cookie header
+			const parsed = decode(cookie)
+			if (!parsed) {
+				return {}
+			}
+
+			return parsed.payload as App.Session
+		} catch {
 			continue
 		}
-
-		// parse the cookie header
-		const parsed = decode(cookie)
-		if (!parsed) {
-			return {}
-		}
-
-		return parsed.payload as App.Session
 	}
 
 	// if we got this far then the cookie value didn't match any of the available secrets

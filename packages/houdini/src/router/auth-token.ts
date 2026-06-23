@@ -93,33 +93,55 @@ export async function verifyFormToken(
 }
 
 // the verified outcome of a session-mint token: write `session` (merge into the existing
-// session when `merge`, else replace it), or clear it. (A null verify result — distinct from
-// this — means the token was invalid.)
-export type SessionTokenResult = { session: App.Session; merge: boolean } | { clear: true }
+// session when `merge`, else replace it), or clear it. Every result also carries the `sid`
+// (the fingerprint of the session the token was minted under) and a unique `jti`, so the sink
+// can bind the token to the presenting session and reject replays. (A null verify result —
+// distinct from this — means the token was invalid.)
+type SessionAction = { session: App.Session; merge: boolean } | { clear: true }
+export type SessionTokenResult = SessionAction & { sid: string; jti: string }
+
+// sessionTokenFingerprint binds a mint token to a specific session, using the domain-separated
+// session-mint key. Exported so the auth endpoint can check a relayed token against the
+// session that is presenting it.
+export function sessionTokenFingerprint(
+	session: App.Session,
+	sessionKeys: string[]
+): Promise<string> {
+	return sessionFingerprint(session, sessionTokenKey(sessionKeys))
+}
 
 // signSessionToken mints the server-authoritative session token for the enhanced (post-
 // hydration) @session path. A non-null payload writes the session (merging when `merge`); a
 // null payload encodes a clear (logout). Signed with the session-mint key so the client can
-// relay but never forge it.
+// relay but never forge it. The token is bound to `priorSession` (the session the mutation ran
+// under) via `sid` and carries a unique `jti` so the auth endpoint can reject a relay from a
+// different session or a replay of an already-consumed token.
 export async function signSessionToken(
 	payload: App.Session | null,
 	sessionKeys: string[],
-	merge = false
+	merge = false,
+	priorSession: App.Session = {}
 ): Promise<string> {
 	const claims =
 		payload == null
 			? { houdiniSession: true, clear: true }
 			: { houdiniSession: true, payload, merge }
 	return encodeJWT(
-		{ ...claims, exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS },
+		{
+			...claims,
+			sid: await sessionTokenFingerprint(priorSession, sessionKeys),
+			jti: crypto.randomUUID(),
+			exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
+		},
 		sessionTokenKey(sessionKeys)
 	)
 }
 
 // verifySessionToken checks a relayed session-mint token. It returns the intended action
-// (write the session — merge or replace — or clear) when valid, or null when the token is
-// invalid. The payload is trustworthy because only the server holds the signing key, so a
-// client cannot tamper with what becomes the session.
+// (write the session — merge or replace — or clear) plus the token's `sid`/`jti` when valid,
+// or null when the token is invalid. The payload is trustworthy because only the server holds
+// the signing key; the caller must still check `sid` against the presenting session and that
+// `jti` has not been consumed.
 export async function verifySessionToken(
 	token: unknown,
 	sessionKeys: string[]
@@ -135,10 +157,18 @@ export async function verifySessionToken(
 		if (!payload || payload.houdiniSession !== true) {
 			return null
 		}
-		if (payload.clear === true) {
-			return { clear: true }
+		if (typeof payload.sid !== 'string' || typeof payload.jti !== 'string') {
+			return null
 		}
-		return { session: (payload.payload ?? {}) as App.Session, merge: payload.merge === true }
+		const binding = { sid: payload.sid as string, jti: payload.jti as string }
+		if (payload.clear === true) {
+			return { clear: true, ...binding }
+		}
+		return {
+			session: (payload.payload ?? {}) as App.Session,
+			merge: payload.merge === true,
+			...binding,
+		}
 	} catch {
 		return null
 	}
