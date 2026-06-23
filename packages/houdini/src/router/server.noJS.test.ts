@@ -1,15 +1,15 @@
 import { createSchema } from 'graphql-yoga'
 import { test, expect, describe, vi, beforeAll } from 'vitest'
 
-import { encode } from './jwt.js'
-import { _serverHandler } from './server.js'
+import { _serverHandler, signFormToken } from './server.js'
 
 // the form CSRF token is always on; tests use a known session key so they can mint a valid
-// token (the server falls back to a random per-process key when none is configured)
+// token through the real path (the test requests carry no cookie, so the bound session is
+// the empty {} the server also sees)
 const TOKEN_KEY = 'test-secret'
 let validToken: string
 beforeAll(async () => {
-	validToken = await encode({ houdiniForm: true }, TOKEN_KEY)
+	validToken = await signFormToken({}, [TOKEN_KEY])
 })
 
 // An end-to-end test of the no-JS form path: a native form POST is run through the real
@@ -224,15 +224,87 @@ describe('no-JS form submission (real Yoga)', () => {
 			)
 			expect(res.status).toBe(403)
 		})
+
+		test('rejects a token bound to a different session', async () => {
+			// a valid token minted for someone else's session must not work on this request
+			// (which carries no cookie ⇒ the empty session)
+			const otherToken = await signFormToken({ userId: 'someone-else' } as any, [TOKEN_KEY])
+			const res = await serverWith()(
+				formPOST('http://localhost/x', {
+					__houdini_form: 'CreateUser',
+					name: 'A',
+					__houdini_csrf: otherToken,
+				})
+			)
+			expect(res.status).toBe(403)
+		})
 	})
 
-	test('the GraphQL endpoint rejects a form-encoded body (no bypass around the form handler)', async () => {
-		// a form-encoded POST straight to the graphql endpoint must not execute as an
-		// operation — otherwise it would be a CSRF bypass around handleForm's Origin check
-		const handler = serverWith()
+	test('rejects a form body larger than formMaxBodyBytes (413)', async () => {
+		// a tiny cap so a normal body trips it; the guard runs before the body is buffered
+		const handler = _serverHandler({
+			schema,
+			client: { componentCache: {}, registerProxy: vi.fn() } as any,
+			production: true,
+			manifest: {
+				pages: {},
+				pagesByUrl: {},
+				formActions: {
+					CreateUser: () => Promise.resolve({ default: createUserArtifact as any }),
+				},
+			} as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: { router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 } } as any,
+			on_render: () => new Response('page'),
+		})
 		const res = await handler(
-			formPOST('http://localhost/_api', { query: 'mutation { createUser(name: "x") { id } }' })
+			new Request('http://localhost/x', {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					origin: 'http://localhost',
+					'content-length': '50', // > the 5-byte cap
+				},
+				body: new URLSearchParams({ __houdini_form: 'CreateUser', name: 'A' }),
+			})
 		)
-		expect(res.status).not.toBe(200)
+		expect(res.status).toBe(413)
+	})
+
+	describe('GraphQL endpoint CSRF guard (CORS-simple POSTs)', () => {
+		// these are the cross-origin channels that bypass preflight; none may reach Yoga
+		// without the header our client sets.
+		test('rejects an x-www-form-urlencoded POST (415)', async () => {
+			const res = await serverWith()(
+				formPOST('http://localhost/_api', {
+					query: 'mutation { createUser(name: "x") { id } }',
+				})
+			)
+			expect(res.status).toBe(415)
+		})
+
+		test('rejects a multipart POST without the x-houdini-request header (403)', async () => {
+			const form = new FormData()
+			form.set('operations', JSON.stringify({ query: 'mutation { createUser(name: "x") { id } }' }))
+			const res = await serverWith()(
+				new Request('http://localhost/_api', { method: 'POST', body: form })
+			)
+			expect(res.status).toBe(403)
+		})
+
+		test('lets a JSON POST through without the header (preflight already protects it)', async () => {
+			// application/json is not a CORS-simple type, so it forces a preflight and needs
+			// no extra header; it should reach Yoga and execute
+			const res = await serverWith()(
+				new Request('http://localhost/_api', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ query: 'mutation { createUser(name: "x") { id } }' }),
+				})
+			)
+			expect(res.status).toBe(200)
+		})
 	})
 })

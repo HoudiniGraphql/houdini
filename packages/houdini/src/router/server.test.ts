@@ -1,14 +1,13 @@
 import { test, expect, describe, vi, beforeAll } from 'vitest'
 
-import { encode } from './jwt.js'
-import { _serverHandler, collect_response_headers } from './server.js'
+import { _serverHandler, collect_response_headers, signFormToken } from './server.js'
 
-// form submissions carry an always-on CSRF token; configure a known session key so tests
-// can mint a valid one
+// form submissions carry an always-on, session-bound CSRF token; configure a known session
+// key so tests can mint a valid one through the real path (no cookie ⇒ bound to the empty {})
 const TOKEN_KEY = 'test-secret'
 let validToken: string
 beforeAll(async () => {
-	validToken = await encode({ houdiniForm: true }, TOKEN_KEY)
+	validToken = await signFormToken({}, [TOKEN_KEY])
 })
 
 describe('_serverHandler url handling', () => {

@@ -175,6 +175,10 @@ type RouterConfig = {
 	// The form handler's CSRF check is fail-closed: a form POST whose Origin is absent or
 	// matches neither the request's own origin nor this allowlist is rejected (403).
 	allowedOrigins?: string[]
+	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
+	// Defaults to 10 MB. Raise it for large uploads. (Bodies without a Content-Length — e.g.
+	// chunked — fall back to the host/proxy's own limit.)
+	formMaxBodyBytes?: number
 }
 
 type AuthStrategy =

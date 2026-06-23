@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
-	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -156,7 +155,7 @@ func generateSchemaFile(
 					schemaString.WriteString(", ")
 				}
 				schemaString.WriteString(
-					fmt.Sprintf("%s: %s%s", arg.Name, arg.Type, arg.TypeModifiers),
+					fmt.Sprintf("%s: %s", arg.Name, renderGraphQLType(arg.Type, arg.TypeModifiers)),
 				)
 			}
 			schemaString.WriteString(")")
@@ -413,6 +412,22 @@ func generateEnumFiles(
 	}
 
 	return nil
+}
+
+// renderGraphQLType reconstructs the GraphQL type string from a base type and its
+// inner→outer type-modifier encoding ("]" = list wrapper, "!" = non-null), e.g.
+// ("String", "]") → "[String]", ("String", "!]!") → "[String!]!".
+func renderGraphQLType(base, modifier string) string {
+	out := base
+	for _, ch := range modifier {
+		switch ch {
+		case '!':
+			out += "!"
+		case ']':
+			out = "[" + out + "]"
+		}
+	}
+	return out
 }
 
 // helper

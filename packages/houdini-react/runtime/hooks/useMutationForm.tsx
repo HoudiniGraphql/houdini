@@ -70,7 +70,7 @@ export function useMutationForm<
 
 	const formId = opts.id ?? artifact.endpoint?.id ?? artifact.name
 
-	// the opt-in CSRF token (null unless router.formToken is enabled)
+	// the session-bound CSRF token the server minted for this render
 	const csrfToken = useFormToken()
 
 	// seed from the server-injected result so the no-JS re-render and the enhanced path
@@ -87,7 +87,8 @@ export function useMutationForm<
 			const variables = coerceFormData(
 				new FormData(event.currentTarget),
 				artifact.input ?? EMPTY_INPUT,
-				getCurrentConfig()
+				getCurrentConfig(),
+				artifact.endpoint?.fields
 			) as _Input
 			const result = await observer.send({ variables, session })
 			const errors = result.errors ?? null

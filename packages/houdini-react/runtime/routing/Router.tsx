@@ -630,7 +630,8 @@ type RouterContext = {
 	// the PRG error re-render so useMutationForm can seed its initial state inline.
 	formResult: FormResult | null
 
-	// the signed CSRF token forms render in their hidden field, when router.formToken is on.
+	// the session-bound CSRF token forms render in their hidden field (always present from a
+	// server render; null only when there is no server, e.g. a static export).
 	formToken: string | null
 }
 
@@ -662,8 +663,8 @@ export function useFormResult(formId: string): { data: any; errors: any } | null
 	return useRouterContext().formResult?.[formId] ?? null
 }
 
-// useFormToken returns the signed CSRF token to render in a form's hidden field, or null
-// when router.formToken is disabled.
+// useFormToken returns the session-bound CSRF token to render in a form's hidden field, or
+// null when there is no server render to mint it (e.g. a static export).
 export function useFormToken(): string | null {
 	return useRouterContext().formToken
 }

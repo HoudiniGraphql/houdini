@@ -135,4 +135,35 @@ describe('coerceFormData', () => {
 		)
 		expect(result).not.toHaveProperty('__houdini_form')
 	})
+
+	test('an @endpoint(fields:) allowlist drops in-schema fields not on the list', () => {
+		// `age` is a real input field, but absent from the allowlist → it must not be
+		// accepted from the POST (over-posting / mass-assignment mitigation)
+		const result = coerceFormData(
+			form([
+				['name', 'Alice'],
+				['age', '99'],
+			]),
+			input,
+			config,
+			['name']
+		)
+		expect(result).toEqual({ name: 'Alice', active: false })
+		expect(result).not.toHaveProperty('age')
+	})
+
+	test('the allowlist keeps nested and list paths that are listed', () => {
+		const result = coerceFormData(
+			form([
+				['address.city', 'NYC'],
+				['address.zip', '10001'],
+				['tags[]', 'a'],
+			]),
+			input,
+			config,
+			['address.city', 'tags[]']
+		)
+		expect(result.address).toEqual({ city: 'NYC' }) // zip dropped, not on the list
+		expect(result.tags).toEqual(['a'])
+	})
 })

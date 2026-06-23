@@ -7,7 +7,7 @@ export default function MutationFormView() {
 	const { form, hidden, state, pending } = useMutationForm(
 		graphql(`
 			mutation MutationFormCreate($name: String!, $birthDate: DateTime!)
-				@endpoint(redirect: "/mutation-form/created?id={ addUser.id }") {
+				@endpoint(redirect: "/mutation-form/created?id={ addUser.id }", fields: ["name", "birthDate"]) {
 				addUser(snapshot: "MutationForm", name: $name, birthDate: $birthDate) {
 					id
 					name

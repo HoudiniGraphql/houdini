@@ -2781,6 +2781,33 @@ func TestValidate_Houdini(t *testing.T) {
 					}`,
 				},
 			},
+			{
+				Name: "@endpoint fields entry matching a variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields nested path on a real variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input.field"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields entry not matching any variable (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["nope"]) {
+						update(input: $input)
+					}`,
+				},
+			},
 		},
 	})
 }

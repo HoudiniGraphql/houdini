@@ -39,6 +39,8 @@ func buildEndpointArtifact(doc *collected.Document) string {
 	hasRedirect := false
 	id := ""
 	hasID := false
+	var allowFields []string
+	hasFields := false
 	for _, arg := range directive.Arguments {
 		if arg.Value == nil {
 			continue
@@ -50,6 +52,14 @@ func buildEndpointArtifact(doc *collected.Document) string {
 		case "id":
 			id = arg.Value.Raw
 			hasID = true
+		case "fields":
+			// a list of form-field names; collect each child's raw string
+			hasFields = true
+			for _, child := range arg.Value.Children {
+				if child.Value != nil {
+					allowFields = append(allowFields, child.Value.Raw)
+				}
+			}
 		}
 	}
 
@@ -65,6 +75,17 @@ func buildEndpointArtifact(doc *collected.Document) string {
 	if hasID {
 		fmt.Fprintf(&fields, `
         "id": %s,`, strconv.Quote(id))
+	}
+	if hasFields {
+		var list strings.Builder
+		for i, f := range allowFields {
+			if i > 0 {
+				list.WriteString(", ")
+			}
+			list.WriteString(strconv.Quote(f))
+		}
+		fmt.Fprintf(&fields, `
+        "fields": [%s],`, list.String())
 	}
 
 	return fmt.Sprintf(`

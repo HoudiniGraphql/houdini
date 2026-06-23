@@ -124,6 +124,11 @@ export type EndpointSpec = {
 	redirect?: RedirectTemplate
 	multipart?: boolean
 	id?: string
+	// an optional allowlist of form-field names (`@endpoint(fields: […])`). When present,
+	// only these submitted keys are accepted; everything else is dropped before the mutation
+	// runs — the mitigation for in-schema over-posting / mass assignment. Entries use the
+	// same dotted/`[]` vocabulary as form field names ("input.email", "tags[]").
+	fields?: readonly string[]
 }
 
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{

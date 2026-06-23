@@ -13,6 +13,7 @@ import (
 // endpointUsage collects everything we need to validate a single @endpoint usage.
 type endpointUsage struct {
 	documentID  int
+	directiveID int
 	docKind     string
 	docName     string
 	filepath    string
@@ -45,7 +46,8 @@ func ValidateEndpointDirective(
 			dd.row,
 			dd.column,
 			av.kind,
-			av.raw
+			av.raw,
+			dd.id
 		FROM document_directives dd
 			JOIN documents d ON d.id = dd.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
@@ -60,12 +62,13 @@ func ValidateEndpointDirective(
 		"endpoint_directive": graphql.EndpointDirective,
 	}, func(row plugins.Row) {
 		usage := endpointUsage{
-			documentID: int(row.ColumnInt(0)),
-			docKind:    row.ColumnText(1),
-			docName:    row.ColumnText(2),
-			filepath:   row.ColumnText(3),
-			row:        int(row.ColumnInt(4)),
-			column:     int(row.ColumnInt(5)),
+			documentID:  int(row.ColumnInt(0)),
+			docKind:     row.ColumnText(1),
+			docName:     row.ColumnText(2),
+			filepath:    row.ColumnText(3),
+			row:         int(row.ColumnInt(4)),
+			column:      int(row.ColumnInt(5)),
+			directiveID: int(row.ColumnInt(8)),
 		}
 		// only treat the redirect as present when it was supplied as a string literal.
 		// a non-string value is a type error that core's argument validation reports.
@@ -75,6 +78,15 @@ func ValidateEndpointDirective(
 		}
 		usages = append(usages, usage)
 	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// bulk-load everything the fields-allowlist check needs, so we touch the database a
+	// fixed number of times instead of once per @endpoint usage: the list entries (keyed by
+	// directive id) and the declared variables (keyed by document id).
+	fieldsByDirective, variablesByDocument, err := loadEndpointFieldData(ctx, db)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
@@ -102,6 +114,16 @@ func ValidateEndpointDirective(
 			continue
 		}
 
+		// validate the optional fields allowlist (independent of redirect): each entry must
+		// name a real input path, starting from a declared variable of the mutation.
+		checkEndpointFields(
+			usage,
+			fieldsByDirective[usage.directiveID],
+			variablesByDocument[usage.documentID],
+			location,
+			errs,
+		)
+
 		if !usage.hasRedirect {
 			continue
 		}
@@ -128,6 +150,90 @@ func ValidateEndpointDirective(
 		}
 		validateRedirectPaths(ctx, db, usage, paths, location, errs)
 	}
+}
+
+// loadEndpointFieldData bulk-loads, in two queries, the data the fields-allowlist check
+// needs across every @endpoint usage: the list entries (keyed by directive id, in source
+// order) and the declared variable names (keyed by document id).
+func loadEndpointFieldData(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[int][]string, map[int]map[string]bool, error) {
+	// every `fields` list entry for every @endpoint, in one pass
+	fieldsByDirective := map[int][]string{}
+	err := db.StepQuery(ctx, `
+		SELECT dda.parent, child.raw
+		FROM document_directives dd
+			JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'fields'
+			JOIN argument_values list ON list.id = dda.value
+			JOIN argument_value_children avc ON avc.parent = list.id
+			JOIN argument_values child ON child.id = avc.value
+		WHERE dd.directive = $endpoint_directive
+		ORDER BY dda.parent, avc.row
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		id := int(row.ColumnInt(0))
+		fieldsByDirective[id] = append(fieldsByDirective[id], row.ColumnText(1))
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// the declared variables of every document that carries an @endpoint, in one pass
+	variablesByDocument := map[int]map[string]bool{}
+	err = db.StepQuery(ctx, `
+		SELECT DISTINCT dv.document, dv.name
+		FROM document_variables dv
+			JOIN document_directives dd ON dd.document = dv.document
+		WHERE dd.directive = $endpoint_directive
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		id := int(row.ColumnInt(0))
+		if variablesByDocument[id] == nil {
+			variablesByDocument[id] = map[string]bool{}
+		}
+		variablesByDocument[id][row.ColumnText(1)] = true
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return fieldsByDirective, variablesByDocument, nil
+}
+
+// checkEndpointFields validates the optional `@endpoint(fields: [...])` allowlist against
+// pre-loaded data (no database access). Entries use the form-field-name vocabulary
+// ("name", "input.email", "tags[]"); the top-level segment must be a declared variable of
+// the mutation, so a typo'd entry (which would silently allow nothing at runtime) is caught
+// at build time instead.
+func checkEndpointFields(
+	usage endpointUsage,
+	entries []string,
+	variables map[string]bool,
+	location []*plugins.ErrorLocation,
+	errs *plugins.ErrorList,
+) {
+	for _, entry := range entries {
+		top := topLevelFieldSegment(entry)
+		if top == "" || !variables[top] {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s fields entry %q does not match any variable of %q (entries use form-field names like \"name\" or \"input.email\")",
+					graphql.EndpointDirective, entry, usage.docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+		}
+	}
+}
+
+// topLevelFieldSegment returns the variable-name segment of a form-field path:
+// "input.email" → "input", "tags[]" → "tags", "name" → "name".
+func topLevelFieldSegment(path string) string {
+	seg := path
+	if i := strings.Index(seg, "."); i >= 0 {
+		seg = seg[:i]
+	}
+	return strings.TrimSuffix(seg, "[]")
 }
 
 // isRelativePath reports whether a redirect value is a safe relative path: a single

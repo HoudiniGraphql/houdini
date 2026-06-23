@@ -529,6 +529,7 @@ import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
 import { router_cache, StatusContext } from '../../runtime/routing'
+import { escapeScriptTag } from '../../runtime/escape'
 // @ts-expect-error
 import client from '%s/src/+client'
 // @ts-expect-error
@@ -621,10 +622,10 @@ export const on_render =
 		// A plain (deferred) module runs in document order, after the preamble.
 		injectToStream(`+"`"+`
 		<script>
-			window.__houdini__initial__cache__ = ${cache.serialize()};
-			window.__houdini__initial__session__ = ${JSON.stringify(session)};
-			window.__houdini__form_result__ = ${JSON.stringify(formResult ?? null)};
-			window.__houdini__form_token__ = ${JSON.stringify(formToken ?? null)};
+			window.__houdini__initial__cache__ = ${escapeScriptTag(cache.serialize())};
+			window.__houdini__initial__session__ = ${escapeScriptTag(JSON.stringify(session))};
+			window.__houdini__form_result__ = ${escapeScriptTag(JSON.stringify(formResult ?? null))};
+			window.__houdini__form_token__ = ${escapeScriptTag(JSON.stringify(formToken ?? null))};
 		</script>
 
 		${documentPremable ?? ''}

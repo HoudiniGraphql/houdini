@@ -429,6 +429,177 @@ rejects (`415`) `x-www-form-urlencoded` POSTs to the GraphQL endpoint, keeping t
 handler the only form-driven path. `multipart/form-data` is *not* rejected there because
 the enhanced upload path legitimately posts the GraphQL multipart spec to that endpoint.
 
+## Implementation architecture (as built)
+
+This section is the full picture of what ships, written for a security review. It describes
+the two request paths, every place untrusted input enters, and every control that gates it.
+
+### Component / file map
+
+| Layer | Where | Responsibility |
+|---|---|---|
+| Directive + validation | `packages/houdini-core/plugin/documents/endpoint.go` | Registers `@endpoint`; validates mutation-only placement, relative-path redirect, leaf-scalar interpolation paths (build time) |
+| Artifact emission | `packages/houdini-core/plugin/documents/artifacts/endpoint.go` | Emits the `endpoint` field: parsed `redirect`, `multipart` flag (Upload/File var), `id` |
+| Form-action manifest | `houdini-react/plugin/runtime.go` (emit), `generate.go` (attach) | `form_actions`: name → lazy `import()` of each `@endpoint` mutation's artifact; server-only |
+| Request router | `packages/houdini/src/router/server.ts` `_serverHandler` | Dispatch, `handleForm()`, token mint/verify, page render |
+| Coercion + transport | `packages/houdini/src/runtime/{formData,coerce,multipart,endpoint}.ts` | `coerceFormData`, scalar coercion, `buildGraphQLBody`, `interpolateRedirect` |
+| Client hook | `houdini-react/runtime/hooks/useMutationForm.tsx` | Renders the form + hidden markers; intercepts submit; client navigation |
+| Context plumbing | `houdini-react/runtime/{index.tsx,hydration.tsx,routing/Router.tsx}` | Threads `formResult` / `formToken` from server → tree |
+
+### Request lifecycle (`_serverHandler` dispatch order)
+
+Every request to the app server passes through, in order:
+
+1. **GraphQL endpoint** (`/_api`): served by the local Yoga instance — *but* a POST with
+   `application/x-www-form-urlencoded` is rejected `415` first (closes the same-site form
+   bypass; multipart is allowed for uploads).
+2. **Auth request**: `handle_request` (existing session/login flow). Returns early if it
+   owns the request.
+3. **`handleForm()`** (NEW): a `POST` whose content-type is a form type
+   (`x-www-form-urlencoded` or `multipart/form-data`). Detailed below.
+4. **Page render** (`renderPage`): SSR fallthrough.
+
+`session_keys` is computed once per process: the configured `router.auth.sessionKeys`, or a
+**random per-process key** when none are set. It signs both auth session cookies and the
+form CSRF token (see [CSRF](#csrf)).
+
+### No-JS path — `handleForm()` step by step (all inputs untrusted)
+
+The browser POSTs a native form to the page URL. Everything in the request body and headers
+is attacker-controllable; the session cookie is the only server-trusted input.
+
+1. **Method + content-type gate** — non-POST or non-form requests return `null` (fall
+   through). 
+2. **Origin check (fail-closed)** — `Origin` header must equal the request's own origin or
+   a `router.allowedOrigins` entry; otherwise `403`. Absent `Origin` ⇒ `403`. This is the
+   primary CSRF control.
+3. **Body size guard + parse** — reject (`413`) when `Content-Length` exceeds
+   `router.formMaxBodyBytes` (default 10 MB) *before* buffering, then `await
+   request.formData()`. (A chunked body with no `Content-Length` falls back to the
+   host/proxy limit.)
+4. **CSRF token (always on)** — the `__houdini_csrf` field must be a JWT that verifies
+   against `session_keys[0]` (`jwt.ts` `verify`, HS256). Missing / malformed / bad-signature
+   ⇒ `403`. (`verify` *throws* on a malformed token; that is caught and treated as invalid.)
+5. **Identify the mutation** — the hidden `__houdini_form` field names the mutation;
+   `__houdini_form_id` (default = mutation name) keys the result. The name is looked up in
+   `manifest.formActions` — only `@endpoint` mutations are present; an unknown name ⇒ `400`.
+   *An authenticated, same-origin user can invoke any `@endpoint` mutation by name with any
+   variables they choose — this is by design (it is a mutation the app exposed as a form);
+   authorization is the resolver's job via the session context, exactly as for any GraphQL
+   request.*
+6. **Coerce variables** — `coerceFormData(formData, artifact.input, config)`. Driven by the
+   artifact's input metadata; it iterates the *known* fields, so the marker / token fields
+   (and any unknown form field) are dropped and never reach the mutation. Produces rich
+   values (e.g. a `Date`).
+7. **Marshal** — `marshalInputs(...)` converts rich values to transport form, identical to
+   the client send (so custom scalars go over the wire correctly).
+8. **Build the request** — `buildGraphQLBody`: JSON, or a GraphQL-multipart-spec `FormData`
+   when any variable is a `File`/`Blob`.
+9. **Execute** — through the already-wired local Yoga proxy (`client.registerProxy`), with
+   the caller's session forwarded as the cookie. Session/identity comes from the cookie, not
+   from form fields — there is no trusted-variable injection surface.
+10. **Branch** —
+    - GraphQL errors ⇒ re-render the page with the result injected as `formResult`, status
+      `422`. (Yoga masks error messages in production, so resolver internals don't leak.)
+    - success + `redirect` ⇒ `303` to `interpolateRedirect(template, data)`.
+    - success, no redirect ⇒ `303` back to the page URL (PRG, refresh-safe).
+
+### Enhanced path (after hydration)
+
+`useMutationForm` renders the *same* string-action form, so hydration is byte-identical.
+After hydration `onSubmit` intercepts: `preventDefault` → `coerceFormData` (same function,
+same rules) → `observer.send` through the normal client pipeline (which marshals and does
+its own multipart handling) → set `state` → on success `interpolateRedirect` + client
+`goto`. The enhanced path posts `application/json` (or multipart for files) to `/_api`,
+which is not a CORS simple request and is preflight-protected. The hidden markers + CSRF
+token are rendered but only consumed by the no-JS path.
+
+### Redirect handling (open-redirect)
+
+Closed at three layers: (1) **build time** — the compiler rejects any `redirect` that isn't
+a single-leading-slash relative path (no scheme, no `//`) and requires each interpolation
+path to resolve to a leaf scalar in the selection set; (2) **runtime** — `interpolateRedirect`
+emits literal segments verbatim and `encodeURIComponent`s every interpolated value; (3) a
+`null`/`undefined` interpolation value aborts the redirect (PRG-back instead of
+`/users/undefined`). The template is a compiler-parsed array, never re-parsed from a string
+at request time.
+
+### CSRF trust model (layered, all fail-closed)
+
+1. `SameSite=Lax; HttpOnly; Secure` session cookie (existing).
+2. Mandatory `Origin` check on every form POST (primary control; closes cross-site and,
+   with the allowlist, governs multi-origin).
+3. `415` rejection of `x-www-form-urlencoded` at the GraphQL endpoint (prevents the same-site
+   form-POST bypass around `handleForm`).
+4. Always-on **signed token**: server signs `{ houdiniForm: true }` with `session_keys[0]`
+   at render, renders it in `__houdini_csrf`, and verifies the signature on submit. A
+   cross-origin page cannot read the token (same-origin policy on the response body), so it
+   cannot forge a valid POST even from a sibling subdomain.
+
+### Security notes & residual risks (for the reviewer)
+
+- **Token shape.** The token is a *signed proof of server origin*, not a per-session /
+  per-form / per-request nonce. The payload is a constant and there is **no expiry**, so any
+  token this server issues is accepted for any form/session until the signing key rotates.
+  This is sufficient for CSRF (an attacker cannot obtain a valid token cross-origin) but is
+  **not** anti-replay and does not bind a token to a user. Tightening (per-session value,
+  `exp`) is a candidate hardening — flagged explicitly for review.
+- **Random key fallback.** Without configured `sessionKeys`, the signing key is random
+  per-process: tokens (and auth sessions) do not survive a restart and do not verify across
+  a load-balanced fleet. The defense still holds (a wrong key only ever *rejects*), but
+  production deployments must configure `sessionKeys` for correctness, not just security.
+- **Multipart bypass residual.** `x-www-form-urlencoded` is rejected at `/_api`, but
+  `multipart/form-data` is not (uploads need it). A same-site attacker could in principle
+  craft a GraphQL-multipart-spec `multipart` form POST to `/_api`. It is far harder to forge
+  and still gated by `SameSite=Lax` for authenticated mutations; noted as a known gap.
+- **Mutation reachability.** Any mutation carrying `@endpoint` is invocable by name through
+  the form handler by anyone who passes the Origin + token checks. Treat `@endpoint` as
+  "this mutation is exposed to first-party browser forms"; resolvers must still authorize.
+- **Over-posting / mass assignment.** `coerceFormData` drives off the mutation's *input
+  type*, not the inputs the page rendered — so it accepts any in-schema field whether or not
+  a visible `<input>` exists. The "unknown fields are dropped" rule only covers fields that
+  aren't in the schema; an in-schema field like `input.isAdmin` is still accepted from the
+  POST. **The visible markup is not the trust boundary; the input type is.** Two mitigations:
+  - **`@endpoint(fields: [...])`** — an optional compile-time allowlist of form-field names
+    (`"name"`, `"input.email"`, `"tags[]"`). When present, `coerceFormData` drops any
+    submitted key outside it, *on both paths* (the list is baked into the artifact, so the
+    server handler and the client hook enforce the identical set; a hook-only option would
+    leave the no-JS POST open). Absent `fields`, the whole input type is accepted.
+  - **Loud documentation (the default-case mitigation):** never put authorization-sensitive
+    fields (roles, ownership, account flags) in an `@endpoint` mutation's input — split them
+    into a separate mutation or set them server-side from the session context, never from a
+    variable.
+
+  The compiler validates that each `fields` entry's top-level segment names a declared
+  variable of the mutation (so a typo like `["nam"]` is a build error, not a silently-empty
+  allowlist). Remaining gap: it does not yet walk *deeper* segments (`input.email`) against
+  the input object's fields — those still pass as long as the top-level variable exists.
+- **Origin-check baseline behind a proxy (audited).** The check compares the request
+  `Origin` against `parsedURL.origin`, where `parsedURL = new URL(request.url)`. The node
+  adapter (`adapter-node/app.ts`) builds that `Request` via `@whatwg-node/server` v0.11,
+  whose `buildFullUrl` derives:
+  - **host** from the `Host` header (or HTTP/2 `:authority`), then `req.hostname`, then the
+    socket address — **it never reads any `X-Forwarded-*` header** (verified against the
+    package source); and
+  - **scheme** from `req.protocol || (socket.encrypted ? 'https' : 'http')`, which for the
+    plain `node:http` server resolves to `http` whenever TLS is terminated upstream.
+
+  Two consequences, neither a bypass:
+  - **No forwarded-host spoofing vector.** Because `X-Forwarded-Host` is ignored and the only
+    host input is `Host`, a cross-site attacker cannot make `parsedURL.origin` equal their
+    own origin (the victim's browser sets `Host` to the *target* host). The session-bound
+    token is a second layer regardless.
+  - **Availability, not security:** behind a TLS-terminating proxy the derived scheme is
+    `http` while the browser's `Origin` is `https://…`, so the bare check would **`403`
+    legitimate** submissions. **Fix:** pin the canonical public origin(s) in
+    `router.allowedOrigins` (e.g. `["https://app.example.com"]`); the check accepts any
+    listed origin, so it no longer depends on the derived scheme. Production deployments
+    behind a proxy must configure this. (A different adapter that *does* populate
+    `req.protocol`/host from forwarded headers would reintroduce a trusted-proxy assumption;
+    that is the adapter's responsibility to document.)
+- **No-JS session establishment is out of scope** — login that must set a cookie without JS
+  uses the existing auth redirect flow, not this endpoint.
+
 ## Test plan
 
 Per the project testing heuristic, browser-verifiable behavior needs two layers:

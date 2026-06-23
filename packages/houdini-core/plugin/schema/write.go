@@ -1101,6 +1101,15 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive":      graphql.EndpointDirective,
+		"name":           "fields",
+		"type":           "String",
+		"type_modifiers": "]",
+	})
+	if err != nil {
+		return err
+	}
 
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{

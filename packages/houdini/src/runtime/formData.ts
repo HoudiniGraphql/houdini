@@ -28,21 +28,29 @@ import type { InputObject } from './types.js'
 export function coerceFormData(
 	formData: FormData,
 	input: InputObject,
-	config: ConfigFile = getCurrentConfig()
+	config: ConfigFile = getCurrentConfig(),
+	// optional `@endpoint(fields: […])` allowlist; when present, any submitted key not in it
+	// is dropped (the over-posting / mass-assignment mitigation). Both the server and client
+	// pass `artifact.endpoint.fields`, so the two paths enforce the same list.
+	allowedFields?: readonly string[]
 ): Record<string, any> {
 	// step 1: fold the flat keys into a nested structure of raw strings / arrays / Files
-	const raw = foldFormData(formData)
+	const raw = foldFormData(formData, allowedFields ? new Set(allowedFields) : undefined)
 
 	// step 2: coerce against the metadata starting from the top-level fields
 	return coerceObject(raw, input.fields, input, config)
 }
 
 // foldFormData turns flat FormData keys into a nested object following the
-// dot/`[]` path convention. Values stay as their raw FormData form (string | File).
-function foldFormData(formData: FormData): Record<string, any> {
+// dot/`[]` path convention. Values stay as their raw FormData form (string | File). When an
+// allowlist is given, keys outside it are skipped before they ever enter the structure.
+function foldFormData(formData: FormData, allowed?: Set<string>): Record<string, any> {
 	const root: Record<string, any> = {}
 
 	formData.forEach((value, key) => {
+		if (allowed && !allowed.has(key)) {
+			return
+		}
 		const segments = key.split('.')
 		let cursor = root
 

@@ -90,6 +90,11 @@ const defaultFetch = (
 			headers: {
 				Accept: 'application/graphql+json, application/json',
 				'Content-Type': 'application/json',
+				// a header a cross-origin <form>/simple request cannot set. The server
+				// requires it for CORS-simple POSTs to the graphql endpoint (uploads use
+				// multipart, which bypasses preflight) so it can't be a CSRF channel. Must
+				// stay in sync with HOUDINI_REQUEST_HEADER in router/server.ts.
+				'x-houdini-request': 'true',
 				...params?.headers,
 			},
 		})

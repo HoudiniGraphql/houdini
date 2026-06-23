@@ -14,7 +14,7 @@ import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
 import { marshalInputs } from '../runtime/scalars.js'
 import { serialize as encodeCookie } from './cookies.js'
-import { encode as encodeJWT, verify as verifyJWT } from './jwt.js'
+import { encode as encodeJWT, verify as verifyJWT, decode as decodeJWT } from './jwt.js'
 import { find_match, find_prefix_match } from './match.js'
 import { get_session, handle_request, session_cookie_name } from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
@@ -24,9 +24,93 @@ import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './ty
 // submitted form renders its result/errors inline.
 export type FormResult = Record<string, { data: any; errors: any }>
 
-// the hidden field carrying the opt-in CSRF token, and the signed payload it holds.
+// the hidden field carrying the CSRF token.
 const CSRF_FIELD = '__houdini_csrf'
-const CSRF_PAYLOAD = { houdiniForm: true }
+// how long a rendered form's token stays valid (seconds)
+const CSRF_TTL_SECONDS = 60 * 60 * 2
+
+// formTokenKey derives a CSRF-token signing key that is domain-separated from the session
+// cookie key, so a session cookie (also a JWT signed with session_keys[0]) can never be
+// presented as a valid CSRF token, and vice versa.
+function formTokenKey(sessionKeys: string[]): string {
+	return sessionKeys[0] + '|houdini-form-csrf'
+}
+
+// stableStringify serializes with sorted keys so the session fingerprint is deterministic
+// across the render and the submit.
+function stableStringify(value: any): string {
+	if (value && typeof value === 'object' && !Array.isArray(value)) {
+		return (
+			'{' +
+			Object.keys(value)
+				.sort()
+				.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k]))
+				.join(',') +
+			'}'
+		)
+	}
+	return JSON.stringify(value ?? null)
+}
+
+// sessionFingerprint is a keyed (HMAC) hash of the session — it binds a token to a specific
+// session without leaking the session contents into the rendered page (the token payload is
+// readable base64).
+async function sessionFingerprint(session: App.Session, key: string): Promise<string> {
+	const enc = new TextEncoder()
+	const cryptoKey = await crypto.subtle.importKey(
+		'raw',
+		enc.encode(key),
+		{ name: 'HMAC', hash: 'SHA-256' },
+		false,
+		['sign']
+	)
+	const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(stableStringify(session)))
+	return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+// signFormToken mints the CSRF token a form renders: a JWT bound to the current session,
+// time-limited, carrying a purpose claim, signed with the domain-separated form key.
+// Exported so tests mint tokens through the real path.
+export async function signFormToken(session: App.Session, sessionKeys: string[]): Promise<string> {
+	const key = formTokenKey(sessionKeys)
+	const sid = await sessionFingerprint(session, key)
+	return encodeJWT(
+		{ houdiniForm: true, sid, exp: Math.floor(Date.now() / 1000) + CSRF_TTL_SECONDS },
+		key
+	)
+}
+
+// verifyFormToken checks the token submitted with a form: valid signature, not expired,
+// carries the purpose claim, and is bound to *this* request's session.
+export async function verifyFormToken(
+	token: unknown,
+	session: App.Session,
+	sessionKeys: string[]
+): Promise<boolean> {
+	if (typeof token !== 'string') {
+		return false
+	}
+	const key = formTokenKey(sessionKeys)
+	try {
+		// signature + exp (verify enforces exp); throws on a malformed token
+		if (!(await verifyJWT(token, key))) {
+			return false
+		}
+		const payload = decodeJWT(token).payload as any
+		if (!payload || payload.houdiniForm !== true) {
+			return false
+		}
+		// session binding: the token must have been minted for this session
+		return payload.sid === (await sessionFingerprint(session, key))
+	} catch {
+		return false
+	}
+}
+
+// a header the Houdini client always sets (see fetch.ts) and a cross-origin CORS-simple
+// request cannot. Required for CORS-simple POSTs to the graphql endpoint so they can't be a
+// CSRF channel. Must stay in sync with the header set in fetch.ts.
+const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
@@ -134,14 +218,15 @@ export function _serverHandler<ComponentType = unknown>({
 		// adapter can apply them before streaming begins
 		const headers = await collect_response_headers(match)
 
-		// mint the signed token forms render in their hidden CSRF field
-		const formToken = await encodeJWT(CSRF_PAYLOAD, session_keys[0])
+		// mint the session-bound token forms render in their hidden CSRF field
+		const session = await get_session(request.headers, session_keys)
+		const formToken = await signFormToken(session, session_keys)
 
 		const rendered = await on_render({
 			url,
 			match,
 			is404,
-			session: await get_session(request.headers, session_keys),
+			session,
 			manifest: nonNullManifest,
 			componentCache,
 			headers,
@@ -190,22 +275,21 @@ export function _serverHandler<ComponentType = unknown>({
 			return new Response('Forbidden', { status: 403 })
 		}
 
+		// DoS guard: reject an over-large body before buffering it. (A chunked body with no
+		// Content-Length falls through to the host/proxy limit.)
+		const maxBodyBytes = config_file.router?.formMaxBodyBytes ?? 10 * 1024 * 1024
+		const contentLength = Number(request.headers.get('content-length'))
+		if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
+			return new Response('Payload Too Large', { status: 413 })
+		}
+
 		const formData = await request.formData()
 
-		// hardened CSRF: the form must carry the token we signed at render time. A
-		// cross-origin page can't read it, so it can't forge a valid submission even on a
-		// shared parent domain.
-		const token = formData.get(CSRF_FIELD)
-		let validToken = false
-		if (typeof token === 'string') {
-			// verify throws on a malformed token, so treat any failure as invalid
-			try {
-				validToken = await verifyJWT(token, session_keys[0])
-			} catch {
-				validToken = false
-			}
-		}
-		if (!validToken) {
+		// hardened CSRF: the form must carry a token we signed at render time — bound to
+		// THIS session, time-limited, purpose-claimed, and signed with a key domain-separated
+		// from the session cookie. A cross-origin page can't read it, so it can't forge one.
+		const session = await get_session(request.headers, session_keys)
+		if (!(await verifyFormToken(formData.get(CSRF_FIELD), session, session_keys))) {
 			return new Response('Forbidden', { status: 403 })
 		}
 		const mutationName = formData.get('__houdini_form')
@@ -232,10 +316,9 @@ export function _serverHandler<ComponentType = unknown>({
 		// carried files the values are File objects, which marshalInputs leaves untouched and
 		// buildGraphQLBody turns into a multipart request (else plain JSON).
 		const input = artifact.input ?? { fields: {}, types: {}, defaults: {}, runtimeScalars: {} }
-		const coerced = coerceFormData(formData, input, config_file)
+		const coerced = coerceFormData(formData, input, config_file, artifact.endpoint?.fields)
 		const variables = (marshalInputs({ artifact, input: coerced, config: config_file }) ??
 			{}) as Record<string, any>
-		const session = await get_session(request.headers, session_keys)
 		const { contentType: bodyContentType, body } = buildGraphQLBody(artifact.raw, variables)
 		const response = await handler(
 			new Request(`http://localhost/${graphqlEndpoint}`, {
@@ -293,18 +376,28 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// if its a request we can process with yoga, do it.
 		if (requestHandler && parsedURL.pathname === graphqlEndpoint) {
-			// our client only ever POSTs JSON (or multipart for uploads) to the graphql
-			// endpoint. Yoga also accepts x-www-form-urlencoded bodies per the
-			// GraphQL-over-HTTP spec, which would let a same-site <form> POST a mutation
-			// straight here — carrying the SameSite=Lax cookie and bypassing the form
-			// handler's Origin check. Reject that content-type so the form handler stays
-			// the only form-driven path.
-			const contentType = request.headers.get('content-type') ?? ''
-			if (
-				request.method === 'POST' &&
-				contentType.includes('application/x-www-form-urlencoded')
-			) {
-				return new Response('Unsupported Media Type', { status: 415 })
+			// CSRF protection for the graphql endpoint. A cross-origin page can reach Yoga
+			// directly with any CORS-*simple* request (no preflight), carrying the victim's
+			// SameSite=Lax cookie — so a `<form>` POST could run any mutation, bypassing the
+			// form handler's checks entirely.
+			//   - application/x-www-form-urlencoded: never a legit request from us → 415.
+			//   - multipart/form-data, text/plain, or no content-type are also CORS-simple
+			//     (uploads use multipart), so require a header only our client sets and a
+			//     cross-origin simple request cannot.
+			//   - application/json is NOT a simple type — it forces a CORS preflight — so it
+			//     is already protected and doesn't need the header.
+			if (request.method === 'POST') {
+				const contentType = request.headers.get('content-type') ?? ''
+				if (contentType.includes('application/x-www-form-urlencoded')) {
+					return new Response('Unsupported Media Type', { status: 415 })
+				}
+				const corsSimpleBody =
+					contentType === '' ||
+					contentType.includes('multipart/form-data') ||
+					contentType.includes('text/plain')
+				if (corsSimpleBody && !request.headers.get(HOUDINI_REQUEST_HEADER)) {
+					return new Response('Forbidden', { status: 403 })
+				}
 			}
 			return requestHandler(request, ...extraContext)
 		}
