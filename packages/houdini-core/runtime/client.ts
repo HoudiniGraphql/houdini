@@ -22,6 +22,7 @@ import {
 	throwOnError as throwOnErrorPlugin,
 	optimisticKeys,
 	cachePolicy,
+	sessionRelay,
 } from './plugins/index.js'
 import pluginsFromPlugins from './plugins/injectedPlugins.js'
 
@@ -85,6 +86,8 @@ export class HoudiniClient extends BaseClient {
 						(
 							[
 								optimisticKeys(cache ?? cacheRef),
+								// relay an @session mutation's mint token to the auth endpoint (sets the cookie)
+								sessionRelay(),
 								// make sure that documents always work
 								queryPlugin(cache ?? cacheRef),
 								mutationPlugin(cache ?? cacheRef),

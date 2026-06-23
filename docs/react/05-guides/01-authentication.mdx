@@ -46,9 +46,11 @@ mutation Login($email: String!, $password: String!) @session(path: "login.sessio
 }
 ```
 
-The value comes from your resolver, never from client input (it's relayed through a
-server-signed token), and no `auth.url` configuration is required — it defaults to a built-in
-endpoint. How the result is written depends on the value and the directive:
+This works for **any** way you run the mutation — `useMutation`, `useMutationForm`, or a bare
+client `send` — not just forms: after the mutation executes, Houdini relays a server-signed
+token of the result to the session endpoint, which sets the cookie. The value comes from your
+resolver, never from client input, and no `auth.url` configuration is required — it defaults to
+a built-in endpoint. How the result is written depends on the value and the directive:
 
 - **Replace (default)** — a non-null object replaces the session. Right for login (it starts a clean session).
 - **Merge** — `@session(path:, merge: true)` upserts the object into the existing session, keeping the rest. Right for a preference that shouldn't drop the auth token:

@@ -1,6 +1,6 @@
 import { getCurrentConfig } from '$houdini/runtime'
 import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { coerceFormData, interpolateRedirect, getAuthUrl, valueAtPath } from 'houdini/runtime'
+import { coerceFormData, interpolateRedirect, valueAtPath } from 'houdini/runtime'
 import React from 'react'
 
 import {
@@ -104,22 +104,11 @@ export function useMutationForm<
 			if (errors && errors.length > 0) {
 				opts.onError?.(errors)
 			} else {
-				// @auth — relay the server-signed session token (minted into the response
-				// extensions) to the auth endpoint, which verifies and sets the cookie. The
-				// token, not the raw value, is what crosses the wire, so the session stays
-				// server-authoritative. Await it so the cookie is set before we navigate.
+				// @session — the cookie is set by the sessionRelay client plugin during the
+				// send above (it relays the minted token to the auth endpoint). Here we only
+				// mirror the result into local state so useSession() updates without a reload:
+				// null clears; otherwise merge upserts and the default replaces.
 				if (artifact.sessionPath) {
-					const token = result.extensions?.houdiniSession
-					if (token) {
-						await fetch(getAuthUrl(getCurrentConfig()), {
-							method: 'POST',
-							body: JSON.stringify({ token }),
-							headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-						})
-					}
-					// reflect the new session in local state immediately so useSession() updates
-					// without a reload (the cookie above is the source of truth; this mirrors it).
-					// null clears; otherwise merge upserts and the default replaces.
 					const next = valueAtPath(result.data, artifact.sessionPath.split('.'))
 					if (next == null) {
 						replaceSession({})
