@@ -12,6 +12,13 @@ export function getAuthUrl(config: ConfigFile): string {
 	return config.router?.auth?.url ?? DEFAULT_AUTH_URL
 }
 
+// The window event the session-relay plugin dispatches after an @session mutation so the
+// router can mirror the write into local React state (no refresh). detail carries the session
+// subtree and whether to merge it (vs replace). Shared so producer (core) and consumer
+// (react router) can't drift.
+export const HOUDINI_SESSION_EVENT = '_houdini_session_'
+export type HoudiniSessionEventDetail = { session: App.Session; merge: boolean }
+
 let mockConfig: ConfigFile | null = null
 
 export function getMockConfig() {

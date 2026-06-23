@@ -15,6 +15,8 @@ export {
 	getCurrentConfig,
 	getAuthUrl,
 	DEFAULT_AUTH_URL,
+	HOUDINI_SESSION_EVENT,
+	type HoudiniSessionEventDetail,
 } from './config.js'
 export { getFieldsForType } from './selection.js'
 export { flatten } from './flatten.js'

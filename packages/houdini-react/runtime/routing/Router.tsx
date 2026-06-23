@@ -6,7 +6,8 @@ import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
 import type { LRUCache } from 'houdini/runtime'
-import { marshalSelection, marshalInputs, getAuthUrl } from 'houdini/runtime'
+import { marshalSelection, marshalInputs, getAuthUrl, HOUDINI_SESSION_EVENT } from 'houdini/runtime'
+import type { HoudiniSessionEventDetail } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
@@ -564,17 +565,23 @@ export function RouterContextProvider({
 	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
-	// if we detect an event that contains a new session value
+	// if we detect an event that contains a new session value. The detail carries the subtree
+	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
+	// it wholesale; a legacy plain-session detail is treated as a replace.
 	const handleNewSession = React.useCallback((event: Event) => {
-		setSession((event as CustomEvent<App.Session>).detail)
+		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
+		const isWrapped = detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+		const next = (isWrapped ? (detail as HoudiniSessionEventDetail).session : detail) as App.Session
+		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+		setSession((prev) => (merge ? { ...prev, ...next } : next))
 	}, [])
 
 	React.useEffect(() => {
-		window.addEventListener('_houdini_session_', handleNewSession)
+		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 
 		// cleanup this component
 		return () => {
-			window.removeEventListener('_houdini_session_', handleNewSession)
+			window.removeEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 		}
 	}, [handleNewSession])
 
@@ -686,11 +693,11 @@ export function useCache() {
 	return useRouterContext().cache
 }
 
-export function updateLocalSession(session: App.Session) {
+export function updateLocalSession(session: App.Session, merge = false) {
 	window.dispatchEvent(
-		new CustomEvent<App.Session>('_houdini_session_', {
+		new CustomEvent<HoudiniSessionEventDetail>(HOUDINI_SESSION_EVENT, {
 			bubbles: true,
-			detail: session,
+			detail: { session, merge },
 		})
 	)
 }

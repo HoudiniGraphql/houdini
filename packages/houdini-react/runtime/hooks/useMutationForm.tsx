@@ -1,15 +1,9 @@
 import { getCurrentConfig } from '$houdini/runtime'
 import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { coerceFormData, interpolateRedirect, valueAtPath } from 'houdini/runtime'
+import { coerceFormData, interpolateRedirect } from 'houdini/runtime'
 import React from 'react'
 
-import {
-	useSession,
-	useRoute,
-	useFormResult,
-	useFormToken,
-	useRouterContext,
-} from '../routing/Router.js'
+import { useSession, useRoute, useFormResult, useFormToken } from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'
 
 // a document with no variables still needs an InputObject shape for the coercer
@@ -73,7 +67,6 @@ export function useMutationForm<
 	const { artifact } = document
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 	const [session] = useSession()
-	const { setSession, replaceSession } = useRouterContext()
 	const { pathname, goto } = useRoute()
 
 	const formId = opts.id ?? artifact.endpoint?.id ?? artifact.name
@@ -104,20 +97,10 @@ export function useMutationForm<
 			if (errors && errors.length > 0) {
 				opts.onError?.(errors)
 			} else {
-				// @session — the cookie is set by the sessionRelay client plugin during the
-				// send above (it relays the minted token to the auth endpoint). Here we only
-				// mirror the result into local state so useSession() updates without a reload:
-				// null clears; otherwise merge upserts and the default replaces.
-				if (artifact.sessionPath) {
-					const next = valueAtPath(result.data, artifact.sessionPath.split('.'))
-					if (next == null) {
-						replaceSession({})
-					} else if (artifact.sessionMerge) {
-						setSession(next as Partial<App.Session>)
-					} else {
-						replaceSession(next as App.Session)
-					}
-				}
+				// @session writes are handled entirely by the sessionRelay client plugin during
+				// the send above: it relays the minted token to the auth endpoint (sets the
+				// cookie) and mirrors the result into local state, so useSession() updates without
+				// a reload. Nothing session-specific to do here.
 				opts.onSuccess?.(result.data as _Result)
 				// navigate to the same target the server would 303 to
 				const redirect = artifact.endpoint?.redirect
