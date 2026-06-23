@@ -32,7 +32,9 @@ describe('buildGraphQLBody', () => {
 
 	test('records the dotted path for a nested file', () => {
 		const file = new Blob(['x'])
-		const result = buildGraphQLBody('mutation M($input: I!) { ok }', { input: { avatar: file } })
+		const result = buildGraphQLBody('mutation M($input: I!) { ok }', {
+			input: { avatar: file },
+		})
 		const form = result.body as FormData
 		expect(JSON.parse(form.get('map') as string)).toEqual({ '1': ['variables.input.avatar'] })
 	})

@@ -570,8 +570,11 @@ export function RouterContextProvider({
 	// it wholesale; a legacy plain-session detail is treated as a replace.
 	const handleNewSession = React.useCallback((event: Event) => {
 		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
-		const isWrapped = detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
-		const next = (isWrapped ? (detail as HoudiniSessionEventDetail).session : detail) as App.Session
+		const isWrapped =
+			detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+		const next = (
+			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
+		) as App.Session
 		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
 		setSession((prev) => (merge ? { ...prev, ...next } : next))
 	}, [])

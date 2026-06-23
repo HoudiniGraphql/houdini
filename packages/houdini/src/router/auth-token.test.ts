@@ -34,8 +34,14 @@ describe('session-mint token', () => {
 
 	test('binds sid to the prior session and carries a unique jti', async () => {
 		const prior = { userId: '7' } as any
-		const a = await verifySessionToken(await signSessionToken({ x: 1 } as any, keys, false, prior), keys)
-		const b = await verifySessionToken(await signSessionToken({ x: 2 } as any, keys, false, prior), keys)
+		const a = await verifySessionToken(
+			await signSessionToken({ x: 1 } as any, keys, false, prior),
+			keys
+		)
+		const b = await verifySessionToken(
+			await signSessionToken({ x: 2 } as any, keys, false, prior),
+			keys
+		)
 		const other = await verifySessionToken(
 			await signSessionToken({ x: 3 } as any, keys, false, { userId: '8' } as any),
 			keys

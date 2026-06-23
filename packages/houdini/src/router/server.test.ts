@@ -142,7 +142,9 @@ describe('_serverHandler form submissions', () => {
 		})
 		const res = await handler(formRequest({ __houdini_form: 'CreateUser', name: 'Alice' }))
 		expect(res.status).toBe(422)
-		expect(seen.formResult).toEqual({ CreateUser: { data: null, errors: [{ message: 'nope' }] } })
+		expect(seen.formResult).toEqual({
+			CreateUser: { data: null, errors: [{ message: 'nope' }] },
+		})
 	})
 
 	test('keys formResult by an explicit form id', async () => {

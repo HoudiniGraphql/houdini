@@ -52,9 +52,13 @@ const schema = createSchema({
 		Mutation: {
 			createUser: (_: unknown, { name }: { name: string }) => ({ id: '7', name }),
 			// the resolver decides the session payload (server-authoritative)
-			login: (_: unknown, { email }: { email: string }) => ({ session: { token: 'tok-' + email } }),
+			login: (_: unknown, { email }: { email: string }) => ({
+				session: { token: 'tok-' + email },
+			}),
 			// a failed login returns a null session — must NOT clear the existing session
-			maybeLogin: (_: unknown, { ok }: { ok: boolean }) => ({ session: ok ? { token: 'ok' } : null }),
+			maybeLogin: (_: unknown, { ok }: { ok: boolean }) => ({
+				session: ok ? { token: 'ok' } : null,
+			}),
 			boom: () => {
 				throw new Error('kaboom')
 			},
@@ -258,10 +262,9 @@ describe('no-JS form submission (real Yoga)', () => {
 		// the resolver's session subtree (login.session) was written to the cookie, server-side
 		const setCookie = res.headers.get('set-cookie') ?? ''
 		expect(setCookie).toContain('__houdini__=')
-		const session = await get_session(
-			new Headers({ cookie: setCookie.split(';')[0] }),
-			[TOKEN_KEY]
-		)
+		const session = await get_session(new Headers({ cookie: setCookie.split(';')[0] }), [
+			TOKEN_KEY,
+		])
 		expect((session as any).token).toBe('tok-a@b.co')
 	})
 
@@ -278,7 +281,8 @@ describe('no-JS form submission (real Yoga)', () => {
 
 	test('the session-mint plugin mints a token for an @session mutation but skips the internal form request', async () => {
 		const handler = serverWith()
-		const query = 'mutation Login($email: String!) { login(email: $email) { session { token } } }'
+		const query =
+			'mutation Login($email: String!) { login(email: $email) { session { token } } }'
 		const body = JSON.stringify({ query, variables: { email: 'a@b.co' } })
 
 		// a normal GraphQL execution mints the server-signed token into extensions (the enhanced
@@ -369,7 +373,10 @@ describe('no-JS form submission (real Yoga)', () => {
 				graphqlEndpoint: '/_api',
 				componentCache: {},
 				config_file: {
-					router: { auth: { sessionKeys: [TOKEN_KEY] }, allowedOrigins: ['http://trusted.com'] },
+					router: {
+						auth: { sessionKeys: [TOKEN_KEY] },
+						allowedOrigins: ['http://trusted.com'],
+					},
 				} as any,
 				on_render: () => new Response('page'),
 			})
@@ -402,7 +409,9 @@ describe('no-JS form submission (real Yoga)', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: { router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 } } as any,
+			config_file: {
+				router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 },
+			} as any,
 			on_render: () => new Response('page'),
 		})
 		const res = await handler(
@@ -436,7 +445,9 @@ describe('no-JS form submission (real Yoga)', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: { router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 } } as any,
+			config_file: {
+				router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 },
+			} as any,
 			on_render: () => new Response('page'),
 		})
 		const payload = new URLSearchParams({
@@ -454,7 +465,10 @@ describe('no-JS form submission (real Yoga)', () => {
 		const res = await handler(
 			new Request('http://localhost/users/new', {
 				method: 'POST',
-				headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'http://localhost' },
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					origin: 'http://localhost',
+				},
 				body,
 				duplex: 'half',
 			} as any)
@@ -479,7 +493,10 @@ describe('no-JS form submission (real Yoga)', () => {
 
 		test('rejects a multipart POST without the x-houdini-request header (403)', async () => {
 			const form = new FormData()
-			form.set('operations', JSON.stringify({ query: 'mutation { createUser(name: "x") { id } }' }))
+			form.set(
+				'operations',
+				JSON.stringify({ query: 'mutation { createUser(name: "x") { id } }' })
+			)
 			const res = await serverWith()(
 				new Request('http://localhost/_api', { method: 'POST', body: form })
 			)
@@ -552,7 +569,10 @@ describe('no-JS form submission (real Yoga)', () => {
 						'content-type': 'application/x-www-form-urlencoded',
 						origin: 'http://localhost',
 					},
-					body: new URLSearchParams({ __houdini_logout: '1', redirectTo: 'https://evil.com' }),
+					body: new URLSearchParams({
+						__houdini_logout: '1',
+						redirectTo: 'https://evil.com',
+					}),
 				})
 			)
 			expect(res.headers.get('location')).toBe('/')
@@ -579,7 +599,11 @@ describe('no-JS form submission (real Yoga)', () => {
 			handler(
 				new Request(authUrl, {
 					method: 'POST',
-					headers: { 'content-type': 'application/json', origin: 'http://localhost', cookie },
+					headers: {
+						'content-type': 'application/json',
+						origin: 'http://localhost',
+						cookie,
+					},
 					body: JSON.stringify({ token }),
 				})
 			)
@@ -595,7 +619,12 @@ describe('no-JS form submission (real Yoga)', () => {
 			const prior = await get_session(new Headers({ cookie }), [TOKEN_KEY])
 
 			// relay a merge token that adds { theme: 'dark' } — like a @session(merge: true) pref
-			const mergeToken = await signSessionToken({ theme: 'dark' } as any, [TOKEN_KEY], true, prior)
+			const mergeToken = await signSessionToken(
+				{ theme: 'dark' } as any,
+				[TOKEN_KEY],
+				true,
+				prior
+			)
 			const res = await relay(handler, cookie, mergeToken)
 			expect(res.status).toBe(200)
 			const session = await get_session(
@@ -651,7 +680,12 @@ describe('no-JS form submission (real Yoga)', () => {
 		test('a GET with a valid signed token sets the session when redirect is enabled', async () => {
 			const handler = serverWith(undefined, { redirect: true })
 			// minted bound to the empty (anonymous) session the browser presents
-			const token = await signSessionToken({ token: 'tok-oauth' } as any, [TOKEN_KEY], false, {})
+			const token = await signSessionToken(
+				{ token: 'tok-oauth' } as any,
+				[TOKEN_KEY],
+				false,
+				{}
+			)
 			const res = await handler(
 				new Request(`${authUrl}?token=${token}&redirectTo=/home`, { method: 'GET' })
 			)

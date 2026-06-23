@@ -129,9 +129,10 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 			return response
 		}
 
-		const body = (await args.request.json().catch(() => null)) as
-			| { token?: unknown; session?: App.Session | null }
-			| null
+		const body = (await args.request.json().catch(() => null)) as {
+			token?: unknown
+			session?: App.Session | null
+		} | null
 		if (!body || typeof body !== 'object') {
 			return new Response('Bad Request', { status: 400 })
 		}

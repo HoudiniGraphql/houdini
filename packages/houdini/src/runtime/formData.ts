@@ -96,7 +96,9 @@ function coerceObject(
 		// input object types recurse
 		if (nestedFields) {
 			if (Array.isArray(value)) {
-				result[field] = value.map((entry) => coerceObject(entry, nestedFields, input, config))
+				result[field] = value.map((entry) =>
+					coerceObject(entry, nestedFields, input, config)
+				)
 			} else if (value !== undefined) {
 				result[field] = coerceObject(value, nestedFields, input, config)
 			}

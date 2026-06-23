@@ -50,7 +50,11 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 			return {
 				async onExecuteDone({ args, result, setResult }: any) {
 					// only single results carry a session subtree (skip streamed responses)
-					if (!result || typeof result[Symbol.asyncIterator] === 'function' || !result.data) {
+					if (
+						!result ||
+						typeof result[Symbol.asyncIterator] === 'function' ||
+						!result.data
+					) {
 						return
 					}
 					// the no-JS form handler runs the mutation through this same Yoga and sets the

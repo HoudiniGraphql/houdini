@@ -20,7 +20,11 @@ describe('interpolateRedirect', () => {
 	})
 
 	test('returns null when an interpolation path resolves to null/undefined', () => {
-		expect(interpolateRedirect(['/users/', ['createUser', 'id']], { createUser: null })).toBe(null)
-		expect(interpolateRedirect(['/users/', ['createUser', 'id']], { createUser: {} })).toBe(null)
+		expect(interpolateRedirect(['/users/', ['createUser', 'id']], { createUser: null })).toBe(
+			null
+		)
+		expect(interpolateRedirect(['/users/', ['createUser', 'id']], { createUser: {} })).toBe(
+			null
+		)
 	})
 })
