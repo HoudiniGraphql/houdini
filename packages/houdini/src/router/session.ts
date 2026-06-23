@@ -15,7 +15,7 @@ type ServerHandlerArgs = {
 export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const { pathname } = new URL(args.request.url)
 	// the auth endpoint is always mounted (default path when unconfigured) so
-	// progressively-enhanced @auth forms and useSession() work out of the box
+	// progressively-enhanced @session forms and useSession() work out of the box
 	if (pathname.startsWith(getAuthUrl(args.config))) {
 		return await auth_endpoint(args)
 	}
@@ -23,7 +23,7 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 
 // the always-on session endpoint. GET sets the session from query params and redirects (an
 // external redirect-based / OAuth-callback flow); POST sets it from either a server-signed
-// session-mint token (the @auth enhanced path — server-authoritative) or, for
+// session-mint token (the @session enhanced path — server-authoritative) or, for
 // same-origin app code (useSession's updateSession), a raw values body.
 async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefined> {
 	// GET: the session and redirect target are passed as query parameters

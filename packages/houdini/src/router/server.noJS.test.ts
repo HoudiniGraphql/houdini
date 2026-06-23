@@ -106,7 +106,7 @@ const eventArtifact = {
 	endpoint: { redirect: ['/events/', ['createEvent', 'id']] },
 }
 
-// a login mutation that is both a form (@endpoint) and session-establishing (@auth) — its
+// a login mutation that is both a form (@endpoint) and session-establishing (@session) — its
 // `login.session` result subtree becomes the session cookie
 const loginArtifact = {
 	name: 'Login',
@@ -238,7 +238,7 @@ describe('no-JS form submission (real Yoga)', () => {
 		expect(res.headers.get('location')).toBe('/events/marshaled')
 	})
 
-	test('a no-JS @auth login sets the session cookie from the resolver', async () => {
+	test('a no-JS @session login sets the session cookie from the resolver', async () => {
 		const handler = serverWith()
 		const res = await handler(
 			formPOST('http://localhost/login', { __houdini_form: 'Login', email: 'a@b.co' })
@@ -255,8 +255,8 @@ describe('no-JS form submission (real Yoga)', () => {
 		expect((session as any).token).toBe('tok-a@b.co')
 	})
 
-	test('a no-JS @auth mutation that succeeds with a null session clears the cookie (logout)', async () => {
-		// a successful @auth whose session field comes back null is a server-side logout — it
+	test('a no-JS @session mutation that succeeds with a null session clears the cookie (logout)', async () => {
+		// a successful @session whose session field comes back null is a server-side logout — it
 		// deletes the cookie (Max-Age=0)
 		const handler = serverWith()
 		const res = await handler(
@@ -266,7 +266,7 @@ describe('no-JS form submission (real Yoga)', () => {
 		expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
 	})
 
-	test('the session-mint plugin mints a token for an @auth mutation but skips the internal form request', async () => {
+	test('the session-mint plugin mints a token for an @session mutation but skips the internal form request', async () => {
 		const handler = serverWith()
 		const query = 'mutation Login($email: String!) { login(email: $email) { session { token } } }'
 		const body = JSON.stringify({ query, variables: { email: 'a@b.co' } })

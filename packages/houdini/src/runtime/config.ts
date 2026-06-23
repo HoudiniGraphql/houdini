@@ -2,7 +2,7 @@ import type { ConfigFile } from 'houdini'
 
 // The reserved path the auth endpoint is mounted at when `router.auth.url` is not set. It is
 // always available (the router mounts it regardless of auth config) so progressively-enhanced
-// `@auth` forms work out of the box. Shared by the server (mint/verify) and the
+// `@session` forms work out of the box. Shared by the server (mint/verify) and the
 // client (where useSession/useMutationForm POST the session token).
 export const DEFAULT_AUTH_URL = '/__houdini__/auth'
 

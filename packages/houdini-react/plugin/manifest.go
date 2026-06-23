@@ -132,7 +132,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		return ProjectManifest{}, err
 	}
 
-	// @auth mutations (name → sessionPath) — independent of the route documents above, since a
+	// @session mutations (name → sessionPath) — independent of the route documents above, since a
 	// session-establishing mutation need not be a form.
 	manifest.SessionMutations, err = p.loadSessionMutations(ctx)
 	if err != nil {

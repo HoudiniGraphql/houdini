@@ -636,7 +636,7 @@ type RouterContext = {
 	setSession: (newSession: Partial<App.Session>) => void
 
 	// replace the client-side session wholesale (login establishes a fresh session). Local
-	// state only — the cookie is set separately (the @auth token relay / server form handler).
+	// state only — the cookie is set separately (the @session token relay / server form handler).
 	replaceSession: (next: App.Session) => void
 
 	// replace the client-side session with an empty one (logout); pairs with the server clear

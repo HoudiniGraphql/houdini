@@ -327,7 +327,7 @@ func GenerateSelectionDocument(
 	// the runtime hook and server form handler consume
 	endpointValue := buildEndpointArtifact(doc)
 
-	// @auth emits the sessionPath — the result field whose value becomes the session
+	// @session emits the sessionPath — the result field whose value becomes the session
 	sessionValue := buildSessionArtifact(doc)
 
 	// we need to track the optimistic keys

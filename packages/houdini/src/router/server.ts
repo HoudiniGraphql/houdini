@@ -38,8 +38,8 @@ export type FormResult = Record<string, { data: any; errors: any }>
 // CSRF channel. Must stay in sync with the header set in fetch.ts.
 const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
 
-// sessionMintPlugin is the server side of the enhanced @auth path. After a session mutation
-// (any @auth mutation, form or not) executes over GraphQL it mints a server-signed token of
+// sessionMintPlugin is the server side of the enhanced @session path. After a session mutation
+// (any @session mutation, form or not) executes over GraphQL it mints a server-signed token of
 // the resolver's session subtree into `extensions.houdiniSession`. The client relays that
 // token to the auth endpoint, which verifies and sets the cookie — so the value that becomes
 // the session is always server-authoritative (the client can't forge a signed token). It
@@ -59,7 +59,7 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 					if (args?.contextValue?.request?.headers?.get(INTERNAL_FORM_HEADER)) {
 						return
 					}
-					// a failed @auth mutation must never touch the session — auth failure is
+					// a failed @session mutation must never touch the session — auth failure is
 					// signalled by a GraphQL error, and only a *successful* execution mints a token.
 					if (result.errors?.length) {
 						return
@@ -163,7 +163,7 @@ export function _serverHandler<ComponentType = unknown>({
 		})
 	}
 
-	// the enhanced (post-hydration) @auth path needs a Yoga plugin that mints a server-signed
+	// the enhanced (post-hydration) @session path needs a Yoga plugin that mints a server-signed
 	// token of a session mutation's subtree into the response extensions (so the client can
 	// relay it without ever seeing or forging the value). Attach it to whatever Server we use —
 	// created above OR provided by an adapter — by merging into its opts before init, so the
@@ -372,7 +372,7 @@ export function _serverHandler<ComponentType = unknown>({
 		}
 		const formResponse = new Response(null, { status: 303, headers: { Location: location } })
 
-		// progressively-enhanced auth: when the submitted mutation also carries @auth, write the
+		// progressively-enhanced auth: when the submitted mutation also carries @session, write the
 		// session before redirecting (this branch is only reached on success — errors 422'd
 		// above). The value is server-authoritative (resolver output): a non-null object replaces
 		// the session (login), a null one clears it (server-side logout).

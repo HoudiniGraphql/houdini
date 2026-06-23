@@ -61,7 +61,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					variables: ctx.variables ?? {},
 					data: result.data,
 					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
-					// surface response-level extensions (e.g. the @auth mint
+					// surface response-level extensions (e.g. the @session mint
 					// token) so the runtime/hooks can read them off the result
 					extensions: result.extensions,
 					partial: false,

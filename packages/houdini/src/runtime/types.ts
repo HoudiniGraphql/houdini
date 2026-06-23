@@ -352,7 +352,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 	stale: boolean
 	source: DataSources | null
 	variables: _Input | null
-	// response-level GraphQL extensions (e.g. the @auth mint token under
+	// response-level GraphQL extensions (e.g. the @session mint token under
 	// `houdiniSession`); present when the network response carried an extensions object
 	extensions?: Record<string, any>
 }
@@ -360,7 +360,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
 	errors: GraphQLError[] | null
-	// response-level GraphQL extensions (e.g. the @auth session-mint token under
+	// response-level GraphQL extensions (e.g. the @session session-mint token under
 	// `houdiniSession`); present when the network response carried an extensions object
 	extensions?: Record<string, any>
 }
