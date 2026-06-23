@@ -34,10 +34,6 @@ func (p *HoudiniReact) IncludeRuntime(ctx context.Context) (string, error) {
 func (p *HoudiniReact) ClientPlugins(ctx context.Context) (map[string]any, error) {
 	return map[string]any{
 		"$houdini/plugins/houdini-react/runtime/clientPlugin": nil,
-		// @session is React-only, so its mint-token relay is injected here rather than
-		// added to the shared core client pipeline (which Svelte/kit also run). The path
-		// points at the core runtime module copied into the user's $houdini/runtime.
-		"$houdini/runtime/plugins/sessionRelay": nil,
 	}, nil
 }
 
