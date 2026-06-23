@@ -892,7 +892,11 @@ func DiscoverListsThenValidate(
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer insertDiscoveredLists.Finalize()
+	// NOTE: this statement is finalized explicitly before db.Put(conn) below rather
+	// than via defer. The connection is returned to the pool partway through this
+	// function so the remaining work can run concurrently; finalizing in a deferred
+	// call (which runs after Put) would mutate the connection's statement cache while
+	// another goroutine has checked it back out, which is a data race.
 
 	// loop over every name we found and insert the discovered list into the database
 	for _, list := range lists {
@@ -939,11 +943,16 @@ func DiscoverListsThenValidate(
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
+			insertDiscoveredLists.Finalize()
+			db.Put(conn)
 			return
 		}
 	}
 
-	// there's still more to do but we'll parallelize the next steps so we're done with the connectionf
+	// there's still more to do but we'll parallelize the next steps so we're done
+	// with the connection. finalize the statement before returning the connection to
+	// the pool so another goroutine can't check it out while Finalize mutates it.
+	insertDiscoveredLists.Finalize()
 	db.Put(conn)
 
 	// now that we have recorded the discovered lists we can build up the full set of directives and fragments
