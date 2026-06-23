@@ -558,6 +558,22 @@ describe('no-JS form submission (real Yoga)', () => {
 			expect(res.headers.get('location')).toBe('/')
 		})
 
+		test('a logout redirectTo using backslashes falls back to / (no open redirect)', async () => {
+			// the WHATWG URL parser normalizes '\' to '/', so '/\evil.com' would resolve to
+			// 'https://evil.com/' without an explicit backslash guard
+			const res = await serverWith()(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						origin: 'http://localhost',
+					},
+					body: new URLSearchParams({ __houdini_logout: '1', redirectTo: '/\\evil.com' }),
+				})
+			)
+			expect(res.headers.get('location')).toBe('/')
+		})
+
 		// relay a token bound to (sid) the given session cookie, as the mint plugin would
 		const relay = (handler: any, cookie: string, token: string) =>
 			handler(

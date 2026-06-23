@@ -12,8 +12,12 @@ type ServerHandlerArgs = {
 
 // single-use store for relayed session-mint tokens, keyed by jti (per process). A token can be
 // consumed exactly once; combined with its short TTL and sid binding this rejects replays of a
-// leaked token. Per-process is sufficient because the legitimate relay consumes the jti within
-// milliseconds of the mint; the sid binding covers the cross-session case fleet-wide.
+// leaked token. The legitimate relay consumes the jti within milliseconds of the mint. Caveats
+// for fleet deployments: this Map is per-process, and a token minted under an *anonymous* prior
+// session has the constant sid fingerprint({}), so sid adds no cross-session separation there —
+// for anonymous-login tokens, jti + the short TTL are the only replay guard, and a shared store
+// (not this Map) would be needed to enforce single-use across processes. (Tracked for the OAuth
+// work, which binds the redirect flow to the browser with a single-use nonce instead.)
 const SESSION_TOKEN_TTL_MS = 60 * 1000
 const consumedSessionTokens = new Map<string, number>()
 function consumeSessionToken(jti: string): boolean {
@@ -186,12 +190,15 @@ export function clear_session(response: Response) {
 }
 
 // safeRelative guards a redirect target against open-redirect: only a single-leading-slash
-// relative path is allowed, anything else falls back to '/'.
+// relative path is allowed, anything else falls back to '/'. Backslashes are rejected because
+// the WHATWG URL parser normalizes them to forward slashes, so '/\evil.com' would otherwise
+// resolve to 'https://evil.com/'.
 function safeRelative(value: unknown): string {
 	if (
 		typeof value !== 'string' ||
 		!value.startsWith('/') ||
 		value.startsWith('//') ||
+		value.includes('\\') ||
 		value.includes('://')
 	) {
 		return '/'

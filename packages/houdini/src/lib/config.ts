@@ -187,10 +187,13 @@ type AuthStrategy = {
 	// mounted for the POST relay used by progressively-enhanced `@session` forms and
 	// useSession(). Must be a relative path (leading slash). Override only to mount it elsewhere.
 	url?: string
-	// Opt in to the GET redirect-based login callback (e.g. an external auth provider redirects
-	// the browser back to the session endpoint). Off by default so the cookie-writing GET sink
-	// isn't exposed in apps that don't use it; when on, it accepts only a server-signed,
-	// session-bound token (never raw query params).
+	// EXPERIMENTAL — opt in to the GET redirect-based login callback (e.g. an external auth
+	// provider redirects the browser back to the session endpoint). Off by default so the
+	// cookie-writing GET sink isn't exposed in apps that don't use it; when on, it accepts only a
+	// server-signed token (never raw query params). NOTE: the token's session binding (sid) does
+	// not separate anonymous browsers — fingerprint({}) is constant — so enabling this today
+	// leaves a session-fixation risk for logged-out users. Do not enable until the OAuth adapter
+	// lands, which binds the redirect flow to the initiating browser with a single-use nonce.
 	redirect?: boolean
 }
 
