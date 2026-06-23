@@ -32,8 +32,13 @@ export const typeDefs = /* GraphQL */ `
 		ERROR
 	}
 
+	type SessionUser {
+		id: ID!
+		username: String!
+	}
+
 	type AuthSession {
-		token: String!
+		user: SessionUser!
 	}
 
 	type LoginResult {

@@ -12,7 +12,10 @@ export default function AuthFormView() {
 				@session(path: "login.session") {
 				login(username: $username) {
 					session {
-						token
+						user {
+							id
+							username
+						}
 					}
 				}
 			}
@@ -21,7 +24,7 @@ export default function AuthFormView() {
 
 	return (
 		<div>
-			<p data-testid="session-token">{session.token ?? '(none)'}</p>
+			<p data-testid="session-user">{session.user?.username ?? '(none)'}</p>
 			<Form data-testid="login-form">
 				<input name="username" data-testid="username-input" required />
 				<button type="submit" data-testid="submit" disabled={pending}>

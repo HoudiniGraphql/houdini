@@ -40,8 +40,13 @@ export const typeDefs = /* GraphQL */ `
 		ERROR
 	}
 
+	type SessionUser {
+		id: ID!
+		username: String!
+	}
+
 	type AuthSession {
-		token: String!
+		user: SessionUser!
 	}
 
 	type LoginResult {
@@ -657,8 +662,10 @@ export const resolvers = {
 	},
 
 	Mutation: {
-		// @session login: the resolver is the authority on the session payload
-		login: (_, { username }) => ({ session: { token: 'tok-' + username } }),
+		// @session login: the resolver is the authority on the session payload. it returns a
+		// whole user object (not a token) — Houdini signs the entire @session subtree, so the
+		// cookie is trusted regardless of shape, and useSession() reads the user back.
+		login: (_, { username }) => ({ session: { user: { id: 'user-' + username, username } } }),
 		// @session logout: a successful mutation with a null session clears the cookie
 		logout: () => ({ session: null }),
 		// @session(merge: true): a preference upsert — keeps the rest of the session

@@ -3,7 +3,8 @@ import { routes } from '~/utils/routes'
 import { goto } from '~/utils/testsHelper.js'
 
 // Enhanced path: with JS, onSubmit runs the login mutation, relays the signed session token to
-// the auth endpoint (which sets the cookie), then navigates to the redirect.
+// the auth endpoint (which sets the cookie), then navigates to the redirect. The session payload
+// is a whole user object — useSession() reads back login.session.user.
 test('enhanced login establishes the session', async ({ page }) => {
 	await goto(page, routes.auth_form)
 
@@ -16,7 +17,7 @@ test('enhanced login establishes the session', async ({ page }) => {
 
 	// local session updates immediately (no reload) — useSession reflects the new session right
 	// after the enhanced submit, mirroring the cookie the token relay set
-	await expect(page.getByTestId('session-token')).toHaveText('tok-alice')
+	await expect(page.getByTestId('session-user')).toHaveText('alice')
 })
 
 // No-JS path: the same form submits natively, the server runs the mutation, sets the session
@@ -29,7 +30,7 @@ test.describe('without JavaScript', () => {
 		await page.fill('[data-testid="username-input"]', 'bob')
 		await page.click('[data-testid="submit"]')
 		await page.waitForURL(/\/auth-form\/done/)
-		await expect(page.getByTestId('session-token')).toHaveText('tok-bob')
+		await expect(page.getByTestId('session-user')).toHaveText('bob')
 	})
 
 	test('no-JS logout clears the session', async ({ page }) => {
@@ -38,12 +39,12 @@ test.describe('without JavaScript', () => {
 		await page.fill('[data-testid="username-input"]', 'carol')
 		await page.click('[data-testid="submit"]')
 		await page.waitForURL(/\/auth-form\/done/)
-		await expect(page.getByTestId('session-token')).toHaveText('tok-carol')
+		await expect(page.getByTestId('session-user')).toHaveText('carol')
 
 		// the logout form is a native POST that deletes the cookie and redirects back
 		await page.click('[data-testid="logout"]')
 		await page.waitForURL(/\/auth-form$/)
-		await expect(page.getByTestId('session-token')).toHaveText('(none)')
+		await expect(page.getByTestId('session-user')).toHaveText('(none)')
 	})
 })
 

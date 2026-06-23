@@ -8,7 +8,7 @@ export default function AuthDoneView() {
 
 	return (
 		<div>
-			<p data-testid="session-token">{session.token ?? '(none)'}</p>
+			<p data-testid="session-user">{session.user?.username ?? '(none)'}</p>
 			<form {...form} data-testid="logout-form">
 				{hidden}
 				<button type="submit" data-testid="logout">
