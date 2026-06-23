@@ -51,4 +51,5 @@ export const routes = {
 	mutation_form_status: '/mutation-form/status',
 	auth_form: '/auth-form',
 	auth_form_done: '/auth-form/done',
+	session_theme: '/session-theme',
 } as const

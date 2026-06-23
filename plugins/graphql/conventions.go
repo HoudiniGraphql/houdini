@@ -58,7 +58,7 @@ const RefetchableDirective = "refetchable"
 
 const EndpointDirective = "endpoint"
 
-const AuthDirective = "auth"
+const SessionDirective = "session"
 
 const ListOperationSuffixInsert = "_insert"
 

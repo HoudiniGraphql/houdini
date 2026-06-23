@@ -5,10 +5,19 @@ import { signSessionToken, verifySessionToken, signFormToken, verifyFormToken } 
 const keys = ['test-secret']
 
 describe('session-mint token', () => {
-	test('round-trips the signed session payload as a set action', async () => {
+	test('round-trips the signed session payload as a replace action', async () => {
 		const token = await signSessionToken({ userId: '7', token: 'abc' } as any, keys)
 		expect(await verifySessionToken(token, keys)).toEqual({
 			session: { userId: '7', token: 'abc' },
+			merge: false,
+		})
+	})
+
+	test('a merge token round-trips with merge: true', async () => {
+		const token = await signSessionToken({ theme: 'dark' } as any, keys, true)
+		expect(await verifySessionToken(token, keys)).toEqual({
+			session: { theme: 'dark' },
+			merge: true,
 		})
 	})
 

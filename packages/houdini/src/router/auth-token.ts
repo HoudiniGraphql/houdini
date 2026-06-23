@@ -92,21 +92,24 @@ export async function verifyFormToken(
 	}
 }
 
-// the verified outcome of a session-mint token: replace the session with `session`, or clear
-// it. (A null verify result — distinct from this — means the token was invalid.)
-export type SessionTokenResult = { session: App.Session } | { clear: true }
+// the verified outcome of a session-mint token: write `session` (merge into the existing
+// session when `merge`, else replace it), or clear it. (A null verify result — distinct from
+// this — means the token was invalid.)
+export type SessionTokenResult = { session: App.Session; merge: boolean } | { clear: true }
 
 // signSessionToken mints the server-authoritative session token for the enhanced (post-
-// hydration) @auth path. A non-null payload replaces the session; a null payload encodes a
-// clear (logout). Signed with the session-mint key so the client can relay but never forge it.
+// hydration) @session path. A non-null payload writes the session (merging when `merge`); a
+// null payload encodes a clear (logout). Signed with the session-mint key so the client can
+// relay but never forge it.
 export async function signSessionToken(
 	payload: App.Session | null,
-	sessionKeys: string[]
+	sessionKeys: string[],
+	merge = false
 ): Promise<string> {
 	const claims =
 		payload == null
 			? { houdiniSession: true, clear: true }
-			: { houdiniSession: true, payload }
+			: { houdiniSession: true, payload, merge }
 	return encodeJWT(
 		{ ...claims, exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS },
 		sessionTokenKey(sessionKeys)
@@ -114,9 +117,9 @@ export async function signSessionToken(
 }
 
 // verifySessionToken checks a relayed session-mint token. It returns the intended action
-// (replace with a session, or clear) when valid, or null when the token is invalid. The
-// payload is trustworthy because only the server holds the signing key, so a client cannot
-// tamper with what becomes the session.
+// (write the session — merge or replace — or clear) when valid, or null when the token is
+// invalid. The payload is trustworthy because only the server holds the signing key, so a
+// client cannot tamper with what becomes the session.
 export async function verifySessionToken(
 	token: unknown,
 	sessionKeys: string[]
@@ -135,7 +138,7 @@ export async function verifySessionToken(
 		if (payload.clear === true) {
 			return { clear: true }
 		}
-		return { session: (payload.payload ?? {}) as App.Session }
+		return { session: (payload.payload ?? {}) as App.Session, merge: payload.merge === true }
 	} catch {
 		return null
 	}

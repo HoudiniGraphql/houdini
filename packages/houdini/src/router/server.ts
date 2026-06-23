@@ -43,7 +43,7 @@ const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
 // the resolver's session subtree into `extensions.houdiniSession`. The client relays that
 // token to the auth endpoint, which verifies and sets the cookie — so the value that becomes
 // the session is always server-authoritative (the client can't forge a signed token). It
-// keys off the manifest's authMutations (name → sessionPath), independent of forms.
+// keys off the manifest's sessionMutations (name → sessionPath), independent of forms.
 function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: string[]): any {
 	return {
 		onExecute() {
@@ -65,15 +65,20 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 						return
 					}
 					const name = operationNameOf(args)
-					const sessionPath = name ? manifest?.authMutations?.[name] : undefined
-					if (!sessionPath) {
+					const session = name ? manifest?.sessionMutations?.[name] : undefined
+					if (!session) {
 						return
 					}
-					// on success: a non-null session value replaces the session (login); a null one
-					// clears it (logout — e.g. a server-side logout mutation whose session field
-					// comes back null). signSessionToken encodes which, so the client just relays it.
-					const value = valueAtPath(result.data, sessionPath.split('.'))
-					const token = await signSessionToken((value ?? null) as App.Session | null, sessionKeys)
+					// on success: a non-null value writes the session (merge or replace per the
+					// directive); a null one clears it (logout — e.g. a server-side logout mutation
+					// whose session field comes back null). signSessionToken encodes which action,
+					// so the client just relays it.
+					const value = valueAtPath(result.data, session.sessionPath.split('.'))
+					const token = await signSessionToken(
+						(value ?? null) as App.Session | null,
+						sessionKeys,
+						session.merge
+					)
 					setResult({
 						...result,
 						extensions: { ...result.extensions, houdiniSession: token },
@@ -371,17 +376,17 @@ export function _serverHandler<ComponentType = unknown>({
 		// session before redirecting (this branch is only reached on success — errors 422'd
 		// above). The value is server-authoritative (resolver output): a non-null object replaces
 		// the session (login), a null one clears it (server-side logout).
-		const sessionPath = nonNullManifest.authMutations?.[mutationName]
-		if (sessionPath) {
-			const value = valueAtPath(result.data, sessionPath.split('.'))
-			if (value != null) {
-				await set_session(
-					{ request, config: config_file, session_keys },
-					formResponse,
-					value as App.Session
-				)
-			} else {
+		const sessionWrite = nonNullManifest.sessionMutations?.[mutationName]
+		if (sessionWrite) {
+			const value = valueAtPath(result.data, sessionWrite.sessionPath.split('.'))
+			const req = { request, config: config_file, session_keys }
+			if (value == null) {
 				clear_session(formResponse)
+			} else if (sessionWrite.merge) {
+				const existing = await get_session(request.headers, session_keys)
+				await set_session(req, formResponse, { ...existing, ...(value as App.Session) })
+			} else {
+				await set_session(req, formResponse, value as App.Session)
 			}
 		}
 		return formResponse

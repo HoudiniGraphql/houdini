@@ -31,10 +31,17 @@ type ProjectManifest struct {
 	// FormActions are the names of mutations carrying @endpoint — the form-submittable
 	// ones whose artifacts the no-JS form handler loads server-side.
 	FormActions []string `json:"form_actions"`
-	// AuthMutations maps each @auth mutation's name to its sessionPath — the result field
-	// whose value becomes the session. Used by the session-mint plugin (any execution) and
-	// the no-JS form handler (inline cookie write). Independent of FormActions.
-	AuthMutations map[string]string `json:"auth_mutations"`
+	// SessionMutations maps each @session mutation's name to where (path) and how (merge) it
+	// writes the session. Used by the session-mint plugin (any execution) and the no-JS form
+	// handler (inline cookie write). Independent of FormActions.
+	SessionMutations map[string]SessionMutationInfo `json:"session_mutations"`
+}
+
+// SessionMutationInfo is how a @session mutation writes the session: the result field `Path`
+// whose value is written, and whether it merges into (vs replaces) the existing session.
+type SessionMutationInfo struct {
+	Path  string `json:"path"`
+	Merge bool   `json:"merge"`
 }
 
 type PageManifest struct {
@@ -127,7 +134,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 
 	// @auth mutations (name → sessionPath) — independent of the route documents above, since a
 	// session-establishing mutation need not be a form.
-	manifest.AuthMutations, err = p.loadAuthMutations(ctx)
+	manifest.SessionMutations, err = p.loadSessionMutations(ctx)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -318,27 +325,29 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	return manifest, nil
 }
 
-// loadAuthMutations returns every @auth mutation keyed to its sessionPath argument — the
-// result field whose value becomes the session.
-func (p *HoudiniReact) loadAuthMutations(ctx context.Context) (map[string]string, error) {
-	// allocated lazily so it stays nil (not an empty map) when no mutation carries @auth,
+// loadSessionMutations returns every @session mutation keyed to where (path) and how (merge)
+// it writes the session.
+func (p *HoudiniReact) loadSessionMutations(ctx context.Context) (map[string]SessionMutationInfo, error) {
+	// allocated lazily so it stays nil (not an empty map) when no mutation carries @session,
 	// matching how FormActions is left nil when empty
-	var result map[string]string
+	var result map[string]SessionMutationInfo
 	err := p.DB.StepQuery(ctx, `
-		SELECT d.name, av.raw
+		SELECT d.name, av_path.raw, av_merge.raw
 		FROM documents d
-			JOIN document_directives dd ON dd.document = d.id AND dd.directive = $auth_directive
-			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'sessionPath'
-			LEFT JOIN argument_values av ON av.id = dda.value
+			JOIN document_directives dd ON dd.document = d.id AND dd.directive = $session_directive
+			LEFT JOIN document_directive_arguments dda_path ON dda_path.parent = dd.id AND dda_path.name = 'path'
+			LEFT JOIN argument_values av_path ON av_path.id = dda_path.value
+			LEFT JOIN document_directive_arguments dda_merge ON dda_merge.parent = dd.id AND dda_merge.name = 'merge'
+			LEFT JOIN argument_values av_merge ON av_merge.id = dda_merge.value
 		WHERE d.kind = 'mutation'
-	`, map[string]any{"auth_directive": graphql.AuthDirective}, func(q plugins.Row) {
+	`, map[string]any{"session_directive": graphql.SessionDirective}, func(q plugins.Row) {
 		name := q.ColumnText(0)
 		path := q.ColumnText(1)
 		if name != "" && path != "" {
 			if result == nil {
-				result = map[string]string{}
+				result = map[string]SessionMutationInfo{}
 			}
-			result[name] = path
+			result[name] = SessionMutationInfo{Path: path, Merge: q.ColumnText(2) == "true"}
 		}
 	})
 	return result, err

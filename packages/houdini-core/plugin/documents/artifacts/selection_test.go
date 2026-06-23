@@ -5002,10 +5002,10 @@ export type CreateUserFieldsForm$artifact = typeof artifact
 				},
 			},
 			{
-				Name: "@auth emits a top-level sessionPath",
+				Name: "@session emits a top-level sessionPath",
 				Pass: true,
 				Input: []string{
-					`mutation LoginForm($name: String!) @auth(sessionPath: "createUser") {
+					`mutation LoginForm($name: String!) @session(path: "createUser") {
 						createUser(name: $name) { id }
 					}`,
 				},

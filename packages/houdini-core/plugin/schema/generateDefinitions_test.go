@@ -132,8 +132,8 @@ directive @refetchable on FRAGMENT_DEFINITION
 """@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms."""
 directive @endpoint(fields: [String!], id: String, redirect: String) on MUTATION
 
-"""@auth marks a mutation as session-establishing: the result field named by sessionPath becomes the user's session."""
-directive @auth(sessionPath: String) on MUTATION
+"""@session writes the session from a mutation result: the field named by path becomes (or, with merge, is merged into) the user's session."""
+directive @session(merge: Boolean, path: String!) on MUTATION
 
 """@componentField is used to mark a field as a component field"""
 directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRAGMENT_DEFINITION | INLINE_FRAGMENT

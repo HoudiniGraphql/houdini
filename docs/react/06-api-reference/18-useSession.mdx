@@ -34,4 +34,4 @@ The updater sends a `POST` request to the session endpoint defined in your route
 - **`updateSession(patch)`** — merges `patch` into the session and persists it to the `httpOnly` cookie.
 - **`updateSession(null)`** — logs out: empties the local session and deletes the cookie.
 
-The updater is awaitable (`Promise<void>`), so you can wait for the cookie to settle before navigating. For a logout button that works without JavaScript, use [`useLogoutForm`](~/api-reference/useLogoutForm). To set the session from a mutation, see [`@auth`](~/guides/authentication).
+The updater is awaitable (`Promise<void>`), so you can wait for the cookie to settle before navigating. For a logout button that works without JavaScript, use [`useLogoutForm`](~/api-reference/useLogoutForm). To set the session from a mutation, see [`@session`](~/guides/authentication).

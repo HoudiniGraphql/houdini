@@ -91,6 +91,9 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 			}
 			if ('clear' in verified) {
 				clear_session(response)
+			} else if (verified.merge) {
+				const existing = await get_session(args.request.headers, args.session_keys)
+				await set_session(args, response, { ...existing, ...verified.session })
 			} else {
 				await set_session(args, response, verified.session)
 			}

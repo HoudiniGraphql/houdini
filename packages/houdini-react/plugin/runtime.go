@@ -862,18 +862,19 @@ func formatManifest(
 		sb.WriteString("}\n")
 	}
 
-	// auth_mutations maps each @auth mutation to its sessionPath. Server-only: the session-mint
-	// plugin and the no-JS form handler use it to find the result field that becomes the
-	// session. A plain string map (sorted for stable output), independent of form_actions.
-	if len(manifest.AuthMutations) > 0 {
-		authNames := make([]string, 0, len(manifest.AuthMutations))
-		for name := range manifest.AuthMutations {
-			authNames = append(authNames, name)
+	// session_mutations maps each @session mutation to where (sessionPath) and how (merge) it
+	// writes the session. Server-only: the session-mint plugin and the no-JS form handler use it.
+	// Sorted for stable output, independent of form_actions.
+	if len(manifest.SessionMutations) > 0 {
+		sessionNames := make([]string, 0, len(manifest.SessionMutations))
+		for name := range manifest.SessionMutations {
+			sessionNames = append(sessionNames, name)
 		}
-		sort.Strings(authNames)
-		sb.WriteString("\nexport const auth_mutations = {\n")
-		for _, name := range authNames {
-			sb.WriteString(fmt.Sprintf("\t%s: %q,\n", name, manifest.AuthMutations[name]))
+		sort.Strings(sessionNames)
+		sb.WriteString("\nexport const session_mutations = {\n")
+		for _, name := range sessionNames {
+			info := manifest.SessionMutations[name]
+			sb.WriteString(fmt.Sprintf("\t%s: { sessionPath: %q, merge: %v },\n", name, info.Path, info.Merge))
 		}
 		sb.WriteString("}\n")
 	}

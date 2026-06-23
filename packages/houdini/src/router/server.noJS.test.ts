@@ -2,6 +2,7 @@ import { createSchema } from 'graphql-yoga'
 import { test, expect, describe, vi, beforeAll } from 'vitest'
 
 import { _serverHandler, signFormToken } from './server.js'
+import { signSessionToken } from './auth-token.js'
 import { get_session } from './session.js'
 
 // the form CSRF token is always on; tests use a known session key so they can mint a valid
@@ -155,7 +156,10 @@ function serverWith(onRender: (args: any) => any = () => new Response('page')) {
 				Login: () => Promise.resolve({ default: loginArtifact as any }),
 				MaybeLogin: () => Promise.resolve({ default: maybeLoginArtifact as any }),
 			},
-			authMutations: { Login: 'login.session', MaybeLogin: 'maybeLogin.session' },
+			sessionMutations: {
+				Login: { sessionPath: 'login.session' },
+				MaybeLogin: { sessionPath: 'maybeLogin.session' },
+			},
 		} as any,
 		assetPrefix: '',
 		graphqlEndpoint: '/_api',
@@ -542,6 +546,32 @@ describe('no-JS form submission (real Yoga)', () => {
 				})
 			)
 			expect(res.headers.get('location')).toBe('/')
+		})
+
+		test('a merge session token upserts into the existing session (preferences)', async () => {
+			const handler = serverWith()
+			// log in first → session cookie carries { token }
+			const login = await handler(
+				formPOST('http://localhost/login', { __houdini_form: 'Login', email: 'a@b.co' })
+			)
+			const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]
+
+			// relay a merge token that adds { theme: 'dark' } — like a @session(merge: true) pref
+			const mergeToken = await signSessionToken({ theme: 'dark' } as any, [TOKEN_KEY], true)
+			const res = await handler(
+				new Request(authUrl, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json', origin: 'http://localhost', cookie },
+					body: JSON.stringify({ token: mergeToken }),
+				})
+			)
+			expect(res.status).toBe(200)
+			const session = await get_session(
+				new Headers({ cookie: (res.headers.get('set-cookie') ?? '').split(';')[0] }),
+				[TOKEN_KEY]
+			)
+			expect((session as any).token).toBe('tok-a@b.co') // kept from login
+			expect((session as any).theme).toBe('dark') // merged in
 		})
 
 		test('a cross-origin logout is rejected (Origin fail-closed)', async () => {

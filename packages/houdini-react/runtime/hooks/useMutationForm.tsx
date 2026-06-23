@@ -73,7 +73,7 @@ export function useMutationForm<
 	const { artifact } = document
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 	const [session] = useSession()
-	const { replaceSession } = useRouterContext()
+	const { setSession, replaceSession } = useRouterContext()
 	const { pathname, goto } = useRoute()
 
 	const formId = opts.id ?? artifact.endpoint?.id ?? artifact.name
@@ -119,9 +119,15 @@ export function useMutationForm<
 					}
 					// reflect the new session in local state immediately so useSession() updates
 					// without a reload (the cookie above is the source of truth; this mirrors it).
-					// A non-null subtree replaces the session (login); a null one clears it (logout).
+					// null clears; otherwise merge upserts and the default replaces.
 					const next = valueAtPath(result.data, artifact.sessionPath.split('.'))
-					replaceSession((next ?? {}) as App.Session)
+					if (next == null) {
+						replaceSession({})
+					} else if (artifact.sessionMerge) {
+						setSession(next as Partial<App.Session>)
+					} else {
+						replaceSession(next as App.Session)
+					}
 				}
 				opts.onSuccess?.(result.data as _Result)
 				// navigate to the same target the server would 303 to

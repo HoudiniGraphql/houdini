@@ -140,9 +140,11 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	rootType: string
 	input?: InputObject
 	endpoint?: EndpointSpec
-	// @auth: a dotted path into the mutation result whose object value becomes App.Session.
-	// Orthogonal to `endpoint` — present on any session-establishing mutation, form or not.
+	// @session: a dotted path into the mutation result whose object value writes App.Session.
+	// Orthogonal to `endpoint` — present on any session-writing mutation, form or not.
 	sessionPath?: string
+	// @session(merge: true): upsert the value into the existing session instead of replacing it.
+	sessionMerge?: boolean
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {

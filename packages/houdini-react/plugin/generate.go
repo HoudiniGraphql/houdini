@@ -552,10 +552,10 @@ for (const id of Object.keys(manifest_module.route_headers ?? {})) {
 if (manifest_module.form_actions) {
 	router_manifest.formActions = manifest_module.form_actions
 }
-// auth_mutations (name → sessionPath) is server-only too: the session-mint plugin and the
+// session_mutations (name → sessionPath) is server-only too: the session-mint plugin and the
 // no-JS form handler use it to find the result field that becomes the session.
-if (manifest_module.auth_mutations) {
-	router_manifest.authMutations = manifest_module.auth_mutations
+if (manifest_module.session_mutations) {
+	router_manifest.sessionMutations = manifest_module.session_mutations
 }
 
 export const on_render =

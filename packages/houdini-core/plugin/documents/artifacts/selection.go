@@ -328,7 +328,7 @@ func GenerateSelectionDocument(
 	endpointValue := buildEndpointArtifact(doc)
 
 	// @auth emits the sessionPath — the result field whose value becomes the session
-	authValue := buildAuthArtifact(doc)
+	sessionValue := buildSessionArtifact(doc)
 
 	// we need to track the optimistic keys
 	optimistic := ""
@@ -512,7 +512,7 @@ export default artifact
 		dedupe,
 		pluralValue,
 		endpointValue,
-		authValue,
+		sessionValue,
 		inputTypes,
 		loadingValue,
 		policyValue,

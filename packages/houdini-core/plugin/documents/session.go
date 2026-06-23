@@ -10,8 +10,8 @@ import (
 	"code.houdinigraphql.com/plugins/graphql"
 )
 
-// authUsage collects what we need to validate a single @auth usage.
-type authUsage struct {
+// sessionUsage collects what we need to validate a single @session usage.
+type sessionUsage struct {
 	documentID  int
 	docKind     string
 	docName     string
@@ -22,12 +22,12 @@ type authUsage struct {
 	hasPath     bool
 }
 
-// ValidateAuthDirective enforces the build-time guarantees for @auth, the directive that
-// marks a mutation as session-establishing (orthogonal to @endpoint's form story):
+// ValidateSessionDirective enforces the build-time guarantees for @session, the directive
+// that writes the session from a mutation result (orthogonal to @endpoint's form story):
 //   - it only sits on mutation documents
-//   - it carries a sessionPath, which must resolve to an object in the mutation's selection
-//     set — that object's fields become App.Session
-func ValidateAuthDirective(
+//   - it carries a `path`, which must resolve to an object in the mutation's selection set —
+//     that object's fields become App.Session
+func ValidateSessionDirective(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	errs *plugins.ErrorList,
@@ -45,17 +45,17 @@ func ValidateAuthDirective(
 		FROM document_directives dd
 			JOIN documents d ON d.id = dd.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
-			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'sessionPath'
+			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'path'
 			LEFT JOIN argument_values av ON av.id = dda.value
-		WHERE dd.directive = $auth_directive
+		WHERE dd.directive = $session_directive
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 
-	usages := []authUsage{}
+	usages := []sessionUsage{}
 	err := db.StepQuery(ctx, query, map[string]any{
-		"auth_directive": graphql.AuthDirective,
+		"session_directive": graphql.SessionDirective,
 	}, func(row plugins.Row) {
-		usage := authUsage{
+		usage := sessionUsage{
 			documentID: int(row.ColumnInt(0)),
 			docKind:    row.ColumnText(1),
 			docName:    row.ColumnText(2),
@@ -74,8 +74,8 @@ func ValidateAuthDirective(
 		return
 	}
 
-	// bulk-load the field selections of every @auth document in one pass, indexed by document
-	// then parent selection id (0 = root) — the same shape the endpoint validator uses.
+	// bulk-load the field selections of every @session document in one pass, indexed by
+	// document then parent selection id (0 = root) — the same shape the endpoint validator uses.
 	selectionsByDocument := map[int]map[int]map[string]endpointSelectionNode{}
 	err = db.StepQuery(ctx, `
 		SELECT
@@ -86,11 +86,11 @@ func ValidateAuthDirective(
 			t.kind AS type_kind
 		FROM selection_refs sr
 			JOIN selections s ON s.id = sr.child_id
-			JOIN document_directives dd ON dd.document = sr.document AND dd.directive = $auth_directive
+			JOIN document_directives dd ON dd.document = sr.document AND dd.directive = $session_directive
 			LEFT JOIN type_fields tf ON s.type = tf.id
 			LEFT JOIN types t ON tf.type = t.name
 		WHERE s.kind = 'field'
-	`, map[string]any{"auth_directive": graphql.AuthDirective}, func(row plugins.Row) {
+	`, map[string]any{"session_directive": graphql.SessionDirective}, func(row plugins.Row) {
 		document := int(row.ColumnInt(0))
 		parent := int(row.ColumnInt(1))
 		name := row.ColumnText(3)
@@ -117,12 +117,12 @@ func ValidateAuthDirective(
 			Column:   usage.column,
 		}}
 
-		// @auth establishes a session from a mutation result; it is meaningless elsewhere.
+		// @session writes the session from a mutation result; it is meaningless elsewhere.
 		if usage.docKind != "mutation" {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s can only be used on a mutation, but %q is a %s",
-					graphql.AuthDirective, usage.docName, usage.docKind,
+					graphql.SessionDirective, usage.docName, usage.docKind,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,
@@ -130,12 +130,12 @@ func ValidateAuthDirective(
 			continue
 		}
 
-		// sessionPath is what makes @auth meaningful — without it nothing becomes the session.
+		// path is what makes @session meaningful — without it nothing becomes the session.
 		if !usage.hasPath {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
-					"@%s on %q requires a sessionPath naming the result field to store as the session",
-					graphql.AuthDirective, usage.docName,
+					"@%s on %q requires a path naming the result field to write to the session",
+					graphql.SessionDirective, usage.docName,
 				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: location,
@@ -143,15 +143,15 @@ func ValidateAuthDirective(
 			continue
 		}
 
-		validateAuthSessionPath(usage, selectionsByDocument[usage.documentID], location, errs)
+		validateSessionPath(usage, selectionsByDocument[usage.documentID], location, errs)
 	}
 }
 
-// validateAuthSessionPath walks the dotted sessionPath through the mutation's selection tree
+// validateSessionPath walks the dotted @session path through the mutation's selection tree
 // and reports if it doesn't exist or doesn't resolve to an object — its fields become the
 // session, so (unlike a redirect path) it must NOT be a leaf scalar.
-func validateAuthSessionPath(
-	usage authUsage,
+func validateSessionPath(
+	usage sessionUsage,
 	children map[int]map[string]endpointSelectionNode,
 	location []*plugins.ErrorLocation,
 	errs *plugins.ErrorList,
@@ -175,8 +175,8 @@ func validateAuthSessionPath(
 	if !ok {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
-				"@%s sessionPath %q does not exist in the selection set of %q",
-				graphql.AuthDirective, display, usage.docName,
+				"@%s path %q does not exist in the selection set of %q",
+				graphql.SessionDirective, display, usage.docName,
 			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: location,
@@ -187,8 +187,8 @@ func validateAuthSessionPath(
 	if node.typeKind != "OBJECT" && node.typeKind != "INTERFACE" && node.typeKind != "UNION" {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
-				"@%s sessionPath %q in %q must resolve to an object whose fields become the session, but it is a %s",
-				graphql.AuthDirective, display, usage.docName, node.typeKind,
+				"@%s path %q in %q must resolve to an object whose fields become the session, but it is a %s",
+				graphql.SessionDirective, display, usage.docName, node.typeKind,
 			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: location,

@@ -1110,28 +1110,38 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	// @auth(sessionPath: String) on MUTATION — orthogonal to @endpoint: it marks a mutation as
-	// session-establishing (the named result field becomes App.Session) independent of whether
-	// it's also a progressively-enhanced form.
+	// @session(path: String, merge: Boolean) on MUTATION — the mutation-driven counterpart to
+	// setSession(): the result field named by `path` is written to the session. Orthogonal to
+	// @endpoint (a session mutation need not be a form). By default it replaces the session;
+	// `merge: true` upserts it into the existing session (e.g. a preference).
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
-		"name":        graphql.AuthDirective,
-		"description": "@auth marks a mutation as session-establishing: the result field named by sessionPath becomes the user's session.",
+		"name":        graphql.SessionDirective,
+		"description": "@session writes the session from a mutation result: the field named by path becomes (or, with merge, is merged into) the user's session.",
 		"visible":     true,
 	})
 	if err != nil {
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
-		"directive": graphql.AuthDirective,
+		"directive": graphql.SessionDirective,
 		"location":  "MUTATION",
 	})
 	if err != nil {
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
-		"directive": graphql.AuthDirective,
-		"name":      "sessionPath",
-		"type":      "String",
+		"directive":      graphql.SessionDirective,
+		"name":           "path",
+		"type":           "String",
+		"type_modifiers": "!",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.SessionDirective,
+		"name":      "merge",
+		"type":      "Boolean",
 	})
 	if err != nil {
 		return err

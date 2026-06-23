@@ -1,7 +1,7 @@
 import { graphql, useMutationForm, useSession } from '$houdini'
 
 // Progressively-enhanced login: @endpoint makes it a form (native POST before/without JS),
-// @auth makes the resolver's `login.session` become the session cookie. Both paths converge
+// @session makes the resolver's `login.session` become the session cookie. Both paths converge
 // on the same session.
 export default function AuthFormView() {
 	const [session] = useSession()
@@ -9,7 +9,7 @@ export default function AuthFormView() {
 		graphql(`
 			mutation Login($username: String!)
 				@endpoint(redirect: "/auth-form/done")
-				@auth(sessionPath: "login.session") {
+				@session(path: "login.session") {
 				login(username: $username) {
 					session {
 						token
