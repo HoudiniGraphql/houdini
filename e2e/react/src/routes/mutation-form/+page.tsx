@@ -4,7 +4,7 @@ import { graphql, useMutationForm } from '$houdini'
 // or without JavaScript, and once hydrated the same form runs the mutation client-side.
 // @endpoint(redirect:) bakes the same target into both paths.
 export default function MutationFormView() {
-	const { form, hidden, state, pending } = useMutationForm(
+	const { Form, state, pending } = useMutationForm(
 		graphql(`
 			mutation MutationFormCreate($name: String!, $birthDate: DateTime!)
 				@endpoint(redirect: "/mutation-form/created?id={ addUser.id }", fields: ["name", "birthDate"]) {
@@ -17,8 +17,7 @@ export default function MutationFormView() {
 	)
 
 	return (
-		<form {...form} data-testid="user-form">
-			{hidden}
+		<Form data-testid="user-form">
 			<input name="name" data-testid="name-input" required />
 			{/* DateTime is a custom scalar; the hidden timestamp exercises scalar coercion */}
 			<input type="hidden" name="birthDate" value={new Date('2000-01-01').getTime()} />
@@ -30,6 +29,6 @@ export default function MutationFormView() {
 					{state.errors[0].message}
 				</p>
 			)}
-		</form>
+		</Form>
 	)
 }

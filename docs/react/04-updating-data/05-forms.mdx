@@ -1,0 +1,215 @@
+---
+title: Forms
+description: Progressively enhanced forms backed by a Houdini mutation
+---
+
+import EndpointDirective from '@shared/_partials/endpoint-directive.mdx'
+
+The usual way to drive a mutation from a form is to call `useMutation`, write an `onSubmit`
+handler, `preventDefault`, pull the values out of the event, and hand them over as variables.
+It works, but it's a fair amount of plumbing, and the form it produces does nothing at all
+until the JavaScript bundle has loaded.
+
+`useMutationForm` collapses that down to one component. We write a mutation, mark it with
+`@endpoint`, and render the `Form` the hook hands back:
+
+```tsx
+import { graphql, useMutationForm } from '$houdini'
+
+export function NewUser() {
+	const { Form, state, pending } = useMutationForm(graphql(`
+		mutation CreateUser($name: String!, $email: String!)
+			@endpoint(redirect: "/users/{ createUser.id }") {
+			createUser(name: $name, email: $email) {
+				id
+			}
+		}
+	`))
+
+	return (
+		<Form>
+			<input name="name" required />
+			<input name="email" type="email" required />
+			{state?.errors && <p role="alert">{state.errors[0].message}</p>}
+			<button disabled={pending}>{pending ? 'Saving…' : 'Create user'}</button>
+		</Form>
+	)
+}
+```
+
+There's no `onSubmit`, no reading values off the event, and no list of variables to keep in
+sync with the inputs. The `name` attributes are the variables. `<Form>` is a real `<form>`
+underneath — it takes all the usual attributes (`className`, `data-*`, and so on) and passes
+them straight through.
+
+The quieter payoff is that this form works **before the page has hydrated**. Submit it with
+JavaScript disabled, or in the half-second before the bundle loads, and it still creates a
+user and redirects, because the browser is doing what browsers have always done with a
+`<form>`. Once the bundle is in, the same form upgrades into an ordinary client-side Houdini
+mutation, with optimistic updates and cache writes, and the user never notices the handoff.
+
+## How it works
+
+A single form behaves two different ways depending on whether JavaScript has loaded yet:
+
+| | Before hydration (no JS) | After hydration |
+|---|---|---|
+| What submits | a native browser POST to the page | the hook's `onSubmit` intercepts |
+| Where the mutation runs | on the server | on the client (optimistic + cache) |
+| Result / redirect | the server re-renders or `303`s | `state` from the hook, client navigation |
+
+Both paths read their behavior from the same compiled artifact, so they can't drift. The
+form element is byte-for-byte identical on the server and the client (a real string `action`
+plus a `method`), which is what lets it hydrate cleanly and pick up where the no-JS path left
+off. `<Form>` also renders a couple of hidden marker fields the server uses to recognize the
+submission, so there's nothing extra for us to wire up.
+
+## The `@endpoint` directive
+
+<EndpointDirective />
+
+## Pending and error state
+
+The hook returns `pending` and `state` directly, which is enough for a single submit button
+and a top-level error message, as in the first example. `state` is `{ data, errors }` after a
+submit and `null` before, and it converges on the same shape whether the result came back from
+the no-JS server round trip or the client mutation.
+
+When the submit button lives in its own component, threading `pending` down as a prop gets old
+fast. Because `<Form>` publishes its status through context, any child can read it with
+`useMutationFormStatus` instead:
+
+```tsx
+const { Form, state } = useMutationForm(doc)
+
+function Submit() {
+	const { pending } = useMutationFormStatus()
+	return <button disabled={pending}>{pending ? 'Saving…' : 'Create'}</button>
+}
+
+// <Form><input name="name" /><Submit /></Form>
+```
+
+It's the same shape as React's own `useFormStatus`, except it can actually see our forms (the
+built-in only tracks function-action submissions).
+
+## Integrating with an existing form
+
+`<Form>` is the recommended way in, and most of the time it's all we need. But sometimes the
+form element isn't ours to choose — a design-system `<Form>`, or some wrapper the codebase
+already standardizes on. For those cases the hook also returns the raw pieces `<Form>` is built
+from: `form`, a set of props to spread onto a `<form>`, and `hidden`, the marker fields to
+render inside it.
+
+```tsx
+const { form, hidden, state, pending } = useMutationForm(doc)
+
+return (
+	<form {...form}>
+		{hidden}
+		<input name="name" required />
+		<button disabled={pending}>{pending ? 'Saving…' : 'Create'}</button>
+	</form>
+)
+```
+
+The `form` spread carries the `action`, `method`, `onSubmit`, and (for uploads) `encType`;
+`hidden` carries the markers and CSRF token. Spread both onto any element that forwards them to
+a real `<form>` and the two paths work exactly as before.
+
+The one thing we give up is the context. A plain spread can't provide the `FormStatusContext`
+that `<Form>` does, so `useMutationFormStatus` has nothing to read here. Take `pending` (and
+`state`) from the hook's return and pass them down to children the old-fashioned way.
+
+## Redirecting after a submit
+
+Most forms want to go somewhere on success, and `@endpoint(redirect:)` is how we say where.
+Because it's a static directive argument, the compiler bakes the same destination into both
+paths: the server answers the no-JS POST with a `303`, and the client navigates after the
+mutation resolves. We get a redirect either way without writing any navigation code.
+
+```graphql
+@endpoint(redirect: "/users/{ createUser.id }")
+```
+
+Anything in `{ … }` is interpolated from the result, so `createUser.id` becomes the id of the
+record we just made. Interpolated values are URL-encoded, and if one comes back `null` the
+redirect is skipped rather than sending anyone to `/users/undefined`. A redirect only fires on
+success; an error always re-renders the form with `state.errors` populated instead.
+
+## Field names
+
+The `name` on each input is the variable it fills, and a small path convention covers nested
+inputs and lists:
+
+```tsx
+<input name="name" />               {/* $name */}
+<input name="input.address.city" /> {/* $input: { address: { city } } */}
+<input name="tags[]" />             {/* $tags: [...] (repeat the input per value) */}
+```
+
+The values get coerced to the right types on the way to the mutation, guided by the schema, so
+we don't hand-parse anything:
+
+- Numbers, booleans, and enums are converted from their string form. An unchecked checkbox
+  (which the browser omits entirely) becomes `false` for a `Boolean` field.
+- An empty string becomes `null` for a numeric, enum, or custom-scalar field; `String` and
+  `ID` fields keep the empty string.
+- A **custom scalar** runs through its `unmarshal`, the same one the router uses for route
+  params, so a `DateTime` input arrives at the resolver as a real `Date`.
+- Required fields lean on the native HTML `required` attribute, which the browser enforces on
+  both paths before anything is submitted.
+
+## File uploads
+
+If a mutation has an `Upload`-typed variable, `<Form>` sets its encoding to
+`multipart/form-data` automatically and both paths handle the file: the enhanced path through
+Houdini's normal upload machinery, the no-JS path by assembling the GraphQL multipart request
+on the server. See [File Uploads](~/guides/file-uploads) for the details that apply to every
+mutation, form or not.
+
+## Going to production
+
+Most of what keeps these forms safe is automatic. Cross-site requests are turned away by an
+`Origin` check and a signed token that a cross-origin page can't read, so we don't configure
+CSRF protection; it's just on. There are three things worth doing before you ship, though:
+
+- **Set `sessionKeys`.** Without configured keys Houdini signs sessions and form tokens with a
+  random per-process key, which works but doesn't survive a restart or hold up across more than
+  one server. Configuring `router.auth.sessionKeys` is what makes them persistent. This is a
+  correctness requirement in production, not only a security one.
+- **Keep privileged fields out of form mutations.** Because the input type is the trust
+  boundary, never put a field like `isAdmin` or an ownership id in an `@endpoint` mutation's
+  input. Set those server-side from the session context (see [Authentication](~/guides/authentication)),
+  or split them into a separate mutation. The [`fields` allowlist](#restricting-which-fields-are-accepted)
+  is a backstop, not a substitute for this.
+- **Pin `allowedOrigins` behind a proxy.** When TLS is terminated upstream, the origin Houdini
+  derives can read as `http` while the browser sends `https`, and the `Origin` check would then
+  reject legitimate submissions. List your real public origin(s) in `router.allowedOrigins` to
+  settle it.
+
+And remember that `@endpoint` exposes a mutation to first-party browser forms: anyone who
+passes those checks can invoke it by name, exactly like any other GraphQL request. Authorization
+is still the resolver's job, via the session context, the same as everywhere else in Houdini.
+
+### Restricting which fields are accepted
+
+This one is optional, and most forms never need it. It's here for the cautious.
+
+The thing to know is that `coerceFormData` reads from the mutation's **input type**, not from
+the inputs we happened to render. A field that exists on the input type is accepted from the
+POST whether or not there's a visible `<input>` for it. The markup is not the trust boundary;
+the input type is. For a `CreateUser(name, email)` that's a non-issue, because every field is
+one we'd render anyway.
+
+When a mutation's input happens to include a field we never want coming from the browser, the
+`fields` allowlist pins the form down to an explicit set:
+
+```graphql
+@endpoint(redirect: "/users/{ createUser.id }", fields: ["name", "email"])
+```
+
+With `fields` present, anything submitted outside the list is dropped, on both paths, because
+the list is baked into the artifact rather than enforced only in the hook. It's a belt-and-
+suspenders hatch, though, not the real fix: keeping authorization-sensitive fields out of form
+mutations in the first place is.

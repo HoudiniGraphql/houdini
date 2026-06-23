@@ -1,11 +1,11 @@
 import { graphql, useMutationForm } from '$houdini'
 
 // A file-upload form. The mutation takes a File scalar, so the compiler flags the form
-// multipart and useMutationForm sets enctype="multipart/form-data". The enhanced path
-// sends the File through the normal client multipart pipeline; the no-JS path posts it
-// natively for the server form handler to assemble into a multipart GraphQL request.
+// multipart and <Form> sets enctype="multipart/form-data". The enhanced path sends the File
+// through the normal client multipart pipeline; the no-JS path posts it natively for the
+// server form handler to assemble into a multipart GraphQL request.
 export default function UploadFormView() {
-	const { form, hidden, state, pending } = useMutationForm(
+	const { Form, state, pending } = useMutationForm(
 		graphql(`
 			mutation MutationFormUpload($file: File!) @endpoint {
 				singleUpload(file: $file)
@@ -14,8 +14,7 @@ export default function UploadFormView() {
 	)
 
 	return (
-		<form {...form} data-testid="upload-form">
-			{hidden}
+		<Form data-testid="upload-form">
 			<input type="file" name="file" data-testid="file-input" />
 			<button type="submit" data-testid="submit" disabled={pending}>
 				{pending ? 'Uploading…' : 'Upload'}
@@ -27,6 +26,6 @@ export default function UploadFormView() {
 					{state.errors[0].message}
 				</p>
 			)}
-		</form>
+		</Form>
 	)
 }
