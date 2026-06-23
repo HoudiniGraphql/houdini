@@ -49,6 +49,7 @@ export const routes = {
 	mutation_form_created: '/mutation-form/created',
 	mutation_form_upload: '/mutation-form/upload',
 	mutation_form_status: '/mutation-form/status',
+	mutation_form_error: '/mutation-form/error',
 	auth_form: '/auth-form',
 	auth_form_done: '/auth-form/done',
 	session_theme: '/session-theme',
