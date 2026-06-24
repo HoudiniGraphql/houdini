@@ -19,13 +19,14 @@ These files go inside `src/routes/` and can appear in any route directory.
 
 A `+page.jsx` or `+layout.jsx` can also export a `headers()` function to set [response headers](~/routing/pages-and-layouts#response-headers) for the route.
 
-## API Files
+## Server Files
 
-These files go in `src/server/` and are only relevant if you're using a [local GraphQL server](~/loading-data/graphql-server).
+These files go in `src/server/`. Houdini compiles this directory into the server bundle and **never imports it from the client**, so it is the one place that is safe to read environment variables, embed secrets, or hold credentials (session signing keys, OAuth client secrets, database URLs) with no risk of any of it reaching the browser.
 
 | File | Purpose |
 |---|---|
-| `+schema.ts` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. |
+| `+config.ts` | Server-only configuration (typed `ServerConfigFile`): the session signing keys, the session and GraphQL endpoints, OAuth `providers` and `onSignIn`, and the form CSRF settings. See [authentication](~/guides/authentication). |
+| `+schema.ts` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. Only relevant with a [local GraphQL server](~/loading-data/graphql-server). |
 | `+yoga.ts` | Exports a custom Yoga instance. Use this to inject context, add plugins, or customize behavior. Requires `+schema.ts` to also be present. |
 
 ## App-Level Files
