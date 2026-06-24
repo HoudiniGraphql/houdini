@@ -2,7 +2,6 @@ import { getAuthUrl, HOUDINI_SESSION_EVENT, valueAtPath } from 'houdini/runtime'
 import type { ClientPlugin } from 'houdini/runtime/documentStore'
 import { ArtifactKind } from 'houdini/runtime/types'
 
-import { getCurrentConfig } from '../config.js'
 
 // sessionRelay is the client half of @session. When a session mutation executes, the server
 // signs the resolver's session subtree into a token in the response extensions
@@ -26,7 +25,7 @@ export const sessionRelay = (): ClientPlugin => () => ({
 		// only client-side mutation executions carry a mint token; relay it to set the cookie
 		if (token && artifact.kind === ArtifactKind.Mutation && typeof window !== 'undefined') {
 			try {
-				await fetch(getAuthUrl(getCurrentConfig()), {
+				await fetch(getAuthUrl(), {
 					method: 'POST',
 					body: JSON.stringify({ token }),
 					headers: { 'Content-Type': 'application/json', Accept: 'application/json' },

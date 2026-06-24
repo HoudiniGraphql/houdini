@@ -44,6 +44,37 @@ func (p *HoudiniReact) TransformRuntime(ctx context.Context, fp string, content 
 
 		return fmt.Sprintf("import client from '%s'\nexport default () => client\n",
 			filepath.ToSlash(relPath)), nil
+
+	case "index.tsx":
+		// expose loginURL from the runtime barrel ONLY when a login flow is configured: a redirect
+		// integration (router_config.redirect) OR first-class OAuth providers (router_config.providers),
+		// both from src/server/+config. Without either there is no /login to start, so the helper stays
+		// out of the public surface. login.ts itself is always copied but not re-exported by default.
+		var redirectURL, providers string
+		_ = p.DB.StepQuery(ctx, `SELECT redirect, providers FROM router_config LIMIT 1`, nil, func(q plugins.Row) {
+			redirectURL = q.ColumnText(0)
+			providers = q.ColumnText(1)
+		})
+		if providers != "" {
+			// first-class OAuth: emit a typed loginURL whose `provider` is the configured union, so
+			// loginURL({ provider: 'twitter' }) is a compile error against the real provider set.
+			names := strings.Split(providers, ",")
+			quoted := make([]string, len(names))
+			for i, name := range names {
+				quoted[i] = "'" + name + "'"
+			}
+			content += fmt.Sprintf(
+				"\nimport { loginURL as _loginURL } from './login.js'\n"+
+					"export function loginURL(opts: { provider: %s; redirectTo?: string }): string {\n"+
+					"\treturn _loginURL({ redirectTo: opts.redirectTo, params: { provider: opts.provider } })\n"+
+					"}\n",
+				strings.Join(quoted, " | "),
+			)
+		} else if redirectURL != "" {
+			// escape hatch: the generic loginURL (the worker owns provider selection)
+			content += "\nexport { loginURL } from './login.js'\n"
+		}
+		return content, nil
 	}
 
 	return content, nil

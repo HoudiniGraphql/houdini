@@ -333,7 +333,7 @@ func TestLoadManifest(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"views": map[string]string{
-						"src/api/+schema.js": "export default 'foo'",
+						"src/server/+schema.js": "export default 'foo'",
 					},
 					"expected": plugin.ProjectManifest{
 						Pages:           map[string]plugin.PageManifest{},
@@ -352,7 +352,7 @@ func TestLoadManifest(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"views": map[string]string{
-						"src/api/+yoga.js": "export default 'foo'",
+						"src/server/+yoga.js": "export default 'foo'",
 					},
 					"expected": plugin.ProjectManifest{
 						Pages:           map[string]plugin.PageManifest{},

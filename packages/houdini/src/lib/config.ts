@@ -2,6 +2,7 @@ import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import { minimatch } from 'minimatch'
 
+import type { OAuthProvider, OAuthUser, OAuthTokens } from '../oauth/index.js'
 import { plugin_dir } from '../router/conventions.js'
 import * as path from './path.js'
 import type { PluginMeta } from './project.js'
@@ -146,11 +147,6 @@ export type ConfigFile = {
 	pluginTransport?: 'websocket' | 'stdio' | `env:${string}`
 
 	/**
-	 * Configure the router
-	 */
-	router?: RouterConfig
-
-	/**
 	 * Configure the router to evaluate custom scalars using runtime values
 	 */
 	runtimeScalars?: Record<
@@ -168,33 +164,66 @@ export type RuntimeScalarPayload = {
 	session?: App.Session | null | undefined
 }
 
-type RouterConfig = {
-	auth?: AuthStrategy
-	apiEndpoint?: string
-	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint.
-	// The form handler's CSRF check is fail-closed: a form POST whose Origin is absent or
-	// matches neither the request's own origin nor this allowlist is rejected (403).
-	allowedOrigins?: string[]
-	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
-	// Defaults to 10 MB. Raise it for large uploads. (Bodies without a Content-Length — e.g.
-	// chunked — fall back to the host/proxy's own limit.)
-	formMaxBodyBytes?: number
+// ServerConfigFile is the server-only configuration written in src/server/+config. src/server is
+// compiled into the server bundle only, so this is where secrets AND server-owned routing live —
+// session signing keys, the session/GraphQL endpoints, OAuth client secrets and onSignIn later.
+// Kept as a type SEPARATE from ConfigFile (the public, client-bundled config). The public runtime
+// bits the client needs (the GraphQL `apiEndpoint` and the session `auth.url`) are injected into
+// the page at render and read back on the client — never bundled into houdini.config.
+// a single-use store for relayed session-mint token ids (jti). `consume` atomically records the id
+// with the given time-to-live and returns true only if it had not been recorded before; a false
+// return means the token was already consumed (a replay) and must be rejected.
+export type ConsumedTokenStore = {
+	consume(jti: string, ttlMs: number): boolean | Promise<boolean>
 }
 
-type AuthStrategy = {
-	sessionKeys: string[]
-	// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is always
-	// mounted for the POST relay used by progressively-enhanced `@session` forms and
-	// useSession(). Must be a relative path (leading slash). Override only to mount it elsewhere.
-	url?: string
-	// EXPERIMENTAL — opt in to the GET redirect-based login callback (e.g. an external auth
-	// provider redirects the browser back to the session endpoint). Off by default so the
-	// cookie-writing GET sink isn't exposed in apps that don't use it; when on, it accepts only a
-	// server-signed token (never raw query params). NOTE: the token's session binding (sid) does
-	// not separate anonymous browsers — fingerprint({}) is constant — so enabling this today
-	// leaves a session-fixation risk for logged-out users. Do not enable until the OAuth adapter
-	// lands, which binds the redirect flow to the initiating browser with a single-use nonce.
-	redirect?: boolean
+export type ServerConfigFile = {
+	auth?: {
+		// signing keys for the session cookie, the form CSRF token, and the @session relay token.
+		// The first key signs; any others are accepted on verify (key rotation).
+		sessionKeys?: string[]
+		// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is always
+		// mounted for the POST relay used by progressively-enhanced `@session` forms and
+		// useSession(). Must be a relative path (leading slash). Injected to the client at render.
+		url?: string
+		// the redirect-login escape hatch. Set `url` to a TRUSTED integration's login endpoint (an
+		// OAuth worker you operate) to enable the `/login` -> integration -> callback flow: the
+		// integration runs the provider OAuth and redirects back with a session token signed with
+		// the shared `sessionKeys`, while Houdini binds the round-trip to the initiating browser
+		// with a single-use nonce. Omit to leave the redirect flow disabled.
+		redirect?: { url: string }
+		// first-class OAuth: a map of provider name → configured adapter (from `houdini/oauth`, e.g.
+		// `github({ clientId, clientSecret })`). The keys become the typed `provider` argument of
+		// `loginURL` and the `?provider=` value `/login` dispatches on. Houdini runs the Auth Code +
+		// PKCE flow against the provider directly (no external worker needed).
+		providers?: Record<string, OAuthProvider>
+		// called server-side after a successful OAuth callback, with the validated user and the
+		// provider tokens; its return value becomes the session. Persist the provider tokens in your
+		// own database here — the session cookie should hold only an opaque value (e.g. { userId }).
+		onSignIn?: (args: {
+			provider: string
+			user: OAuthUser
+			tokens: OAuthTokens
+		}) => App.Session | Promise<App.Session>
+		// single-use enforcement for relayed @session mint tokens. Each token carries a unique `jti`
+		// that must be consumed exactly once to block replay. The default store is an in-memory Map,
+		// which is per-process — so on a MULTI-INSTANCE / serverless deployment a token could be
+		// replayed on another instance within its short TTL. Provide a shared store (Redis, a DB, a
+		// Durable Object) to enforce single-use across instances. `consume` must atomically record the
+		// jti and return true only if it had not been seen before (e.g. Redis `SET jti 1 NX PX ttl`).
+		consumedTokenStore?: ConsumedTokenStore
+	}
+	// where the GraphQL API is mounted (default '/_api'). The client sends queries here, so the
+	// resolved value is injected to the client at render.
+	apiEndpoint?: string
+	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint. The form
+	// handler's CSRF check is fail-closed: a form POST whose Origin is absent or matches neither
+	// the request's own origin nor this allowlist is rejected (403). Server-only.
+	allowedOrigins?: string[]
+	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
+	// Defaults to 10 MB. Bodies without a Content-Length fall back to the host/proxy limit.
+	// Server-only.
+	formMaxBodyBytes?: number
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
@@ -278,6 +307,9 @@ export interface HoudiniClientPluginConfig {}
 // we need to include some extra meta data along with the config file
 export class Config {
 	public config_file: ConfigFile
+	// server_config is the server-only overlay loaded from src/server/+config (secrets like
+	// sessionKeys). Kept separate from config_file so it never flows into the client bundle.
+	public server_config: ServerConfigFile
 	public filepath: string
 	public plugins: PluginMeta[]
 	public root_dir: string
@@ -285,12 +317,14 @@ export class Config {
 
 	constructor(init: {
 		config_file: ConfigFile
+		server_config?: ServerConfigFile
 		filepath: string
 		plugins: PluginMeta[]
 		root_dir: string
 		schema: GraphQLSchema
 	}) {
 		this.config_file = init.config_file
+		this.server_config = init.server_config ?? {}
 		this.filepath = init.filepath
 		this.plugins = init.plugins
 		this.root_dir = init.root_dir

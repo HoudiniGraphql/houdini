@@ -30,6 +30,7 @@ export const routes = {
 	optimistic_keys: '/optimistic-keys',
 	node_plugin: '/node-plugin',
 	list_id: '/list-id',
+	oauth: '/oauth',
 	list_operations_upsert: '/list-operations/upsert',
 	list_operations_update: '/list-operations/update',
 	routing_errors: '/routing-errors',

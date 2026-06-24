@@ -51,6 +51,77 @@ func TestTransformRuntime(t *testing.T) {
 	})
 }
 
+// TestTransformRuntimeLoginURL verifies that the loginURL helper is re-exported from the runtime
+// barrel (index.tsx) only when a redirect-login integration is configured (router_config.redirect,
+// derived from src/server/+config auth.redirect.url). Without it the helper stays out of $houdini.
+func TestTransformRuntimeLoginURL(t *testing.T) {
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `type Query { id: ID }`,
+
+		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			redirect, _ := test.Extra["redirect"].(string)
+			providers, _ := test.Extra["providers"].(string)
+			if redirect == "" && providers == "" {
+				return
+			}
+			ctx := context.Background()
+			conn, err := p.DB.Take(ctx)
+			require.NoError(t, err)
+			defer p.DB.Put(conn)
+			// session_keys is NOT NULL; redirect / providers are what gate the export
+			stmt, err := conn.Prepare(
+				`INSERT INTO router_config (redirect, providers, session_keys) VALUES ($r, $p, $s)`,
+			)
+			require.NoError(t, err)
+			require.NoError(
+				t,
+				p.DB.ExecStatement(stmt, map[string]any{"r": redirect, "p": providers, "s": ""}),
+			)
+			stmt.Finalize()
+		},
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			got, err := p.TransformRuntime(context.Background(), "index.tsx", test.Extra["input"].(string))
+			require.NoError(t, err)
+			require.Equal(t, test.Extra["expected"].(string), got)
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "re-exports loginURL when a redirect integration is configured",
+				Pass: true,
+				Extra: map[string]any{
+					"redirect": "https://worker.example/login",
+					"input":    "export * from './hooks'\n",
+					// .tsx files also receive the @refresh reset preamble
+					"expected": "// @refresh reset\nexport * from './hooks'\n\nexport { loginURL } from './login.js'\n",
+				},
+			},
+			{
+				Name: "emits a typed loginURL when first-class OAuth providers are configured",
+				Pass: true,
+				Extra: map[string]any{
+					"providers": "github,google",
+					"input":     "export * from './hooks'\n",
+					"expected": "// @refresh reset\nexport * from './hooks'\n" +
+						"\nimport { loginURL as _loginURL } from './login.js'\n" +
+						"export function loginURL(opts: { provider: 'github' | 'google'; redirectTo?: string }): string {\n" +
+						"\treturn _loginURL({ redirectTo: opts.redirectTo, params: { provider: opts.provider } })\n" +
+						"}\n",
+				},
+			},
+			{
+				Name: "omits loginURL when neither redirect nor providers is configured",
+				Pass: true,
+				Extra: map[string]any{
+					"input":    "export * from './hooks'\n",
+					"expected": "// @refresh reset\nexport * from './hooks'\n",
+				},
+			},
+		},
+	})
+}
+
 // indexStub mirrors the real core runtime index.ts: it has leading imports and
 // exports before the generic graphql() declaration, so tests verify that
 // overloads land immediately before the marker rather than at the file top.

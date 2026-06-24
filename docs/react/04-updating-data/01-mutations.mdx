@@ -94,6 +94,25 @@ See [Optimistic Updates](~/updating-data/optimistic-updates) for a full walkthro
 To back a `<form>` with a mutation — including one that works before JavaScript loads — reach
 for `useMutationForm` instead of wiring up `onSubmit` by hand. See [Forms](~/updating-data/forms).
 
+## Writing the Session
+
+A mutation can set the user's session by marking it `@session`. The field named by the directive's
+`path` becomes the session, which the server writes into an `httpOnly` cookie:
+
+```graphql
+mutation Login($email: String!, $password: String!) @session(path: "login.session") {
+  login(email: $email, password: $password) {
+    session { token }
+  }
+}
+```
+
+Login is the obvious case, but anything that ends in "set the session from a mutation result" works
+the same way, including merging a preference into the existing session or clearing it on logout. The
+value always comes from the resolver, never from client input. The full story (replace vs. merge vs.
+clear, and running it without JavaScript via `@endpoint`) lives in the
+[authentication guide](~/guides/authentication#mutation-based-login).
+
 ## Deduplication
 
 <Dedupe />

@@ -6,9 +6,22 @@ import {
 	sessionTokenFingerprint,
 	signFormToken,
 	verifyFormToken,
+	signRedirectTxn,
+	verifyRedirectTxn,
+	randomToken,
+	timingSafeEqual,
 } from './auth-token.js'
 
 const keys = ['test-secret']
+
+describe('timingSafeEqual', () => {
+	test('true only for identical strings', () => {
+		expect(timingSafeEqual('abcdef', 'abcdef')).toBe(true)
+		expect(timingSafeEqual('abcdef', 'abcdeg')).toBe(false)
+		expect(timingSafeEqual('abc', 'abcd')).toBe(false) // different length
+		expect(timingSafeEqual('', '')).toBe(true)
+	})
+})
 
 describe('session-mint token', () => {
 	test('round-trips the signed session payload as a replace action', async () => {
@@ -75,5 +88,58 @@ describe('session-mint token', () => {
 	test('a session token does not verify as a form CSRF token', async () => {
 		const sessionTok = await signSessionToken({ userId: '7' } as any, keys)
 		expect(await verifyFormToken(sessionTok, {} as any, keys)).toBe(false)
+	})
+})
+
+describe('redirect-login transaction cookie', () => {
+	test('round-trips the nonce and landing path', async () => {
+		const cookie = await signRedirectTxn({ nonce: 'n1', redirectTo: '/home' }, keys)
+		expect(await verifyRedirectTxn(cookie, keys)).toEqual({ nonce: 'n1', redirectTo: '/home' })
+	})
+
+	test('round-trips the first-class OAuth fields (provider, codeVerifier, oidcNonce)', async () => {
+		const cookie = await signRedirectTxn(
+			{ nonce: 'n', redirectTo: '/d', provider: 'github', codeVerifier: 'v', oidcNonce: 'on' },
+			keys
+		)
+		expect(await verifyRedirectTxn(cookie, keys)).toEqual({
+			nonce: 'n',
+			redirectTo: '/d',
+			provider: 'github',
+			codeVerifier: 'v',
+			oidcNonce: 'on',
+		})
+	})
+
+	test('rejects a garbage cookie or non-string', async () => {
+		expect(await verifyRedirectTxn('not.a.jwt', keys)).toBe(null)
+		expect(await verifyRedirectTxn(undefined, keys)).toBe(null)
+	})
+
+	test('rejects a cookie signed with a different key', async () => {
+		const cookie = await signRedirectTxn({ nonce: 'n', redirectTo: '/' }, ['other-key'])
+		expect(await verifyRedirectTxn(cookie, keys)).toBe(null)
+	})
+
+	// the four token purposes share sessionKeys[0] but are domain-separated; a leaked txn cookie
+	// must not be replayable as a session/CSRF token, and neither of those as a txn cookie.
+	test('does not cross-verify with the session or form token purposes', async () => {
+		const txn = await signRedirectTxn({ nonce: 'n', redirectTo: '/' }, keys)
+		expect(await verifySessionToken(txn, keys)).toBe(null)
+		expect(await verifyFormToken(txn, {} as any, keys)).toBe(false)
+
+		const sessionTok = await signSessionToken({ userId: '7' } as any, keys)
+		expect(await verifyRedirectTxn(sessionTok, keys)).toBe(null)
+		const formTok = await signFormToken({} as any, keys)
+		expect(await verifyRedirectTxn(formTok, keys)).toBe(null)
+	})
+})
+
+describe('random tokens', () => {
+	test('randomToken is url-safe and unique per call', () => {
+		const a = randomToken()
+		const b = randomToken()
+		expect(a).not.toBe(b)
+		expect(a).toMatch(/^[A-Za-z0-9_-]+$/)
 	})
 })

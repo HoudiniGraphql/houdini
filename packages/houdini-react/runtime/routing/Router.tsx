@@ -727,7 +727,7 @@ export function useSession(): [
 			ctx.setSession(newSession)
 		}
 
-		await fetch(getAuthUrl(configFile), {
+		await fetch(getAuthUrl(), {
 			method: 'POST',
 			body: JSON.stringify({ session: newSession }),
 			headers: {
@@ -847,6 +847,12 @@ function useLinkNavigation({ goto }: { goto: Goto }) {
 			const target = link.attributes.getNamedItem('href')?.value
 			// make sure its a link we recognize
 			if (!target?.startsWith('/')) {
+				return
+			}
+
+			// the session/auth endpoint and its sub-paths (e.g. the /login redirect-login entry) are
+			// server endpoints, not client routes — let the browser navigate so the redirect flow runs
+			if (target.startsWith(getAuthUrl())) {
 				return
 			}
 

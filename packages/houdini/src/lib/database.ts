@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS router_config (
     redirect TEXT UNIQUE,
     session_keys TEXT NOT NULL UNIQUE,
     url TEXT,
-    mutation TEXT UNIQUE
+    mutation TEXT UNIQUE,
+    providers TEXT
 );
 
 -- Runtime Scalar Definition
@@ -602,15 +603,25 @@ export async function write_config(
 		db.run('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)', [name, type])
 	}
 
-	// write router config
-	if (config.config_file.router) {
-		const session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		const url = config.config_file.router.auth?.url ?? null
-
+	// write router config — all of it is server-only now (from src/server/+config), so none of it
+	// can reach the client bundle. The public bits (apiEndpoint, auth.url) are injected to the
+	// client at render instead.
+	{
+		const auth = config.server_config.auth
 		db.run(
-			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation)
-			 VALUES (?, ?, ?, ?, ?)`,
-			[null, null, session_keys, url, null]
+			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation, providers)
+			 VALUES (?, ?, ?, ?, ?, ?)`,
+			[
+				config.server_config.apiEndpoint ?? null,
+				// the trusted redirect-login integration url (enables /login + the loginURL helper)
+				auth?.redirect?.url ?? null,
+				auth?.sessionKeys?.join(',') ?? '',
+				auth?.url ?? null,
+				null,
+				// the configured first-class OAuth provider names — codegen bakes these into the
+				// typed `provider` argument of loginURL, and /login gates on them too
+				auth?.providers ? Object.keys(auth.providers).join(',') : null,
+			]
 		)
 	}
 

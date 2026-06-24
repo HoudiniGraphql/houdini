@@ -1,6 +1,7 @@
 import type { ConfigFile } from 'houdini'
 
 import type { Cache } from './cache/index.js'
+import { getApiEndpoint } from './config.js'
 import type { ClientHooks, ClientPlugin } from './documentStore.js'
 import { DocumentStore } from './documentStore.js'
 import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from './types.js'
@@ -56,7 +57,7 @@ export class HoudiniClient {
 		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 		this.url =
 			url ??
-			(globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint(config())
+			(globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint()
 
 		this.plugins = flatten(plugins)
 		this.config = config()
@@ -163,6 +164,6 @@ function flatten<T>(source?: NestedList<T>): T[] {
 	}, [])
 }
 
-function localApiEndpoint(configFile: ConfigFile) {
-	return configFile.router?.apiEndpoint ?? '/_api'
+function localApiEndpoint() {
+	return getApiEndpoint()
 }

@@ -2,9 +2,9 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
-import { getAuthUrl } from '../runtime/config.js'
-import { houdini_root, local_api_dir } from '../router/conventions.js'
-import { Config, type ConfigFile } from './config.js'
+import { DEFAULT_AUTH_URL } from '../runtime/config.js'
+import { houdini_root, local_server_dir } from '../router/conventions.js'
+import { Config, type ConfigFile, type ServerConfigFile } from './config.js'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
 import * as path from './path.js'
@@ -104,17 +104,23 @@ export async function get_config({
 		// if there is a local schema then we need to ignore the schema check
 		let local_schema = ''
 		try {
-			for (const child of await fs.readdir(local_api_dir(_config, root_dir))) {
+			for (const child of await fs.readdir(local_server_dir(_config, root_dir))) {
 				if (path.parse(child).name === '+schema') {
-					local_schema = path.join(local_api_dir(_config, root_dir), child)
+					local_schema = path.join(local_server_dir(_config, root_dir), child)
 					break
 				}
 			}
 		} catch {}
 
+		// load the server-only config (src/server/+config) — secrets like sessionKeys that must never
+		// reach the client. Kept separate from config_file (which the client bundles) so it can't
+		// leak; every server/build consumer reads config.server_config explicitly.
+		const server_config = await read_server_config(local_server_dir(_config, root_dir))
+
 		const partialConfig: Partial<Config> = {
 			root_dir,
 			config_file,
+			server_config,
 			filepath: config_path,
 			plugins: [],
 		}
@@ -191,6 +197,34 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 	}
 }
 
+// read_server_config loads the server-only config overlay (src/server/+config). Returns {} when the
+// file is absent. It holds secrets (sessionKeys, later oauth) and lives in src/server, which is
+// compiled server-side only — so it never reaches the client bundle.
+async function read_server_config(apiDir: string): Promise<ServerConfigFile> {
+	let configPath = ''
+	try {
+		for (const child of await fs.readdir(apiDir)) {
+			if (path.parse(child).name === '+config') {
+				configPath = path.join(apiDir, child)
+				break
+			}
+		}
+	} catch {
+		return {} // api dir doesn't exist
+	}
+	if (!configPath) {
+		return {}
+	}
+
+	let imported: any
+	try {
+		imported = await import(/* @vite-ignore */ path.importPath(configPath))
+	} catch (e: any) {
+		throw new Error(`Could not load server config at file://${configPath}.\n${e.message}`)
+	}
+	return (imported.default ?? imported) as ServerConfigFile
+}
+
 async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
@@ -249,12 +283,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 }
 
 export function internal_routes(config: Config): string[] {
-	const routes = [local_api_dir(config)]
-	// the auth endpoint is always mounted for a router app (default path when unconfigured),
-	// so register it as an internal route rather than a 404
-	if (config.config_file.router) {
-		routes.push(getAuthUrl(config.config_file))
-	}
+	const routes = [local_server_dir(config)]
+	// the auth endpoint is always mounted (default path when unconfigured), so register it as an
+	// internal route rather than a 404. Its url is server-only config now.
+	routes.push(config.server_config.auth?.url ?? DEFAULT_AUTH_URL)
 
 	return routes
 }

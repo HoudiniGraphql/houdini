@@ -176,8 +176,8 @@ CSRF protection; it's just on. There are three things worth doing before you shi
 
 - **Set `sessionKeys`.** Without configured keys Houdini signs sessions and form tokens with a
   random per-process key, which works but doesn't survive a restart or hold up across more than
-  one server. Configuring `router.auth.sessionKeys` is what makes them persistent. This is a
-  correctness requirement in production, not only a security one.
+  one server. Configuring `auth.sessionKeys` in `src/server/+config.ts` is what makes them
+  persistent. This is a correctness requirement in production, not only a security one.
 - **Keep privileged fields out of form mutations.** Because the input type is the trust
   boundary, never put a field like `isAdmin` or an ownership id in an `@endpoint` mutation's
   input. Set those server-side from the session context (see [Authentication](~/guides/authentication)),
@@ -185,8 +185,8 @@ CSRF protection; it's just on. There are three things worth doing before you shi
   is a backstop, not a substitute for this.
 - **Pin `allowedOrigins` behind a proxy.** When TLS is terminated upstream, the origin Houdini
   derives can read as `http` while the browser sends `https`, and the `Origin` check would then
-  reject legitimate submissions. List your real public origin(s) in `router.allowedOrigins` to
-  settle it.
+  reject legitimate submissions. List your real public origin(s) in `allowedOrigins` (in
+  `src/server/+config.ts`) to settle it.
 
 And remember that `@endpoint` exposes a mutation to first-party browser forms: anyone who
 passes those checks can invoke it by name, exactly like any other GraphQL request. Authorization

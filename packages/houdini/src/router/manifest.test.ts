@@ -376,7 +376,7 @@ test('local schema', async () => {
 	// create the mock filesystem
 	await fs.mock({
 		[config.projectRoot]: {
-			'src/api': {
+			'src/server': {
 				'+schema.js': `
 					export default 'foo'
 				`,
@@ -608,7 +608,7 @@ test('local yoga', async () => {
 	// create the mock filesystem
 	await fs.mock({
 		[config.projectRoot]: {
-			'src/api': {
+			'src/server': {
 				'+yoga.js': `
 					export default 'foo'
 				`,

@@ -7,8 +7,9 @@ import {
 	type YogaServerOptions as YogaConfig,
 } from 'graphql-yoga'
 
-import type { ConfigFile } from '../lib/config.js'
+import type { ConfigFile, ServerConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
+import { getApiEndpoint, getAuthUrl, setApiEndpoint, setAuthUrl } from '../runtime/config.js'
 import { interpolateRedirect, valueAtPath } from '../runtime/endpoint.js'
 import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
@@ -22,6 +23,7 @@ import {
 	handle_request,
 	session_cookie_name,
 	set_session,
+	sign_session,
 } from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
 
@@ -37,6 +39,44 @@ export type FormResult = Record<string, { data: any; errors: any }>
 // request cannot. Required for CORS-simple POSTs to the graphql endpoint so they can't be a
 // CSRF channel. Must stay in sync with the header set in fetch.ts.
 const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
+
+// readBodyWithLimit drains the request body while counting bytes, aborting (→ null) once `maxBytes`
+// is exceeded — so a chunked/Content-Length-less body can't be buffered without bound. On success
+// it returns a fresh Request wrapping the buffered bytes (same headers, so the content-type +
+// multipart boundary survive) for formData() to parse.
+async function readBodyWithLimit(request: Request, maxBytes: number): Promise<Request | null> {
+	if (!request.body) {
+		return request
+	}
+	const reader = request.body.getReader()
+	const chunks: Uint8Array[] = []
+	let total = 0
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) {
+			break
+		}
+		if (value) {
+			total += value.byteLength
+			if (total > maxBytes) {
+				await reader.cancel()
+				return null
+			}
+			chunks.push(value)
+		}
+	}
+	const body = new Uint8Array(total)
+	let offset = 0
+	for (const chunk of chunks) {
+		body.set(chunk, offset)
+		offset += chunk.byteLength
+	}
+	return new Request(request.url, {
+		method: request.method,
+		headers: request.headers,
+		body,
+	})
+}
 
 // sessionMintPlugin is the server side of the enhanced @session path. After a session mutation
 // (any @session mutation, form or not) executes over GraphQL it mints a server-signed token of
@@ -130,6 +170,7 @@ export function _serverHandler<ComponentType = unknown>({
 	on_render,
 	componentCache,
 	config_file,
+	server_config,
 }: {
 	schema?: GraphQLSchema | null
 	server?: Server<any, any>
@@ -153,10 +194,22 @@ export function _serverHandler<ComponentType = unknown>({
 		// the signed CSRF token forms render in a hidden field (only when router.formToken
 		// is enabled); undefined otherwise.
 		formToken?: string
+		// public server-owned endpoints to inject into the page (the session endpoint and the
+		// GraphQL endpoint) so the client can reach them without bundling them into houdini.config.
+		authUrl?: string
+		apiEndpoint?: string
 	}) => Response | Promise<Response | undefined> | undefined
 	config_file: ConfigFile
+	// the server-only config (src/server/+config) — sessionKeys live here, never in config_file
+	server_config?: ServerConfigFile
 } & Omit<YogaServerOptions, 'schema'>) {
-	const session_keys = localApiSessionKeys(config_file)
+	const session_keys = localApiSessionKeys(server_config)
+
+	// resolve the server-owned public endpoints once and publish them: the server reads them via
+	// getAuthUrl()/getApiEndpoint() below, and they're injected to the client at render so the
+	// relay/query layer can reach them without the urls living in the client config bundle.
+	setAuthUrl(server_config?.auth?.url)
+	setApiEndpoint(server_config?.apiEndpoint)
 
 	// fall back to a random per-process key when none are configured, so both auth sessions
 	// and form CSRF tokens work out of the box. Configuring session keys is about
@@ -206,9 +259,13 @@ export function _serverHandler<ComponentType = unknown>({
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
-							httpOnly: true,
-						}),
+						// sign the session so the local handler's get_session (a signed-JWT verify)
+						// accepts it — a raw JSON cookie is rejected and would run session-less.
+						Cookie: encodeCookie(
+							session_cookie_name,
+							await sign_session(session ?? {}, session_keys[0]),
+							{ httpOnly: true }
+						),
 					},
 					body: JSON.stringify({
 						query,
@@ -237,6 +294,10 @@ export function _serverHandler<ComponentType = unknown>({
 		// evaluate the headers() exports for this page and its layout chain so the
 		// adapter can apply them before streaming begins
 		const headers = await collect_response_headers(match)
+		// clickjacking default: the @endpoint form CSRF token doesn't stop a framed, same-origin page
+		// from being click-jacked into submitting, so block cross-origin framing by default. A page
+		// can opt out (e.g. for an embed) by setting these in its own headers() export.
+		apply_antiframing_defaults(headers)
 
 		// mint the session-bound token forms render in their hidden CSRF field
 		const session = await get_session(request.headers, session_keys)
@@ -252,6 +313,10 @@ export function _serverHandler<ComponentType = unknown>({
 			headers,
 			formResult: opts?.formResult,
 			formToken,
+			// public server-owned endpoints injected into the page so the client relay/query
+			// layer can reach them without the urls being bundled into houdini.config
+			authUrl: getAuthUrl(),
+			apiEndpoint: getApiEndpoint(),
 		})
 		if (!rendered) {
 			// if we got this far its not a page we recognize
@@ -290,20 +355,25 @@ export function _serverHandler<ComponentType = unknown>({
 		// CSRF: native form posts are CORS "simple requests" that bypass preflight, so we
 		// fail-closed on the Origin header (must match the app origin or the allowlist).
 		const origin = request.headers.get('origin')
-		const allowedOrigins = [parsedURL.origin, ...(config_file.router?.allowedOrigins ?? [])]
+		const allowedOrigins = [parsedURL.origin, ...(server_config?.allowedOrigins ?? [])]
 		if (!origin || !allowedOrigins.includes(origin)) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
-		// DoS guard: reject an over-large body before buffering it. (A chunked body with no
-		// Content-Length falls through to the host/proxy limit.)
-		const maxBodyBytes = config_file.router?.formMaxBodyBytes ?? 10 * 1024 * 1024
+		// DoS guard: reject an over-large body. The Content-Length header is a fast path, but it can
+		// be absent (chunked transfer) or lie, so we ALSO count bytes while reading the stream and
+		// abort once the cap is exceeded — never buffering an unbounded body into formData().
+		const maxBodyBytes = server_config?.formMaxBodyBytes ?? 10 * 1024 * 1024
 		const contentLength = Number(request.headers.get('content-length'))
 		if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
 			return new Response('Payload Too Large', { status: 413 })
 		}
+		const limited = await readBodyWithLimit(request, maxBodyBytes)
+		if (limited === null) {
+			return new Response('Payload Too Large', { status: 413 })
+		}
 
-		const formData = await request.formData()
+		const formData = await limited.formData()
 
 		// hardened CSRF: the form must carry a token we signed at render time — bound to
 		// THIS session, time-limited, purpose-claimed, and signed with a key domain-separated
@@ -348,9 +418,13 @@ export function _serverHandler<ComponentType = unknown>({
 					// mark this as the no-JS form's internal execution so the session-mint plugin
 					// skips it (we set the cookie directly below)
 					[INTERNAL_FORM_HEADER]: '1',
-					Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
-						httpOnly: true,
-					}),
+					// sign the session so the in-process handler's get_session (a signed-JWT verify)
+					// accepts it — a raw JSON value would fail verification and run session-less
+					Cookie: encodeCookie(
+						session_cookie_name,
+						await sign_session(session ?? {}, session_keys[0]),
+						{ httpOnly: true }
+					),
 				},
 				body,
 			})
@@ -448,6 +522,7 @@ export function _serverHandler<ComponentType = unknown>({
 		const authResponse = await handle_request({
 			request,
 			config: config_file,
+			server_config,
 			session_keys,
 		})
 		if (authResponse) {
@@ -495,10 +570,24 @@ export async function collect_response_headers(
 	return merged
 }
 
+// apply_antiframing_defaults adds anti-clickjacking response headers unless the page already set
+// them via its headers() export. `frame-ancestors` is the modern control; `X-Frame-Options` is the
+// legacy fallback. Both default to same-origin: cross-origin framing is blocked, same-origin embeds
+// still work. A page that needs to be framed elsewhere overrides them in its own headers().
+export function apply_antiframing_defaults(headers: Record<string, string>) {
+	const has = (name: string) => Object.keys(headers).some((key) => key.toLowerCase() === name)
+	if (!has('content-security-policy')) {
+		headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+	}
+	if (!has('x-frame-options')) {
+		headers['X-Frame-Options'] = 'SAMEORIGIN'
+	}
+}
+
 export type ServerAdapterFactory = typeof serverAdapterFactory
 
-function localApiSessionKeys(configFile: ConfigFile) {
-	return configFile.router?.auth?.sessionKeys ?? []
+function localApiSessionKeys(serverConfig?: ServerConfigFile) {
+	return serverConfig?.auth?.sessionKeys ?? []
 }
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
 type YogaSchemaDefinition<TContext> = NonNullable<YogaConfig<any, TContext>['schema']>

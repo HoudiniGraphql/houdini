@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS router_config (
     redirect TEXT UNIQUE,
     session_keys TEXT NOT NULL UNIQUE,
     url TEXT,
-    mutation TEXT UNIQUE
+    mutation TEXT UNIQUE,
+    providers TEXT
 );
 
 -- Runtime Scalar Definition

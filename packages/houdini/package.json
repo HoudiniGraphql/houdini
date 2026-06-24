@@ -54,6 +54,7 @@
         "memfs": "^4.17.2",
         "minimatch": "^10.2.5",
         "npx-import": "^1.1.4",
+        "oauth4webapi": "^3.8.6",
         "recast": "^0.23.11",
         "sql.js": "^1.14.1",
         "ws": "^8.21.0"
@@ -110,6 +111,14 @@
         "./node/*": {
             "types": "./build/node/*.d.ts",
             "import": "./build/node/*.js"
+        },
+        "./oauth": {
+            "types": "./build/oauth/index.d.ts",
+            "import": "./build/oauth/index.js"
+        },
+        "./oauth/*": {
+            "types": "./build/oauth/*.d.ts",
+            "import": "./build/oauth/*.js"
         },
         "./router": {
             "types": "./build/router/index.d.ts",
@@ -170,6 +179,9 @@
             ],
             "node": [
                 "./build/node/index.d.ts"
+            ],
+            "oauth": [
+                "./build/oauth/index.d.ts"
             ],
             "router": [
                 "./build/router/index.d.ts"

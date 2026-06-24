@@ -73,7 +73,7 @@ export class HoudiniClient extends BaseClient {
 			url:
 				url ??
 				(globalThis.window ? '' : `http://localhost:${serverPort}`) +
-					localApiEndpoint(getCurrentConfig()),
+					localApiEndpoint(),
 			plugins: flatten(
 				([] as NestedList<ClientPlugin>).concat(
 					// if they specified a throw behavior

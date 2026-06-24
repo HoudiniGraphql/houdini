@@ -6,10 +6,29 @@ import type { ConfigFile } from 'houdini'
 // client (where useSession/useMutationForm POST the session token).
 export const DEFAULT_AUTH_URL = '/__houdini__/auth'
 
-// getAuthUrl resolves the session endpoint for a config — the configured override or the
-// default — so the default lives in exactly one place across server and client.
-export function getAuthUrl(config: ConfigFile): string {
-	return config.router?.auth?.url ?? DEFAULT_AUTH_URL
+// the resolved session endpoint, set once per process: server-side from the ServerConfigFile,
+// client-side from the value the server injects at render (window.__houdini__auth_url__). The
+// @session relay reads it via getAuthUrl() so the url never has to live in the client config
+// bundle. Falls back to the default until set.
+let _authUrl: string | undefined
+export function setAuthUrl(url: string | undefined | null): void {
+	_authUrl = url || undefined
+}
+export function getAuthUrl(): string {
+	return _authUrl ?? DEFAULT_AUTH_URL
+}
+
+// the GraphQL endpoint, resolved the same way as the auth url: server-side from the
+// ServerConfigFile, client-side from the value injected at render (window.__houdini__api_endpoint__).
+// It lives in server config (not houdini.config) so it can be env-driven; the client reads the
+// injected value. Falls back to '/_api'.
+export const DEFAULT_API_ENDPOINT = '/_api'
+let _apiEndpoint: string | undefined
+export function setApiEndpoint(url: string | undefined | null): void {
+	_apiEndpoint = url || undefined
+}
+export function getApiEndpoint(): string {
+	return _apiEndpoint ?? DEFAULT_API_ENDPOINT
 }
 
 // The window event the session-relay plugin dispatches after an @session mutation so the

@@ -726,6 +726,7 @@ export default ({ cssLinks, ...props }) => (
 `,
 						"render/config.js": `import { createServerAdapter as createAdapter } from './server'
 import config_file from '../../../../../houdini.config'
+const server_config = {}
 
 const schema = null
 const yoga = null
@@ -741,6 +742,7 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }
@@ -753,13 +755,14 @@ export function createServerAdapter(options) {
 				Pass: true,
 				Extra: map[string]any{
 					"api_files": map[string]string{
-						"src/api/+schema.js": "export default 'schema'",
+						"src/server/+schema.js": "export default 'schema'",
 					},
 					"expected": map[string]string{
 						"render/config.js": `import { createServerAdapter as createAdapter } from './server'
 import config_file from '../../../../../houdini.config'
+const server_config = {}
 
-import schema from '../../../../../src/api/+schema'
+import schema from '../../../../../src/server/+schema'
 const yoga = null
 
 export const endpoint = "/_api"
@@ -773,6 +776,7 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }
@@ -785,14 +789,15 @@ export function createServerAdapter(options) {
 				Pass: true,
 				Extra: map[string]any{
 					"api_files": map[string]string{
-						"src/api/+yoga.js": "export default 'yoga'",
+						"src/server/+yoga.js": "export default 'yoga'",
 					},
 					"expected": map[string]string{
 						"render/config.js": `import { createServerAdapter as createAdapter } from './server'
 import config_file from '../../../../../houdini.config'
+const server_config = {}
 
 const schema = null
-import yoga from '../../../../../src/api/+yoga'
+import yoga from '../../../../../src/server/+yoga'
 
 export const endpoint = "/_api"
 
@@ -805,6 +810,7 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }
@@ -823,6 +829,7 @@ export function createServerAdapter(options) {
 					"expected": map[string]string{
 						"render/config.js": `import { createServerAdapter as createAdapter } from './server'
 import config_file from '../../../../../houdini.config'
+const server_config = {}
 
 import UserAvatar from '../componentFields/wrapper_UserAvatar.jsx'
 
@@ -842,6 +849,7 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }

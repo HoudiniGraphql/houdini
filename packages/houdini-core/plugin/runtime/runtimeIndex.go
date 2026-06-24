@@ -54,13 +54,17 @@ func GenerateRuntimeIndexFile(
 	}
 	defer documentSearch.Finalize()
 
-	// generate an export for every document
+	// generate a TYPE-ONLY export for every document. The artifact's runtime value is its default
+	// export (which `export *` never re-exports anyway — only the named $result/$input/$artifact
+	// types), so a value-level `export *` would statically pull every artifact into the entry
+	// chunk and defeat the manifest's per-route dynamic import (INEFFECTIVE_DYNAMIC_IMPORT). A
+	// type-only re-export keeps the same types available from $houdini while erasing at runtime.
 	indexDocs := []string{}
 	err = db.StepStatement(ctx, documentSearch, func() {
 		name := documentSearch.GetText("name")
 		indexDocs = append(
 			indexDocs,
-			fmt.Sprintf("export * from './artifacts/%s'", name),
+			fmt.Sprintf("export type * from './artifacts/%s'", name),
 		)
 	})
 	if err != nil {

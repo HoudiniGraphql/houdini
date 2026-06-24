@@ -3,40 +3,61 @@ title: Authentication
 description: Handling authentication in Houdini's React framework
 ---
 
-The challenge when building user sessions in a modern app is how to share that information between the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally apps could use local storage for this, the initial request (the one that gets rendered on the server) doesn't have access to the client's local storage and so we must rely on something that's automatically included in the initial response.
+import Notice from '@components/docs/Notice.astro'
+import AsideAccordion from '@components/docs/AsideAccordion.astro'
 
-Wiring up everything up by hand is possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you can use the session in your client as shown here.
+Adding login to a Houdini app is mostly a matter of picking a strategy and writing a few lines of config. The part that takes any thought at all is where the session lives.
 
-- **Redirect Based Authentication** - Users authorize with a third party provider which then redirects the user back to the Houdini application with any number of query parameters that define the session
-- **Mutation Based Authentication** - Users authorize by running a mutation marked with `@session`. The result field named by its `path` becomes the session. Pair it with `@endpoint` and it also works without client-side JavaScript via a [progressively-enhanced form](~/api-reference/useMutationForm).
+It has to live in two places at once. The server renders the first page, the client runtime takes over once the page is live, and the two have to agree on who is logged in before the first byte of HTML leaves the building. Once security starts to matter there is really only one place that answer can sit: an `httpOnly` cookie. Local storage is tempting, but the very first request (the one rendered on the server) can't see it, so we need something that rides along with every request on its own.
 
-## Redirect Based Authentication
+Wiring all of that up by hand is possible. It is also the kind of thing we get subtly wrong at 5pm on a Friday, so Houdini ships a couple of strategies out of the box that cover most situations.
 
-To configure your application to use a redirect-based strategy, you must set the `auth` field of the router config to an object like so:
+There are two ways a user can authorize. Pick whichever fits and jump straight to it:
 
-```js title="vite.config.js"
-/** @type {import('houdini').ConfigFile} */
-const config = {
-    router: {
-        auth: {
-            // the endpoint that sets the session cookie. The third-party provider redirects
-            // back here with the session in query params. Defaults to '/__houdini__/auth';
-            // override it to match your provider's callback URL.
-            url: '/auth/token',
-            // the secret to use for signing/unsigning the session
-            sessionKeys: ['supersecret'],
-        },
+- **[Mutation based](#mutation-based-login).** The user logs in by running a mutation marked `@session`, and the field named by its `path` becomes the session. This is the path for an app with its own backend (email and password, a magic link, anything that ends in a mutation). Pair it with `@endpoint` and it works with no client-side JavaScript at all.
+- **[Third-party provider](#logging-in-through-a-provider-oauthoidc).** The user authorizes with a third party (Google, GitHub, an external OAuth worker) which redirects back to the app. Houdini runs the whole exchange and hands us a verified user to turn into a session.
+
+Whichever we choose, [reading the session](#reading-the-session) afterward works the same way, so we'll cover it first, right after the one-time server setup. [Logging out](#logging-out), the [config reference](#server-config-reference), and the [security model](#how-it-stays-secure) follow below.
+
+## Configuring your server
+
+Auth configuration lives in the server config file at `src/server/+config.ts`, alongside the rest of our server-only settings. This file is never imported by the client, so it's safe to reach for environment variables or hold secrets in memory without any risk of them reaching the browser.
+
+The one thing both strategies need is `sessionKeys`, the secret (or secrets) that sign and verify the session cookie:
+
+```ts title="src/server/+config.ts"
+import type { ServerConfigFile } from 'houdini'
+
+export default {
+    auth: {
+        // the secret(s) that sign and verify the session cookie. The first one signs; the rest are
+        // still accepted on verify, which is how key rotation works.
+        sessionKeys: [process.env.SESSION_SECRET!],
     },
-}
-
-export default config
+} satisfies ServerConfigFile
 ```
 
-## Mutation Based Authentication
+Everything else under `auth` is optional and depends on which strategy we're using. There's a full [config reference](#server-config-reference) at the end of the guide.
 
-`@session` writes the session from a mutation's result — the mutation-driven counterpart to
-`updateSession()`. Its `path` names the result field whose object value is written to the
-`httpOnly` session cookie. Authentication is one use; any "session by mutation" works the same.
+## Reading the session
+
+Before we set a session, it helps to see how we'll read one, since that part is the same no matter which login path we pick. We reach for the `useSession` hook:
+
+```js
+import { useSession } from '$houdini'
+
+const [ session, updateSession ] = useSession()
+```
+
+Calling `updateSession(values)` merges the values into the client-side session and persists them in the cookie so they survive the next load. Calling `updateSession(null)` logs the user out: it empties the client-side session and deletes the cookie.
+
+<Notice variant="warning">
+  **The cookie is the source of truth, not `useSession()`.** The `httpOnly` cookie is signed by the server, and the server gets its verified contents as `ctx.session`. What `useSession()` returns is in-memory UI state that mirrors the cookie, which is great for rendering but is not where an authorization decision belongs. We authorize against `ctx.session`, on the server. Always.
+</Notice>
+
+## Mutation based login
+
+If our app already has a backend that can check a password, login is just a mutation. We mark it `@session` and Houdini takes the result and writes it into the cookie for us:
 
 ```graphql
 mutation Login($email: String!, $password: String!) @session(path: "login.session") {
@@ -46,14 +67,40 @@ mutation Login($email: String!, $password: String!) @session(path: "login.sessio
 }
 ```
 
-This works for **any** way you run the mutation — `useMutation`, `useMutationForm`, or a bare
-client `send` — not just forms: after the mutation executes, Houdini relays a server-signed
-token of the result to the session endpoint, which sets the cookie. The value comes from your
-resolver, never from client input, and no `auth.url` configuration is required — it defaults to
-a built-in endpoint. How the result is written depends on the value and the directive:
+The `path` argument names the field in the result whose object value becomes the session, dotted just like property access (`login.session` is `result.login.session`). That value comes from the server that runs the mutation, never from anything the client sends, which is the whole point: a client can't talk Houdini into a session the server didn't issue. There's nothing to wire up either; `@session` mutations hand their result to a built-in endpoint that Houdini mounts for us.
 
-- **Replace (default)** — a non-null object replaces the session. Right for login (it starts a clean session).
-- **Merge** — `@session(path:, merge: true)` upserts the object into the existing session, keeping the rest. Right for a preference that shouldn't drop the auth token:
+Running the mutation looks like any other. From a component:
+
+```jsx
+import { useMutation, graphql } from '$houdini'
+
+function LoginForm() {
+    const login = useMutation(graphql(`
+        mutation Login($email: String!, $password: String!) @session(path: "login.session") {
+            login(email: $email, password: $password) {
+                session { token }
+            }
+        }
+    `))
+
+    return (
+        <form onSubmit={async (e) => {
+            e.preventDefault()
+            const data = new FormData(e.currentTarget)
+            await login({ email: data.get('email'), password: data.get('password') })
+        }}>
+            <input name="email" type="email" />
+            <input name="password" type="password" />
+            <button>Log in</button>
+        </form>
+    )
+}
+```
+
+The same mutation works no matter how we run it (`useMutation`, `useMutationForm`, or the client's lower-level `send`). Once it runs, Houdini hands the result to that built-in endpoint, which sets the cookie. What happens to the session depends on the value that comes back:
+
+- **Replace (the default).** A non-null object replaces the session, which is exactly what login wants since it starts from a clean slate.
+- **Merge.** `@session(path:, merge: true)` upserts the object into the existing session and keeps the rest, which is right for something like a preference that shouldn't knock out the auth token:
 
   ```graphql
   mutation SetTheme($theme: Theme!) @session(path: "setTheme.session", merge: true) {
@@ -61,12 +108,13 @@ a built-in endpoint. How the result is written depends on the value and the dire
   }
   ```
 
-- **Clear** — a `null` session field clears the cookie (a server-side logout). Auth **failure**
-  must be signalled with a GraphQL error, not a null session: an errored `@session` mutation
-  never touches the session, so a failed login can't accidentally log the user out.
+- **Clear.** A `null` session field clears the cookie, which is a server-side logout.
 
-To make the **same** login work without client-side JavaScript, add `@endpoint` so it's also
-a [progressively-enhanced form](~/api-reference/useMutationForm):
+One subtlety worth knowing: a *failed* login is not a clear. A login that goes wrong should come back as a GraphQL error, not a null session, and an errored `@session` mutation never touches the session at all. That way a login that fails can't accidentally log the user out.
+
+### Making it work without JavaScript
+
+The form above needs JavaScript to submit. To make the very same login work before (or without) hydration, we add `@endpoint`, which also runs the mutation as a [progressively-enhanced form](~/api-reference/useMutationForm):
 
 ```graphql
 mutation Login($email: String!, $password: String!)
@@ -78,29 +126,101 @@ mutation Login($email: String!, $password: String!)
 }
 ```
 
-Now the native form POST sets the session server-side and redirects with no JS, and after
-hydration the enhanced submit takes the signed-token path — converging on the same session
-either way. `@endpoint` owns the form story; `@session` owns the session story; together they
-give progressively-enhanced login.
+Now the native form POST sets the session and redirects with no JS at all, and after hydration the enhanced submit takes over. Both routes converge on the same session. `@endpoint` owns the form story, `@session` owns the session story, and together they add up to progressively-enhanced login.
 
-## Reading Session Data
+<AsideAccordion variant="design" title="Why Isn't @session in the Selection?">
 
-To access the current session, you can use the `useSession` hook:
+It would read more naturally to tag the field itself, something like `session @session` sitting deep in the selection, and let Houdini pick that object up. We deliberately don't, for two reasons.
 
-```js
-import { useSession } from '$houdini'
+The first is autocomplete. GraphQL declares directives against locations like `FIELD`, and that location is all-or-nothing: a directive that's valid on a field is valid on every field, in every document. There's no location that means "a field inside a mutation but not inside a query." So a field-level `@session` would get suggested while we're writing an ordinary query, where writing the session makes no sense at all, and nothing in the schema could talk us out of it. Hanging the directive off the operation keeps it where it belongs, so it only shows up when we're actually defining a mutation.
 
-const [ session, updateSession ] = useSession()
+The second is ambiguity. Once the marker lives in the selection, "which object becomes the session?" stops having one obvious answer. What happens when two fields are tagged? What about when one tagged field is an ancestor of another, so the session would be written twice from nested pieces of the same response? Every one of those cases needs a rule, and none of the rules is the sort of thing we want to keep in our head while reading a mutation. A single `path` on the operation sidesteps the whole question: there is exactly one session object, named in exactly one place.
+
+</AsideAccordion>
+
+## Logging in through a provider (OAuth/OIDC)
+
+For "log in with Google," the user authorizes with a third party that redirects back to us. Houdini runs the whole round trip and hands us a verified user; all we decide is what the session should be.
+
+Providers are configured under `auth.providers`. Out of the box Houdini ships two adapters from `houdini/oauth`: `oidc`, which works with any OpenID Connect provider (Google, Microsoft, Auth0, Okta, Apple), and `github`. GitHub doesn't speak OIDC, which is what makes it a good worked example for [writing a custom provider](#a-custom-provider-adapter) later on.
+
+```ts title="src/server/+config.ts"
+import { github, oidc } from 'houdini/oauth'
+
+export default {
+    auth: {
+        sessionKeys: [process.env.SESSION_SECRET!],
+        providers: {
+            github: github({
+                clientId: process.env.GH_ID!,
+                clientSecret: process.env.GH_SECRET!,
+            }),
+            google: oidc({
+                issuer: 'https://accounts.google.com',
+                clientId: process.env.GOOGLE_ID!,
+                clientSecret: process.env.GOOGLE_SECRET!,
+            }),
+        },
+        onSignIn: async ({ user }) => {
+            // save the user to the database, etc.
+            return { userId: user.sub } // only this opaque value goes in the session cookie
+        },
+    },
+} satisfies ServerConfigFile
 ```
 
-Calling `updateSession(values)` merges the values into the client-side session and persists them in the application cookie so they're available on the next load. Calling `updateSession(null)` logs the user out — it empties the client-side session and deletes the cookie.
+The `oidc` adapter figures out the provider's endpoints from the issuer URL on its own, so every OpenID Connect provider is config-only in exactly this shape. Auth0 is `oidc({ issuer: 'https://YOUR_TENANT.us.auth0.com', clientId, clientSecret })`, Okta and Microsoft Entra are the same with their own issuer, and so on. Remember that we also have to register Houdini's callback (`https://yourapp.com/__houdini__/auth`, or whatever `auth.url` resolves to) as an allowed callback URL in the provider's dashboard.
 
-## Logging Out
+### The round trip
 
-There are three ways to clear the session, matching how it was set — and `null` means "clear" in all of them:
+It helps to have the whole flow in view, since the config above only describes the two ends of it. When a user logs in:
 
-- **`updateSession(null)`** — from `useSession`. Clears the session client-side and deletes the cookie. Use it for a logout button in a client component.
-- **`useLogoutForm`** — a progressively-enhanced logout form. Without JavaScript the native POST deletes the cookie and redirects; after hydration it clears client-side and navigates. Use it for a logout button that must work without JS:
+```
+1. user clicks a loginURL(...) link        →   Houdini's /login entry point
+2. Houdini redirects to the provider       →   accounts.google.com, github.com, ...
+3. user approves; provider redirects back  →   Houdini's callback (auth.url)
+4. Houdini validates everything it got     →   signatures, nonce, the browser-bound cookie
+5. Houdini calls onSignIn({ user, tokens })→   we return the session object
+6. Houdini signs the session into the cookie and lands the user on redirectTo
+```
+
+Steps 2 through 4 are the standard, fiddly OAuth machinery (PKCE, nonces, the `id_token` signature check), and they're entirely Houdini's job. You never configure any of it. The only step that's yours is step 5.
+
+### Starting the flow
+
+To build the links that kick off step 1, Houdini generates a `loginURL` helper, typed to the providers we configured:
+
+```jsx
+import { loginURL } from '$houdini'
+
+<a href={loginURL({ provider: 'github', redirectTo: '/dashboard' })}>Log in with GitHub</a>
+<a href={loginURL({ provider: 'google' })}>Log in with Google</a>
+```
+
+The `provider` value is checked against the configured providers at compile time (`loginURL({ provider: 'twitter' })` is a type error) and again at runtime. `redirectTo` is where the user lands afterward; leave it off to return them to the page they came from.
+
+### Turning a user into a session
+
+`onSignIn` is the one piece of the provider flow we own. It receives the verified `user` (and the `provider` name and the provider's `tokens`, if we need them) and returns the session object the app will use:
+
+```ts
+onSignIn: async ({ user, tokens }) => {
+    return { userId: user.sub }
+},
+```
+
+The session cookie should hold an opaque reference like `{ userId }` and nothing else, and in particular never the provider's tokens. We only keep `tokens` if the app later calls the provider's API on the user's behalf (reading their repos, their calendar, that sort of thing), and when we do, they belong in our own database, not the cookie.
+
+<Notice variant="warning">
+  **Key accounts off `user.sub`, not `user.email`.** `user.sub` is the provider's stable, unique id and it is always present, which makes it the safe thing to look an account up by. `user.email` only shows up when the provider says it's verified (`user.emailVerified === true`); an unverified or unconfirmed email is dropped, because anyone who can register an unverified address at the provider could otherwise walk into an account keyed by that email. So `user.email` can be `undefined` even for a user who clearly has one. We handle that case (fall back to `sub`, or verify an email ourselves) rather than assuming it's set.
+</Notice>
+
+## Logging out
+
+There are three ways to clear the session, one for each way it gets set, and `null` means "clear" in all of them:
+
+- **`updateSession(null)`** from `useSession`. Clears the session on the client and deletes the cookie. This is the one for a logout button in a client component.
+- **`useLogoutForm`**, a progressively-enhanced logout form. Without JavaScript the native POST deletes the cookie and redirects; after hydration it clears the client and navigates. This is the one for a logout button that has to work without JS:
 
   ```jsx
   import { useLogoutForm } from '$houdini'
@@ -116,14 +236,96 @@ There are three ways to clear the session, matching how it was set — and `null
   }
   ```
 
-- **A `@session` mutation returning a null session** — when logout has a server-side component (invalidating a refresh token, etc.), mark that mutation `@session` and have its session field come back `null`; the successful mutation clears the cookie. Add `@endpoint` to make it work without JS too.
+- **A `@session` mutation that returns a null session.** When logging out has a server-side piece (invalidating a refresh token, say), we mark that mutation `@session` and let its session field come back `null`, and the successful mutation clears the cookie. Add `@endpoint` to make it work without JS too.
 
-## Security model
+## Server config reference
 
-Keep these properties in mind so the session stays trustworthy:
+Everything auth-related lives under `auth` in `src/server/+config.ts`. The keys, and which strategy each one belongs to:
 
-- **The cookie is the source of truth, not `useSession()`.** The `httpOnly` session cookie is signed by the server; resolvers receive its verified contents as `ctx.session`. The value `useSession()` returns is in-memory UI state that mirrors the cookie — convenient for rendering, but **never make an authorization decision from it**, on the server or the client. Authorize against `ctx.session`.
-- **The session is a same-origin-writable store.** `updateSession()` (and therefore any same-origin script) can write arbitrary values to it. Store *credentials your backend issued and can re-verify* (an opaque token, a signed user id) — not raw authorization claims like `role: "admin"` that you then trust verbatim. Derive privileges server-side from the verified token.
-- **`router.allowedOrigins` entries are full session-write delegates.** Any origin you add can POST to the session endpoint and set a session; only list origins you fully trust.
-- **Don't share `sessionKeys` across trust domains.** The keys sign the session cookie and the relay token; a separate service that holds them can mint sessions for your app.
-- **`@session(merge:)` and `@session` writes are server-authoritative** — the value is relayed as a server-signed, session-bound, single-use token, so a client can't forge or replay what becomes the session. The redirect-based login callback (`router.auth.redirect`) is off by default and, when enabled, accepts only such a token.
+| Key | What it does | Default |
+|---|---|---|
+| `auth.sessionKeys` | Secrets that sign and verify the session cookie (and provider relay tokens). The first signs; the rest still verify, which is how key rotation works. | required to use auth |
+| `auth.url` | Base path for the endpoint that sets the cookie. Override it to match a provider's callback URL. | `/__houdini__/auth` |
+| `auth.providers` | First-class OAuth/OIDC providers, keyed by name. Enables the typed `loginURL({ provider })`. | none |
+| `auth.onSignIn` | Turns a provider's verified `{ user, tokens, provider }` into the session object. | none |
+| `auth.redirect.url` | Delegates the whole OAuth exchange to a [trusted integration](#delegating-to-a-trusted-worker) at this URL. | none |
+
+A few neighbors live in the same server-only config and matter for auth: `allowedOrigins` (the origins allowed to POST to the session endpoint), `apiEndpoint` (the GraphQL endpoint), and `formMaxBodyBytes` (the form body cap).
+
+## Advanced: building a custom integration
+
+When neither built-in adapter fits, there are two ways to extend the flow without giving up Houdini's session machinery. We can write our own provider adapter, or we can hand the whole exchange off to an integration we already operate. A service like Clerk that would rather own the login UI and the session itself is a third case, and the lightest one: skip `providers` entirely, verify its token on the server, and use the result as the session, which is the same shape as the escape hatch below.
+
+### A custom provider adapter
+
+A provider adapter is just an object matching the exported `OAuthProvider` type. It names the authorization server's endpoints (`server()`) and maps the token response to a user (`user()`); the `github` adapter is the worked example to copy. This is the path for a provider that speaks plain OAuth 2.0 rather than OpenID Connect (no `issuer`, so no `id_token`, so identity comes from an API call):
+
+```ts title="src/server/providers.ts"
+import type { OAuthProvider } from 'houdini/oauth'
+
+export function discord(config: { clientId: string; clientSecret: string }): OAuthProvider {
+    return {
+        clientId: config.clientId,
+        clientSecret: config.clientSecret,
+        scopes: ['identify', 'email'],
+        pkce: 'S256',
+        // no issuer, so Houdini won't expect an id_token; identity comes from the API below
+        server: async () => ({
+            issuer: 'https://discord.com',
+            authorization_endpoint: 'https://discord.com/oauth2/authorize',
+            token_endpoint: 'https://discord.com/api/oauth2/token',
+        }),
+        user: async ({ tokens }) => {
+            const me = await fetch('https://discord.com/api/users/@me', {
+                headers: { Authorization: `Bearer ${tokens.accessToken}` },
+            }).then((r) => r.json())
+            return { sub: me.id, name: me.username, email: me.verified ? me.email : undefined }
+        },
+    }
+}
+```
+
+It then goes in `providers` alongside the built-ins. Houdini still runs the Authorization Code flow with PKCE, the browser-bound nonce, and the token exchange; the adapter only fills in the provider-specific endpoints and the identity mapping. (Note the `me.verified` check on the email: the same "only a verified email, otherwise `undefined`" rule from the built-in adapters applies here, since we own the mapping now.)
+
+### Delegating to a trusted worker
+
+If we already run an OAuth worker (say a Cloudflare Worker that does the provider dance), we can delegate to it instead of configuring `providers`. We point `auth.redirect` at the integration's login endpoint:
+
+```ts title="src/server/+config.ts"
+export default {
+    auth: {
+        sessionKeys: ['supersecret'], // shared with the integration
+        redirect: { url: 'https://auth.example.com/login' },
+    },
+} satisfies ServerConfigFile
+```
+
+Setting `auth.redirect` turns the flow on and generates a `loginURL()` helper exported from `$houdini` (it isn't generated otherwise). Because Houdini stays out of the provider business here, this `loginURL` is the generic one: there's no typed `provider`, just a `params` object forwarded verbatim to the integration.
+
+```jsx
+import { loginURL } from '$houdini'
+
+<a href={loginURL({ redirectTo: '/dashboard', params: { provider: 'github' } })}>
+    Log in with GitHub
+</a>
+```
+
+`redirectTo` is the landing page (omit it to return the user to where they started), and `params` are passed straight through to the integration. The round trip is short: Houdini sends the user to the integration with a single-use nonce, the integration runs the actual OAuth and sends the user back with a session token signed using the shared `sessionKeys`, and Houdini sets the session only if both the signature and the nonce check out.
+
+<Notice variant="warning">
+  **The integration has to validate the `return` URL itself.** Houdini sends `return` as its own callback, but the integration receives it as input and can't, on its own, tell a real Houdini callback from an attacker's. If it sends the session token off to an unvalidated `return`, the token leaks. Keep an allowlist of the callback URLs that are actually ours and reject the rest. Unfortunately this is one thing Houdini can't enforce on the integration's behalf.
+</Notice>
+
+## How it stays secure
+
+None of the day-to-day code above has to think about this section, but it's worth knowing what's holding the line.
+
+**The provider exchange.** For the built-in providers, Houdini runs the standard Authorization Code flow with PKCE. For OIDC providers it checks the signature on the returned `id_token` against the provider's published keys, along with the usual `iss`/`aud`/`exp`/`nonce` claims. The whole round trip is tied to the browser that started it through a single-use, browser-bound transaction cookie, so a completed login can't be replayed into someone else's session. We don't configure any of this; it's the default.
+
+**`@session` writes are server-authoritative.** The value is relayed as a server-signed, session-bound, single-use token, so a client can't forge or replay what becomes the session. The redirect callback (`auth.redirect`) is off unless we turn it on, and when it's on it accepts only that kind of token, behind the two gates described in the [escape hatch](#delegating-to-a-trusted-worker) section.
+
+**The session is a same-origin-writable store.** `updateSession()`, and therefore any same-origin script, can write whatever it likes into it. So we store credentials the backend issued and can re-verify (an opaque token, a signed user id), not raw claims like `role: "admin"` that we then trust at face value. Privileges get derived on the server from the verified value.
+
+**`allowedOrigins` entries are full session-write delegates.** Any origin we add (in `src/server/+config`) can POST to the session endpoint and set a session, so the list should only contain origins we completely trust.
+
+**Don't share `sessionKeys` across trust domains.** The keys sign both the session cookie and the relay token, so any service holding them can mint sessions for the app.

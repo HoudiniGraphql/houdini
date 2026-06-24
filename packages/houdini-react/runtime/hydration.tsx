@@ -4,6 +4,7 @@ import type { QueryArtifact, GraphQLVariables } from '$houdini/runtime'
 import type { Cache } from '$houdini/runtime/cache'
 import type { HoudiniClient } from '$houdini/runtime/client'
 import cacheRef from '$houdini/runtime/cache'
+import { setAuthUrl, setApiEndpoint } from 'houdini/runtime'
 
 import { injectComponents } from './componentFields.js'
 import { router_cache, type RouterCache, type FormResult } from './routing/index.js'
@@ -19,6 +20,10 @@ declare global {
 		__houdini__initial__session__?: any
 		__houdini__form_result__?: FormResult | null
 		__houdini__form_token__?: string | null
+		// the server-owned public endpoints, injected at render (see generate.go) — the session
+		// endpoint the relay POSTs to and the GraphQL endpoint the client sends queries to
+		__houdini__auth_url__?: string | null
+		__houdini__api_endpoint__?: string | null
 		__houdini__pending_artifacts__?: Record<string, QueryArtifact>
 		__houdini__pending_data__?: Record<string, any>
 		__houdini__pending_variables__?: Record<string, GraphQLVariables>
@@ -33,6 +38,12 @@ export function hydrate_page(
 	pageName: string,
 	pendingQueries: string[]
 ) {
+	// publish the server-injected public endpoints BEFORE the client is constructed — the client's
+	// url is resolved from getApiEndpoint() at construction, and the @session relay reads
+	// getAuthUrl(). Neither lives in the client config bundle; they're injected at render.
+	setAuthUrl(window.__houdini__auth_url__)
+	setApiEndpoint(window.__houdini__api_endpoint__)
+
 	// set up the client using its internally-managed singleton cache (cacheRef).
 	// the client's cachePolicy and queryPlugin are closure-bound to cacheRef at
 	// construction time, so we must use that same instance as window.__houdini__cache__
