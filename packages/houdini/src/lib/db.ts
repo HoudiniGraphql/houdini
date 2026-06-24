@@ -191,6 +191,11 @@ export async function openDb(filepath: string): Promise<Db> {
 		conn = new DatabaseSync(filepath)
 	}
 	conn.exec('PRAGMA journal_mode = WAL')
+	// WAL permits one writer at a time; without a busy timeout a contending
+	// writer (e.g. the wait_for_plugin_db poll connection updating the plugins
+	// table while the main connection is mid-pipeline) fails immediately with
+	// SQLITE_BUSY ("database is locked") instead of waiting for the lock.
+	conn.exec('PRAGMA busy_timeout = 5000')
 	conn.exec('PRAGMA synchronous = off')
 	conn.exec('PRAGMA foreign_keys = ON')
 	conn.exec('PRAGMA defer_foreign_keys = ON')

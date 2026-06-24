@@ -122,6 +122,13 @@ func TestArtifactGeneration(t *testing.T) {
       type Subscription {
         newUser: NewUserResult!
       }
+
+      scalar Upload
+
+      type Mutation {
+        createUser(name: String!): User!
+        uploadAvatar(file: Upload!): User!
+      }
     `,
 		PerformTest: performArtifactTest,
 		Tests: []tests.Test[config.PluginConfig]{
@@ -4676,6 +4683,425 @@ export type PluralRow$data = {
 export type PluralRow$artifact = typeof artifact
 
 "HoudiniHash=9f281c7c04e9908f4490520ed23a594a20fea6332dfe90b69ae7eef227673dea"`),
+				},
+			},
+			{
+				Name: "@endpoint emits parsed redirect and form id",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUserForm($name: String!) @endpoint(id: "invite", redirect: "/users/{ createUser.id }") {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"CreateUserForm": tests.Dedent(`const artifact = {
+    "name": "CreateUserForm",
+    "kind": "HoudiniMutation",
+    "hash": "c210bbfff6766c1fd2848f2b89997111a93ca4eb2bb4c2442ce41fbbf9a0635c",
+    "raw": ` + "`" + `mutation CreateUserForm($name: String!) {
+    createUser(name: $name) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "createUser": {
+                "type": "User",
+                "keyRaw": "createUser(name: $name)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "endpoint": {
+        "redirect": ["/users/", ["createUser", "id"]],
+        "id": "invite",
+    },
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type CreateUserForm = {
+	readonly "input": CreateUserForm$input;
+	readonly "result": CreateUserForm$result;
+};
+
+export type CreateUserForm$result = {
+	readonly createUser: {
+		readonly id: string;
+	};
+};
+
+export type CreateUserForm$input = {
+	name: string;
+};
+
+export type CreateUserForm$optimistic = {
+	readonly createUser?: {
+		readonly id?: string;
+	};
+};
+
+export type CreateUserForm$unmasked = {
+	readonly createUser: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type CreateUserForm$artifact = typeof artifact
+
+"HoudiniHash=c210bbfff6766c1fd2848f2b89997111a93ca4eb2bb4c2442ce41fbbf9a0635c"`),
+				},
+			},
+			{
+				Name: "@endpoint emits multipart for Upload variables",
+				Pass: true,
+				Input: []string{
+					`mutation UploadAvatarForm($file: Upload!) @endpoint {
+						uploadAvatar(file: $file) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"UploadAvatarForm": tests.Dedent(`const artifact = {
+    "name": "UploadAvatarForm",
+    "kind": "HoudiniMutation",
+    "hash": "5498a8444058d726f6fcff5bca136c8e1c79e516c51a4d4815039536423f1398",
+    "raw": ` + "`" + `mutation UploadAvatarForm($file: Upload!) {
+    uploadAvatar(file: $file) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "uploadAvatar": {
+                "type": "User",
+                "keyRaw": "uploadAvatar(file: $file)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "endpoint": {
+        "multipart": true,
+    },
+
+    "input": {
+        "fields": {
+            "file": "Upload",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type UploadAvatarForm = {
+	readonly "input": UploadAvatarForm$input;
+	readonly "result": UploadAvatarForm$result;
+};
+
+export type UploadAvatarForm$result = {
+	readonly uploadAvatar: {
+		readonly id: string;
+	};
+};
+
+export type UploadAvatarForm$input = {
+	file: Upload;
+};
+
+export type UploadAvatarForm$optimistic = {
+	readonly uploadAvatar?: {
+		readonly id?: string;
+	};
+};
+
+export type UploadAvatarForm$unmasked = {
+	readonly uploadAvatar: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type UploadAvatarForm$artifact = typeof artifact
+
+"HoudiniHash=5498a8444058d726f6fcff5bca136c8e1c79e516c51a4d4815039536423f1398"`),
+				},
+			},
+			{
+				Name: "@endpoint emits the fields allowlist",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUserFieldsForm($name: String!) @endpoint(fields: ["name"]) {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"CreateUserFieldsForm": tests.Dedent(`const artifact = {
+    "name": "CreateUserFieldsForm",
+    "kind": "HoudiniMutation",
+    "hash": "6321c3d3f53f1dd60ad57d5796e97c44f6eabb2d4df2b0ea23789d7f936aba38",
+    "raw": ` + "`" + `mutation CreateUserFieldsForm($name: String!) {
+    createUser(name: $name) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "createUser": {
+                "type": "User",
+                "keyRaw": "createUser(name: $name)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "endpoint": {
+        "fields": ["name"],
+    },
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type CreateUserFieldsForm = {
+	readonly "input": CreateUserFieldsForm$input;
+	readonly "result": CreateUserFieldsForm$result;
+};
+
+export type CreateUserFieldsForm$result = {
+	readonly createUser: {
+		readonly id: string;
+	};
+};
+
+export type CreateUserFieldsForm$input = {
+	name: string;
+};
+
+export type CreateUserFieldsForm$optimistic = {
+	readonly createUser?: {
+		readonly id?: string;
+	};
+};
+
+export type CreateUserFieldsForm$unmasked = {
+	readonly createUser: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type CreateUserFieldsForm$artifact = typeof artifact
+
+"HoudiniHash=6321c3d3f53f1dd60ad57d5796e97c44f6eabb2d4df2b0ea23789d7f936aba38"`),
+				},
+			},
+			{
+				Name: "@session emits a top-level sessionPath",
+				Pass: true,
+				Input: []string{
+					`mutation LoginForm($name: String!) @session(path: "createUser") {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"LoginForm": tests.Dedent(`const artifact = {
+    "name": "LoginForm",
+    "kind": "HoudiniMutation",
+    "hash": "7781e7aef13f15dc275ab44769bc456f5af795fc04864518008fbbb1e05fe4e7",
+    "raw": ` + "`" + `mutation LoginForm($name: String!) {
+    createUser(name: $name) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "createUser": {
+                "type": "User",
+                "keyRaw": "createUser(name: $name)",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "sessionPath": "createUser",
+
+    "input": {
+        "fields": {
+            "name": "String",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+} as const
+
+export default artifact
+
+export type LoginForm = {
+	readonly "input": LoginForm$input;
+	readonly "result": LoginForm$result;
+};
+
+export type LoginForm$result = {
+	readonly createUser: {
+		readonly id: string;
+	};
+};
+
+export type LoginForm$input = {
+	name: string;
+};
+
+export type LoginForm$optimistic = {
+	readonly createUser?: {
+		readonly id?: string;
+	};
+};
+
+export type LoginForm$unmasked = {
+	readonly createUser: {
+		readonly __typename: "User";
+		readonly id: string;
+	};
+};
+
+export type LoginForm$artifact = typeof artifact
+
+"HoudiniHash=7781e7aef13f15dc275ab44769bc456f5af795fc04864518008fbbb1e05fe4e7"`),
 				},
 			},
 		},

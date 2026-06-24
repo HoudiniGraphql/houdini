@@ -171,19 +171,31 @@ export type RuntimeScalarPayload = {
 type RouterConfig = {
 	auth?: AuthStrategy
 	apiEndpoint?: string
+	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint.
+	// The form handler's CSRF check is fail-closed: a form POST whose Origin is absent or
+	// matches neither the request's own origin nor this allowlist is rejected (403).
+	allowedOrigins?: string[]
+	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
+	// Defaults to 10 MB. Raise it for large uploads. (Bodies without a Content-Length — e.g.
+	// chunked — fall back to the host/proxy's own limit.)
+	formMaxBodyBytes?: number
 }
 
-type AuthStrategy =
-	| {
-			redirect: string
-			sessionKeys: string[]
-			url?: string
-	  }
-	| {
-			mutation: string
-			sessionKeys: string[]
-			url?: string
-	  }
+type AuthStrategy = {
+	sessionKeys: string[]
+	// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is always
+	// mounted for the POST relay used by progressively-enhanced `@session` forms and
+	// useSession(). Must be a relative path (leading slash). Override only to mount it elsewhere.
+	url?: string
+	// EXPERIMENTAL — opt in to the GET redirect-based login callback (e.g. an external auth
+	// provider redirects the browser back to the session endpoint). Off by default so the
+	// cookie-writing GET sink isn't exposed in apps that don't use it; when on, it accepts only a
+	// server-signed token (never raw query params). NOTE: the token's session binding (sid) does
+	// not separate anonymous browsers — fingerprint({}) is constant — so enabling this today
+	// leaves a session-fixation risk for logged-out users. Do not enable until the OAuth adapter
+	// lands, which binds the redirect flow to the initiating browser with a single-use nonce.
+	redirect?: boolean
+}
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
 

@@ -8,7 +8,7 @@ The challenge when building user sessions in a modern app is how to share that i
 Wiring up everything up by hand is possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you can use the session in your client as shown here.
 
 - **Redirect Based Authentication** - Users authorize with a third party provider which then redirects the user back to the Houdini application with any number of query parameters that define the session
-- **Mutation Based Authentication** (not yet implemented) - Users authorize by sending a mutation to the api. The session is defined by one of the fields in the response
+- **Mutation Based Authentication** - Users authorize by running a mutation marked with `@session`. The result field named by its `path` becomes the session. Pair it with `@endpoint` and it also works without client-side JavaScript via a [progressively-enhanced form](~/api-reference/useMutationForm).
 
 ## Redirect Based Authentication
 
@@ -19,8 +19,10 @@ To configure your application to use a redirect-based strategy, you must set the
 const config = {
     router: {
         auth: {
-            // the URL that the user will be redirected to by the third-party provider
-            redirect: '/auth/token',
+            // the endpoint that sets the session cookie. The third-party provider redirects
+            // back here with the session in query params. Defaults to '/__houdini__/auth';
+            // override it to match your provider's callback URL.
+            url: '/auth/token',
             // the secret to use for signing/unsigning the session
             sessionKeys: ['supersecret'],
         },
@@ -30,6 +32,57 @@ const config = {
 export default config
 ```
 
+## Mutation Based Authentication
+
+`@session` writes the session from a mutation's result — the mutation-driven counterpart to
+`updateSession()`. Its `path` names the result field whose object value is written to the
+`httpOnly` session cookie. Authentication is one use; any "session by mutation" works the same.
+
+```graphql
+mutation Login($email: String!, $password: String!) @session(path: "login.session") {
+    login(email: $email, password: $password) {
+        session { token }
+    }
+}
+```
+
+This works for **any** way you run the mutation — `useMutation`, `useMutationForm`, or a bare
+client `send` — not just forms: after the mutation executes, Houdini relays a server-signed
+token of the result to the session endpoint, which sets the cookie. The value comes from your
+resolver, never from client input, and no `auth.url` configuration is required — it defaults to
+a built-in endpoint. How the result is written depends on the value and the directive:
+
+- **Replace (default)** — a non-null object replaces the session. Right for login (it starts a clean session).
+- **Merge** — `@session(path:, merge: true)` upserts the object into the existing session, keeping the rest. Right for a preference that shouldn't drop the auth token:
+
+  ```graphql
+  mutation SetTheme($theme: Theme!) @session(path: "setTheme.session", merge: true) {
+      setTheme(theme: $theme) { session { theme } }
+  }
+  ```
+
+- **Clear** — a `null` session field clears the cookie (a server-side logout). Auth **failure**
+  must be signalled with a GraphQL error, not a null session: an errored `@session` mutation
+  never touches the session, so a failed login can't accidentally log the user out.
+
+To make the **same** login work without client-side JavaScript, add `@endpoint` so it's also
+a [progressively-enhanced form](~/api-reference/useMutationForm):
+
+```graphql
+mutation Login($email: String!, $password: String!)
+    @endpoint(redirect: "/dashboard")
+    @session(path: "login.session") {
+    login(email: $email, password: $password) {
+        session { token }
+    }
+}
+```
+
+Now the native form POST sets the session server-side and redirects with no JS, and after
+hydration the enhanced submit takes the signed-token path — converging on the same session
+either way. `@endpoint` owns the form story; `@session` owns the session story; together they
+give progressively-enhanced login.
+
 ## Reading Session Data
 
 To access the current session, you can use the `useSession` hook:
@@ -37,7 +90,40 @@ To access the current session, you can use the `useSession` hook:
 ```js
 import { useSession } from '$houdini'
 
-const [ session, setSession ] = useSession()
+const [ session, updateSession ] = useSession()
 ```
 
-Calling `setSession` updates the client-side session as well as perists the new values in the application cookie so that its available on the next load.
+Calling `updateSession(values)` merges the values into the client-side session and persists them in the application cookie so they're available on the next load. Calling `updateSession(null)` logs the user out — it empties the client-side session and deletes the cookie.
+
+## Logging Out
+
+There are three ways to clear the session, matching how it was set — and `null` means "clear" in all of them:
+
+- **`updateSession(null)`** — from `useSession`. Clears the session client-side and deletes the cookie. Use it for a logout button in a client component.
+- **`useLogoutForm`** — a progressively-enhanced logout form. Without JavaScript the native POST deletes the cookie and redirects; after hydration it clears client-side and navigates. Use it for a logout button that must work without JS:
+
+  ```jsx
+  import { useLogoutForm } from '$houdini'
+
+  function LogoutButton() {
+      const { form, hidden } = useLogoutForm({ redirectTo: '/login' })
+      return (
+          <form {...form}>
+              {hidden}
+              <button>Log out</button>
+          </form>
+      )
+  }
+  ```
+
+- **A `@session` mutation returning a null session** — when logout has a server-side component (invalidating a refresh token, etc.), mark that mutation `@session` and have its session field come back `null`; the successful mutation clears the cookie. Add `@endpoint` to make it work without JS too.
+
+## Security model
+
+Keep these properties in mind so the session stays trustworthy:
+
+- **The cookie is the source of truth, not `useSession()`.** The `httpOnly` session cookie is signed by the server; resolvers receive its verified contents as `ctx.session`. The value `useSession()` returns is in-memory UI state that mirrors the cookie — convenient for rendering, but **never make an authorization decision from it**, on the server or the client. Authorize against `ctx.session`.
+- **The session is a same-origin-writable store.** `updateSession()` (and therefore any same-origin script) can write arbitrary values to it. Store *credentials your backend issued and can re-verify* (an opaque token, a signed user id) — not raw authorization claims like `role: "admin"` that you then trust verbatim. Derive privileges server-side from the verified token.
+- **`router.allowedOrigins` entries are full session-write delegates.** Any origin you add can POST to the session endpoint and set a session; only list origins you fully trust.
+- **Don't share `sessionKeys` across trust domains.** The keys sign the session cookie and the relay token; a separate service that holds them can mint sessions for your app.
+- **`@session(merge:)` and `@session` writes are server-authoritative** — the value is relayed as a server-signed, session-bound, single-use token, so a client can't forge or replay what becomes the session. The redirect-based login callback (`router.auth.redirect`) is off by default and, when enabled, accepts only such a token.

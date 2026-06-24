@@ -13,6 +13,7 @@ import (
 
 	plugins "code.houdinigraphql.com/plugins"
 	pluginglob "code.houdinigraphql.com/plugins/glob"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // ProjectManifest is the static description of a project's routes and queries.
@@ -27,6 +28,20 @@ type ProjectManifest struct {
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
 	Mutations       []string                      `json:"mutations"`
 	Subscriptions   []string                      `json:"subscriptions"`
+	// FormActions are the names of mutations carrying @endpoint — the form-submittable
+	// ones whose artifacts the no-JS form handler loads server-side.
+	FormActions []string `json:"form_actions"`
+	// SessionMutations maps each @session mutation's name to where (path) and how (merge) it
+	// writes the session. Used by the session-mint plugin (any execution) and the no-JS form
+	// handler (inline cookie write). Independent of FormActions.
+	SessionMutations map[string]SessionMutationInfo `json:"session_mutations"`
+}
+
+// SessionMutationInfo is how a @session mutation writes the session: the result field `Path`
+// whose value is written, and whether it merges into (vs replaces) the existing session.
+type SessionMutationInfo struct {
+	Path  string `json:"path"`
+	Merge bool   `json:"merge"`
 }
 
 type PageManifest struct {
@@ -112,7 +127,14 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	// Load all route GQL documents from the database, plus mutation/subscription names.
 	var pageDocByDir map[string]routeDoc
 	var layoutDocByDir map[string]routeDoc
-	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, manifest.FormActions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	if err != nil {
+		return ProjectManifest{}, err
+	}
+
+	// @session mutations (name → sessionPath) — independent of the route documents above, since a
+	// session-establishing mutation need not be a form.
+	manifest.SessionMutations, err = p.loadSessionMutations(ctx)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -303,13 +325,41 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	return manifest, nil
 }
 
+// loadSessionMutations returns every @session mutation keyed to where (path) and how (merge)
+// it writes the session.
+func (p *HoudiniReact) loadSessionMutations(ctx context.Context) (map[string]SessionMutationInfo, error) {
+	// allocated lazily so it stays nil (not an empty map) when no mutation carries @session,
+	// matching how FormActions is left nil when empty
+	var result map[string]SessionMutationInfo
+	err := p.DB.StepQuery(ctx, `
+		SELECT d.name, av_path.raw, av_merge.raw
+		FROM documents d
+			JOIN document_directives dd ON dd.document = d.id AND dd.directive = $session_directive
+			LEFT JOIN document_directive_arguments dda_path ON dda_path.parent = dd.id AND dda_path.name = 'path'
+			LEFT JOIN argument_values av_path ON av_path.id = dda_path.value
+			LEFT JOIN document_directive_arguments dda_merge ON dda_merge.parent = dd.id AND dda_merge.name = 'merge'
+			LEFT JOIN argument_values av_merge ON av_merge.id = dda_merge.value
+		WHERE d.kind = 'mutation'
+	`, map[string]any{"session_directive": graphql.SessionDirective}, func(q plugins.Row) {
+		name := q.ColumnText(0)
+		path := q.ColumnText(1)
+		if name != "" && path != "" {
+			if result == nil {
+				result = map[string]SessionMutationInfo{}
+			}
+			result[name] = SessionMutationInfo{Path: path, Merge: q.ColumnText(2) == "true"}
+		}
+	})
+	return result, err
+}
+
 // loadRouteDocuments queries the database for all +page.gql and +layout.gql documents
 // and their variables, plus all mutation and subscription names, in a single trip.
 func (p *HoudiniReact) loadRouteDocuments(
 	ctx context.Context,
 	projectRoot string,
 	routesDir string,
-) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, err error) {
+) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, endpointMutations []string, err error) {
 	pageDocByDir = map[string]routeDoc{}
 	layoutDocByDir = map[string]routeDoc{}
 
@@ -325,18 +375,25 @@ func (p *HoudiniReact) loadRouteDocuments(
 		SELECT d.id, d.name, d.kind, rd.filepath,
 		       CASE WHEN EXISTS(
 		           SELECT 1 FROM document_directives dd
-		           WHERE dd.document = d.id AND dd.directive = 'loading'
+		           WHERE dd.document = d.id AND dd.directive = $loading_directive
 		       ) THEN 1 ELSE 0 END AS loading,
 		       dv.name,
 		       dv.type,
-		       COALESCE(dv.type_modifiers, '')
+		       COALESCE(dv.type_modifiers, ''),
+		       CASE WHEN EXISTS(
+		           SELECT 1 FROM document_directives dd
+		           WHERE dd.document = d.id AND dd.directive = $endpoint_directive
+		       ) THEN 1 ELSE 0 END AS has_endpoint
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
 		LEFT JOIN document_variables dv ON dv.document = d.id
 		WHERE d.kind IN ('query', 'mutation', 'subscription')
 		  AND (d.kind != 'query' OR rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
 		ORDER BY d.id
-	`, nil, func(q plugins.Row) {
+	`, map[string]any{
+		"loading_directive":  graphql.LoadingDirective,
+		"endpoint_directive": graphql.EndpointDirective,
+	}, func(q plugins.Row) {
 		id := q.ColumnInt64(0)
 		name := q.ColumnText(1)
 		kind := q.ColumnText(2)
@@ -346,6 +403,11 @@ func (p *HoudiniReact) loadRouteDocuments(
 				docsByID[id] = nil // mark as seen so we don't double-append
 				if kind == "mutation" {
 					mutations = append(mutations, name)
+					// mutations carrying @endpoint are form-submittable; the no-JS form
+					// handler needs their artifacts reachable on the server.
+					if q.ColumnInt(8) == 1 {
+						endpointMutations = append(endpointMutations, name)
+					}
 				} else {
 					subscriptions = append(subscriptions, name)
 				}
@@ -379,7 +441,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 		}
 	})
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	for _, entry := range docsByID {
@@ -395,7 +457,8 @@ func (p *HoudiniReact) loadRouteDocuments(
 
 	sort.Strings(mutations)
 	sort.Strings(subscriptions)
-	return pageDocByDir, layoutDocByDir, mutations, subscriptions, nil
+	sort.Strings(endpointMutations)
+	return pageDocByDir, layoutDocByDir, mutations, subscriptions, endpointMutations, nil
 }
 
 type viewInfo struct {

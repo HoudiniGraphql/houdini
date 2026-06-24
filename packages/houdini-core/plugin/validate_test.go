@@ -2709,6 +2709,150 @@ func TestValidate_Houdini(t *testing.T) {
 					}`,
 				},
 			},
+			{
+				Name: "@endpoint on a mutation with a valid relative redirect and leaf path (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.id }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint without a redirect (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @endpoint {
+						user(name: "x") { id }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with an absolute URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "https://evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with a protocol-relative URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "//evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect without a leading slash (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "users/new") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.nope }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path resolving to an object (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields entry matching a variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields nested path on a real variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input.field"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields entry not matching any variable (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["nope"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@session path resolving to an object (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.friend") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session path resolving to a scalar (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.friend.id") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session path missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.nope") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session without a path (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @session(path: "user") {
+						user(name: "x") { id }
+					}`,
+				},
+			},
 		},
 	})
 }

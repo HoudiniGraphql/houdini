@@ -605,24 +605,12 @@ export async function write_config(
 	// write router config
 	if (config.config_file.router) {
 		const session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		const api_endpoint: string | null = null
-		let url: string | null = null
-		let mutation: string | null = null
-		let redirect: string | null = null
-
-		if (config.config_file.router.auth) {
-			if ('mutation' in config.config_file.router.auth) {
-				mutation = config.config_file.router.auth.mutation
-			} else {
-				redirect = config.config_file.router.auth.redirect
-			}
-			url = config.config_file.router.auth.url ?? null
-		}
+		const url = config.config_file.router.auth?.url ?? null
 
 		db.run(
-			`INSERT INTO router_config (redirect, session_keys, url, mutation, redirect, api_endpoint)
-			 VALUES (?, ?, ?, ?, ?, ?)`,
-			[redirect, session_keys, url, mutation, redirect, api_endpoint]
+			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation)
+			 VALUES (?, ?, ?, ?, ?)`,
+			[null, null, session_keys, url, null]
 		)
 	}
 

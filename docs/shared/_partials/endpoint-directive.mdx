@@ -1,0 +1,34 @@
+The `@endpoint` directive is what marks a mutation as form-submittable. It tells the
+compiler to generate the server endpoint the form posts to before JavaScript loads, and to
+wire up the runtime that takes over after hydration. Without it, a mutation is just a
+mutation; with it, the same document can back a `<form>`.
+
+```graphql
+mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
+	createUser(name: $name) {
+		id
+	}
+}
+```
+
+It accepts three arguments, all optional:
+
+- **`redirect`** — where to send the browser after a successful submit. It's a relative path
+  and can interpolate any leaf field from the result with `{ path.to.field }`. The compiler
+  bakes the same target into both paths, so the no-JS server response and the client
+  navigation always agree. See [Redirecting after a submit](#redirecting-after-a-submit).
+- **`fields`** — an allowlist of the form-field names the mutation will accept (`["name",
+  "input.email", "tags[]"]`). When present, anything submitted outside the list is dropped
+  on both paths. See [Restricting which fields are accepted](#restricting-which-fields-are-accepted).
+- **`id`** — a stable identity for the form, used when more than one form on a page drives
+  the same mutation. Defaults to the mutation name.
+
+A few rules the compiler enforces at build time, so the mistakes surface before they ship:
+
+- `@endpoint` only goes on a mutation.
+- Every `redirect` interpolation path has to exist in the selection set and resolve to a
+  leaf scalar — no redirecting to `/users/{ createUser }` where `createUser` is an object.
+- `redirect` has to be a relative path (a single leading `/`, no scheme, no `//`). That's
+  what makes an open redirect impossible to write.
+- Each `fields` entry has to name a real variable of the mutation, so a typo is a build
+  error rather than a silently empty allowlist.

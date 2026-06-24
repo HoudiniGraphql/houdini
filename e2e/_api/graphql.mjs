@@ -40,7 +40,37 @@ export const typeDefs = /* GraphQL */ `
 		ERROR
 	}
 
+	type SessionUser {
+		id: ID!
+		username: String!
+	}
+
+	type AuthSession {
+		user: SessionUser!
+	}
+
+	type LoginResult {
+		session: AuthSession!
+	}
+
+	type LogoutResult {
+		session: AuthSession
+	}
+
+	type ThemeSession {
+		theme: String!
+	}
+
+	type ThemeResult {
+		session: ThemeSession!
+	}
+
 	type Mutation {
+		# @session mutations — exercised by the react e2e (which shares these resolvers);
+		# defined here so the shared schema matches the resolvers and the server can boot.
+		login(username: String!): LoginResult!
+		logout: LogoutResult!
+		setTheme(theme: String!): ThemeResult!
 		addUser(
 			"""
 			The users birth date
@@ -632,6 +662,14 @@ export const resolvers = {
 	},
 
 	Mutation: {
+		// @session login: the resolver is the authority on the session payload. it returns a
+		// whole user object (not a token) — Houdini signs the entire @session subtree, so the
+		// cookie is trusted regardless of shape, and useSession() reads the user back.
+		login: (_, { username }) => ({ session: { user: { id: 'user-' + username, username } } }),
+		// @session logout: a successful mutation with a null session clears the cookie
+		logout: () => ({ session: null }),
+		// @session(merge: true): a preference upsert — keeps the rest of the session
+		setTheme: (_, { theme }) => ({ session: { theme } }),
 		addNonNullUser(...args) {
 			return this.addUser(...args)
 		},

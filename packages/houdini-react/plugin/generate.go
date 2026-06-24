@@ -529,6 +529,7 @@ import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
 import { router_cache, StatusContext } from '../../runtime/routing'
+import { escapeScriptTag } from '../../runtime/escape'
 // @ts-expect-error
 import client from '%s/src/+client'
 // @ts-expect-error
@@ -546,6 +547,16 @@ for (const id of Object.keys(manifest_module.route_headers ?? {})) {
 		router_manifest.pages[id].headers = manifest_module.route_headers[id]
 	}
 }
+// form_actions is server-only too: attach the @endpoint mutation loaders so the no-JS
+// form handler can resolve a submitted form's mutation artifact.
+if (manifest_module.form_actions) {
+	router_manifest.formActions = manifest_module.form_actions
+}
+// session_mutations (name → sessionPath) is server-only too: the session-mint plugin and the
+// no-JS form handler use it to find the result field that becomes the session.
+if (manifest_module.session_mutations) {
+	router_manifest.sessionMutations = manifest_module.session_mutations
+}
 
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable, cssLinks }) =>
@@ -557,6 +568,8 @@ export const on_render =
 		manifest,
 		componentCache,
 		headers,
+		formResult,
+		formToken,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -593,6 +606,8 @@ export const on_render =
 					initialURL: url,
 					cache: cache,
 					session: session,
+					formResult: formResult ?? null,
+					formToken: formToken ?? null,
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
@@ -612,8 +627,10 @@ export const on_render =
 		// A plain (deferred) module runs in document order, after the preamble.
 		injectToStream(`+"`"+`
 		<script>
-			window.__houdini__initial__cache__ = ${cache.serialize()};
-			window.__houdini__initial__session__ = ${JSON.stringify(session)};
+			window.__houdini__initial__cache__ = ${escapeScriptTag(cache.serialize())};
+			window.__houdini__initial__session__ = ${escapeScriptTag(JSON.stringify(session))};
+			window.__houdini__form_result__ = ${escapeScriptTag(JSON.stringify(formResult ?? null))};
+			window.__houdini__form_token__ = ${escapeScriptTag(JSON.stringify(formToken ?? null))};
 		</script>
 
 		${documentPremable ?? ''}

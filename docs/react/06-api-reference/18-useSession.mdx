@@ -1,0 +1,37 @@
+---
+title: useSession
+description: Read and update the current session from any component.
+---
+
+Returns the current session and an updater function. Calling the updater patches the local session and syncs the change to the server.
+
+```tsx
+import { useSession } from '$houdini'
+
+export function Account() {
+  const [session, updateSession] = useSession()
+
+  return (
+    <div>
+      Signed in as {session.user?.name}
+      <button onClick={() => updateSession(null)}>Log out</button>
+    </div>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useSession(): [
+  App.Session,
+  (patch: Partial<App.Session> | null) => Promise<void>,
+]
+```
+
+The updater sends a `POST` request to the session endpoint defined in your router config (defaulting to `/__houdini__/auth`), clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
+
+- **`updateSession(patch)`** — merges `patch` into the session and persists it to the `httpOnly` cookie.
+- **`updateSession(null)`** — logs out: empties the local session and deletes the cookie.
+
+The updater is awaitable (`Promise<void>`), so you can wait for the cookie to settle before navigating. For a logout button that works without JavaScript, use [`useLogoutForm`](~/api-reference/useLogoutForm). To set the session from a mutation, see [`@session`](~/guides/authentication).

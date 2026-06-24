@@ -32,7 +32,35 @@ export const typeDefs = /* GraphQL */ `
 		ERROR
 	}
 
+	type SessionUser {
+		id: ID!
+		username: String!
+	}
+
+	type AuthSession {
+		user: SessionUser!
+	}
+
+	type LoginResult {
+		session: AuthSession!
+	}
+
+	type LogoutResult {
+		session: AuthSession
+	}
+
+	type ThemeSession {
+		theme: String!
+	}
+
+	type ThemeResult {
+		session: ThemeSession!
+	}
+
 	type Mutation {
+		login(username: String!): LoginResult!
+		logout: LogoutResult!
+		setTheme(theme: String!): ThemeResult!
 		addUser(
 			"""
 			The users birth date

@@ -43,6 +43,23 @@ func ParseTypeRef(modifiers string) *TypeRef {
 	return ref
 }
 
+// Render reconstructs the GraphQL type string for a decoded TypeRef given the base type's
+// name, walking from the outermost wrapper inward. It is the inverse of ParseTypeRef, so
+// the modifier encoding is interpreted in exactly one place: ("ID", `!]!`) → "[ID!]!".
+func (r *TypeRef) Render(base string) string {
+	if r.Inner == nil {
+		if r.NonNull {
+			return base + "!"
+		}
+		return base
+	}
+	out := "[" + r.Inner.Render(base) + "]"
+	if r.NonNull {
+		out += "!"
+	}
+	return out
+}
+
 // TypeCompatible reports whether a value of the variable's shape can flow into
 // the location's shape, assuming the base types already match. It implements the
 // spec's AreTypesCompatible: at every level a non-null variable satisfies a

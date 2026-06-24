@@ -3,7 +3,12 @@ import type { Cache } from 'houdini/runtime/cache'
 
 import client from './client.js'
 import manifest from './manifest.js'
-import { Router as RouterImpl, type RouterCache, RouterContextProvider } from './routing/index.js'
+import {
+	Router as RouterImpl,
+	type RouterCache,
+	type FormResult,
+	RouterContextProvider,
+} from './routing/index.js'
 
 export * from './hooks/index.js'
 export {
@@ -34,6 +39,8 @@ export function Router({
 	ssr_signals,
 	last_variables,
 	session,
+	formResult,
+	formToken,
 	assetPrefix,
 	injectToStream,
 }: {
@@ -41,6 +48,8 @@ export function Router({
 	initialVariables: GraphQLObject
 	cache: Cache
 	session?: App.Session
+	formResult?: FormResult | null
+	formToken?: string | null
 	assetPrefix: string
 	injectToStream?: (chunk: string) => void
 } & RouterCache) {
@@ -54,6 +63,8 @@ export function Router({
 			ssr_signals={ssr_signals}
 			last_variables={last_variables}
 			session={session}
+			formResult={formResult}
+			formToken={formToken}
 		>
 			<RouterImpl
 				initialURL={initialURL}

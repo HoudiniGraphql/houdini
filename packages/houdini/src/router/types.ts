@@ -1,6 +1,6 @@
 import type { createYoga } from 'graphql-yoga'
 
-import type { QueryArtifact } from '../runtime/types.js'
+import type { MutationArtifact, QueryArtifact } from '../runtime/types.js'
 import type { RouteParam } from './match.js'
 
 export type YogaServer = ReturnType<typeof createYoga>
@@ -12,6 +12,15 @@ export type RouterManifest<_ComponentType> = {
 	// maps each route's url to its page id for O(1) lookup from a destination href
 	// (used by <Link> and goto). Built at codegen time.
 	pagesByUrl: Record<string, string>
+	// lazy loaders for the artifacts of @endpoint mutations, keyed by mutation name. The
+	// no-JS form handler looks a submitted form's mutation up here. Server-only (attached
+	// to the manifest in the server entry), so mutation artifacts stay out of the client
+	// bundle; absent when no mutation carries @endpoint.
+	formActions?: Record<string, () => Promise<{ default: MutationArtifact }>>
+	// maps each @session mutation's name to where (sessionPath) and how (merge) it writes the
+	// session. Server-only; consumed by the session-mint plugin and the no-JS form handler.
+	// Independent of formActions — a session-writing mutation need not be a form.
+	sessionMutations?: Record<string, { sessionPath: string; merge?: boolean }>
 }
 
 export type { ServerAdapterFactory } from './server.js'

@@ -228,48 +228,58 @@ export async function codegen_setup(
 		const pollDb = await openDb(db_file)
 		return new Promise<PluginSpec>((resolve, reject) => {
 			const interval = setInterval(() => {
-				pollDb.reload()
-				const row = pollDb.get<{
-					name: string
-					port: number
-					hooks: string
-					plugin_order: string
-					config_module: string | null
-				}>('SELECT * FROM plugins WHERE name = ?', [dbKey])
+				// the poll runs on a timer, so any throw here (e.g. a transient
+				// SQLITE_BUSY) would be an unhandled exception that crashes the
+				// process instead of rejecting the promise — guard the whole body.
+				try {
+					pollDb.reload()
+					const row = pollDb.get<{
+						name: string
+						port: number
+						hooks: string
+						plugin_order: string
+						config_module: string | null
+					}>('SELECT * FROM plugins WHERE name = ?', [dbKey])
 
-				if (row) {
+					if (row) {
+						clearInterval(interval)
+						clearTimeout(timeout)
+
+						pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
+							JSON.stringify(
+								config.plugins.find((p) => p.name === configKey)?.config ?? {}
+							),
+							dbKey,
+						])
+						pollDb.flush()
+						pollDb.close()
+
+						const spec: PluginSpec = {
+							name: row.name,
+							port: row.port,
+							hooks: new Set(JSON.parse(row.hooks)),
+							order: row.plugin_order as 'before' | 'after' | 'core',
+							directory:
+								config.plugins.find((p) => p.name === configKey)?.directory || '',
+						}
+						spec_results[configKey] = spec
+
+						if (row.config_module) {
+							import(row.config_module).then((module) => {
+								if (module && typeof module.default === 'function') {
+									config.config_file = module.default(config.config_file)
+								}
+								resolve(spec)
+							})
+						} else {
+							resolve(spec)
+						}
+					}
+				} catch (err) {
 					clearInterval(interval)
 					clearTimeout(timeout)
-
-					pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
-						JSON.stringify(
-							config.plugins.find((p) => p.name === configKey)?.config ?? {}
-						),
-						dbKey,
-					])
-					pollDb.flush()
 					pollDb.close()
-
-					const spec: PluginSpec = {
-						name: row.name,
-						port: row.port,
-						hooks: new Set(JSON.parse(row.hooks)),
-						order: row.plugin_order as 'before' | 'after' | 'core',
-						directory:
-							config.plugins.find((p) => p.name === configKey)?.directory || '',
-					}
-					spec_results[configKey] = spec
-
-					if (row.config_module) {
-						import(row.config_module).then((module) => {
-							if (module && typeof module.default === 'function') {
-								config.config_file = module.default(config.config_file)
-							}
-							resolve(spec)
-						})
-					} else {
-						resolve(spec)
-					}
+					reject(err)
 				}
 			}, 10)
 

@@ -112,6 +112,25 @@ export type InputObject = {
 	runtimeScalars: Record<string, string>
 }
 
+// the parsed @endpoint(redirect:) template: literal string segments interleaved with
+// interpolation paths (each a dotted field path as a string array), e.g.
+// ["/users/", ["createUser", "id"]]. Built by the compiler; interpolated identically by
+// the server form handler and the client form hook.
+export type RedirectTemplate = ReadonlyArray<string | readonly string[]>
+
+// @endpoint metadata on a mutation artifact: the marker that a mutation is form-submittable
+// plus what the runtime/server need to drive the form.
+export type EndpointSpec = {
+	redirect?: RedirectTemplate
+	multipart?: boolean
+	id?: string
+	// an optional allowlist of form-field names (`@endpoint(fields: […])`). When present,
+	// only these submitted keys are accepted; everything else is dropped before the mutation
+	// runs — the mitigation for in-schema over-posting / mass assignment. Entries use the
+	// same dotted/`[]` vocabulary as form field names ("input.email", "tags[]").
+	fields?: readonly string[]
+}
+
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	name: string
 	kind: _Kind
@@ -120,6 +139,12 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
+	endpoint?: EndpointSpec
+	// @session: a dotted path into the mutation result whose object value writes App.Session.
+	// Orthogonal to `endpoint` — present on any session-writing mutation, form or not.
+	sessionPath?: string
+	// @session(merge: true): upsert the value into the existing session instead of replacing it.
+	sessionMerge?: boolean
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {
@@ -327,11 +352,17 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 	stale: boolean
 	source: DataSources | null
 	variables: _Input | null
+	// response-level GraphQL extensions (e.g. the @session mint token under
+	// `houdiniSession`); present when the network response carried an extensions object
+	extensions?: Record<string, any>
 }
 
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
 	errors: GraphQLError[] | null
+	// response-level GraphQL extensions (e.g. the @session session-mint token under
+	// `houdiniSession`); present when the network response carried an extensions object
+	extensions?: Record<string, any>
 }
 
 export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]

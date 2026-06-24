@@ -1,0 +1,72 @@
+---
+title: useMutationForm
+description: Back a <form> with a Houdini mutation, with progressive enhancement.
+---
+
+Turns a mutation marked with [`@endpoint`](~/updating-data/forms#the-endpoint-directive) into
+a progressively enhanced form: it submits natively before JavaScript loads, then runs the
+mutation client-side once hydrated. See [Forms](~/updating-data/forms) for the full guide.
+
+```tsx
+import { graphql, useMutationForm } from '$houdini'
+
+export function NewUser() {
+	const { Form, state, pending } = useMutationForm(graphql(`
+		mutation CreateUser($name: String!)
+			@endpoint(redirect: "/users/{ createUser.id }") {
+			createUser(name: $name) {
+				id
+			}
+		}
+	`))
+
+	return (
+		<Form>
+			<input name="name" required />
+			{state?.errors && <p role="alert">{state.errors[0].message}</p>}
+			<button disabled={pending}>Create user</button>
+		</Form>
+	)
+}
+```
+
+**Signature**
+
+```ts
+function useMutationForm(document, opts?): MutationForm
+```
+
+The second argument is optional:
+
+| Option | Type | Description |
+|---|---|---|
+| `id` | `string` | Distinguishes multiple forms for the same mutation on one page, and keys the server-injected result. Defaults to the `@endpoint(id:)` or the mutation name. |
+| `onSuccess` | `(data) => void` | Enhanced-path-only side effect after a successful submit (no-op without JS). |
+| `onError` | `(errors) => void` | Enhanced-path-only side effect after a failed submit (no-op without JS). |
+
+**Returns**
+
+| Field | Type | Description |
+|---|---|---|
+| `Form` | component | The recommended way to render: a `<form>` with the markers injected and `pending` published to `useMutationFormStatus`. Forwards any `<form>` props. |
+| `state` | `{ data, errors } \| null` | The submit result; `null` before the first submit. Same shape on both paths. |
+| `pending` | `boolean` | True while a submit is in flight (enhanced path). |
+| `form` | object | Escape hatch for spreading onto your own `<form>`: `action`, `method`, `onSubmit`, and `encType` when the mutation takes an `Upload`. No status context. |
+| `hidden` | `ReactNode` | Escape-hatch companion to `form` — the marker fields the no-JS POST needs; render inside the form. |
+
+## useMutationFormStatus
+
+Reads the `pending` state of the nearest `<Form>` from any child component, without prop
+drilling. Shaped like React's `useFormStatus`, but it can see Houdini's forms.
+
+```tsx
+import { useMutationFormStatus } from '$houdini'
+
+function Submit() {
+	const { pending } = useMutationFormStatus()
+	return <button disabled={pending}>{pending ? 'Saving…' : 'Create'}</button>
+}
+```
+
+Only works inside the `Form` component returned by `useMutationForm` (a plain `{...form}`
+spread provides no context); use the `pending` returned by the hook otherwise.

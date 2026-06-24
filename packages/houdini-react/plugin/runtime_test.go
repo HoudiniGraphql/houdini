@@ -632,6 +632,10 @@ func TestGenerateRuntime(t *testing.T) {
 			type Subscription {
 				id: ID
 			}
+			type Mutation {
+				createUser(name: String!): User!
+			}
+			type User implements Node { id: ID! name: String! }
 			interface Node { id: ID! }
 		`,
 		SetupAlwaysPasses: true,
@@ -680,6 +684,15 @@ func TestGenerateRuntime(t *testing.T) {
 				require.Equal(t, expected, string(got))
 			}
 
+			// substring assertions for cases where a full-manifest golden would be brittle
+			if substrs, ok := test.Extra["containsManifest"].([]string); ok {
+				got, err := afero.ReadFile(p.Filesystem(), manifestPath)
+				require.NoError(t, err)
+				for _, substr := range substrs {
+					require.Contains(t, string(got), substr)
+				}
+			}
+
 			mockPath := filepath.Join(config.PluginRuntimeDirectory(p.Name()), "mock.ts")
 
 			if expectedMock, ok := test.Extra["expectedMock"].(string); ok {
@@ -691,6 +704,21 @@ func TestGenerateRuntime(t *testing.T) {
 		},
 
 		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "@endpoint mutation generates a form_actions entry",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"containsManifest": []string{
+						"export const form_actions = {",
+						"CreateUser: () => import(",
+					},
+				},
+			},
 			{
 				Name: "empty routes generates empty manifest",
 				Pass: true,

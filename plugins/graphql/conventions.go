@@ -56,6 +56,10 @@ const PluralDirective = "plural"
 
 const RefetchableDirective = "refetchable"
 
+const EndpointDirective = "endpoint"
+
+const SessionDirective = "session"
+
 const ListOperationSuffixInsert = "_insert"
 
 const ListOperationSuffixRemove = "_remove"

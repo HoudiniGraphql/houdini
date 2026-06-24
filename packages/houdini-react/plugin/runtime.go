@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -363,10 +364,10 @@ func formatMockFile(manifest ProjectManifest) (string, error) {
 
 // hookSpec describes how to inject per-document overloads into one hook file.
 type hookSpec struct {
-	file        string // filename within the hooks/ directory
-	kind        string // "query", "mutation", "subscription", or "fragment"
-	marker      string // text immediately before which overloads are inserted
-	preamble    string // extra import line to prepend (empty if not needed)
+	file     string // filename within the hooks/ directory
+	kind     string // "query", "mutation", "subscription", or "fragment"
+	marker   string // text immediately before which overloads are inserted
+	preamble string // extra import line to prepend (empty if not needed)
 	// paginationQuery is the name of the pagination query document for paginated fragments, or "";
 	// plural is true when the document is a @plural fragment.
 	imports     func(name string, paginationQuery string, plural bool) string
@@ -482,6 +483,21 @@ var hookSpecs = []hookSpec{
 			)
 		},
 		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
+	},
+	{
+		file:   "useMutationForm.tsx",
+		kind:   "mutation",
+		marker: "export function useMutationForm<",
+		imports: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf("import type { %s$result, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
+		},
+		overloads: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf(
+				"export function useMutationForm(document: { artifact: %s$artifact }, opts?: UseMutationFormOptions<%s$result>): MutationForm<%s$result>\n",
+				name, name, name,
+			)
+		},
+		passthrough: "export function useMutationForm<_Result extends GraphQLObject, _Input extends GraphQLVariables>(document: { artifact: MutationArtifact }, opts?: UseMutationFormOptions<_Result>): MutationForm<_Result>",
 	},
 	{
 		file:   "useSubscription.ts",
@@ -825,6 +841,40 @@ func formatManifest(
 				sb.WriteString(fmt.Sprintf("\t\t%s,\n", loader))
 			}
 			sb.WriteString("\t],\n")
+		}
+		sb.WriteString("}\n")
+	}
+
+	// form_actions is a server-only export: lazy literal-import thunks for the artifacts of
+	// mutations carrying @endpoint, keyed by mutation name. The no-JS form handler looks a
+	// submitted form's mutation up here. Kept out of the default manifest so the client
+	// build tree-shakes the mutation artifacts away.
+	if len(manifest.FormActions) > 0 {
+		sb.WriteString("\nexport const form_actions = {\n")
+		for _, name := range manifest.FormActions {
+			artifactAbs := filepath.Join(artifactDir, name)
+			artifactRel, err := filepath.Rel(runtimeDir, artifactAbs)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fmt.Sprintf("\t%s: () => import(%q),\n", name, filepath.ToSlash(artifactRel)))
+		}
+		sb.WriteString("}\n")
+	}
+
+	// session_mutations maps each @session mutation to where (sessionPath) and how (merge) it
+	// writes the session. Server-only: the session-mint plugin and the no-JS form handler use it.
+	// Sorted for stable output, independent of form_actions.
+	if len(manifest.SessionMutations) > 0 {
+		sessionNames := make([]string, 0, len(manifest.SessionMutations))
+		for name := range manifest.SessionMutations {
+			sessionNames = append(sessionNames, name)
+		}
+		sort.Strings(sessionNames)
+		sb.WriteString("\nexport const session_mutations = {\n")
+		for _, name := range sessionNames {
+			info := manifest.SessionMutations[name]
+			sb.WriteString(fmt.Sprintf("\t%s: { sessionPath: %q, merge: %v },\n", name, info.Path, info.Merge))
 		}
 		sb.WriteString("}\n")
 	}

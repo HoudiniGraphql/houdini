@@ -1,0 +1,348 @@
+package documents
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/graphql"
+)
+
+// endpointUsage collects everything we need to validate a single @endpoint usage.
+type endpointUsage struct {
+	documentID  int
+	directiveID int
+	docKind     string
+	docName     string
+	filepath    string
+	row         int
+	column      int
+	redirect    string
+	hasRedirect bool
+}
+
+// ValidateEndpointDirective enforces the build-time guarantees for @endpoint:
+//   - it only sits on mutation documents
+//   - its redirect (when present) is a relative path, which is what closes
+//     open-redirect at build time
+//   - every redirect interpolation path resolves to a leaf scalar in the
+//     mutation's selection set, so we can never emit /users/undefined
+func ValidateEndpointDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// gather every @endpoint usage along with its document and redirect value.
+	// the redirect arg is optional (no redirect → PRG back to the page), so we LEFT
+	// JOIN it; av.kind is empty when the argument is absent.
+	query := `
+		SELECT
+			d.id,
+			d.kind,
+			d.name,
+			rd.filepath,
+			dd.row,
+			dd.column,
+			av.kind,
+			av.raw,
+			dd.id
+		FROM document_directives dd
+			JOIN documents d ON d.id = dd.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			LEFT JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'redirect'
+			LEFT JOIN argument_values av ON av.id = dda.value
+		WHERE dd.directive = $endpoint_directive
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	usages := []endpointUsage{}
+	err := db.StepQuery(ctx, query, map[string]any{
+		"endpoint_directive": graphql.EndpointDirective,
+	}, func(row plugins.Row) {
+		usage := endpointUsage{
+			documentID:  int(row.ColumnInt(0)),
+			docKind:     row.ColumnText(1),
+			docName:     row.ColumnText(2),
+			filepath:    row.ColumnText(3),
+			row:         int(row.ColumnInt(4)),
+			column:      int(row.ColumnInt(5)),
+			directiveID: int(row.ColumnInt(8)),
+		}
+		// only treat the redirect as present when it was supplied as a string literal.
+		// a non-string value is a type error that core's argument validation reports.
+		if row.ColumnText(6) == "String" {
+			usage.hasRedirect = true
+			usage.redirect = row.ColumnText(7)
+		}
+		usages = append(usages, usage)
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// bulk-load everything the per-usage checks need, so we touch the database a fixed
+	// number of times instead of once per @endpoint usage: the `fields` list entries (keyed
+	// by directive id), the declared variables (keyed by document id), and the field
+	// selections used to resolve redirect interpolation paths (keyed by document id).
+	fieldsByDirective, variablesByDocument, selectionsByDocument, err := loadEndpointData(ctx, db)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	for _, usage := range usages {
+		location := []*plugins.ErrorLocation{{
+			Filepath: usage.filepath,
+			Line:     usage.row,
+			Column:   usage.column,
+		}}
+
+		// @endpoint describes a form that runs a mutation; it is meaningless on a
+		// query or fragment. flag it and move on — the redirect checks below assume a
+		// mutation selection set.
+		if usage.docKind != "mutation" {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s can only be used on a mutation, but %q is a %s",
+					graphql.EndpointDirective, usage.docName, usage.docKind,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			continue
+		}
+
+		// validate the optional fields allowlist (independent of redirect): each entry must
+		// name a real input path, starting from a declared variable of the mutation.
+		checkEndpointFields(
+			usage,
+			fieldsByDirective[usage.directiveID],
+			variablesByDocument[usage.documentID],
+			location,
+			errs,
+		)
+
+		if !usage.hasRedirect {
+			continue
+		}
+
+		// the redirect has to be a relative path. rejecting anything with a scheme or a
+		// protocol-relative prefix is what closes open-redirect at build time.
+		if !isRelativePath(usage.redirect) {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s redirect %q must be a relative path (start with a single '/', no scheme or '//')",
+					graphql.EndpointDirective, usage.redirect,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			// keep going — the interpolation paths are still worth validating
+		}
+
+		// every { path } in the redirect must resolve to a leaf scalar in the
+		// mutation's selection set so the runtime/server can interpolate it.
+		paths := graphql.RedirectInterpolationPaths(usage.redirect)
+		if len(paths) == 0 {
+			continue
+		}
+		validateRedirectPaths(usage, paths, selectionsByDocument[usage.documentID], location, errs)
+	}
+}
+
+// loadEndpointData bulk-loads, in three queries, the data the per-usage checks need across
+// every @endpoint usage: the `fields` list entries (keyed by directive id, in source
+// order), the declared variable names (keyed by document id), and the field selections used
+// to resolve redirect interpolation paths (keyed by document id, then by parent selection
+// id with 0 = root).
+func loadEndpointData(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[int][]string, map[int]map[string]bool, map[int]map[int]map[string]endpointSelectionNode, error) {
+	// every `fields` list entry for every @endpoint, in one pass
+	fieldsByDirective := map[int][]string{}
+	err := db.StepQuery(ctx, `
+		SELECT dda.parent, child.raw
+		FROM document_directives dd
+			JOIN document_directive_arguments dda ON dda.parent = dd.id AND dda.name = 'fields'
+			JOIN argument_values list ON list.id = dda.value
+			JOIN argument_value_children avc ON avc.parent = list.id
+			JOIN argument_values child ON child.id = avc.value
+		WHERE dd.directive = $endpoint_directive
+		ORDER BY dda.parent, avc.row
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		id := int(row.ColumnInt(0))
+		fieldsByDirective[id] = append(fieldsByDirective[id], row.ColumnText(1))
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// the declared variables of every document that carries an @endpoint, in one pass
+	variablesByDocument := map[int]map[string]bool{}
+	err = db.StepQuery(ctx, `
+		SELECT DISTINCT dv.document, dv.name
+		FROM document_variables dv
+			JOIN document_directives dd ON dd.document = dv.document
+		WHERE dd.directive = $endpoint_directive
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		id := int(row.ColumnInt(0))
+		if variablesByDocument[id] == nil {
+			variablesByDocument[id] = map[string]bool{}
+		}
+		variablesByDocument[id][row.ColumnText(1)] = true
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// the field selections of every document that carries an @endpoint, in one pass, indexed
+	// by document and then by parent selection id (0 = root). only fields can be referenced
+	// by a redirect path; fragment spreads are out of scope for v1 forms.
+	selectionsByDocument := map[int]map[int]map[string]endpointSelectionNode{}
+	err = db.StepQuery(ctx, `
+		SELECT
+			sr.document,
+			COALESCE(sr.parent_id, 0) AS parent,
+			s.id,
+			COALESCE(s.alias, s.field_name) AS name,
+			t.kind AS type_kind
+		FROM selection_refs sr
+			JOIN selections s ON s.id = sr.child_id
+			JOIN document_directives dd ON dd.document = sr.document AND dd.directive = $endpoint_directive
+			LEFT JOIN type_fields tf ON s.type = tf.id
+			LEFT JOIN types t ON tf.type = t.name
+		WHERE s.kind = 'field'
+	`, map[string]any{"endpoint_directive": graphql.EndpointDirective}, func(row plugins.Row) {
+		document := int(row.ColumnInt(0))
+		parent := int(row.ColumnInt(1))
+		name := row.ColumnText(3)
+		if selectionsByDocument[document] == nil {
+			selectionsByDocument[document] = map[int]map[string]endpointSelectionNode{}
+		}
+		if selectionsByDocument[document][parent] == nil {
+			selectionsByDocument[document][parent] = map[string]endpointSelectionNode{}
+		}
+		selectionsByDocument[document][parent][name] = endpointSelectionNode{
+			id:       int(row.ColumnInt(2)),
+			typeKind: row.ColumnText(4),
+		}
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return fieldsByDirective, variablesByDocument, selectionsByDocument, nil
+}
+
+// checkEndpointFields validates the optional `@endpoint(fields: [...])` allowlist against
+// pre-loaded data (no database access). Entries use the form-field-name vocabulary
+// ("name", "input.email", "tags[]"); the top-level segment must be a declared variable of
+// the mutation, so a typo'd entry (which would silently allow nothing at runtime) is caught
+// at build time instead.
+func checkEndpointFields(
+	usage endpointUsage,
+	entries []string,
+	variables map[string]bool,
+	location []*plugins.ErrorLocation,
+	errs *plugins.ErrorList,
+) {
+	for _, entry := range entries {
+		top := topLevelFieldSegment(entry)
+		if top == "" || !variables[top] {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s fields entry %q does not match any variable of %q (entries use form-field names like \"name\" or \"input.email\")",
+					graphql.EndpointDirective, entry, usage.docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+		}
+	}
+}
+
+// topLevelFieldSegment returns the variable-name segment of a form-field path:
+// "input.email" → "input", "tags[]" → "tags", "name" → "name".
+func topLevelFieldSegment(path string) string {
+	seg := path
+	if i := strings.Index(seg, "."); i >= 0 {
+		seg = seg[:i]
+	}
+	return strings.TrimSuffix(seg, "[]")
+}
+
+// isRelativePath reports whether a redirect value is a safe relative path: a single
+// leading slash, no protocol-relative "//" prefix, and no "scheme://".
+func isRelativePath(value string) bool {
+	if !strings.HasPrefix(value, "/") {
+		return false
+	}
+	if strings.HasPrefix(value, "//") {
+		return false
+	}
+	if strings.Contains(value, "://") {
+		return false
+	}
+	return true
+}
+
+// endpointSelectionNode is a field in a document's selection set, indexed by the name it
+// appears under in the response (its alias, or field name when unaliased).
+type endpointSelectionNode struct {
+	id       int
+	typeKind string // OBJECT / INTERFACE / UNION / SCALAR / ENUM ...
+}
+
+// validateRedirectPaths walks each interpolation path through the mutation's selection tree
+// (pre-loaded by loadEndpointData, indexed by parent selection id with 0 = root) and reports
+// any segment that doesn't exist or doesn't resolve to a leaf scalar. No database access.
+func validateRedirectPaths(
+	usage endpointUsage,
+	paths [][]string,
+	children map[int]map[string]endpointSelectionNode,
+	location []*plugins.ErrorLocation,
+	errs *plugins.ErrorList,
+) {
+	for _, segments := range paths {
+		parent := 0
+		ok := true
+		var node endpointSelectionNode
+		for _, segment := range segments {
+			next, found := children[parent][segment]
+			if !found {
+				ok = false
+				break
+			}
+			node = next
+			parent = next.id
+		}
+
+		display := strings.Join(segments, ".")
+		if !ok {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s redirect path { %s } does not exist in the selection set of %q",
+					graphql.EndpointDirective, display, usage.docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			continue
+		}
+
+		if node.typeKind != "SCALAR" && node.typeKind != "ENUM" {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s redirect path { %s } in %q must resolve to a leaf scalar, but it is a %s",
+					graphql.EndpointDirective, display, usage.docName, node.typeKind,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+		}
+	}
+}

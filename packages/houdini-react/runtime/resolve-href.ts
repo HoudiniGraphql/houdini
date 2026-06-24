@@ -1,3 +1,5 @@
+import { unmarshalValue, type Unmarshaler } from 'houdini/runtime'
+
 // A marshaler turns a rich runtime value (e.g. a Date) into the transport form that
 // belongs in the URL (e.g. a timestamp). Keyed by param / search-param name.
 type Marshaler = (value: any) => any
@@ -27,8 +29,8 @@ function marshalValue(value: unknown, marshal?: Marshaler): string {
 }
 
 // An unmarshaler is the inverse of a Marshaler: it turns the transport form a URL carries
-// back into a rich runtime value (e.g. a timestamp string into a Date).
-type Unmarshaler = (value: any) => any
+// back into a rich runtime value (e.g. a timestamp string into a Date). The shared
+// coercion core (houdini/runtime) owns the type and the per-leaf logic.
 type Unmarshalers = Record<string, Unmarshaler>
 
 // scalarUnmarshalers is the read-side mirror of scalarMarshalers: a name→unmarshal map for
@@ -48,25 +50,13 @@ export function scalarUnmarshalers(
 	return out
 }
 
-// decodeScalar recovers the marshaled value from the string the URL carries. marshalValue
-// wrote it with String(), which dropped the type, so we JSON.parse to get numbers, booleans
-// and null back, falling back to the raw string when it isn't valid JSON (e.g. a custom
-// scalar that marshals to a plain string). Consequence worth documenting: a value like
-// "true" or "123" always decodes to a boolean / number before it reaches unmarshal.
-function decodeScalar(value: string): unknown {
-	try {
-		return JSON.parse(value)
-	} catch {
-		return value
-	}
-}
-
 // unmarshalScalars turns the transport values a parsed query string carries back into rich
 // runtime values for every key that has a custom-scalar unmarshaler. Keys without one
 // (built-ins, UI-only keys) pass through untouched; List values are unmarshaled
-// element-wise. Used for both useRoute().search and the query variables the router feeds
-// back into marshalInputs, so a custom-scalar search param round-trips correctly. When
-// there's nothing to unmarshal the input object is returned as-is (no allocation).
+// element-wise (via the shared coercion core). Used for both useRoute().search and the
+// query variables the router feeds back into marshalInputs, so a custom-scalar search
+// param round-trips correctly. When there's nothing to unmarshal the input object is
+// returned as-is (no allocation).
 export function unmarshalScalars(
 	values: Record<string, any>,
 	unmarshalers: Unmarshalers
@@ -79,10 +69,7 @@ export function unmarshalScalars(
 		if (!(key in out) || out[key] == null) {
 			continue
 		}
-		const value = out[key]
-		out[key] = Array.isArray(value)
-			? value.map((entry) => unmarshal(decodeScalar(entry)))
-			: unmarshal(decodeScalar(value))
+		out[key] = unmarshalValue(out[key], unmarshal)
 	}
 	return out
 }

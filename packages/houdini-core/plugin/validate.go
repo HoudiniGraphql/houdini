@@ -48,6 +48,8 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateOptimisticKeyFullSelection,
 		documents.ValidateOptimisticKeyOnScalar,
 		documents.ValidateRefetchDirective,
+		documents.ValidateEndpointDirective,
+		documents.ValidateSessionDirective,
 		lists.DiscoverListsThenValidate,
 		lists.ValidateConflictingParentIDAllLists,
 		lists.ValidateConflictingPrependAppend,

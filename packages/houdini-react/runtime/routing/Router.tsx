@@ -6,7 +6,8 @@ import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
 import type { LRUCache } from 'houdini/runtime'
-import { marshalSelection, marshalInputs } from 'houdini/runtime'
+import { marshalSelection, marshalInputs, getAuthUrl, HOUDINI_SESSION_EVENT } from 'houdini/runtime'
+import type { HoudiniSessionEventDetail } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
@@ -545,6 +546,8 @@ export function RouterContextProvider({
 	ssr_signals,
 	last_variables,
 	session: ssrSession = {},
+	formResult = null,
+	formToken = null,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -555,22 +558,33 @@ export function RouterContextProvider({
 	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
+	formResult?: FormResult | null
+	formToken?: string | null
 }) {
 	// the session is top level state
 	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
-	// if we detect an event that contains a new session value
+	// if we detect an event that contains a new session value. The detail carries the subtree
+	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
+	// it wholesale; a legacy plain-session detail is treated as a replace.
 	const handleNewSession = React.useCallback((event: Event) => {
-		setSession((event as CustomEvent<App.Session>).detail)
+		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
+		const isWrapped =
+			detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+		const next = (
+			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
+		) as App.Session
+		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+		setSession((prev) => (merge ? { ...prev, ...next } : next))
 	}, [])
 
 	React.useEffect(() => {
-		window.addEventListener('_houdini_session_', handleNewSession)
+		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 
 		// cleanup this component
 		return () => {
-			window.removeEventListener('_houdini_session_', handleNewSession)
+			window.removeEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 		}
 	}, [handleNewSession])
 
@@ -586,6 +600,10 @@ export function RouterContextProvider({
 				last_variables,
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
+				replaceSession: (next) => setSession(next),
+				clearSession: () => setSession({}),
+				formResult,
+				formToken,
 			}}
 		>
 			{children}
@@ -619,7 +637,26 @@ type RouterContext = {
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
+
+	// replace the client-side session wholesale (login establishes a fresh session). Local
+	// state only — the cookie is set separately (the @session token relay / server form handler).
+	replaceSession: (next: App.Session) => void
+
+	// replace the client-side session with an empty one (logout); pairs with the server clear
+	clearSession: () => void
+
+	// the result of a no-JS form submission (keyed by form id), injected by the server on
+	// the PRG error re-render so useMutationForm can seed its initial state inline.
+	formResult: FormResult | null
+
+	// the session-bound CSRF token forms render in their hidden field (always present from a
+	// server render; null only when there is no server, e.g. a static export).
+	formToken: string | null
 }
+
+// FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
+// form id (the mutation name, or an explicit useMutationForm({ id })).
+export type FormResult = Record<string, { data: any; errors: any }>
 
 export type PendingCache = SuspenseCache<
 	Promise<void> & { resolve: () => void; reject: (message: string) => void }
@@ -637,6 +674,20 @@ export const useRouterContext = () => {
 	return ctx
 }
 
+// useFormResult returns the server-injected result for a given form id, or null. The
+// result is threaded through the router context on both render paths (the server passes it
+// as a prop; the client hydration entry reads it from the streamed window global), so the
+// enhanced form's initial state matches the no-JS re-rendered HTML.
+export function useFormResult(formId: string): { data: any; errors: any } | null {
+	return useRouterContext().formResult?.[formId] ?? null
+}
+
+// useFormToken returns the session-bound CSRF token to render in a form's hidden field, or
+// null when there is no server render to mint it (e.g. a static export).
+export function useFormToken(): string | null {
+	return useRouterContext().formToken
+}
+
 export function useClient() {
 	return useRouterContext().client
 }
@@ -645,39 +696,40 @@ export function useCache() {
 	return useRouterContext().cache
 }
 
-export function updateLocalSession(session: App.Session) {
+export function updateLocalSession(session: App.Session, merge = false) {
 	window.dispatchEvent(
-		new CustomEvent<App.Session>('_houdini_session_', {
+		new CustomEvent<HoudiniSessionEventDetail>(HOUDINI_SESSION_EVENT, {
 			bubbles: true,
-			detail: session,
+			detail: { session, merge },
 		})
 	)
 }
 
-export function useSession(): [App.Session, (newSession: Partial<App.Session>) => void] {
+export function useSession(): [
+	App.Session,
+	(newSession: Partial<App.Session> | null) => Promise<void>,
+] {
 	const ctx = useRouterContext()
 
-	// when we update the session we have to do 2 things. (1) we have to update the local state
-	// that we will use on the client (2) we have to send a request to the server so that it
-	// can update the cookie that we use for the session
-	const updateSession = (newSession: Partial<App.Session>) => {
+	// updateSession does two things: (1) update the local client state, and (2) persist to the
+	// session cookie through the always-on auth endpoint (Origin-gated, so a cross-origin page
+	// can't forge a write). Pass a partial object to merge it into the session, or `null` to
+	// log out — clearing the local session and deleting the cookie. It's awaitable so callers
+	// can wait for the cookie to settle before navigating.
+	const updateSession = async (newSession: Partial<App.Session> | null) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		ctx.data_cache.clear()
 		ctx.ssr_signals.clear()
 
-		// update the local state
-		ctx.setSession(newSession)
-
-		// figure out the url that we will use to send values to the server
-		const auth = configFile.router?.auth
-		if (!auth) {
-			return
+		if (newSession === null) {
+			ctx.clearSession()
+		} else {
+			ctx.setSession(newSession)
 		}
-		const url = 'redirect' in auth ? auth.redirect : auth.url
 
-		fetch(url!, {
+		await fetch(getAuthUrl(configFile), {
 			method: 'POST',
-			body: JSON.stringify(newSession),
+			body: JSON.stringify({ session: newSession }),
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
