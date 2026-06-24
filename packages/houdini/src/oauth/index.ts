@@ -55,10 +55,7 @@ export type OAuthProvider = {
 	// the factory so discovery runs at most once.
 	server: () => Promise<AuthorizationServer>
 	// map the token response (+ validated id_token claims for OIDC) to the normalized user
-	user: (args: {
-		tokens: OAuthTokens
-		claims?: IdTokenClaims
-	}) => Promise<OAuthUser> | OAuthUser
+	user: (args: { tokens: OAuthTokens; claims?: IdTokenClaims }) => Promise<OAuthUser> | OAuthUser
 }
 
 export type OAuthProviderConfig = {

@@ -8,10 +8,7 @@ import { getAuthUrl } from 'houdini/runtime'
 //
 // This helper is only exported from `$houdini` when `auth.redirect` is configured in
 // `src/server/+config`; without a trusted integration there is no flow to start.
-export function loginURL(opts?: {
-	redirectTo?: string
-	params?: Record<string, string>
-}): string {
+export function loginURL(opts?: { redirectTo?: string; params?: Record<string, string> }): string {
 	const search = new URLSearchParams()
 	if (opts?.redirectTo) {
 		search.set('redirectTo', opts.redirectTo)

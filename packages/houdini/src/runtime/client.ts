@@ -56,8 +56,7 @@ export class HoudiniClient {
 		// if there is no url provided then assume we are using the internal local api
 		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 		this.url =
-			url ??
-			(globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint()
+			url ?? (globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint()
 
 		this.plugins = flatten(plugins)
 		this.config = config()

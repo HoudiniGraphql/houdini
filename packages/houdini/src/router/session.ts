@@ -211,7 +211,10 @@ async function oauth_start(
 	authorizeUrl.searchParams.set('scope', provider.scopes.join(' '))
 	authorizeUrl.searchParams.set('state', state)
 	if (codeVerifier) {
-		authorizeUrl.searchParams.set('code_challenge', await oauth.calculatePKCECodeChallenge(codeVerifier))
+		authorizeUrl.searchParams.set(
+			'code_challenge',
+			await oauth.calculatePKCECodeChallenge(codeVerifier)
+		)
 		authorizeUrl.searchParams.set('code_challenge_method', 'S256')
 	}
 	if (oidcNonce) {
@@ -241,7 +244,10 @@ async function oauth_callback(
 	searchParams: URLSearchParams
 ): Promise<Response> {
 	const deny = () =>
-		new Response('Forbidden', { status: 403, headers: { 'Set-Cookie': clearRedirectTxnCookie() } })
+		new Response('Forbidden', {
+			status: 403,
+			headers: { 'Set-Cookie': clearRedirectTxnCookie() },
+		})
 
 	const provider = args.server_config!.auth!.providers![txn.provider!]
 	const as = await provider.server()

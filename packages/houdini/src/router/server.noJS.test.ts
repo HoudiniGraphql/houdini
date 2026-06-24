@@ -466,7 +466,10 @@ describe('no-JS form submission (real Yoga)', () => {
 		})
 		const request = new Request('http://localhost/users/new', {
 			method: 'POST',
-			headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'http://localhost' },
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				origin: 'http://localhost',
+			},
 			body,
 			duplex: 'half',
 		} as any)
@@ -678,7 +681,12 @@ describe('no-JS form submission (real Yoga)', () => {
 					},
 				},
 			})
-			const token = await signSessionToken({ token: 'tok-shared' } as any, [TOKEN_KEY], false, {})
+			const token = await signSessionToken(
+				{ token: 'tok-shared' } as any,
+				[TOKEN_KEY],
+				false,
+				{}
+			)
 			expect((await relay(handler, '', token)).status).toBe(403)
 			expect(consumed).toHaveLength(1) // the store, not the in-memory default, was asked
 		})
@@ -753,7 +761,12 @@ describe('no-JS form submission (real Yoga)', () => {
 			)
 			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
 			const nonce = new URL(start!.headers.get('location')!).searchParams.get('state')!
-			const token = await signSessionToken({ token: 'tok-oauth' } as any, [TOKEN_KEY], false, {})
+			const token = await signSessionToken(
+				{ token: 'tok-oauth' } as any,
+				[TOKEN_KEY],
+				false,
+				{}
+			)
 			const res = await handler(
 				new Request(`${authUrl}?state=${nonce}&token=${token}`, {
 					method: 'GET',
@@ -867,13 +880,19 @@ describe('session cookie lifecycle', () => {
 	test('an expired session cookie is rejected (get_session → {})', async () => {
 		// a cookie whose signed exp has passed must fail closed, not be honored until the browser
 		// drops it — so a stolen cookie value stops working server-side
-		const value = await encode({ userId: 'u1', exp: Math.floor(Date.now() / 1000) - 10 }, TOKEN_KEY)
+		const value = await encode(
+			{ userId: 'u1', exp: Math.floor(Date.now() / 1000) - 10 },
+			TOKEN_KEY
+		)
 		const headers = new Headers({ cookie: `${session_cookie_name}=${value}` })
 		expect(await get_session(headers, [TOKEN_KEY])).toEqual({})
 	})
 
 	test('get_session strips reserved claims (exp/iat) from the session', async () => {
-		const value = await encode({ userId: 'u1', exp: Math.floor(Date.now() / 1000) + 100 }, TOKEN_KEY)
+		const value = await encode(
+			{ userId: 'u1', exp: Math.floor(Date.now() / 1000) + 100 },
+			TOKEN_KEY
+		)
 		const headers = new Headers({ cookie: `${session_cookie_name}=${value}` })
 		// exp (and the iat encode adds) must not leak into the app-visible session object
 		expect(await get_session(headers, [TOKEN_KEY])).toEqual({ userId: 'u1' })
@@ -904,7 +923,11 @@ describe('session cookie lifecycle', () => {
 			on_render: () => new Response('page'),
 		})
 		const proxy = client.registerProxy.mock.calls[0][1]
-		const result = await proxy({ query: '{ whoami }', variables: {}, session: { userId: 'u1' } })
+		const result = await proxy({
+			query: '{ whoami }',
+			variables: {},
+			session: { userId: 'u1' },
+		})
 		expect(result.data.whoami).toBe('u1')
 	})
 })
@@ -1005,7 +1028,9 @@ describe('first-class OAuth', () => {
 	})
 
 	test('an unknown provider is rejected (400)', async () => {
-		const res = await withOAuth()(new Request(`${authUrl}/login?provider=nope`, { method: 'GET' }))
+		const res = await withOAuth()(
+			new Request(`${authUrl}/login?provider=nope`, { method: 'GET' })
+		)
 		expect(res!.status).toBe(400)
 	})
 

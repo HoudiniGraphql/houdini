@@ -2,7 +2,6 @@ import { getAuthUrl, HOUDINI_SESSION_EVENT, valueAtPath } from 'houdini/runtime'
 import type { ClientPlugin } from 'houdini/runtime/documentStore'
 import { ArtifactKind } from 'houdini/runtime/types'
 
-
 // sessionRelay is the client half of @session. When a session mutation executes, the server
 // signs the resolver's session subtree into a token in the response extensions
 // (extensions.houdiniSession). This plugin relays that token to the auth endpoint, which

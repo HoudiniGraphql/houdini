@@ -99,7 +99,13 @@ describe('redirect-login transaction cookie', () => {
 
 	test('round-trips the first-class OAuth fields (provider, codeVerifier, oidcNonce)', async () => {
 		const cookie = await signRedirectTxn(
-			{ nonce: 'n', redirectTo: '/d', provider: 'github', codeVerifier: 'v', oidcNonce: 'on' },
+			{
+				nonce: 'n',
+				redirectTo: '/d',
+				provider: 'github',
+				codeVerifier: 'v',
+				oidcNonce: 'on',
+			},
 			keys
 		)
 		expect(await verifyRedirectTxn(cookie, keys)).toEqual({

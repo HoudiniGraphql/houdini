@@ -24,18 +24,26 @@ describe('github provider', () => {
 			'fetch',
 			vi.fn(async (url: string) =>
 				url.endsWith('/user')
-					? new Response(JSON.stringify({ id: 7, login: 'alec', name: 'Alec', avatar_url: 'a' }))
+					? new Response(
+							JSON.stringify({ id: 7, login: 'alec', name: 'Alec', avatar_url: 'a' })
+						)
 					: new Response(
 							JSON.stringify([
 								{ email: 'secondary@x.com', primary: false, verified: true },
 								{ email: 'alec@x.com', primary: true, verified: true },
 							])
-					  )
+						)
 			)
 		)
 		const p = github({ clientId: 'id', clientSecret: 'secret' })
 		const user = await p.user({ tokens: { accessToken: 'tok' } })
-		expect(user).toMatchObject({ sub: '7', email: 'alec@x.com', emailVerified: true, name: 'Alec', login: 'alec' })
+		expect(user).toMatchObject({
+			sub: '7',
+			email: 'alec@x.com',
+			emailVerified: true,
+			name: 'Alec',
+			login: 'alec',
+		})
 	})
 
 	test('omits the email when no primary verified one exists (no unverified fallback)', async () => {
@@ -44,13 +52,19 @@ describe('github provider', () => {
 			vi.fn(async (url: string) =>
 				url.endsWith('/user')
 					? // /user.email is set but its verification status is unknown — must NOT be trusted
-					  new Response(JSON.stringify({ id: 7, login: 'alec', email: 'public@x.com' }))
+						new Response(
+							JSON.stringify({ id: 7, login: 'alec', email: 'public@x.com' })
+						)
 					: new Response(
 							JSON.stringify([
 								{ email: 'unverified@x.com', primary: true, verified: false },
-								{ email: 'verified-but-secondary@x.com', primary: false, verified: true },
+								{
+									email: 'verified-but-secondary@x.com',
+									primary: false,
+									verified: true,
+								},
 							])
-					  )
+						)
 			)
 		)
 		const p = github({ clientId: 'id', clientSecret: 'secret' })
