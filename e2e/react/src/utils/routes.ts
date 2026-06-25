@@ -55,4 +55,5 @@ export const routes = {
 	auth_form_done: '/auth-form/done',
 	session_theme: '/session-theme',
 	session_mutation: '/session-mutation',
+	session_to_api: '/session-to-api',
 } as const

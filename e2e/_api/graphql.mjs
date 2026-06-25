@@ -71,6 +71,9 @@ export const typeDefs = /* GraphQL */ `
 		login(username: String!): LoginResult!
 		logout: LogoutResult!
 		setTheme(theme: String!): ThemeResult!
+		# echoes back the session the client sent (via the fetchParams header) so the e2e can
+		# assert the managed session is what actually reaches the api on a mutation
+		requestSession: String
 		addUser(
 			"""
 			The users birth date
@@ -670,6 +673,18 @@ export const resolvers = {
 		logout: () => ({ session: null }),
 		// @session(merge: true): a preference upsert — keeps the rest of the session
 		setTheme: (_, { theme }) => ({ session: { theme } }),
+		// echo back the session the client sent us via fetchParams (the `x-session-theme` header).
+		// the e2e asserts this matches the session it set client-side — proving the managed session
+		// is what the client plugin pipeline actually sends to the api.
+		requestSession: (_, args, info) => {
+			let value = ''
+			info.request.headers.forEach((headerValue, key) => {
+				if (key === 'x-session-theme') {
+					value = headerValue
+				}
+			})
+			return value
+		},
 		addNonNullUser(...args) {
 			return this.addUser(...args)
 		},
