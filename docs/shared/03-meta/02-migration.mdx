@@ -1,4 +1,147 @@
 ---
 title: Migration Guide
-description: How to upgrade between major versions of Houdini.
+description: How to upgrade from Houdini 1.x to 2.0.
 ---
+
+# Migration Guide
+
+Houdini 2.0 rewrites the entire codegen pipeline in Go. The payoff is a much faster compiler and a single engine shared across every framework, but the important thing for an upgrade is what _doesn't_ change: your GraphQL documents, fragments, list operations, and the bulk of your runtime code all carry over untouched. The breaking changes are small and concentrated, and this guide walks through each one.
+
+If you only read one section, read [The API URL moved into your config](#the-api-url-moved-into-your-config). It has the widest blast radius.
+
+## Core
+
+These changes apply to every Houdini app regardless of framework.
+
+### Dependency versions
+
+Houdini 2.0 raises several dependency floors. Update these before regenerating:
+
+| Dependency | Minimum version | Notes |
+| --- | --- | --- |
+| Vite | `^8.0.0` | also bump your Houdini adapter |
+| graphql | `>=16` | now a peer dependency; add it to your own `dependencies` |
+| react, react-dom | `^19.2.7` | React adapter |
+| svelte | `^5.56.2` | Svelte adapter; runes (`$props`, `$effect`) required |
+| @sveltejs/kit | `^2.63.0` | Svelte adapter |
+
+### The API URL moved into your config
+
+In 1.x you passed your API's `url` directly to `HoudiniClient`. In 2.0 the URL lives in your config so the compiler can bake it into the generated runtime. Passing a `url` to `HoudiniClient` now throws, rather than being silently ignored.
+
+```js title="houdini.config.js"
+/** @type {import('houdini').ConfigFile} */
+export default {
+    // for a remote API, set the endpoint here
+    url: import.meta.env.API_URL ?? 'https://localhost:4000',
+}
+```
+
+```js title="src/client.js"
+// before (1.x)
+export default new HoudiniClient({
+    url: 'http://localhost:4000/graphql',
+    fetchParams() {
+        /* ... */
+    },
+})
+
+// after (2.0): no url, everything else is unchanged
+export default new HoudiniClient({
+    fetchParams() {
+        /* ... */
+    },
+})
+```
+
+If you run Houdini's local API rather than a remote one, the mount path is configured with `endpoint` in `src/server/+config` instead of `url`:
+
+```js title="src/server/+config.js"
+export default {
+    endpoint: '/_graphql',
+}
+```
+
+## Svelte
+
+### `@load` and `@blocking` are no longer supported
+
+These two directives are removed. Loading and blocking are now expressed with native Svelte and SvelteKit primitives, which means there is no Houdini-specific behavior to learn: the query is just a store you drive yourself.
+
+- **Blocking (data ready before the route renders):** load the query in a SvelteKit `load` function (`+page.js` / `+page.ts`). The route waits on it the same way it waits on any other load.
+- **Streaming / non-blocking:** fetch the query inside the component, from an `$effect` or an async component, and render a loading state while it resolves.
+
+```svelte
+<script>
+    import { graphql } from '$houdini'
+
+    let { id } = $props()
+
+    const user = graphql(`
+        query UserProfile($id: ID!) {
+            user(id: $id) {
+                name
+            }
+        }
+    `)
+
+    // replaces @load: drive the fetch yourself
+    $effect(() => {
+        user.fetch({ variables: { id } })
+    })
+</script>
+
+{#if $user.fetching}
+    Loading...
+{:else}
+    {$user.data.user.name}
+{/if}
+```
+
+## React
+
+### `useCurrentVariables` and `useLocation` are gone
+
+Route variables, params, and search params are all read through a single `useRoute()` hook, typed per route.
+
+```tsx
+// before (1.x)
+const variables = useCurrentVariables()
+const location = useLocation()
+
+// after (2.0)
+const { params, search } = useRoute()
+// params.id    -> typed from the route's [id] segment
+// search.genre -> typed from the route's search params
+```
+
+### `auth.redirect` is now `auth.url`
+
+The redirect-based auth field was replaced by a single `auth.url` that defaults to a built-in endpoint. Auth configuration also now lives in your server-only config.
+
+```ts title="src/server/+config.ts"
+// before (1.x): auth.redirect
+// after (2.0)
+export default {
+    auth: {
+        url: '/_auth',
+    },
+}
+```
+
+## What's new
+
+Everything else in 2.0 is additive, so it needs no migration. Highlights worth adopting once you've upgraded:
+
+**Core**
+
+- `@refetchable` fragments and `@refetch` for cache-driven refetching, plus `record.refresh()`.
+- The `@plural` fragment directive for reading a fragment off a list field as an array.
+- `_upsert` and `_update` list operations.
+
+**React**
+
+- A typed `<Link>` component and search-param integration.
+- Route-level `headers()` and `+error.tsx` error boundaries.
+- `createMock` for testing routes.
+- Server-backed sessions with first-class OAuth, and progressively enhanced mutations through `@endpoint` and `useMutationForm`.
