@@ -77,4 +77,4 @@ export default {
 }
 ```
 
-`create-houdini` scaffolds this line for you when you start from a remote endpoint. Queries and mutations go directly to that `url`; `@session` mutations are routed through Houdini's server so it can write the session cookie from the result (the value stays server-authoritative). Session signing keys still belong in `src/server/+config` or the environment, never the public config.
+`create-houdini` scaffolds this line for you when you start from a remote endpoint. Queries and mutations go directly to that `url`; `@session` mutations are routed through Houdini's server so it can write the session cookie from the result (the value stays server-authoritative). Session signing keys still belong in `src/server/+config.ts` or the environment, never the public config.

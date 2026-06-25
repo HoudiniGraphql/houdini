@@ -45,8 +45,29 @@ directory = "build/assets"
 binding = "ASSETS"
 ```
 
-The Worker bundle carries your server-only configuration (the session signing keys from `src/server/+config`, plus anything else you put there). It runs as the Worker; it must never also be served as a static file. Binding `ASSETS` at a directory that contains `worker.js` would publish those secrets over HTTP.
+The Worker bundle carries your server-only configuration (the session signing keys from `src/server/+config.ts`, plus anything else you put there). It runs as the Worker; it must never also be served as a static file. Binding `ASSETS` at a directory that contains `worker.js` would publish those secrets over HTTP.
 
 ## Keeping secrets out of what you serve
 
-Everything under `src/server` (including [`src/server/+config`](~/guides/authentication)) compiles into the server bundle only, so the session signing keys never land in `houdini.config` or the client bundle. The one rule to honor at deploy time is the same on every platform: serve only the **client assets** directory as static files, and never expose the server bundle (the Cloudflare Worker, or the Node server's `build/ssr`) over your static-file route. The built-in Node adapter already confines its static route to `build/assets` for you; on platforms where you configure static serving yourself, scope it to the client assets directory.
+Everything under `src/server` (including [`src/server/+config.ts`](~/guides/authentication)) compiles into the server bundle only, so the session signing keys never land in `houdini.config` or the client bundle. The one rule to honor at deploy time is the same on every platform: serve only the **client assets** directory as static files, and never expose the server bundle (the Cloudflare Worker, or the Node server's `build/ssr`) over your static-file route. The built-in Node adapter already confines its static route to `build/assets` for you; on platforms where you configure static serving yourself, scope it to the client assets directory.
+
+## Scaling to multiple instances
+
+Most of deployment is identical whether you run one server or many. Two things only start to matter once requests can land on **more than one instance** (load-balanced, autoscaled, or serverless), and both live in `src/server/+config.ts`. On a single long-lived server you can skip this.
+
+**Set `auth.sessionKeys` explicitly.** Without them, Houdini signs sessions with a random key generated per process. That's fine on one server, but across instances the keys won't match (a cookie signed by one instance won't verify on another), and they don't survive a restart or redeploy. Point them at a secret your instances share, usually from the environment:
+
+```ts title="src/server/+config.ts"
+import type { ServerConfigFile } from 'houdini'
+
+export default {
+  auth: {
+    // pass more than one to rotate: the first signs, the rest still verify
+    sessionKeys: [process.env.SESSION_SECRET!],
+  },
+} satisfies ServerConfigFile
+```
+
+**Give `auth.consumedTokenStore` a shared store.** The single-use check that stops `@session` token replays is kept in memory by default, so one instance can't see a token another already honored. Point it at something shared (a few lines of Redis). It's a one-method interface that expires its own entries, so there's nothing to maintain; see the [authentication guide](~/guides/authentication) for the shape.
+
+Even on a single instance, configuring `sessionKeys` is good practice so sessions survive a redeploy rather than resetting with the process.

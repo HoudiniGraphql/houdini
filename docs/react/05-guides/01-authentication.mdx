@@ -251,6 +251,7 @@ Everything auth-related lives under `auth` in `src/server/+config.ts`. The keys,
 | `auth.providers` | First-class OAuth/OIDC providers, keyed by name. Enables the typed `loginURL({ provider })`. | none |
 | `auth.onSignIn` | Turns a provider's verified `{ user, tokens, provider }` into the session object. | none |
 | `auth.redirect.url` | Delegates the whole OAuth exchange to a [trusted integration](#delegating-to-a-trusted-worker) at this URL. | none |
+| `auth.consumedTokenStore` | A shared store for the single-use `@session` relay tokens (see below). Only needed when you run more than one instance. | in-memory |
 
 A few neighbors live in the same server-only config and matter for auth: `allowedOrigins` (the origins allowed to POST to the session endpoint), `apiEndpoint` (the GraphQL endpoint), and `formMaxBodyBytes` (the form body cap).
 
@@ -326,8 +327,10 @@ None of the day-to-day code above has to think about this section, but it's wort
 
 **`@session` writes are server-authoritative.** The value is relayed as a server-signed, session-bound, single-use token, so a client can't forge or replay what becomes the session. The redirect callback (`auth.redirect`) is off unless we turn it on, and when it's on it accepts only that kind of token, behind the two gates described in the [escape hatch](#delegating-to-a-trusted-worker) section.
 
+**Single-use is tracked in memory by default.** "Used once" is enforced with an in-memory record, which is per-process, so a single server needs nothing extra. If you run more than one instance (load-balanced or serverless), point `auth.consumedTokenStore` at a shared store so the check holds across them. The interface is one method, `consume(jti, ttlMs)`, that records the id and returns `true` only the first time; against Redis it's a single `SET jti 1 NX PX <ttl>`. It's not a token registry you maintain: entries expire on their own with the token, so there's nothing to clean up.
+
 **The session is a same-origin-writable store.** `updateSession()`, and therefore any same-origin script, can write whatever it likes into it. So we store credentials the backend issued and can re-verify (an opaque token, a signed user id), not raw claims like `role: "admin"` that we then trust at face value. Privileges get derived on the server from the verified value.
 
-**`allowedOrigins` entries are full session-write delegates.** Any origin we add (in `src/server/+config`) can POST to the session endpoint and set a session, so the list should only contain origins we completely trust.
+**`allowedOrigins` entries are full session-write delegates.** Any origin we add (in `src/server/+config.ts`) can POST to the session endpoint and set a session, so the list should only contain origins we completely trust.
 
 **Don't share `sessionKeys` across trust domains.** The keys sign both the session cookie and the relay token, so any service holding them can mint sessions for the app.
