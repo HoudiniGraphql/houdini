@@ -64,7 +64,7 @@ jobs:
                     echo "✅ Regular release mode detected (not in pre mode)"
                     echo "📝 Will use regular titles and publish snapshot releases"
                     echo "is_prerelease=false" >> $GITHUB_OUTPUT
-                    echo "title=📦 Release Version Update" >> $GITHUB_OUTPUT
+                    echo "title=📦 Release latest versions" >> $GITHUB_OUTPUT
                     echo "commit=📦 Version Packages" >> $GITHUB_OUTPUT
                   fi
 
