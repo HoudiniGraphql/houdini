@@ -54,14 +54,14 @@ jobs:
             - name: Check prerelease mode
               id: prerelease-check
               run: |
-                  if [ -f ".changeset/pre.json" ]; then
-                    echo "✅ Prerelease mode detected (.changeset/pre.json exists)"
+                  if [ -f ".changeset/pre.json" ] && [ "$(jq -r .mode .changeset/pre.json)" = "pre" ]; then
+                    echo "✅ Prerelease mode detected (.changeset/pre.json mode=pre)"
                     echo "📝 Will use prerelease titles and skip snapshot releases"
                     echo "is_prerelease=true" >> $GITHUB_OUTPUT
                     echo "title=🚧 Prerelease Version Update" >> $GITHUB_OUTPUT
                     echo "commit=🚧 Version Packages" >> $GITHUB_OUTPUT
                   else
-                    echo "✅ Regular release mode detected (no .changeset/pre.json)"
+                    echo "✅ Regular release mode detected (not in pre mode)"
                     echo "📝 Will use regular titles and publish snapshot releases"
                     echo "is_prerelease=false" >> $GITHUB_OUTPUT
                     echo "title=📦 Release Version Update" >> $GITHUB_OUTPUT

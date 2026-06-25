@@ -1,6 +1,4 @@
 ---
-'houdini-core': minor
-'houdini': minor
 'houdini-react': minor
 ---
 
