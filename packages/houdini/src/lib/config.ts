@@ -164,12 +164,6 @@ export type RuntimeScalarPayload = {
 	session?: App.Session | null | undefined
 }
 
-// ServerConfigFile is the server-only configuration written in src/server/+config. src/server is
-// compiled into the server bundle only, so this is where secrets AND server-owned routing live —
-// session signing keys, the session/GraphQL endpoints, OAuth client secrets and onSignIn later.
-// Kept as a type SEPARATE from ConfigFile (the public, client-bundled config). The public runtime
-// bits the client needs (the GraphQL `apiEndpoint` and the session `auth.url`) are injected into
-// the page at render and read back on the client — never bundled into houdini.config.
 // a single-use store for relayed session-mint token ids (jti). `consume` atomically records the id
 // with the given time-to-live and returns true only if it had not been recorded before; a false
 // return means the token was already consumed (a replay) and must be rejected.
@@ -177,12 +171,18 @@ export type ConsumedTokenStore = {
 	consume(jti: string, ttlMs: number): boolean | Promise<boolean>
 }
 
+// ServerConfigFile is the server-only configuration written in src/server/+config. src/server is
+// compiled into the server bundle only, so this is where secrets AND server-owned routing live —
+// session signing keys, the session/GraphQL endpoints, OAuth client secrets and onSignIn later.
+// Kept as a type SEPARATE from ConfigFile (the public, client-bundled config). The public runtime
+// bits the client needs (the GraphQL `apiEndpoint` and the session `auth.url`) are injected into
+// the page at render and read back on the client — never bundled into houdini.config.
 export type ServerConfigFile = {
 	auth?: {
 		// signing keys for the session cookie, the form CSRF token, and the @session relay token.
 		// The first key signs; any others are accepted on verify (key rotation).
 		sessionKeys?: string[]
-		// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is always
+		// The endpoint that sets the session cookie. Defaults to '/_auth' and is always
 		// mounted for the POST relay used by progressively-enhanced `@session` forms and
 		// useSession(). Must be a relative path (leading slash). Injected to the client at render.
 		url?: string

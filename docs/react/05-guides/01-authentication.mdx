@@ -169,7 +169,7 @@ export default {
 } satisfies ServerConfigFile
 ```
 
-The `oidc` adapter figures out the provider's endpoints from the issuer URL on its own, so every OpenID Connect provider is config-only in exactly this shape. Auth0 is `oidc({ issuer: 'https://YOUR_TENANT.us.auth0.com', clientId, clientSecret })`, Okta and Microsoft Entra are the same with their own issuer, and so on. Remember that we also have to register Houdini's callback (`https://yourapp.com/__houdini__/auth`, or whatever `auth.url` resolves to) as an allowed callback URL in the provider's dashboard.
+The `oidc` adapter figures out the provider's endpoints from the issuer URL on its own, so every OpenID Connect provider is config-only in exactly this shape. Auth0 is `oidc({ issuer: 'https://YOUR_TENANT.us.auth0.com', clientId, clientSecret })`, Okta and Microsoft Entra are the same with their own issuer, and so on. Remember that we also have to register Houdini's callback (`https://yourapp.com/_auth`, or whatever `auth.url` resolves to) as an allowed callback URL in the provider's dashboard.
 
 ### The round trip
 
@@ -245,7 +245,7 @@ Everything auth-related lives under `auth` in `src/server/+config.ts`. The keys,
 | Key | What it does | Default |
 |---|---|---|
 | `auth.sessionKeys` | Secrets that sign and verify the session cookie (and provider relay tokens). The first signs; the rest still verify, which is how key rotation works. | required to use auth |
-| `auth.url` | Base path for the endpoint that sets the cookie. Override it to match a provider's callback URL. | `/__houdini__/auth` |
+| `auth.url` | Base path for the endpoint that sets the cookie. Override it to match a provider's callback URL. | `/_auth` |
 | `auth.providers` | First-class OAuth/OIDC providers, keyed by name. Enables the typed `loginURL({ provider })`. | none |
 | `auth.onSignIn` | Turns a provider's verified `{ user, tokens, provider }` into the session object. | none |
 | `auth.redirect.url` | Delegates the whole OAuth exchange to a [trusted integration](#delegating-to-a-trusted-worker) at this URL. | none |

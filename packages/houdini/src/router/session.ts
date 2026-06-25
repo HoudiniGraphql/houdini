@@ -10,6 +10,7 @@ import {
 	verifyRedirectTxn,
 	randomToken,
 	timingSafeEqual,
+	REDIRECT_TXN_TTL_SECONDS,
 	type RedirectTxn,
 } from './auth-token.js'
 import { parse } from './cookies.js'
@@ -20,7 +21,7 @@ import { decode, encode, verify } from './jwt.js'
 // embedded cross-site requests. Max-Age mirrors the signed txn TTL.
 const REDIRECT_TXN_COOKIE = '__Host-houdini-txn'
 function redirectTxnCookie(value: string): string {
-	return `${REDIRECT_TXN_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
+	return `${REDIRECT_TXN_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${REDIRECT_TXN_TTL_SECONDS}`
 }
 function clearRedirectTxnCookie(): string {
 	return `${REDIRECT_TXN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`

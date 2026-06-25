@@ -74,6 +74,21 @@ describe('github provider', () => {
 		expect(user.email).toBeUndefined()
 		expect(user.emailVerified).toBeUndefined()
 	})
+
+	test('throws on a non-2xx /user response (no sub="undefined" account collapse)', async () => {
+		// a rate-limited / revoked-token /user returns a JSON error body with no id — must not
+		// resolve to sub="undefined" (which would key every failed login to the same account)
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string) =>
+				url.endsWith('/user')
+					? new Response(JSON.stringify({ message: 'API rate limit exceeded' }), { status: 403 })
+					: new Response(JSON.stringify([]))
+			)
+		)
+		const p = github({ clientId: 'id', clientSecret: 'secret' })
+		await expect(p.user({ tokens: { accessToken: 'tok' } })).rejects.toThrow(/github \/user/)
+	})
 })
 
 describe('oidc provider', () => {

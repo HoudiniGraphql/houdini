@@ -124,7 +124,15 @@ export function github(config: OAuthProviderConfig): OAuthProvider {
 				'User-Agent': 'houdini',
 			}
 			const [user, emails] = await Promise.all([
-				fetch('https://api.github.com/user', { headers }).then((r) => r.json()),
+				// fail closed on a non-2xx /user (rate limit, revoked token): GitHub returns a JSON
+				// error body with no `id`, which would otherwise collapse to sub="undefined" and key
+				// every failed login to the same account. Throw so the callback denies instead.
+				fetch('https://api.github.com/user', { headers }).then((r) => {
+					if (!r.ok) {
+						throw new Error(`github /user request failed (${r.status})`)
+					}
+					return r.json()
+				}),
 				fetch('https://api.github.com/user/emails', { headers })
 					.then((r) => r.json())
 					.catch(() => []),

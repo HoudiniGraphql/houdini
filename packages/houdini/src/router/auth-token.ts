@@ -31,8 +31,9 @@ function redirectTxnKey(sessionKeys: string[]): string {
 }
 
 // how long a redirect-login transaction stays valid (seconds): long enough to complete the
-// provider's login, short enough to bound replay of a leaked cookie.
-const REDIRECT_TXN_TTL_SECONDS = 60 * 10
+// provider's login, short enough to bound replay of a leaked cookie. Exported so the txn cookie's
+// Max-Age (session.ts) is driven by the same value as the signed JWT's exp — they can't diverge.
+export const REDIRECT_TXN_TTL_SECONDS = 60 * 10
 
 // timingSafeEqual compares two strings in constant time (relative to length), so a `===` on a
 // secret-derived value (token fingerprint / nonce) doesn't leak a prefix match through timing. Used

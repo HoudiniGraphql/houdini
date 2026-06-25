@@ -530,7 +530,7 @@ describe('no-JS form submission (real Yoga)', () => {
 	})
 
 	describe('logout / clear endpoint', () => {
-		const authUrl = 'http://localhost/__houdini__/auth'
+		const authUrl = 'http://localhost/_auth'
 
 		test('POST { session: null } clears the session cookie (updateSession(null))', async () => {
 			const res = await serverWith()(
@@ -716,7 +716,7 @@ describe('no-JS form submission (real Yoga)', () => {
 			// app params forwarded to the integration; state (nonce) + return (our callback) added
 			expect(loc.searchParams.get('provider')).toBe('github')
 			expect(loc.searchParams.get('state')).toBeTruthy()
-			expect(loc.searchParams.get('return')).toContain('/__houdini__/auth')
+			expect(loc.searchParams.get('return')).toContain('/_auth')
 			// redirectTo is NOT forwarded — it's kept in the signed cookie, off the open wire
 			expect(loc.searchParams.get('redirectTo')).toBeNull()
 			expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
@@ -937,7 +937,7 @@ describe('session cookie lifecycle', () => {
 describe('first-class OAuth', () => {
 	afterEach(() => vi.unstubAllGlobals())
 
-	const authUrl = 'http://localhost/__houdini__/auth'
+	const authUrl = 'http://localhost/_auth'
 	const stubProvider: any = {
 		clientId: 'cid',
 		clientSecret: 'csecret',
@@ -1023,7 +1023,7 @@ describe('first-class OAuth', () => {
 		expect(u.searchParams.get('code_challenge')).toBeTruthy()
 		expect(u.searchParams.get('state')).toBeTruthy()
 		expect(u.searchParams.get('nonce')).toBeTruthy()
-		expect(u.searchParams.get('redirect_uri')).toContain('/__houdini__/auth')
+		expect(u.searchParams.get('redirect_uri')).toContain('/_auth')
 		expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
 	})
 

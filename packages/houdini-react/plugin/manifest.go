@@ -114,7 +114,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	}
 
 	routesDir := filepath.Join(projectConfig.ProjectRoot, "src", "routes")
-	apiDir := filepath.Join(projectConfig.ProjectRoot, "src", "server")
+	serverDir := filepath.Join(projectConfig.ProjectRoot, "src", "server")
 
 	manifest := ProjectManifest{
 		Pages:           map[string]PageManifest{},
@@ -318,7 +318,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		}
 	}
 
-	manifest.LocalSchema, manifest.LocalYoga, manifest.LocalConfig, err = p.detectLocalServer(apiDir)
+	manifest.LocalSchema, manifest.LocalYoga, manifest.LocalConfig, err = p.detectLocalServer(serverDir)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -568,11 +568,11 @@ func dirKeyToURL(dirKey string) string {
 }
 
 // detectLocalServer checks src/server for +schema, +yoga, and +config files.
-func (p *HoudiniReact) detectLocalServer(apiDir string) (localSchema, localYoga, localConfig bool, err error) {
+func (p *HoudiniReact) detectLocalServer(serverDir string) (localSchema, localYoga, localConfig bool, err error) {
 	fs := p.Filesystem()
-	entries, err := afero.ReadDir(fs, apiDir)
+	entries, err := afero.ReadDir(fs, serverDir)
 	if err != nil {
-		return false, false, false, nil // api dir doesn't exist — not an error
+		return false, false, false, nil // server dir doesn't exist — not an error
 	}
 	for _, entry := range entries {
 		name := entry.Name()

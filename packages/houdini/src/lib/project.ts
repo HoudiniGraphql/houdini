@@ -200,17 +200,17 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 // read_server_config loads the server-only config overlay (src/server/+config). Returns {} when the
 // file is absent. It holds secrets (sessionKeys, later oauth) and lives in src/server, which is
 // compiled server-side only — so it never reaches the client bundle.
-async function read_server_config(apiDir: string): Promise<ServerConfigFile> {
+async function read_server_config(serverDir: string): Promise<ServerConfigFile> {
 	let configPath = ''
 	try {
-		for (const child of await fs.readdir(apiDir)) {
+		for (const child of await fs.readdir(serverDir)) {
 			if (path.parse(child).name === '+config') {
-				configPath = path.join(apiDir, child)
+				configPath = path.join(serverDir, child)
 				break
 			}
 		}
 	} catch {
-		return {} // api dir doesn't exist
+		return {} // server dir doesn't exist
 	}
 	if (!configPath) {
 		return {}

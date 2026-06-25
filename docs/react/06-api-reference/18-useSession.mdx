@@ -29,7 +29,7 @@ function useSession(): [
 ]
 ```
 
-The updater sends a `POST` request to the session endpoint defined in your router config (defaulting to `/__houdini__/auth`), clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
+The updater sends a `POST` request to the session endpoint defined in your server config (defaulting to `/_auth`), clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
 
 - **`updateSession(patch)`** — merges `patch` into the session and persists it to the `httpOnly` cookie.
 - **`updateSession(null)`** — logs out: empties the local session and deletes the cookie.

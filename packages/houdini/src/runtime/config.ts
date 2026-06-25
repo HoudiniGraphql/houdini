@@ -4,7 +4,7 @@ import type { ConfigFile } from 'houdini'
 // always available (the router mounts it regardless of auth config) so progressively-enhanced
 // `@session` forms work out of the box. Shared by the server (mint/verify) and the
 // client (where useSession/useMutationForm POST the session token).
-export const DEFAULT_AUTH_URL = '/__houdini__/auth'
+export const DEFAULT_AUTH_URL = '/_auth'
 
 // the resolved session endpoint, set once per process: server-side from the ServerConfigFile,
 // client-side from the value the server injects at render (window.__houdini__auth_url__). The

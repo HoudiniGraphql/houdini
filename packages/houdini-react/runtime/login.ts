@@ -1,8 +1,9 @@
 import { getAuthUrl } from 'houdini/runtime'
 
 // loginURL builds the URL for Houdini's redirect-login entry point (`/login`). Point a link at it
-// to start the flow: `redirectTo` is where the user lands afterward (kept server-side in a signed
-// cookie, never on the open wire) — omit it to return the user to the page they came from. `params`
+// to start the flow: `redirectTo` is where the user lands afterward (passed as a query param on
+// this initial request, then captured into a signed cookie server-side for the OAuth round-trip) —
+// omit it to return the user to the page they came from. `params`
 // are forwarded verbatim to the trusted integration (e.g. `{ provider: 'github' }`) — Houdini stays
 // out of the provider business.
 //
