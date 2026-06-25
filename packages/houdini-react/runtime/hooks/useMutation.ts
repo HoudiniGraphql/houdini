@@ -15,7 +15,7 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 	fetch?: typeof globalThis.fetch
 	optimisticResponse?: _Optimistic
 	abortController?: AbortController
-}) => Promise<void>
+}) => Promise<_Result>
 
 export function useMutation<
 	_Result extends GraphQLObject,
@@ -60,6 +60,11 @@ export function useMutation<
 			err.raw = result.errors
 			throw err
 		}
+
+		// hand the data back so callers can use the mutation's result (e.g. `const data =
+		// await mutate(...)`), not just its side effects. Errors already threw above, so data is
+		// present on a successful mutation.
+		return result.data as _Result
 	}
 
 	return [mutate, pending]
