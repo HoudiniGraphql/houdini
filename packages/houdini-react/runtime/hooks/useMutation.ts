@@ -19,9 +19,9 @@ type MutationConfig<_Optimistic extends GraphQLObject> = {
 // `variables` key would force callers to write `{ variables: undefined }`. In that case the
 // whole argument is optional and the handler can be invoked as `mutate()`; otherwise
 // `variables` is required.
-export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = [undefined] extends [
-	_Input,
-]
+export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = [
+	undefined,
+] extends [_Input]
 	? (args?: { variables?: _Input } & MutationConfig<_Optimistic>) => Promise<_Result>
 	: (args: { variables: _Input } & MutationConfig<_Optimistic>) => Promise<_Result>
 
