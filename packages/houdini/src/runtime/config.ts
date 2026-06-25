@@ -31,6 +31,19 @@ export function getApiEndpoint(): string {
 	return _apiEndpoint ?? DEFAULT_API_ENDPOINT
 }
 
+// the @session proxy path, injected at render ONLY when there is no local API (no local schema).
+// When set, the client routes @session mutations through this same-origin Houdini endpoint instead
+// of straight to the remote `apiEndpoint`, so the server can sit in the request path and write the
+// session cookie server-authoritatively. Empty/unset means a local API is present and @session
+// mints inline (no proxy). There is no default — absence is meaningful (it disables proxying).
+let _sessionProxy: string | undefined
+export function setSessionProxy(url: string | undefined | null): void {
+	_sessionProxy = url || undefined
+}
+export function getSessionProxy(): string | undefined {
+	return _sessionProxy
+}
+
 // The window event the session-relay plugin dispatches after an @session mutation so the
 // router can mirror the write into local React state (no refresh). detail carries the session
 // subtree and whether to merge it (vs replace). Shared so producer (core) and consumer

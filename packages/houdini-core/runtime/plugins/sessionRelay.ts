@@ -20,34 +20,40 @@ export const sessionRelay = (): ClientPlugin => () => ({
 			sessionMerge?: boolean
 		}
 		const result = value as { data?: any; extensions?: Record<string, any> } | null
+		// the local-Yoga path mints a token here for the client to relay; the remote-api proxy
+		// instead writes the cookie itself and signals it with houdiniSessionApplied. Either way the
+		// session changed and useSession() must mirror it.
 		const token = result?.extensions?.houdiniSession
-		// only client-side mutation executions carry a mint token; relay it to set the cookie
-		if (token && artifact.kind === ArtifactKind.Mutation && typeof window !== 'undefined') {
-			try {
-				await fetch(getAuthUrl(), {
-					method: 'POST',
-					body: JSON.stringify({ token }),
-					headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-				})
-			} catch {
-				// best-effort — if the relay fails the cookie just isn't updated this time
+		const proxyApplied = result?.extensions?.houdiniSessionApplied === true
+		const isSessionMutation = artifact.kind === ArtifactKind.Mutation && !!artifact.sessionPath
+		if (isSessionMutation && typeof window !== 'undefined' && (token || proxyApplied)) {
+			// relay the minted token to the auth endpoint to set the cookie. The proxy path already
+			// set the cookie server-side (proxyApplied, no token), so there's nothing to relay there.
+			if (token) {
+				try {
+					await fetch(getAuthUrl(), {
+						method: 'POST',
+						body: JSON.stringify({ token }),
+						headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+					})
+				} catch {
+					// best-effort — if the relay fails the cookie just isn't updated this time
+				}
 			}
 
-			// mirror the write into local state so useSession() updates without a refresh. A
-			// null subtree clears (replace with {}); otherwise merge upserts and the default
-			// replaces. The cookie set above stays the source of truth; this just reflects it.
-			if (artifact.sessionPath) {
-				const next = valueAtPath(result?.data, artifact.sessionPath.split('.'))
-				window.dispatchEvent(
-					new CustomEvent(HOUDINI_SESSION_EVENT, {
-						bubbles: true,
-						detail: {
-							session: next ?? {},
-							merge: next != null && !!artifact.sessionMerge,
-						},
-					})
-				)
-			}
+			// mirror the write into local state so useSession() updates without a refresh. A null
+			// subtree clears (replace with {}); otherwise merge upserts and the default replaces. The
+			// cookie (set by the relay or the proxy) stays the source of truth; this just reflects it.
+			const next = valueAtPath(result?.data, artifact.sessionPath!.split('.'))
+			window.dispatchEvent(
+				new CustomEvent(HOUDINI_SESSION_EVENT, {
+					bubbles: true,
+					detail: {
+						session: next ?? {},
+						merge: next != null && !!artifact.sessionMerge,
+					},
+				})
+			)
 		}
 		resolve(ctx)
 	},

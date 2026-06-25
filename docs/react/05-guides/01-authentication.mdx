@@ -69,6 +69,8 @@ mutation Login($email: String!, $password: String!) @session(path: "login.sessio
 
 The `path` argument names the field in the result whose object value becomes the session, dotted just like property access (`login.session` is `result.login.session`). That value comes from the server that runs the mutation, never from anything the client sends, which is the whole point: a client can't talk Houdini into a session the server didn't issue. There's nothing to wire up either; `@session` mutations hand their result to a built-in endpoint that Houdini mounts for us.
 
+This works whether the GraphQL API is local (your `+schema`) or a remote endpoint. When the API is remote, Houdini routes the `@session` mutation through its own server so it can read the real result and write the cookie; the session stays server-authoritative either way, and nothing changes in how you write the mutation.
+
 Running the mutation looks like any other. From a component:
 
 ```jsx

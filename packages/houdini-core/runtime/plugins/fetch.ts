@@ -1,3 +1,4 @@
+import { getSessionProxy } from 'houdini/runtime'
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { RequestPayload, FetchContext } from 'houdini/runtime/types'
@@ -36,6 +37,28 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					} else {
 						fetchFn = target
 					}
+				}
+
+				// a @session mutation against a REMOTE api has to go through Houdini's same-origin
+				// proxy so the server can sit in the request path and write the session cookie
+				// server-authoritatively. getSessionProxy() is set only when there's no local schema
+				// (with one, the mutation hits the local Yoga and the mint plugin signs inline). We
+				// override the URL but never a user-supplied custom fetch function (it owns transport).
+				const sessionProxy = getSessionProxy()
+				const artifact = ctx.artifact as typeof ctx.artifact & { sessionPath?: string }
+				if (
+					sessionProxy &&
+					artifact.kind === ArtifactKind.Mutation &&
+					artifact.sessionPath &&
+					typeof target !== 'function'
+				) {
+					// tell the proxy which operation this is via a header so it never has to parse the
+					// (possibly multipart) body to find the session path. Must stay in sync with
+					// HOUDINI_OPERATION_HEADER in router/server.ts.
+					fetchFn = defaultFetch(sessionProxy, {
+						...ctx.fetchParams,
+						headers: { ...ctx.fetchParams?.headers, 'x-houdini-operation': ctx.name },
+					})
 				}
 
 				const result = await fetchFn({

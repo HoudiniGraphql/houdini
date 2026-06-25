@@ -27,7 +27,20 @@ function clearRedirectTxnCookie(): string {
 	return `${REDIRECT_TXN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
 }
 
-type ServerHandlerArgs = {
+// isAllowedOrigin is the shared, fail-closed CSRF check for every state-changing same-origin sink
+// (the @session POST relay, the no-JS form handler, and the remote-API proxy). A request is allowed
+// only when its Origin header is present AND matches the app's own origin or a configured extra
+// origin; a missing or unrecognized Origin is rejected. Centralized so all sinks reject identically.
+export function isAllowedOrigin(request: Request, server_config?: ServerConfigFile): boolean {
+	const origin = request.headers.get('origin')
+	const allowedOrigins = [
+		new URL(request.url).origin,
+		...(server_config?.allowedOrigins ?? []),
+	]
+	return !!origin && allowedOrigins.includes(origin)
+}
+
+export type ServerHandlerArgs = {
 	request: Request
 	config: ConfigFile
 	// server-only config (src/server/+config): the session endpoint, redirect flag, CSRF allowlist
@@ -69,7 +82,7 @@ const defaultConsumedTokenStore: ConsumedTokenStore = {
 // (sid) to the session presenting it, and (3) not have been consumed before (jti) — so a leaked
 // token can't be replayed from another session or replayed twice. Shared by the POST relay and
 // the GET redirect callback so both paths are identically hardened. Returns false on any failure.
-async function applySessionToken(
+export async function applySessionToken(
 	args: ServerHandlerArgs,
 	response: Response,
 	token: unknown
@@ -350,12 +363,7 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 
 	if (args.request.method === 'POST') {
 		// fail-closed on the Origin header — a cross-origin page can't forge a session write
-		const origin = args.request.headers.get('origin')
-		const allowedOrigins = [
-			new URL(args.request.url).origin,
-			...(args.server_config?.allowedOrigins ?? []),
-		]
-		if (!origin || !allowedOrigins.includes(origin)) {
+		if (!isAllowedOrigin(args.request, args.server_config)) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
