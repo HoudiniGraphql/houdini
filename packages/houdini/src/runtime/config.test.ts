@@ -5,8 +5,7 @@ import {
 	entityRefetchVariables,
 	getAuthUrl,
 	setAuthUrl,
-	getApiEndpoint,
-	setApiEndpoint,
+	resolveApiEndpoint,
 	DEFAULT_AUTH_URL,
 	DEFAULT_API_ENDPOINT,
 } from './config.js'
@@ -62,35 +61,45 @@ describe('entityRefetchVariables', () => {
 	})
 })
 
-// the session endpoint and GraphQL endpoint are server-only config injected to the client at
-// render (window.__houdini__auth_url__ / __houdini__api_endpoint__). The server sets them from the
-// ServerConfigFile at init, the client from the injected globals at hydration; both go through
-// these module-level setters so the relay/query layer can read the resolved value without the
-// urls ever living in the client config bundle.
-describe('injected endpoints (getAuthUrl / getApiEndpoint)', () => {
+// the session endpoint is server-only config injected to the client at render
+// (window.__houdini__auth_url__): the server sets it from the ServerConfigFile at init, the client
+// from the injected global at hydration, both through these module-level setters so the relay can
+// read the resolved value without the url living in the client config bundle.
+describe('injected session endpoint (getAuthUrl)', () => {
 	beforeEach(() => {
 		setAuthUrl(undefined)
-		setApiEndpoint(undefined)
 	})
 
-	test('fall back to their defaults until set', () => {
+	test('falls back to the default until set', () => {
 		expect(getAuthUrl()).toBe(DEFAULT_AUTH_URL)
-		expect(getApiEndpoint()).toBe(DEFAULT_API_ENDPOINT)
 	})
 
-	test('publish a configured endpoint once set', () => {
+	test('publishes a configured endpoint once set', () => {
 		setAuthUrl('/auth/token')
-		setApiEndpoint('/_graphql')
 		expect(getAuthUrl()).toBe('/auth/token')
-		expect(getApiEndpoint()).toBe('/_graphql')
 	})
 
 	test('a blank/null value resets to the default rather than serving an empty endpoint', () => {
 		setAuthUrl('/auth/token')
-		setApiEndpoint('/_graphql')
 		setAuthUrl(null)
-		setApiEndpoint('')
 		expect(getAuthUrl()).toBe(DEFAULT_AUTH_URL)
-		expect(getApiEndpoint()).toBe(DEFAULT_API_ENDPOINT)
+	})
+})
+
+// the GraphQL endpoint is PUBLIC config the client reads straight from the bundle (no injection):
+// the remote `url` when set, else the local mount `apiURL`, else the default.
+describe('resolveApiEndpoint (from public config)', () => {
+	test('prefers the remote url (remote API)', () => {
+		expect(resolveApiEndpoint({ url: 'https://api.example.com/graphql' } as ConfigFile)).toBe(
+			'https://api.example.com/graphql'
+		)
+	})
+
+	test('falls back to the codegen-injected apiURL', () => {
+		expect(resolveApiEndpoint({ apiURL: '/graphql' })).toBe('/graphql')
+	})
+
+	test('defaults when neither is set', () => {
+		expect(resolveApiEndpoint({} as ConfigFile)).toBe(DEFAULT_API_ENDPOINT)
 	})
 })

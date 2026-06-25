@@ -113,9 +113,20 @@ export type ConfigFile = {
 	defaultFragmentMasking?: 'enable' | 'disable'
 
 	/**
-	 * Configure the dev environment to watch a remote schema for changes
+	 * The URL the CLIENT sends GraphQL requests to. Set this when the API is REMOTE; the client
+	 * queries it directly and `@session` mutations are proxied through Houdini to it. It's public
+	 * (it ships in the client bundle), so switch it per environment with `import.meta.env`, e.g.
+	 * `import.meta.env.VITE_API_URL ?? 'http://localhost:4000/graphql'`. With a local
+	 * `src/server/+schema` you can leave this unset — it's inferred from the server `endpoint`.
 	 */
-	watchSchema?: WatchSchemaConfig
+	url?: string
+
+	/**
+	 * Configure the dev environment to watch a remote schema for changes. When omitted, `url` is
+	 * used as the introspection endpoint. Set to `false` (or `null`) to disable schema polling and
+	 * introspection entirely, even when `url` is set.
+	 */
+	watchSchema?: WatchSchemaConfig | false | null
 
 	/**
 	 * Specifies the the persisted queries path and file. (default: `<rootDir>/persisted_queries.json`)
@@ -172,11 +183,10 @@ export type ConsumedTokenStore = {
 }
 
 // ServerConfigFile is the server-only configuration written in src/server/+config. src/server is
-// compiled into the server bundle only, so this is where secrets AND server-owned routing live —
-// session signing keys, the session/GraphQL endpoints, OAuth client secrets and onSignIn later.
-// Kept as a type SEPARATE from ConfigFile (the public, client-bundled config). The public runtime
-// bits the client needs (the GraphQL `apiEndpoint` and the session `auth.url`) are injected into
-// the page at render and read back on the client — never bundled into houdini.config.
+// compiled into the server bundle only, never the client. Holds the session signing keys, OAuth
+// providers, onSignIn, and the GraphQL `endpoint`. Kept as a type SEPARATE from the public,
+// client-bundled ConfigFile. Codegen bakes the client-relevant `endpoint` into the bundle; the
+// session `auth.url` is injected at render.
 export type ServerConfigFile = {
 	auth?: {
 		// signing keys for the session cookie, the form CSRF token, and the @session relay token.
@@ -213,9 +223,10 @@ export type ServerConfigFile = {
 		// jti and return true only if it had not been seen before (e.g. Redis `SET jti 1 NX PX ttl`).
 		consumedTokenStore?: ConsumedTokenStore
 	}
-	// where the GraphQL API is mounted (default '/_api'). The client sends queries here, so the
-	// resolved value is injected to the client at render.
-	apiEndpoint?: string
+	// where the GraphQL API is served. Defaults to '/_api'; set it to override that path. Codegen
+	// bakes the value into the client so the client knows where to send when houdini.config has no
+	// `url`. As server-only Node config it can read `process.env` directly.
+	endpoint?: string
 	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint. The form
 	// handler's CSRF check is fail-closed: a form POST whose Origin is absent or matches neither
 	// the request's own origin nor this allowlist is rejected (403). Server-only.
@@ -241,8 +252,9 @@ export type TypeConfig = {
 export type WatchSchemaConfig = {
 	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
+	 * Defaults to the top-level `url` when omitted.
 	 */
-	url: string | ((env: Record<string, string | undefined>) => string)
+	url?: string | ((env: Record<string, string | undefined>) => string)
 
 	/**
 	 * sets the amount of time between each request in milliseconds (default 2 seconds).
@@ -340,7 +352,13 @@ export class Config {
 	}
 
 	async api_url() {
-		const apiURL = this.config_file.watchSchema?.url
+		const watchSchema = this.config_file.watchSchema
+		// `false`/`null` disables schema polling + introspection entirely
+		if (watchSchema === false || watchSchema === null) {
+			return ''
+		}
+		// the introspection endpoint: watchSchema.url when set, otherwise the top-level `url`
+		const apiURL = watchSchema?.url ?? this.config_file.url
 		if (!apiURL) {
 			return ''
 		}
@@ -433,8 +451,8 @@ export class Config {
 	async schema_pull_headers() {
 		const env = process.env
 
-		// if the whole thing is a function, just call it
-		const config_headers = this.config_file.watchSchema?.headers
+		// if the whole thing is a function, just call it (|| undefined coerces false/null away)
+		const config_headers = (this.config_file.watchSchema || undefined)?.headers
 		if (typeof config_headers === 'function') {
 			return config_headers(env)
 		}

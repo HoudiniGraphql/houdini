@@ -571,8 +571,6 @@ export const on_render =
 		formResult,
 		formToken,
 		authUrl,
-		apiEndpoint,
-		sessionProxy,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -635,8 +633,6 @@ export const on_render =
 			window.__houdini__form_result__ = ${escapeScriptTag(JSON.stringify(formResult ?? null))};
 			window.__houdini__form_token__ = ${escapeScriptTag(JSON.stringify(formToken ?? null))};
 			window.__houdini__auth_url__ = ${escapeScriptTag(JSON.stringify(authUrl ?? null))};
-			window.__houdini__api_endpoint__ = ${escapeScriptTag(JSON.stringify(apiEndpoint ?? null))};
-			window.__houdini__session_proxy__ = ${escapeScriptTag(JSON.stringify(sessionProxy ?? null))};
 		</script>
 
 		${documentPremable ?? ''}

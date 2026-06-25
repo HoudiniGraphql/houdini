@@ -1,7 +1,7 @@
 import type { ConfigFile } from 'houdini'
 
 import type { Cache } from './cache/index.js'
-import { getApiEndpoint } from './config.js'
+import { resolveApiEndpoint } from './config.js'
 import type { ClientHooks, ClientPlugin } from './documentStore.js'
 import { DocumentStore } from './documentStore.js'
 import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from './types.js'
@@ -56,7 +56,8 @@ export class HoudiniClient {
 		// if there is no url provided then assume we are using the internal local api
 		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 		this.url =
-			url ?? (globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint()
+			url ??
+			(globalThis.window ? '' : `http://localhost:${serverPort}`) + resolveApiEndpoint(config())
 
 		this.plugins = flatten(plugins)
 		this.config = config()
@@ -163,6 +164,3 @@ function flatten<T>(source?: NestedList<T>): T[] {
 	}, [])
 }
 
-function localApiEndpoint() {
-	return getApiEndpoint()
-}

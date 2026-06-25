@@ -18,30 +18,16 @@ export function getAuthUrl(): string {
 	return _authUrl ?? DEFAULT_AUTH_URL
 }
 
-// the GraphQL endpoint, resolved the same way as the auth url: server-side from the
-// ServerConfigFile, client-side from the value injected at render (window.__houdini__api_endpoint__).
-// It lives in server config (not houdini.config) so it can be env-driven; the client reads the
-// injected value. Falls back to '/_api'.
+// The path the local GraphQL API is mounted at when `apiURL` isn't set.
 export const DEFAULT_API_ENDPOINT = '/_api'
-let _apiEndpoint: string | undefined
-export function setApiEndpoint(url: string | undefined | null): void {
-	_apiEndpoint = url || undefined
-}
-export function getApiEndpoint(): string {
-	return _apiEndpoint ?? DEFAULT_API_ENDPOINT
-}
 
-// the @session proxy path, injected at render ONLY when there is no local API (no local schema).
-// When set, the client routes @session mutations through this same-origin Houdini endpoint instead
-// of straight to the remote `apiEndpoint`, so the server can sit in the request path and write the
-// session cookie server-authoritatively. Empty/unset means a local API is present and @session
-// mints inline (no proxy). There is no default — absence is meaningful (it disables proxying).
-let _sessionProxy: string | undefined
-export function setSessionProxy(url: string | undefined | null): void {
-	_sessionProxy = url || undefined
-}
-export function getSessionProxy(): string | undefined {
-	return _sessionProxy
+// resolveApiEndpoint picks the endpoint the client sends queries to: the user's `url` when set
+// (remote API), otherwise the local API path, otherwise the default. `apiURL` is NOT a user-facing
+// ConfigFile option — it's the server `endpoint` baked into the runtime config at codegen (see
+// transformRuntime), so it's typed only here. A `url` being present marks the app as remote
+// (→ @session is proxied).
+export function resolveApiEndpoint(config: ConfigFile & { apiURL?: string }): string {
+	return config.url ?? config.apiURL ?? DEFAULT_API_ENDPOINT
 }
 
 // The window event the session-relay plugin dispatches after an @session mutation so the

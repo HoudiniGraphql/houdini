@@ -33,8 +33,9 @@ function proxyHandler(server_config: Record<string, any> = { auth: { sessionKeys
 		assetPrefix: '',
 		graphqlEndpoint: UPSTREAM,
 		componentCache: {},
-		config_file: {} as any,
-		server_config: { apiEndpoint: UPSTREAM, ...server_config } as any,
+		// remote api: the upstream the proxy forwards to is the public config `url`
+		config_file: { url: UPSTREAM } as any,
+		server_config: server_config as any,
 		on_render: () => new Response('page'),
 	})
 }

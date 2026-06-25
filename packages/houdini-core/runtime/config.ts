@@ -1,5 +1,5 @@
 import type { ConfigFile } from 'houdini'
-import { getApiEndpoint } from 'houdini/runtime'
+import { resolveApiEndpoint } from 'houdini/runtime'
 
 import config from './imports/config.js'
 import pluginConfigs from './imports/pluginConfig.js'
@@ -50,10 +50,10 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 // only compute the config file once
 let _configFile: ConfigFile | null = null
 
-// the GraphQL endpoint now lives in server config and is injected to the client at render; read
-// the resolved value (server-set or injected) rather than the client config bundle.
+// the GraphQL endpoint comes straight from the public config bundle (no injection): the remote
+// `url`, the local mount `apiURL`, or the default — see resolveApiEndpoint.
 export function localApiEndpoint() {
-	return getApiEndpoint()
+	return resolveApiEndpoint(getCurrentConfig())
 }
 
 export function getCurrentConfig(): ConfigFile {

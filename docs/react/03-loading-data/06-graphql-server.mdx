@@ -56,12 +56,25 @@ Because resolvers run exclusively on the server, there's no risk of leaking sens
 
 ## Configuration
 
-To change the default `/_api` endpoint, set `apiEndpoint` in the server-only `src/server/+config.ts` (typed `ServerConfigFile`). The resolved value is injected to the client at render, so it's never bundled into `houdini.config`:
+To change the default `/_api` path the local API is served at, set `endpoint` in the server-only `src/server/+config.ts` (typed `ServerConfigFile`). Codegen bakes it into the client, so you only set it in one place:
 
 ```ts title="src/server/+config.ts"
 import type { ServerConfigFile } from 'houdini'
 
 export default {
-  apiEndpoint: '/_graphql'
+  endpoint: '/_graphql'
 } satisfies ServerConfigFile
 ```
+
+## Using a remote API
+
+If your GraphQL API is hosted elsewhere (no local `src/server/+schema`), point Houdini at it with the top-level `url`. It ships in the client bundle, so switch it per environment with a `VITE_`-prefixed variable; the value you pass is the default:
+
+```js title="houdini.config.js"
+/** @type {import('houdini').ConfigFile} */
+export default {
+  url: import.meta.env.VITE_API_URL ?? 'http://localhost:4000/graphql'
+}
+```
+
+`create-houdini` scaffolds this line for you when you start from a remote endpoint. Queries and mutations go directly to that `url`; `@session` mutations are routed through Houdini's server so it can write the session cookie from the result (the value stays server-authoritative). Session signing keys still belong in `src/server/+config` or the environment, never the public config.

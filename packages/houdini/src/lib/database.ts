@@ -603,16 +603,16 @@ export async function write_config(
 		db.run('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)', [name, type])
 	}
 
-	// write router config — all of it is server-only now (from src/server/+config), so none of it
-	// can reach the client bundle. The public bits (apiEndpoint, auth.url) are injected to the
-	// client at render instead.
+	// write router config. The secrets (session_keys) come from server_config (src/server/+config)
+	// and never reach the client. The GraphQL endpoint (api_endpoint) is server-only config too;
+	// codegen bakes it into the client as the local API path.
 	{
 		const auth = config.server_config.auth
 		db.run(
 			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation, providers)
 			 VALUES (?, ?, ?, ?, ?, ?)`,
 			[
-				config.server_config.apiEndpoint ?? null,
+				config.server_config.endpoint ?? null,
 				// the trusted redirect-login integration url (enables /login + the loginURL helper)
 				auth?.redirect?.url ?? null,
 				auth?.sessionKeys?.join(',') ?? '',
@@ -627,10 +627,9 @@ export async function write_config(
 
 	// add watch_schema_config
 	if (config.config_file.watchSchema) {
-		const url =
-			typeof config.config_file.watchSchema.url === 'string'
-				? config.config_file.watchSchema.url
-				: config.config_file.watchSchema.url(env)
+		// watchSchema.url is optional now — fall back to the top-level `url`. Resolve a function form.
+		const configuredUrl = config.config_file.watchSchema.url ?? config.config_file.url
+		const url = typeof configuredUrl === 'function' ? configuredUrl(env) : (configuredUrl ?? '')
 		const headers = !config.config_file.watchSchema.headers
 			? {}
 			: typeof config.config_file.watchSchema.headers === 'function'

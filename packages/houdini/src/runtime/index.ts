@@ -16,11 +16,8 @@ export {
 	getAuthUrl,
 	setAuthUrl,
 	DEFAULT_AUTH_URL,
-	getApiEndpoint,
-	setApiEndpoint,
+	resolveApiEndpoint,
 	DEFAULT_API_ENDPOINT,
-	getSessionProxy,
-	setSessionProxy,
 	HOUDINI_SESSION_EVENT,
 	type HoudiniSessionEventDetail,
 } from './config.js'

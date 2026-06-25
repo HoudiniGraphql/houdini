@@ -845,11 +845,12 @@ describe('no-JS form submission (real Yoga)', () => {
 	})
 })
 
-// the server-side half of endpoint injection: _serverHandler resolves the public endpoints from
-// the (server-only) server_config and hands them to on_render, which serializes them into the page
-// (window.__houdini__auth_url__ / __houdini__api_endpoint__) for the client to read at hydration.
-describe('endpoint injection (server side)', () => {
-	test('resolves the session + GraphQL endpoints from server_config and passes them to on_render', async () => {
+// the server-side half of session-endpoint injection: _serverHandler resolves the session endpoint
+// from the (server-only) server_config and hands it to on_render, which serializes it into the page
+// (window.__houdini__auth_url__) for the client to read at hydration. The GraphQL endpoint is NOT
+// injected — it's public config the client reads from the bundle — so it isn't passed to on_render.
+describe('session endpoint injection (server side)', () => {
+	test('resolves the session endpoint from server_config and passes it to on_render', async () => {
 		let captured: any = null
 		const handler = _serverHandler({
 			schema,
@@ -862,7 +863,6 @@ describe('endpoint injection (server side)', () => {
 			config_file: {} as any,
 			server_config: {
 				auth: { sessionKeys: [TOKEN_KEY], url: '/auth/token' },
-				apiEndpoint: '/_graphql',
 			},
 			on_render: (args: any) => {
 				captured = args
@@ -872,7 +872,8 @@ describe('endpoint injection (server side)', () => {
 		// a plain page GET (no matching page → 404 render) still flows through on_render
 		await handler(new Request('http://localhost/'))
 		expect(captured?.authUrl).toBe('/auth/token')
-		expect(captured?.apiEndpoint).toBe('/_graphql')
+		// the GraphQL endpoint is not injected; the client derives it from the public config
+		expect(captured?.apiEndpoint).toBeUndefined()
 	})
 })
 

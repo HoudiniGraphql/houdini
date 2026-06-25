@@ -349,11 +349,14 @@ async function houdiniConfig(
 ): Promise<boolean> {
 	const config: ConfigFile = {}
 
-	// if we have no url, we are using a local schema
+	// a sentinel we swap for the env-switched url expression after JSON.stringify (which can't emit
+	// a raw expression). Unlikely to collide with any real value.
+	const URL_SENTINEL = '__HOUDINI_URL_EXPR__'
+
+	// if we have no url, we are using a local schema. Otherwise the remote endpoint lives at the
+	// top-level `url` (watchSchema defaults to it), env-switched so dev/prod differ per build.
 	if (url !== null) {
-		config.watchSchema = {
-			url,
-		}
+		config.url = URL_SENTINEL
 	}
 
 	config.runtimeDir = runtimeDir
@@ -380,7 +383,17 @@ async function houdiniConfig(
 	}
 
 	// the actual config contents
-	const configObj = JSON.stringify(config, null, 4)
+	let configObj = JSON.stringify(config, null, 4)
+	// swap the url sentinel for an env-switched expression: import.meta.env for ESM (what Vite
+	// inlines and houdini's config loader resolves), process.env for CommonJS. The provided url is
+	// the default, so it still works with no env var set.
+	if (url !== null) {
+		const urlExpr =
+			module === 'esm'
+				? `import.meta.env.VITE_API_URL ?? ${JSON.stringify(url)}`
+				: `process.env.VITE_API_URL ?? ${JSON.stringify(url)}`
+		configObj = configObj.replace(`"${URL_SENTINEL}"`, urlExpr)
+	}
 	const content_base = `/// <references types="houdini-svelte">
 
 /** @type {import('houdini').ConfigFile} */
@@ -408,7 +421,7 @@ async function houdiniClient(
 	targetPath: string,
 	typescript: boolean,
 	_frameworkInfo: HoudiniFrameworkInfo,
-	url: string | null
+	_url: string | null
 ) {
 	const houdiniClientExt = typescript ? `ts` : `js`
 	const houdiniClientPath = path.join(targetPath, `client.${houdiniClientExt}`)
@@ -423,10 +436,10 @@ async function houdiniClient(
     //         }
     //     }
     // }`
-	const urlLine = url ? `{\n    url: '${url}',${comment}\n}` : `{${comment}\n}`
+	// the api url lives in houdini.config.js (`url`) now, not the client — passing it here throws.
 	const content = `import { HoudiniClient } from '$houdini';
 
-export default new HoudiniClient(${urlLine})
+export default new HoudiniClient({${comment}\n})
 `
 
 	await fs.writeFile(houdiniClientPath, content)

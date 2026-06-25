@@ -9,7 +9,7 @@ import {
 
 import type { ConfigFile, ServerConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
-import { getApiEndpoint, getAuthUrl, setApiEndpoint, setAuthUrl } from '../runtime/config.js'
+import { getAuthUrl, resolveApiEndpoint, setAuthUrl } from '../runtime/config.js'
 import { interpolateRedirect, valueAtPath } from '../runtime/endpoint.js'
 import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
@@ -231,12 +231,10 @@ export function _serverHandler<ComponentType = unknown>({
 		// the signed CSRF token forms render in a hidden field (only when router.formToken
 		// is enabled); undefined otherwise.
 		formToken?: string
-		// public server-owned endpoints to inject into the page (the session endpoint and the
-		// GraphQL endpoint) so the client can reach them without bundling them into houdini.config.
+		// the session endpoint, injected so the client relay/useSession can reach it without the
+		// (server-only) auth config living in the client bundle. The GraphQL endpoint and the proxy
+		// path are NOT injected — the client derives both from the public config it already bundles.
 		authUrl?: string
-		apiEndpoint?: string
-		// the @session proxy path, present only when there's no local schema (see sessionProxyPath)
-		sessionProxy?: string
 	}) => Response | Promise<Response | undefined> | undefined
 	config_file: ConfigFile
 	// the server-only config (src/server/+config) — sessionKeys live here, never in config_file
@@ -244,16 +242,15 @@ export function _serverHandler<ComponentType = unknown>({
 } & Omit<YogaServerOptions, 'schema'>) {
 	const session_keys = localApiSessionKeys(server_config)
 
-	// resolve the server-owned public endpoints once and publish them: the server reads them via
-	// getAuthUrl()/getApiEndpoint() below, and they're injected to the client at render so the
-	// relay/query layer can reach them without the urls living in the client config bundle.
+	// the session endpoint is server-only config (it can be customized in src/server/+config), so it
+	// is still published for the client at render via getAuthUrl(). The GraphQL endpoint is NOT —
+	// it's public config the client reads straight from the bundle (resolveApiEndpoint).
 	setAuthUrl(server_config?.auth?.url)
-	setApiEndpoint(server_config?.apiEndpoint)
 
 	// the @session proxy is mounted ONLY when there's no local schema. With a local schema the
 	// mutation runs through the local Yoga and the mint plugin signs the token inline; without one
-	// the GraphQL request goes to a remote `apiEndpoint` that can't mint, so the client routes
-	// @session mutations through this same-origin path and the server writes the cookie itself.
+	// the GraphQL request goes to the remote `url` that can't mint, so the client routes @session
+	// mutations through this same-origin path and the server writes the cookie itself.
 	const sessionProxyPath = schema ? undefined : getAuthUrl() + '/proxy'
 
 	// fall back to a random per-process key when none are configured, so both auth sessions
@@ -358,15 +355,10 @@ export function _serverHandler<ComponentType = unknown>({
 			headers,
 			formResult: opts?.formResult,
 			formToken,
-			// public server-owned endpoints injected into the page so the client relay/query
-			// layer can reach them without the urls being bundled into houdini.config
+			// the session endpoint, injected so the client relay/useSession can reach it (it's
+			// server-only config). The GraphQL endpoint + proxy path are derived client-side from
+			// the public config, so they aren't injected here.
 			authUrl: getAuthUrl(),
-			apiEndpoint: getApiEndpoint(),
-			// the @session proxy path, injected ONLY when there's no local schema. With a local
-			// schema @session mints inline (Yoga plugin) so no proxy is needed; without one the
-			// client routes @session mutations here so the server can write the cookie. See
-			// sessionProxyPath / handleSessionProxy below.
-			sessionProxy: sessionProxyPath,
 		})
 		if (!rendered) {
 			// if we got this far its not a page we recognize
@@ -553,7 +545,7 @@ export function _serverHandler<ComponentType = unknown>({
 		// buffer as bytes (not text) so a multipart @session upload survives forwarding intact
 		const bodyBytes = new Uint8Array(await limited.arrayBuffer())
 
-		// forward to the FIXED upstream (server_config.apiEndpoint) — NEVER a value derived from the
+		// forward to the FIXED upstream (the configured `url`) — NEVER a value derived from the
 		// request, so this can't be turned into an open proxy / SSRF. Strip cookie + host so
 		// Houdini's session cookie (auto-attached to this same-origin request) never leaks to the
 		// third-party api; the client could already call the upstream directly, so forwarding its
@@ -565,7 +557,7 @@ export function _serverHandler<ComponentType = unknown>({
 		forwardHeaders.delete(HOUDINI_OPERATION_HEADER) // our internal routing hint, not for the api
 		let upstreamResponse: Response
 		try {
-			upstreamResponse = await fetch(getApiEndpoint(), {
+			upstreamResponse = await fetch(resolveApiEndpoint(config_file), {
 				method: 'POST',
 				headers: forwardHeaders,
 				body: bodyBytes,
