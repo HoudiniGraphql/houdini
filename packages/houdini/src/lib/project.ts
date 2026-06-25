@@ -1,10 +1,11 @@
 import { mergeSchemas } from '@graphql-tools/schema'
+import { transform } from 'esbuild'
 import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
-import { getAuthUrl } from '../runtime/config.js'
-import { houdini_root, local_api_dir } from '../router/conventions.js'
-import { Config, type ConfigFile } from './config.js'
+import { DEFAULT_AUTH_URL } from '../runtime/config.js'
+import { houdini_root, local_server_dir } from '../router/conventions.js'
+import { Config, type ConfigFile, type ServerConfigFile } from './config.js'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
 import * as path from './path.js'
@@ -104,17 +105,23 @@ export async function get_config({
 		// if there is a local schema then we need to ignore the schema check
 		let local_schema = ''
 		try {
-			for (const child of await fs.readdir(local_api_dir(_config, root_dir))) {
+			for (const child of await fs.readdir(local_server_dir(_config, root_dir))) {
 				if (path.parse(child).name === '+schema') {
-					local_schema = path.join(local_api_dir(_config, root_dir), child)
+					local_schema = path.join(local_server_dir(_config, root_dir), child)
 					break
 				}
 			}
 		} catch {}
 
+		// load the server-only config (src/server/+config) — secrets like sessionKeys that must never
+		// reach the client. Kept separate from config_file (which the client bundles) so it can't
+		// leak; every server/build consumer reads config.server_config explicitly.
+		const server_config = await read_server_config(local_server_dir(_config, root_dir))
+
 		const partialConfig: Partial<Config> = {
 			root_dir,
 			config_file,
+			server_config,
 			filepath: config_path,
 			plugins: [],
 		}
@@ -171,16 +178,112 @@ export async function get_config({
 }
 
 // helper function to load the config file
-async function read_config_file(configPath: string): Promise<ConfigFile> {
-	// on windows, we need to prepend the right protocol before we
-	// can import from an absolute path
-	const importPath = path.importPath(configPath)
+// the env-var prefix exposed to the config, mirroring Vite. ONLY keys with this prefix are
+// substituted into import.meta.env — never the rest of process.env — because houdini.config is also
+// bundled into the client, so exposing unprefixed vars would leak server secrets into the browser.
+const ENV_PREFIX = 'VITE_'
 
+// parse_env_file is a minimal .env parser (KEY=value, # comments, optional surrounding quotes).
+// Enough for the prefixed string vars we expose; it intentionally does not do dotenv-expand.
+function parse_env_file(contents: string): Record<string, string> {
+	const out: Record<string, string> = {}
+	for (const line of contents.split('\n')) {
+		const trimmed = line.trim()
+		if (!trimmed || trimmed.startsWith('#')) {
+			continue
+		}
+		const eq = trimmed.indexOf('=')
+		if (eq === -1) {
+			continue
+		}
+		const key = trimmed.slice(0, eq).trim()
+		let value = trimmed.slice(eq + 1).trim()
+		if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
+			value = value.slice(1, -1)
+		}
+		out[key] = value
+	}
+	return out
+}
+
+// load_vite_env reproduces Vite's loadEnv for the VITE_ prefix so that `houdini generate` (plain
+// node, no Vite) sees the same import.meta.env a Vite run would: the project's .env files plus the
+// prefixed shell env, shell winning. Restricted to the prefix so secrets never reach the client.
+export async function load_vite_env(configPath: string): Promise<Record<string, string>> {
+	const root = path.dirname(configPath)
+	const mode = process.env.NODE_ENV || 'development'
+	const collected: Record<string, string> = {}
+	// Vite precedence: .env < .env.local < .env.[mode] < .env.[mode].local
+	for (const file of ['.env', '.env.local', `.env.${mode}`, `.env.${mode}.local`]) {
+		const contents = await fs.readFile(path.join(root, file))
+		if (contents) {
+			Object.assign(collected, parse_env_file(contents))
+		}
+	}
+	// shell env wins over .env files
+	for (const [key, value] of Object.entries(process.env)) {
+		if (value !== undefined && key.startsWith(ENV_PREFIX)) {
+			collected[key] = value
+		}
+	}
+	const exposed: Record<string, string> = {}
+	for (const [key, value] of Object.entries(collected)) {
+		if (key.startsWith(ENV_PREFIX)) {
+			exposed[key] = value
+		}
+	}
+	return exposed
+}
+
+export async function read_config_file(configPath: string): Promise<ConfigFile> {
 	let imported: any
-	try {
-		imported = await import(/* @vite-ignore */ importPath)
-	} catch (e: any) {
-		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+
+	// fast path: a config that doesn't reference import.meta.env loads exactly as before (plain
+	// dynamic import, which handles both CJS and ESM). This keeps every existing config untouched.
+	const source = await fs.readFile(configPath)
+	if (source !== null && source.includes('import.meta.env')) {
+		// import.meta.env is Vite's env; plain node leaves it undefined, so `import.meta.env.VITE_FOO`
+		// would throw on import. Reproduce esbuild's `define` (what a Vite run does) by substituting
+		// import.meta.env with the resolved values before importing. This is a single-file source
+		// transform — no bundling or module resolution. Only ESM can use import.meta.env, so the
+		// transformed output is written as a sibling .mjs (its own imports resolve from there).
+		const mode = process.env.NODE_ENV || 'development'
+		const meta_env = {
+			...(await load_vite_env(configPath)),
+			MODE: mode,
+			DEV: mode !== 'production',
+			PROD: mode === 'production',
+			SSR: true,
+			BASE_URL: '/',
+		}
+		let tmpPath = ''
+		try {
+			const { code } = await transform(source, {
+				loader: configPath.endsWith('.ts') ? 'ts' : 'js',
+				format: 'esm',
+				define: { 'import.meta.env': JSON.stringify(meta_env) },
+			})
+			tmpPath = `${configPath}.houdini-${Date.now()}-${process.pid}.mjs`
+			await fs.writeFile(tmpPath, code)
+			imported = await import(/* @vite-ignore */ path.importPath(tmpPath))
+		} catch (e: any) {
+			throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		} finally {
+			if (tmpPath) {
+				await fs.remove(tmpPath).catch(() => {})
+			}
+		}
+	} else {
+		try {
+			// on windows, we need to prepend the right protocol before we
+			// can import from an absolute path
+			imported = await import(/* @vite-ignore */ path.importPath(configPath))
+		} catch (e: any) {
+			throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		}
 	}
 
 	// if this is wrapped in a default, use it
@@ -189,6 +292,34 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 		...default_config,
 		...config,
 	}
+}
+
+// read_server_config loads the server-only config overlay (src/server/+config). Returns {} when the
+// file is absent. It holds secrets (sessionKeys, later oauth) and lives in src/server, which is
+// compiled server-side only — so it never reaches the client bundle.
+async function read_server_config(serverDir: string): Promise<ServerConfigFile> {
+	let configPath = ''
+	try {
+		for (const child of await fs.readdir(serverDir)) {
+			if (path.parse(child).name === '+config') {
+				configPath = path.join(serverDir, child)
+				break
+			}
+		}
+	} catch {
+		return {} // server dir doesn't exist
+	}
+	if (!configPath) {
+		return {}
+	}
+
+	let imported: any
+	try {
+		imported = await import(/* @vite-ignore */ path.importPath(configPath))
+	} catch (e: any) {
+		throw new Error(`Could not load server config at file://${configPath}.\n${e.message}`)
+	}
+	return (imported.default ?? imported) as ServerConfigFile
 }
 
 async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
@@ -249,12 +380,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 }
 
 export function internal_routes(config: Config): string[] {
-	const routes = [local_api_dir(config)]
-	// the auth endpoint is always mounted for a router app (default path when unconfigured),
-	// so register it as an internal route rather than a 404
-	if (config.config_file.router) {
-		routes.push(getAuthUrl(config.config_file))
-	}
+	const routes = [local_server_dir(config)]
+	// the auth endpoint is always mounted (default path when unconfigured), so register it as an
+	// internal route rather than a 404. Its url is server-only config now.
+	routes.push(config.server_config.auth?.url ?? DEFAULT_AUTH_URL)
 
 	return routes
 }

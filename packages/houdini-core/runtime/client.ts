@@ -31,7 +31,6 @@ export { fetch, mutation, query, subscription } from './plugins/index.js'
 export { DocumentStore, type ClientPlugin, type SendParams } from 'houdini/runtime/documentStore'
 
 export type HoudiniClientConstructorArgs = {
-	url?: string
 	fetchParams?: FetchParamFn
 	plugins?: NestedList<ClientPlugin>
 	pipeline?: NestedList<ClientPlugin>
@@ -50,14 +49,22 @@ export class HoudiniClient extends BaseClient {
 	// store throwOnError operations for access by stores
 	throwOnError_operations: string[] = []
 
-	constructor({
-		url,
-		fetchParams,
-		plugins,
-		pipeline,
-		throwOnError,
-		cache = cacheRef,
-	}: HoudiniClientConstructorArgs = {}) {
+	constructor(args: HoudiniClientConstructorArgs = {}) {
+		// Houdini 2.0 migration guard: the API url is no longer passed to the client. Pre-2.0 apps
+		// did `new HoudiniClient({ url })` (or `new HoudiniClient(url)`); that value would now be
+		// silently ignored, which is one of the widest blast radiuses in the migration — so fail
+		// loudly with the new home for it.
+		const legacyUrl =
+			typeof (args as unknown) === 'string' ? args : (args as { url?: unknown }).url
+		if (legacyUrl != null) {
+			throw new Error(
+				'HoudiniClient no longer accepts a `url`. Set `url` in houdini.config.js for a remote ' +
+					'API, or `endpoint` in src/server/+config to change the local API path.'
+			)
+		}
+
+		const { fetchParams, plugins, pipeline, throwOnError, cache = cacheRef } = args
+
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
@@ -68,12 +75,16 @@ export class HoudiniClient extends BaseClient {
 		const serverPort =
 			globalThis.process?.env?.HOUDINI_PORT ?? globalThis.process?.env?.PORT ?? '5173'
 
+		// resolve the endpoint from config (no `url` arg anymore). An absolute endpoint (a remote
+		// api) is used as-is; a relative one (the local mount) is prefixed with the origin on SSR.
+		const endpoint = localApiEndpoint()
+		const resolvedUrl = /^https?:\/\//.test(endpoint)
+			? endpoint
+			: (globalThis.window ? '' : `http://localhost:${serverPort}`) + endpoint
+
 		super({
 			config: getCurrentConfig,
-			url:
-				url ??
-				(globalThis.window ? '' : `http://localhost:${serverPort}`) +
-					localApiEndpoint(getCurrentConfig()),
+			url: resolvedUrl,
 			plugins: flatten(
 				([] as NestedList<ClientPlugin>).concat(
 					// if they specified a throw behavior

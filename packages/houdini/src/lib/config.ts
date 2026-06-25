@@ -2,6 +2,7 @@ import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import { minimatch } from 'minimatch'
 
+import type { OAuthProvider, OAuthUser, OAuthTokens } from '../oauth/index.js'
 import { plugin_dir } from '../router/conventions.js'
 import * as path from './path.js'
 import type { PluginMeta } from './project.js'
@@ -112,9 +113,20 @@ export type ConfigFile = {
 	defaultFragmentMasking?: 'enable' | 'disable'
 
 	/**
-	 * Configure the dev environment to watch a remote schema for changes
+	 * The URL the CLIENT sends GraphQL requests to. Set this when the API is REMOTE; the client
+	 * queries it directly and `@session` mutations are proxied through Houdini to it. It's public
+	 * (it ships in the client bundle), so switch it per environment with `import.meta.env`, e.g.
+	 * `import.meta.env.VITE_API_URL ?? 'http://localhost:4000/graphql'`. With a local
+	 * `src/server/+schema` you can leave this unset — it's inferred from the server `endpoint`.
 	 */
-	watchSchema?: WatchSchemaConfig
+	url?: string
+
+	/**
+	 * Configure the dev environment to watch a remote schema for changes. When omitted, `url` is
+	 * used as the introspection endpoint. Set to `false` (or `null`) to disable schema polling and
+	 * introspection entirely, even when `url` is set.
+	 */
+	watchSchema?: WatchSchemaConfig | false | null
 
 	/**
 	 * Specifies the the persisted queries path and file. (default: `<rootDir>/persisted_queries.json`)
@@ -146,11 +158,6 @@ export type ConfigFile = {
 	pluginTransport?: 'websocket' | 'stdio' | `env:${string}`
 
 	/**
-	 * Configure the router
-	 */
-	router?: RouterConfig
-
-	/**
 	 * Configure the router to evaluate custom scalars using runtime values
 	 */
 	runtimeScalars?: Record<
@@ -168,33 +175,66 @@ export type RuntimeScalarPayload = {
 	session?: App.Session | null | undefined
 }
 
-type RouterConfig = {
-	auth?: AuthStrategy
-	apiEndpoint?: string
-	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint.
-	// The form handler's CSRF check is fail-closed: a form POST whose Origin is absent or
-	// matches neither the request's own origin nor this allowlist is rejected (403).
-	allowedOrigins?: string[]
-	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
-	// Defaults to 10 MB. Raise it for large uploads. (Bodies without a Content-Length — e.g.
-	// chunked — fall back to the host/proxy's own limit.)
-	formMaxBodyBytes?: number
+// a single-use store for relayed session-mint token ids (jti). `consume` atomically records the id
+// with the given time-to-live and returns true only if it had not been recorded before; a false
+// return means the token was already consumed (a replay) and must be rejected.
+export type ConsumedTokenStore = {
+	consume(jti: string, ttlMs: number): boolean | Promise<boolean>
 }
 
-type AuthStrategy = {
-	sessionKeys: string[]
-	// The endpoint that sets the session cookie. Defaults to '/__houdini__/auth' and is always
-	// mounted for the POST relay used by progressively-enhanced `@session` forms and
-	// useSession(). Must be a relative path (leading slash). Override only to mount it elsewhere.
-	url?: string
-	// EXPERIMENTAL — opt in to the GET redirect-based login callback (e.g. an external auth
-	// provider redirects the browser back to the session endpoint). Off by default so the
-	// cookie-writing GET sink isn't exposed in apps that don't use it; when on, it accepts only a
-	// server-signed token (never raw query params). NOTE: the token's session binding (sid) does
-	// not separate anonymous browsers — fingerprint({}) is constant — so enabling this today
-	// leaves a session-fixation risk for logged-out users. Do not enable until the OAuth adapter
-	// lands, which binds the redirect flow to the initiating browser with a single-use nonce.
-	redirect?: boolean
+// ServerConfigFile is the server-only configuration written in src/server/+config. src/server is
+// compiled into the server bundle only, never the client. Holds the session signing keys, OAuth
+// providers, onSignIn, and the GraphQL `endpoint`. Kept as a type SEPARATE from the public,
+// client-bundled ConfigFile. Codegen bakes the client-relevant `endpoint` into the bundle; the
+// session `auth.url` is injected at render.
+export type ServerConfigFile = {
+	auth?: {
+		// signing keys for the session cookie, the form CSRF token, and the @session relay token.
+		// The first key signs; any others are accepted on verify (key rotation).
+		sessionKeys?: string[]
+		// The endpoint that sets the session cookie. Defaults to '/_auth' and is always
+		// mounted for the POST relay used by progressively-enhanced `@session` forms and
+		// useSession(). Must be a relative path (leading slash). Injected to the client at render.
+		url?: string
+		// the redirect-login escape hatch. Set `url` to a TRUSTED integration's login endpoint (an
+		// OAuth worker you operate) to enable the `/login` -> integration -> callback flow: the
+		// integration runs the provider OAuth and redirects back with a session token signed with
+		// the shared `sessionKeys`, while Houdini binds the round-trip to the initiating browser
+		// with a single-use nonce. Omit to leave the redirect flow disabled.
+		redirect?: { url: string }
+		// first-class OAuth: a map of provider name → configured adapter (from `houdini/oauth`, e.g.
+		// `github({ clientId, clientSecret })`). The keys become the typed `provider` argument of
+		// `loginURL` and the `?provider=` value `/login` dispatches on. Houdini runs the Auth Code +
+		// PKCE flow against the provider directly (no external worker needed).
+		providers?: Record<string, OAuthProvider>
+		// called server-side after a successful OAuth callback, with the validated user and the
+		// provider tokens; its return value becomes the session. Persist the provider tokens in your
+		// own database here — the session cookie should hold only an opaque value (e.g. { userId }).
+		onSignIn?: (args: {
+			provider: string
+			user: OAuthUser
+			tokens: OAuthTokens
+		}) => App.Session | Promise<App.Session>
+		// single-use enforcement for relayed @session mint tokens. Each token carries a unique `jti`
+		// that must be consumed exactly once to block replay. The default store is an in-memory Map,
+		// which is per-process — so on a MULTI-INSTANCE / serverless deployment a token could be
+		// replayed on another instance within its short TTL. Provide a shared store (Redis, a DB, a
+		// Durable Object) to enforce single-use across instances. `consume` must atomically record the
+		// jti and return true only if it had not been seen before (e.g. Redis `SET jti 1 NX PX ttl`).
+		consumedTokenStore?: ConsumedTokenStore
+	}
+	// where the GraphQL API is served. Defaults to '/_api'; set it to override that path. Codegen
+	// bakes the value into the client so the client knows where to send when houdini.config has no
+	// `url`. As server-only Node config it can read `process.env` directly.
+	endpoint?: string
+	// extra origins (beyond the app's own) allowed to POST to the no-JS form endpoint. The form
+	// handler's CSRF check is fail-closed: a form POST whose Origin is absent or matches neither
+	// the request's own origin nor this allowlist is rejected (403). Server-only.
+	allowedOrigins?: string[]
+	// max size (bytes) of a no-JS form POST body, rejected (413) before the body is buffered.
+	// Defaults to 10 MB. Bodies without a Content-Length fall back to the host/proxy limit.
+	// Server-only.
+	formMaxBodyBytes?: number
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
@@ -212,8 +252,9 @@ export type TypeConfig = {
 export type WatchSchemaConfig = {
 	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
+	 * Defaults to the top-level `url` when omitted.
 	 */
-	url: string | ((env: Record<string, string | undefined>) => string)
+	url?: string | ((env: Record<string, string | undefined>) => string)
 
 	/**
 	 * sets the amount of time between each request in milliseconds (default 2 seconds).
@@ -278,6 +319,9 @@ export interface HoudiniClientPluginConfig {}
 // we need to include some extra meta data along with the config file
 export class Config {
 	public config_file: ConfigFile
+	// server_config is the server-only overlay loaded from src/server/+config (secrets like
+	// sessionKeys). Kept separate from config_file so it never flows into the client bundle.
+	public server_config: ServerConfigFile
 	public filepath: string
 	public plugins: PluginMeta[]
 	public root_dir: string
@@ -285,12 +329,14 @@ export class Config {
 
 	constructor(init: {
 		config_file: ConfigFile
+		server_config?: ServerConfigFile
 		filepath: string
 		plugins: PluginMeta[]
 		root_dir: string
 		schema: GraphQLSchema
 	}) {
 		this.config_file = init.config_file
+		this.server_config = init.server_config ?? {}
 		this.filepath = init.filepath
 		this.plugins = init.plugins
 		this.root_dir = init.root_dir
@@ -306,7 +352,13 @@ export class Config {
 	}
 
 	async api_url() {
-		const apiURL = this.config_file.watchSchema?.url
+		const watchSchema = this.config_file.watchSchema
+		// `false`/`null` disables schema polling + introspection entirely
+		if (watchSchema === false || watchSchema === null) {
+			return ''
+		}
+		// the introspection endpoint: watchSchema.url when set, otherwise the top-level `url`
+		const apiURL = watchSchema?.url ?? this.config_file.url
 		if (!apiURL) {
 			return ''
 		}
@@ -399,8 +451,8 @@ export class Config {
 	async schema_pull_headers() {
 		const env = process.env
 
-		// if the whole thing is a function, just call it
-		const config_headers = this.config_file.watchSchema?.headers
+		// if the whole thing is a function, just call it (|| undefined coerces false/null away)
+		const config_headers = (this.config_file.watchSchema || undefined)?.headers
 		if (typeof config_headers === 'function') {
 			return config_headers(env)
 		}

@@ -7,8 +7,9 @@ import {
 	type YogaServerOptions as YogaConfig,
 } from 'graphql-yoga'
 
-import type { ConfigFile } from '../lib/config.js'
+import type { ConfigFile, ServerConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
+import { getAuthUrl, resolveApiEndpoint, setAuthUrl } from '../runtime/config.js'
 import { interpolateRedirect, valueAtPath } from '../runtime/endpoint.js'
 import { coerceFormData } from '../runtime/formData.js'
 import { buildGraphQLBody } from '../runtime/multipart.js'
@@ -17,11 +18,14 @@ import { CSRF_FIELD, signFormToken, verifyFormToken, signSessionToken } from './
 import { serialize as encodeCookie } from './cookies.js'
 import { find_match, find_prefix_match } from './match.js'
 import {
+	applySessionToken,
 	clear_session,
 	get_session,
 	handle_request,
+	isAllowedOrigin,
 	session_cookie_name,
 	set_session,
+	sign_session,
 } from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
 
@@ -37,6 +41,50 @@ export type FormResult = Record<string, { data: any; errors: any }>
 // request cannot. Required for CORS-simple POSTs to the graphql endpoint so they can't be a
 // CSRF channel. Must stay in sync with the header set in fetch.ts.
 const HOUDINI_REQUEST_HEADER = 'x-houdini-request'
+
+// the client tells the @session proxy which operation it's relaying via this header, so the proxy
+// never has to parse a (possibly multipart) body to find the session path. Must stay in sync with
+// the header set in fetch.ts. It only selects which sessionMutations entry to read — the session
+// value still comes solely from the upstream result, so the header isn't trust-sensitive.
+const HOUDINI_OPERATION_HEADER = 'x-houdini-operation'
+
+// readBodyWithLimit drains the request body while counting bytes, aborting (→ null) once `maxBytes`
+// is exceeded — so a chunked/Content-Length-less body can't be buffered without bound. On success
+// it returns a fresh Request wrapping the buffered bytes (same headers, so the content-type +
+// multipart boundary survive) for formData() to parse.
+async function readBodyWithLimit(request: Request, maxBytes: number): Promise<Request | null> {
+	if (!request.body) {
+		return request
+	}
+	const reader = request.body.getReader()
+	const chunks: Uint8Array[] = []
+	let total = 0
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) {
+			break
+		}
+		if (value) {
+			total += value.byteLength
+			if (total > maxBytes) {
+				await reader.cancel()
+				return null
+			}
+			chunks.push(value)
+		}
+	}
+	const body = new Uint8Array(total)
+	let offset = 0
+	for (const chunk of chunks) {
+		body.set(chunk, offset)
+		offset += chunk.byteLength
+	}
+	return new Request(request.url, {
+		method: request.method,
+		headers: request.headers,
+		body,
+	})
+}
 
 // sessionMintPlugin is the server side of the enhanced @session path. After a session mutation
 // (any @session mutation, form or not) executes over GraphQL it mints a server-signed token of
@@ -63,32 +111,17 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 					if (args?.contextValue?.request?.headers?.get(INTERNAL_FORM_HEADER)) {
 						return
 					}
-					// a failed @session mutation must never touch the session — auth failure is
-					// signalled by a GraphQL error, and only a *successful* execution mints a token.
-					if (result.errors?.length) {
-						return
-					}
-					const name = operationNameOf(args)
-					const session = name ? manifest?.sessionMutations?.[name] : undefined
-					if (!session) {
-						return
-					}
-					// on success: a non-null value writes the session (merge or replace per the
-					// directive); a null one clears it (logout — e.g. a server-side logout mutation
-					// whose session field comes back null). signSessionToken encodes which action,
-					// so the client just relays it. Bind the token to the session the mutation ran
-					// under (sid) so a leaked token can't be replayed from a different session.
-					const value = valueAtPath(result.data, session.sessionPath.split('.'))
-					const priorSession = await get_session(
-						args.contextValue.request.headers,
-						sessionKeys
-					)
-					const token = await signSessionToken(
-						(value ?? null) as App.Session | null,
+					const token = await mintSessionToken({
+						data: result.data,
+						errors: result.errors,
+						operationName: operationNameOf(args),
+						requestHeaders: args.contextValue.request.headers,
+						manifest,
 						sessionKeys,
-						session.merge,
-						priorSession
-					)
+					})
+					if (!token) {
+						return
+					}
 					setResult({
 						...result,
 						extensions: { ...result.extensions, houdiniSession: token },
@@ -97,6 +130,50 @@ function sessionMintPlugin(manifest: RouterManifest<any> | null, sessionKeys: st
 			}
 		},
 	}
+}
+
+// mintSessionToken is the shared heart of the @session server path: given a mutation result it
+// signs the resolver's session subtree into a server-authoritative token, or returns null when the
+// result shouldn't touch the session. Used by BOTH sessionMintPlugin (local Yoga, token relayed by
+// the client) and the remote-API proxy (which applies the token in-process). Keeping it in one
+// place means every @session sink mints identically — same sid-binding, same merge/clear/replace,
+// same "errors never write" rule — so the proxy adds no new session-write logic to audit.
+async function mintSessionToken({
+	data,
+	errors,
+	operationName,
+	requestHeaders,
+	manifest,
+	sessionKeys,
+}: {
+	data: any
+	errors: any
+	operationName: string | null
+	requestHeaders: Headers
+	manifest: RouterManifest<any> | null
+	sessionKeys: string[]
+}): Promise<string | null> {
+	// a failed @session mutation must never touch the session — auth failure is signalled by a
+	// GraphQL error, and only a *successful* execution mints a token.
+	if (errors?.length) {
+		return null
+	}
+	const session = operationName ? manifest?.sessionMutations?.[operationName] : undefined
+	if (!session) {
+		return null
+	}
+	// on success: a non-null value writes the session (merge or replace per the directive); a null
+	// one clears it (logout — e.g. a server-side logout mutation whose session field comes back
+	// null). signSessionToken encodes which action, so the consumer just applies it. Bind the token
+	// to the session the mutation ran under (sid) so a leaked token can't be replayed elsewhere.
+	const value = valueAtPath(data, session.sessionPath.split('.'))
+	const priorSession = await get_session(requestHeaders, sessionKeys)
+	return await signSessionToken(
+		(value ?? null) as App.Session | null,
+		sessionKeys,
+		session.merge,
+		priorSession
+	)
 }
 
 // a header the no-JS form handler sets on its internal GraphQL request so the session-mint
@@ -130,6 +207,7 @@ export function _serverHandler<ComponentType = unknown>({
 	on_render,
 	componentCache,
 	config_file,
+	server_config,
 }: {
 	schema?: GraphQLSchema | null
 	server?: Server<any, any>
@@ -153,10 +231,27 @@ export function _serverHandler<ComponentType = unknown>({
 		// the signed CSRF token forms render in a hidden field (only when router.formToken
 		// is enabled); undefined otherwise.
 		formToken?: string
+		// the session endpoint, injected so the client relay/useSession can reach it without the
+		// (server-only) auth config living in the client bundle. The GraphQL endpoint and the proxy
+		// path are NOT injected — the client derives both from the public config it already bundles.
+		authUrl?: string
 	}) => Response | Promise<Response | undefined> | undefined
 	config_file: ConfigFile
+	// the server-only config (src/server/+config) — sessionKeys live here, never in config_file
+	server_config?: ServerConfigFile
 } & Omit<YogaServerOptions, 'schema'>) {
-	const session_keys = localApiSessionKeys(config_file)
+	const session_keys = localApiSessionKeys(server_config)
+
+	// the session endpoint is server-only config (it can be customized in src/server/+config), so it
+	// is still published for the client at render via getAuthUrl(). The GraphQL endpoint is NOT —
+	// it's public config the client reads straight from the bundle (resolveApiEndpoint).
+	setAuthUrl(server_config?.auth?.url)
+
+	// the @session proxy is mounted ONLY when there's no local schema. With a local schema the
+	// mutation runs through the local Yoga and the mint plugin signs the token inline; without one
+	// the GraphQL request goes to the remote `url` that can't mint, so the client routes @session
+	// mutations through this same-origin path and the server writes the cookie itself.
+	const sessionProxyPath = schema ? undefined : getAuthUrl() + '/proxy'
 
 	// fall back to a random per-process key when none are configured, so both auth sessions
 	// and form CSRF tokens work out of the box. Configuring session keys is about
@@ -206,9 +301,13 @@ export function _serverHandler<ComponentType = unknown>({
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
-							httpOnly: true,
-						}),
+						// sign the session so the local handler's get_session (a signed-JWT verify)
+						// accepts it — a raw JSON cookie is rejected and would run session-less.
+						Cookie: encodeCookie(
+							session_cookie_name,
+							await sign_session(session ?? {}, session_keys[0]),
+							{ httpOnly: true }
+						),
 					},
 					body: JSON.stringify({
 						query,
@@ -237,6 +336,10 @@ export function _serverHandler<ComponentType = unknown>({
 		// evaluate the headers() exports for this page and its layout chain so the
 		// adapter can apply them before streaming begins
 		const headers = await collect_response_headers(match)
+		// clickjacking default: the @endpoint form CSRF token doesn't stop a framed, same-origin page
+		// from being click-jacked into submitting, so block cross-origin framing by default. A page
+		// can opt out (e.g. for an embed) by setting these in its own headers() export.
+		apply_antiframing_defaults(headers)
 
 		// mint the session-bound token forms render in their hidden CSRF field
 		const session = await get_session(request.headers, session_keys)
@@ -252,6 +355,10 @@ export function _serverHandler<ComponentType = unknown>({
 			headers,
 			formResult: opts?.formResult,
 			formToken,
+			// the session endpoint, injected so the client relay/useSession can reach it (it's
+			// server-only config). The GraphQL endpoint + proxy path are derived client-side from
+			// the public config, so they aren't injected here.
+			authUrl: getAuthUrl(),
 		})
 		if (!rendered) {
 			// if we got this far its not a page we recognize
@@ -289,21 +396,24 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// CSRF: native form posts are CORS "simple requests" that bypass preflight, so we
 		// fail-closed on the Origin header (must match the app origin or the allowlist).
-		const origin = request.headers.get('origin')
-		const allowedOrigins = [parsedURL.origin, ...(config_file.router?.allowedOrigins ?? [])]
-		if (!origin || !allowedOrigins.includes(origin)) {
+		if (!isAllowedOrigin(request, server_config)) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
-		// DoS guard: reject an over-large body before buffering it. (A chunked body with no
-		// Content-Length falls through to the host/proxy limit.)
-		const maxBodyBytes = config_file.router?.formMaxBodyBytes ?? 10 * 1024 * 1024
+		// DoS guard: reject an over-large body. The Content-Length header is a fast path, but it can
+		// be absent (chunked transfer) or lie, so we ALSO count bytes while reading the stream and
+		// abort once the cap is exceeded — never buffering an unbounded body into formData().
+		const maxBodyBytes = server_config?.formMaxBodyBytes ?? 10 * 1024 * 1024
 		const contentLength = Number(request.headers.get('content-length'))
 		if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
 			return new Response('Payload Too Large', { status: 413 })
 		}
+		const limited = await readBodyWithLimit(request, maxBodyBytes)
+		if (limited === null) {
+			return new Response('Payload Too Large', { status: 413 })
+		}
 
-		const formData = await request.formData()
+		const formData = await limited.formData()
 
 		// hardened CSRF: the form must carry a token we signed at render time — bound to
 		// THIS session, time-limited, purpose-claimed, and signed with a key domain-separated
@@ -348,9 +458,13 @@ export function _serverHandler<ComponentType = unknown>({
 					// mark this as the no-JS form's internal execution so the session-mint plugin
 					// skips it (we set the cookie directly below)
 					[INTERNAL_FORM_HEADER]: '1',
-					Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
-						httpOnly: true,
-					}),
+					// sign the session so the in-process handler's get_session (a signed-JWT verify)
+					// accepts it — a raw JSON value would fail verification and run session-less
+					Cookie: encodeCookie(
+						session_cookie_name,
+						await sign_session(session ?? {}, session_keys[0]),
+						{ httpOnly: true }
+					),
 				},
 				body,
 			})
@@ -402,6 +516,110 @@ export function _serverHandler<ComponentType = unknown>({
 		return formResponse
 	}
 
+	// handleSessionProxy is the server half of @session for a REMOTE api (no local schema). The
+	// client routes a @session mutation here instead of straight to `apiEndpoint`; the proxy
+	// forwards it to that same upstream, then writes the session cookie from the result so the value
+	// stays server-authoritative (the client can't forge it). It deliberately adds NO new session
+	// machinery: it reuses isAllowedOrigin (CSRF), readBodyWithLimit (DoS), mintSessionToken +
+	// applySessionToken (the exact sign → verify → sid-bind → single-use → write chain the relay
+	// uses). Returns undefined when the request isn't the proxy so the caller falls through.
+	const handleSessionProxy = async (request: Request): Promise<Response | undefined> => {
+		// only mounted when there's no local schema; the path is fixed and same-origin
+		if (!sessionProxyPath || new URL(request.url).pathname !== sessionProxyPath) {
+			return undefined
+		}
+		// it writes the session cookie, so it's a state-changing sink: POST + same-origin only
+		if (request.method !== 'POST') {
+			return new Response('Method Not Allowed', { status: 405 })
+		}
+		if (!isAllowedOrigin(request, server_config)) {
+			return new Response('Forbidden', { status: 403 })
+		}
+
+		// DoS guard: bound the proxied body exactly like the form handler before buffering it
+		const maxBodyBytes = server_config?.formMaxBodyBytes ?? 10 * 1024 * 1024
+		const limited = await readBodyWithLimit(request, maxBodyBytes)
+		if (limited === null) {
+			return new Response('Payload Too Large', { status: 413 })
+		}
+		// buffer as bytes (not text) so a multipart @session upload survives forwarding intact
+		const bodyBytes = new Uint8Array(await limited.arrayBuffer())
+
+		// forward to the FIXED upstream (the configured `url`) — NEVER a value derived from the
+		// request, so this can't be turned into an open proxy / SSRF. Strip cookie + host so
+		// Houdini's session cookie (auto-attached to this same-origin request) never leaks to the
+		// third-party api; the client could already call the upstream directly, so forwarding its
+		// other headers (e.g. Authorization) grants it no capability it didn't already have.
+		const forwardHeaders = new Headers(request.headers)
+		forwardHeaders.delete('cookie')
+		forwardHeaders.delete('host')
+		forwardHeaders.delete('content-length') // refers to the original stream; fetch recomputes it
+		forwardHeaders.delete(HOUDINI_OPERATION_HEADER) // our internal routing hint, not for the api
+		let upstreamResponse: Response
+		try {
+			upstreamResponse = await fetch(resolveApiEndpoint(config_file), {
+				method: 'POST',
+				headers: forwardHeaders,
+				body: bodyBytes,
+			})
+		} catch {
+			return new Response('Bad Gateway', { status: 502 })
+		}
+
+		// relay a non-JSON upstream response verbatim — there's nothing to mint from it
+		const upstreamText = await upstreamResponse.text()
+		let payload: any
+		try {
+			payload = JSON.parse(upstreamText)
+		} catch {
+			return new Response(upstreamText, {
+				status: upstreamResponse.status,
+				headers: {
+					'content-type': upstreamResponse.headers.get('content-type') ?? 'text/plain',
+				},
+			})
+		}
+
+		// the operation name to look up in sessionMutations is sent as a header by the client, so we
+		// never parse the (possibly multipart) body to find it — JSON and multipart @session
+		// mutations both establish the session identically.
+		const operationName = request.headers.get(HOUDINI_OPERATION_HEADER)
+
+		// the placeholder response is just a Set-Cookie carrier for applySessionToken; the body is
+		// rebuilt below so the success flag rides along only when the cookie was actually written.
+		const carrier = new Response(null, { status: upstreamResponse.status })
+		let body = payload
+		const token = await mintSessionToken({
+			data: payload?.data,
+			errors: payload?.errors,
+			operationName,
+			requestHeaders: request.headers,
+			manifest,
+			sessionKeys: session_keys,
+		})
+		if (
+			token &&
+			(await applySessionToken(
+				{ request, config: config_file, server_config, session_keys },
+				carrier,
+				token
+			))
+		) {
+			// signal the client that the cookie was set so useSession() mirrors without a refresh and
+			// without relaying (the relay POST path is only for the local-Yoga case). A boolean flag,
+			// never the token — the value itself is already in the result data the client can see.
+			body = {
+				...payload,
+				extensions: { ...payload?.extensions, houdiniSessionApplied: true },
+			}
+		}
+		carrier.headers.set('content-type', 'application/json')
+		return new Response(JSON.stringify(body), {
+			status: upstreamResponse.status,
+			headers: carrier.headers,
+		})
+	}
+
 	return async (request: Request, ...extraContext: Array<any>) => {
 		if (!manifest) {
 			return new Response(
@@ -444,10 +662,19 @@ export function _serverHandler<ComponentType = unknown>({
 			return requestHandler(request, ...extraContext)
 		}
 
+		// maybe it's a @session mutation proxied through us for a remote api. Checked BEFORE
+		// handle_request because the proxy path lives under the auth url (handle_request would
+		// otherwise claim it via its startsWith match).
+		const proxyResponse = await handleSessionProxy(request)
+		if (proxyResponse) {
+			return proxyResponse
+		}
+
 		// maybe its a session-related request
 		const authResponse = await handle_request({
 			request,
 			config: config_file,
+			server_config,
 			session_keys,
 		})
 		if (authResponse) {
@@ -495,10 +722,24 @@ export async function collect_response_headers(
 	return merged
 }
 
+// apply_antiframing_defaults adds anti-clickjacking response headers unless the page already set
+// them via its headers() export. `frame-ancestors` is the modern control; `X-Frame-Options` is the
+// legacy fallback. Both default to same-origin: cross-origin framing is blocked, same-origin embeds
+// still work. A page that needs to be framed elsewhere overrides them in its own headers().
+export function apply_antiframing_defaults(headers: Record<string, string>) {
+	const has = (name: string) => Object.keys(headers).some((key) => key.toLowerCase() === name)
+	if (!has('content-security-policy')) {
+		headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+	}
+	if (!has('x-frame-options')) {
+		headers['X-Frame-Options'] = 'SAMEORIGIN'
+	}
+}
+
 export type ServerAdapterFactory = typeof serverAdapterFactory
 
-function localApiSessionKeys(configFile: ConfigFile) {
-	return configFile.router?.auth?.sessionKeys ?? []
+function localApiSessionKeys(serverConfig?: ServerConfigFile) {
+	return serverConfig?.auth?.sessionKeys ?? []
 }
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
 type YogaSchemaDefinition<TContext> = NonNullable<YogaConfig<any, TContext>['schema']>

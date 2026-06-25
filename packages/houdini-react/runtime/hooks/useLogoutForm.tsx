@@ -1,4 +1,3 @@
-import { getCurrentConfig } from '$houdini/runtime'
 import { getAuthUrl } from 'houdini/runtime'
 import React from 'react'
 
@@ -45,7 +44,7 @@ export function useLogoutForm(opts: UseLogoutFormOptions = {}): LogoutForm {
 	}
 
 	const form: LogoutForm['form'] = {
-		action: getAuthUrl(getCurrentConfig()),
+		action: getAuthUrl(),
 		method: 'post',
 		onSubmit,
 	}

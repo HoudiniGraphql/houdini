@@ -122,8 +122,8 @@ export function _createMock({
 
 	// Pass the same fresh cache to the client so the cache policy plugin doesn't
 	// reach into the global cacheRef singleton and return stale data from previous tests.
+	// the mockPlugin intercepts the network, so no url is needed (and the client no longer takes one)
 	const mockClient = new HoudiniClient({
-		url: 'http://localhost/graphql',
 		plugins: [mockPlugin as any],
 		cache,
 	})

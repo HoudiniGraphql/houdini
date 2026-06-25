@@ -1,6 +1,11 @@
 import { test, expect, describe, vi, beforeAll } from 'vitest'
 
-import { _serverHandler, collect_response_headers, signFormToken } from './server.js'
+import {
+	_serverHandler,
+	apply_antiframing_defaults,
+	collect_response_headers,
+	signFormToken,
+} from './server.js'
 
 // form submissions carry an always-on, session-bound CSRF token; configure a known session
 // key so tests can mint a valid one through the real path (no cookie ⇒ bound to the empty {})
@@ -83,7 +88,8 @@ describe('_serverHandler form submissions', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: (opts.config ?? { router: { auth: { sessionKeys: [TOKEN_KEY] } } }) as any,
+			config_file: (opts.config ?? { router: { auth: {} } }) as any,
+			server_config: { auth: { sessionKeys: [TOKEN_KEY] } },
 			on_render: opts.onRender ?? (() => new Response('page')),
 		})
 	}
@@ -166,6 +172,28 @@ describe('_serverHandler form submissions', () => {
 		const handler = formHandlerFor({ graphqlResult: {} })
 		const res = await handler(formRequest({ __houdini_form: 'Nope', name: 'A' }))
 		expect(res.status).toBe(400)
+	})
+})
+
+describe('apply_antiframing_defaults', () => {
+	test('blocks cross-origin framing by default', () => {
+		const headers: Record<string, string> = {}
+		apply_antiframing_defaults(headers)
+		expect(headers['Content-Security-Policy']).toBe("frame-ancestors 'self'")
+		expect(headers['X-Frame-Options']).toBe('SAMEORIGIN')
+	})
+
+	test("does not override a page's own CSP / X-Frame-Options (case-insensitive)", () => {
+		const headers: Record<string, string> = {
+			'content-security-policy': 'frame-ancestors https://embed.example',
+			'x-frame-options': 'DENY',
+		}
+		apply_antiframing_defaults(headers)
+		// the page's explicit values stand; we don't double-set under a different casing
+		expect(headers['content-security-policy']).toBe('frame-ancestors https://embed.example')
+		expect(headers['Content-Security-Policy']).toBeUndefined()
+		expect(headers['x-frame-options']).toBe('DENY')
+		expect(headers['X-Frame-Options']).toBeUndefined()
 	})
 })
 

@@ -25,6 +25,7 @@ type ProjectManifest struct {
 	Artifacts       []string                      `json:"artifacts"`
 	LocalSchema     bool                          `json:"local_schema"`
 	LocalYoga       bool                          `json:"local_yoga"`
+	LocalConfig     bool                          `json:"local_config"`
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
 	Mutations       []string                      `json:"mutations"`
 	Subscriptions   []string                      `json:"subscriptions"`
@@ -113,7 +114,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	}
 
 	routesDir := filepath.Join(projectConfig.ProjectRoot, "src", "routes")
-	apiDir := filepath.Join(projectConfig.ProjectRoot, "src", "api")
+	serverDir := filepath.Join(projectConfig.ProjectRoot, "src", "server")
 
 	manifest := ProjectManifest{
 		Pages:           map[string]PageManifest{},
@@ -317,7 +318,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		}
 	}
 
-	manifest.LocalSchema, manifest.LocalYoga, err = p.detectLocalAPI(apiDir)
+	manifest.LocalSchema, manifest.LocalYoga, manifest.LocalConfig, err = p.detectLocalServer(serverDir)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -566,12 +567,12 @@ func dirKeyToURL(dirKey string) string {
 	return "/" + filepath.ToSlash(dirKey) + "/"
 }
 
-// detectLocalAPI checks src/api for +schema and +yoga files.
-func (p *HoudiniReact) detectLocalAPI(apiDir string) (localSchema, localYoga bool, err error) {
+// detectLocalServer checks src/server for +schema, +yoga, and +config files.
+func (p *HoudiniReact) detectLocalServer(serverDir string) (localSchema, localYoga, localConfig bool, err error) {
 	fs := p.Filesystem()
-	entries, err := afero.ReadDir(fs, apiDir)
+	entries, err := afero.ReadDir(fs, serverDir)
 	if err != nil {
-		return false, false, nil // api dir doesn't exist — not an error
+		return false, false, false, nil // server dir doesn't exist — not an error
 	}
 	for _, entry := range entries {
 		name := entry.Name()
@@ -583,9 +584,11 @@ func (p *HoudiniReact) detectLocalAPI(apiDir string) (localSchema, localYoga boo
 			localSchema = true
 		case "+yoga":
 			localYoga = true
+		case "+config":
+			localConfig = true
 		}
 	}
-	return localSchema, localYoga, nil
+	return localSchema, localYoga, localConfig, nil
 }
 
 // pageID converts a URL (like "/(subRoute)/nested/") to a manifest ID (like "__subRoute__nested").

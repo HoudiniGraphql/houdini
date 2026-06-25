@@ -570,6 +570,7 @@ export const on_render =
 		headers,
 		formResult,
 		formToken,
+		authUrl,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -631,6 +632,7 @@ export const on_render =
 			window.__houdini__initial__session__ = ${escapeScriptTag(JSON.stringify(session))};
 			window.__houdini__form_result__ = ${escapeScriptTag(JSON.stringify(formResult ?? null))};
 			window.__houdini__form_token__ = ${escapeScriptTag(JSON.stringify(formToken ?? null))};
+			window.__houdini__auth_url__ = ${escapeScriptTag(JSON.stringify(authUrl ?? null))};
 		</script>
 
 		${documentPremable ?? ''}
@@ -677,11 +679,11 @@ export function createServerAdapter(options) {
 	// config.js — varies by local_schema, local_yoga, and component fields
 	schemaLine := "const schema = null"
 	if manifest.LocalSchema {
-		schemaLine = fmt.Sprintf("import schema from '%s/src/api/+schema'", rootRel)
+		schemaLine = fmt.Sprintf("import schema from '%s/src/server/+schema'", rootRel)
 	}
 	yogaLine := "const yoga = null"
 	if manifest.LocalYoga {
-		yogaLine = fmt.Sprintf("import yoga from '%s/src/api/+yoga'", rootRel)
+		yogaLine = fmt.Sprintf("import yoga from '%s/src/server/+yoga'", rootRel)
 	}
 
 	// Component field wrapper imports (relative from render/ to componentFields/)
@@ -700,8 +702,18 @@ export function createServerAdapter(options) {
 		cacheBody = "\n" + strings.Join(cfCacheEntries, "\n") + "\n"
 	}
 
+	// server-only config: src/server/+config (HoudiniServerConfig) holds secrets — sessionKeys, and
+	// later oauth — that must never reach houdini.config, which the client bundles for scalars. It
+	// is passed to the adapter SEPARATELY from config_file (never merged), so the public and
+	// server configs stay distinct, mirroring how the build loads them.
+	serverConfigImport := "const server_config = {}"
+	if manifest.LocalConfig {
+		serverConfigImport = fmt.Sprintf("import server_config from '%s/src/server/+config'", rootRel)
+	}
+
 	configContent := fmt.Sprintf(`import { createServerAdapter as createAdapter } from './server'
 import config_file from '%s/houdini.config'
+%s
 
 %s%s
 %s
@@ -717,10 +729,11 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }
-`, rootRel, cfImportBlock, schemaLine, yogaLine, apiEndpoint, cacheBody)
+`, rootRel, serverConfigImport, cfImportBlock, schemaLine, yogaLine, apiEndpoint, cacheBody)
 
 	configPath := filepath.Join(rDir, "config.js")
 	if ok, err := writeIfChanged(p.Filesystem(), configPath, configContent); err != nil {

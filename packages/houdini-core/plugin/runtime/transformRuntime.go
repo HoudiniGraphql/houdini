@@ -39,6 +39,36 @@ func TransformRuntime(
 		}
 		configPath = fp.ToSlash(configPath)
 
+		// bake the server's GraphQL endpoint (src/server/+config `endpoint`) into the client config
+		// as `apiURL`, so the client knows where to send queries when houdini.config has no public
+		// `url` (the local-API case). It's a path resolved at codegen from router_config — never
+		// injected at render. Empty when unset, in which case the client falls back to the default.
+		endpoint := ""
+		conn, err := db.Take(ctx)
+		if err != nil {
+			return "", err
+		}
+		defer db.Put(conn)
+		endpointStmt, err := conn.Prepare(
+			`SELECT api_endpoint FROM router_config WHERE api_endpoint IS NOT NULL LIMIT 1`,
+		)
+		if err != nil {
+			return "", err
+		}
+		defer endpointStmt.Finalize()
+		err = db.StepStatement(ctx, endpointStmt, func() {
+			endpoint = endpointStmt.GetText("api_endpoint")
+		})
+		if err != nil {
+			return "", err
+		}
+
+		if endpoint != "" {
+			return fmt.Sprintf(`import projectConfig from "%s";
+export default { ...projectConfig, apiURL: %q };
+`, configPath, endpoint), nil
+		}
+
 		return fmt.Sprintf(`import projectConfig from "%s";
 export default projectConfig;
 `, configPath), nil

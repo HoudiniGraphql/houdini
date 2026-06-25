@@ -40,8 +40,8 @@ func TestRuntimeIndexGeneration(t *testing.T) {
 export * from './runtime'
 export * from './graphql'
 
-export * from './artifacts/TestFragment'
-export * from './artifacts/TestQuery'
+export type * from './artifacts/TestFragment'
+export type * from './artifacts/TestQuery'
 `, string(indexContent))
 		},
 	})

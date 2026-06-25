@@ -144,11 +144,14 @@ export default function (ctx: VitePluginContext): PluginOption {
 						assetFileNames: 'assets/[name].js',
 						entryFileNames: '[name].js',
 					},
+					// only the client app entry belongs in the client build. The adapter entry
+					// imports src/server/+config (session keys, OAuth client secrets) and is built
+					// separately into the ssr/ directory by closeBundle below; building it here too
+					// would land a server bundle in the client-served assets dir and leak those
+					// secrets. Keeping client and server outputs in separate directories lets the
+					// adapter serve only the client assets.
 					input: {
 						'entries/app': app_component_path(ctx.config),
-						...(ctx.adapter
-							? { 'entries/adapter': adapter_config_path(ctx.config) }
-							: {}),
 					},
 				},
 			}

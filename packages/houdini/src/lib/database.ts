@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS router_config (
     redirect TEXT UNIQUE,
     session_keys TEXT NOT NULL UNIQUE,
     url TEXT,
-    mutation TEXT UNIQUE
+    mutation TEXT UNIQUE,
+    providers TEXT
 );
 
 -- Runtime Scalar Definition
@@ -602,24 +603,33 @@ export async function write_config(
 		db.run('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)', [name, type])
 	}
 
-	// write router config
-	if (config.config_file.router) {
-		const session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		const url = config.config_file.router.auth?.url ?? null
-
+	// write router config. The secrets (session_keys) come from server_config (src/server/+config)
+	// and never reach the client. The GraphQL endpoint (api_endpoint) is server-only config too;
+	// codegen bakes it into the client as the local API path.
+	{
+		const auth = config.server_config.auth
 		db.run(
-			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation)
-			 VALUES (?, ?, ?, ?, ?)`,
-			[null, null, session_keys, url, null]
+			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation, providers)
+			 VALUES (?, ?, ?, ?, ?, ?)`,
+			[
+				config.server_config.endpoint ?? null,
+				// the trusted redirect-login integration url (enables /login + the loginURL helper)
+				auth?.redirect?.url ?? null,
+				auth?.sessionKeys?.join(',') ?? '',
+				auth?.url ?? null,
+				null,
+				// the configured first-class OAuth provider names — codegen bakes these into the
+				// typed `provider` argument of loginURL, and /login gates on them too
+				auth?.providers ? Object.keys(auth.providers).join(',') : null,
+			]
 		)
 	}
 
 	// add watch_schema_config
 	if (config.config_file.watchSchema) {
-		const url =
-			typeof config.config_file.watchSchema.url === 'string'
-				? config.config_file.watchSchema.url
-				: config.config_file.watchSchema.url(env)
+		// watchSchema.url is optional now — fall back to the top-level `url`. Resolve a function form.
+		const configuredUrl = config.config_file.watchSchema.url ?? config.config_file.url
+		const url = typeof configuredUrl === 'function' ? configuredUrl(env) : (configuredUrl ?? '')
 		const headers = !config.config_file.watchSchema.headers
 			? {}
 			: typeof config.config_file.watchSchema.headers === 'function'

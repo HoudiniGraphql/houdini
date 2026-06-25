@@ -21,5 +21,10 @@ export default async function (args: { headers: string[]; output?: string }) {
 		: (config.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json'))
 
 	// Write the schema
-	await pull_schema(apiURL, config.config_file.watchSchema?.timeout ?? 30000, targetPath, headers)
+	await pull_schema(
+		apiURL,
+		(config.config_file.watchSchema || undefined)?.timeout ?? 30000,
+		targetPath,
+		headers
+	)
 }

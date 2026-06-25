@@ -61,6 +61,9 @@ export const typeDefs = /* GraphQL */ `
 		login(username: String!): LoginResult!
 		logout: LogoutResult!
 		setTheme(theme: String!): ThemeResult!
+		# echoes back the session the client sent (via the fetchParams header) so the e2e can
+		# assert the managed session is what actually reaches the api on a mutation
+		requestSession: String
 		addUser(
 			"""
 			The users birth date

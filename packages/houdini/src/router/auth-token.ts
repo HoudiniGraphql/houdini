@@ -23,6 +23,32 @@ function sessionTokenKey(sessionKeys: string[]): string {
 	return sessionKeys[0] + '|houdini-session-mint'
 }
 
+// redirectTxnKey derives the signing key for the redirect-login transaction cookie — domain-
+// separated from the other three so a txn cookie can't be presented as a session/CSRF/mint token
+// or vice versa.
+function redirectTxnKey(sessionKeys: string[]): string {
+	return sessionKeys[0] + '|houdini-redirect-txn'
+}
+
+// how long a redirect-login transaction stays valid (seconds): long enough to complete the
+// provider's login, short enough to bound replay of a leaked cookie. Exported so the txn cookie's
+// Max-Age (session.ts) is driven by the same value as the signed JWT's exp — they can't diverge.
+export const REDIRECT_TXN_TTL_SECONDS = 60 * 10
+
+// timingSafeEqual compares two strings in constant time (relative to length), so a `===` on a
+// secret-derived value (token fingerprint / nonce) doesn't leak a prefix match through timing. Used
+// as defense-in-depth: every caller already gates this behind a constant-time signature verify.
+export function timingSafeEqual(a: string, b: string): boolean {
+	if (a.length !== b.length) {
+		return false
+	}
+	let mismatch = 0
+	for (let i = 0; i < a.length; i++) {
+		mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
+	}
+	return mismatch === 0
+}
+
 // stableStringify serializes with sorted keys so a session fingerprint is deterministic
 // across the render and the submit.
 function stableStringify(value: any): string {
@@ -83,13 +109,89 @@ export async function verifyFormToken(
 			return false
 		}
 		const payload = decodeJWT(token).payload as any
-		if (!payload || payload.houdiniForm !== true) {
+		if (!payload || payload.houdiniForm !== true || typeof payload.sid !== 'string') {
 			return false
 		}
-		return payload.sid === (await sessionFingerprint(session, key))
+		return timingSafeEqual(payload.sid, await sessionFingerprint(session, key))
 	} catch {
 		return false
 	}
+}
+
+// the contents of the redirect-login transaction cookie: a single-use `nonce` (handed to the
+// trusted integration / OAuth provider as `state` and echoed back, so the round-trip is bound to
+// the browser that started it) and the post-login landing path (kept server-side in the signed
+// cookie so it never rides the open wire where it could be turned into an open redirect).
+export type RedirectTxn = {
+	nonce: string
+	redirectTo: string
+	// — first-class OAuth only (absent for the escape-hatch flow) —
+	// which configured provider this flow is for; the callback reads it to pick the token endpoint
+	provider?: string
+	// the PKCE code_verifier (its S256 challenge went to the provider's authorize endpoint)
+	codeVerifier?: string
+	// the OIDC nonce sent to the provider; must equal id_token.nonce at the callback
+	oidcNonce?: string
+}
+
+// signRedirectTxn mints the transaction cookie set when a redirect login is initiated (/login).
+// Signed with the domain-separated redirect key and short-lived.
+export async function signRedirectTxn(txn: RedirectTxn, sessionKeys: string[]): Promise<string> {
+	return encodeJWT(
+		{
+			houdiniRedirect: true,
+			...txn,
+			exp: Math.floor(Date.now() / 1000) + REDIRECT_TXN_TTL_SECONDS,
+		},
+		redirectTxnKey(sessionKeys)
+	)
+}
+
+// verifyRedirectTxn checks the transaction cookie presented at the callback: valid signature, not
+// expired, carries the purpose claim. Returns the nonce + landing path, or null on any failure.
+export async function verifyRedirectTxn(
+	cookie: unknown,
+	sessionKeys: string[]
+): Promise<RedirectTxn | null> {
+	if (typeof cookie !== 'string') {
+		return null
+	}
+	try {
+		if (!(await verifyJWT(cookie, redirectTxnKey(sessionKeys)))) {
+			return null
+		}
+		const payload = decodeJWT(cookie).payload as any
+		if (!payload || payload.houdiniRedirect !== true) {
+			return null
+		}
+		if (typeof payload.nonce !== 'string' || typeof payload.redirectTo !== 'string') {
+			return null
+		}
+		const txn: RedirectTxn = { nonce: payload.nonce, redirectTo: payload.redirectTo }
+		// pass through the OAuth fields when present (the escape-hatch flow omits them)
+		if (typeof payload.provider === 'string') txn.provider = payload.provider
+		if (typeof payload.codeVerifier === 'string') txn.codeVerifier = payload.codeVerifier
+		if (typeof payload.oidcNonce === 'string') txn.oidcNonce = payload.oidcNonce
+		return txn
+	} catch {
+		return null
+	}
+}
+
+// base64url-encodes bytes without padding (RFC 4648 §5) — the encoding PKCE and OAuth state/nonce
+// values use.
+function base64url(bytes: Uint8Array): string {
+	let binary = ''
+	for (const byte of bytes) {
+		binary += String.fromCharCode(byte)
+	}
+	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+// randomToken returns a URL-safe random string (default 32 bytes of entropy) — used for the
+// escape-hatch redirect nonce. (First-class OAuth's state/nonce/PKCE come from oauth4webapi.)
+export function randomToken(bytes = 32): string {
+	return base64url(crypto.getRandomValues(new Uint8Array(bytes)))
 }
 
 // the verified outcome of a session-mint token: write `session` (merge into the existing

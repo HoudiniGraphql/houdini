@@ -202,19 +202,15 @@ if (!localSchema) {
 	}
 }
 
-// the final client config depends on whether we have a local schema or not
-const clientConfig = localSchema
-	? ``
-	: `{
-	url: '${apiUrl}',
-}`
+// the api url lives in houdini.config.js (`url`) now, never the client — passing it to
+// HoudiniClient throws. So the client takes no config here.
+const clientConfig = ``
 
+// a remote api sets the top-level `url` (watchSchema defaults to it), env-switched per build.
 const configFile = localSchema
 	? ''
 	: `
-	watchSchema: {
-		url: '${apiUrl}',
-	},
+	url: import.meta.env.VITE_API_URL ?? '${apiUrl}',
 `
 
 copy(

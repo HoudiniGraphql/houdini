@@ -4,6 +4,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { resolveAssetPath } from './assets.js'
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
@@ -36,7 +38,16 @@ function handleAssets(
 		req: IncomingMessage
 	}
 ) {
-	const filePath = path.join(__dirname, req.url === '/' ? 'index.html' : (req.url ?? '/'))
+	// confine the request to build/assets — a traversal like `/assets/../ssr/entries/adapter.js`
+	// (the server bundle, which holds the session signing keys) or `/assets/../../etc/passwd` must
+	// not be readable. resolveAssetPath returns null when the path would escape; fail closed.
+	const filePath = resolveAssetPath(req.url, __dirname)
+	if (filePath === null) {
+		res.writeHead(404, { 'Content-Type': 'text/html' })
+		res.end('Not found', 'utf8')
+		return
+	}
+
 	const extname = path.extname(filePath)
 	let contentType = 'text/html'
 

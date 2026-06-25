@@ -14,7 +14,10 @@ export {
 	getMockConfig,
 	getCurrentConfig,
 	getAuthUrl,
+	setAuthUrl,
 	DEFAULT_AUTH_URL,
+	resolveApiEndpoint,
+	DEFAULT_API_ENDPOINT,
 	HOUDINI_SESSION_EVENT,
 	type HoudiniSessionEventDetail,
 } from './config.js'

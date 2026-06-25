@@ -1,9 +1,10 @@
 import { createSchema } from 'graphql-yoga'
-import { test, expect, describe, vi, beforeAll } from 'vitest'
+import { test, expect, describe, vi, beforeAll, afterEach } from 'vitest'
 
 import { _serverHandler, signFormToken } from './server.js'
 import { signSessionToken } from './auth-token.js'
-import { get_session } from './session.js'
+import { encode } from './jwt.js'
+import { get_session, session_cookie_name, sign_session } from './session.js'
 
 // the form CSRF token is always on; tests use a known session key so they can mint a valid
 // token through the real path (the test requests carry no cookie, so the bound session is
@@ -23,6 +24,7 @@ const schema = createSchema({
 	typeDefs: /* GraphQL */ `
 		type Query {
 			hello: String
+			whoami: String
 		}
 		type User {
 			id: ID!
@@ -49,6 +51,11 @@ const schema = createSchema({
 		}
 	`,
 	resolvers: {
+		Query: {
+			// reflects the session the in-process resolver actually sees — used to prove the
+			// registerProxy path hands the local handler a session get_session accepts
+			whoami: (_p: unknown, _a: unknown, ctx: any) => ctx.session?.userId ?? null,
+		},
 		Mutation: {
 			createUser: (_: unknown, { name }: { name: string }) => ({ id: '7', name }),
 			// the resolver decides the session payload (server-authoritative)
@@ -133,7 +140,7 @@ const maybeLoginArtifact = {
 // a config with a custom scalar that marshals a Date to its timestamp (like the e2e app's
 // DateTime), so the server path's marshal step is observable
 const scalarConfig = {
-	router: { auth: { sessionKeys: [TOKEN_KEY] } },
+	router: { auth: {} },
 	scalars: {
 		Timestamp: {
 			type: 'Date',
@@ -143,17 +150,17 @@ const scalarConfig = {
 	},
 }
 
+// sessionKeys live in the server-only config (src/server/+config → HoudiniServerConfig), separate
+// from config_file, so the secret can't reach the client bundle.
+const serverConfig = { auth: { sessionKeys: [TOKEN_KEY] } }
+
 function serverWith(
 	onRender: (args: any) => any = () => new Response('page'),
+	// merged into server_config.auth (e.g. { redirect: true }) — auth config is server-only now
 	authOverride: Record<string, any> = {}
 ) {
-	const config_file = {
-		...scalarConfig,
-		router: {
-			...scalarConfig.router,
-			auth: { ...scalarConfig.router.auth, ...authOverride },
-		},
-	}
+	const config_file = scalarConfig
+	const server_config = { ...serverConfig, auth: { ...serverConfig.auth, ...authOverride } }
 	return _serverHandler({
 		// a real schema → _serverHandler builds a real Yoga internally
 		schema,
@@ -179,6 +186,7 @@ function serverWith(
 		graphqlEndpoint: '/_api',
 		componentCache: {},
 		config_file: config_file as any,
+		server_config,
 		on_render: onRender,
 	})
 }
@@ -372,12 +380,8 @@ describe('no-JS form submission (real Yoga)', () => {
 				assetPrefix: '',
 				graphqlEndpoint: '/_api',
 				componentCache: {},
-				config_file: {
-					router: {
-						auth: { sessionKeys: [TOKEN_KEY] },
-						allowedOrigins: ['http://trusted.com'],
-					},
-				} as any,
+				config_file: {} as any,
+				server_config: { ...serverConfig, allowedOrigins: ['http://trusted.com'] },
 				on_render: () => new Response('page'),
 			})
 			const res = await handler(
@@ -409,9 +413,8 @@ describe('no-JS form submission (real Yoga)', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: {
-				router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 },
-			} as any,
+			config_file: {} as any,
+			server_config: { ...serverConfig, formMaxBodyBytes: 5 },
 			on_render: () => new Response('page'),
 		})
 		const res = await handler(
@@ -428,9 +431,9 @@ describe('no-JS form submission (real Yoga)', () => {
 		expect(res.status).toBe(413)
 	})
 
-	test('a body with no Content-Length bypasses the size guard (host/proxy enforces)', async () => {
-		// the guard only trips on a known Content-Length; a streamed/chunked body has none, so
-		// it must NOT be rejected here even under a tiny cap — the host/proxy is the backstop.
+	// a chunked body has no Content-Length, so the header check can't catch it; the handler counts
+	// bytes while reading and rejects an over-cap body anyway. Returns the handler + a chunked Request.
+	const chunkedFormRequest = (maxBodyBytes: number) => {
 		const handler = _serverHandler({
 			schema,
 			client: { componentCache: {}, registerProxy: vi.fn() } as any,
@@ -445,9 +448,8 @@ describe('no-JS form submission (real Yoga)', () => {
 			assetPrefix: '',
 			graphqlEndpoint: '/_api',
 			componentCache: {},
-			config_file: {
-				router: { auth: { sessionKeys: [TOKEN_KEY] }, formMaxBodyBytes: 5 },
-			} as any,
+			config_file: {} as any,
+			server_config: { ...serverConfig, formMaxBodyBytes: maxBodyBytes },
 			on_render: () => new Response('page'),
 		})
 		const payload = new URLSearchParams({
@@ -462,19 +464,29 @@ describe('no-JS form submission (real Yoga)', () => {
 				controller.close()
 			},
 		})
-		const res = await handler(
-			new Request('http://localhost/users/new', {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					origin: 'http://localhost',
-				},
-				body,
-				duplex: 'half',
-			} as any)
-		)
-		// not a 413 — it ran the mutation for real (proving the guard was skipped, not that the
-		// request silently failed)
+		const request = new Request('http://localhost/users/new', {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				origin: 'http://localhost',
+			},
+			body,
+			duplex: 'half',
+		} as any)
+		return { handler, request }
+	}
+
+	test('rejects a chunked body (no Content-Length) over the cap (413)', async () => {
+		// the streamed-read guard must trip even with no Content-Length to lean on
+		const { handler, request } = chunkedFormRequest(5)
+		const res = await handler(request)
+		expect(res.status).toBe(413)
+	})
+
+	test('accepts a chunked body (no Content-Length) under the cap', async () => {
+		// and it must NOT reject a legitimate small chunked body — the rebuilt request still parses
+		const { handler, request } = chunkedFormRequest(10 * 1024)
+		const res = await handler(request)
 		expect(res.status).toBe(303)
 		expect(res.headers.get('location')).toBe('/users/7')
 	})
@@ -518,7 +530,7 @@ describe('no-JS form submission (real Yoga)', () => {
 	})
 
 	describe('logout / clear endpoint', () => {
-		const authUrl = 'http://localhost/__houdini__/auth'
+		const authUrl = 'http://localhost/_auth'
 
 		test('POST { session: null } clears the session cookie (updateSession(null))', async () => {
 			const res = await serverWith()(
@@ -657,29 +669,98 @@ describe('no-JS form submission (real Yoga)', () => {
 			expect((await relay(handler, '', token)).status).toBe(403)
 		})
 
-		// Login-CSRF guard: the GET cookie-write sink must not be exposed by default, and even
-		// when enabled it must not turn raw query params into a signed session.
-		test('a GET with raw param session sets NO cookie when redirect is off (default)', async () => {
+		test('a configured consumedTokenStore overrides the default (shared single-use)', async () => {
+			// a store that vetoes (as a shared store would for a token already burned on another
+			// instance) must reject even a first-seen token here — proving the custom store is consulted
+			const consumed: string[] = []
+			const handler = serverWith(undefined, {
+				consumedTokenStore: {
+					consume: (jti: string) => {
+						consumed.push(jti)
+						return false
+					},
+				},
+			})
+			const token = await signSessionToken(
+				{ token: 'tok-shared' } as any,
+				[TOKEN_KEY],
+				false,
+				{}
+			)
+			expect((await relay(handler, '', token)).status).toBe(403)
+			expect(consumed).toHaveLength(1) // the store, not the in-memory default, was asked
+		})
+
+		// the redirect-login escape hatch: /login binds the round-trip to the browser with a
+		// single-use nonce (txn cookie); the callback only establishes a session when the trusted
+		// integration echoes that nonce back as `state` AND presents a validly-signed token.
+		const WORKER = 'https://worker.example/login'
+
+		test('a GET callback sets NO cookie when redirect is not configured (default)', async () => {
 			const handler = serverWith()
 			const res = await handler(
-				new Request(`${authUrl}?role=admin&userId=evil&redirectTo=/`, { method: 'GET' })
+				new Request(`${authUrl}?state=x&token=y&redirectTo=/`, { method: 'GET' })
 			)
-			// gated off → the sink isn't mounted; nothing writes a session cookie
+			// not configured → the sink isn't mounted; nothing writes a session cookie
 			expect(res?.headers.get('set-cookie') ?? null).toBeNull()
 		})
 
-		test('a GET with raw params (no signed token) is rejected even when redirect is enabled', async () => {
-			const handler = serverWith(undefined, { redirect: true })
+		test('/login redirects to the configured integration with a nonce + sets the txn cookie', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
 			const res = await handler(
-				new Request(`${authUrl}?role=admin&userId=evil&redirectTo=/`, { method: 'GET' })
+				new Request(`${authUrl}/login?redirectTo=/home&provider=github`, { method: 'GET' })
 			)
-			expect(res!.status).toBe(403)
-			expect(res!.headers.get('set-cookie') ?? null).toBeNull()
+			expect(res!.status).toBe(302)
+			const loc = new URL(res!.headers.get('location')!)
+			expect(loc.origin + loc.pathname).toBe(WORKER)
+			// app params forwarded to the integration; state (nonce) + return (our callback) added
+			expect(loc.searchParams.get('provider')).toBe('github')
+			expect(loc.searchParams.get('state')).toBeTruthy()
+			expect(loc.searchParams.get('return')).toContain('/_auth')
+			// redirectTo is NOT forwarded — it's kept in the signed cookie, off the open wire
+			expect(loc.searchParams.get('redirectTo')).toBeNull()
+			expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
 		})
 
-		test('a GET with a valid signed token sets the session when redirect is enabled', async () => {
-			const handler = serverWith(undefined, { redirect: true })
-			// minted bound to the empty (anonymous) session the browser presents
+		test('the callback rejects when the nonce does not match the txn cookie (browser binding)', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const start = await handler(
+				new Request(`${authUrl}/login?redirectTo=/home`, { method: 'GET' })
+			)
+			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
+			const token = await signSessionToken({ token: 'x' } as any, [TOKEN_KEY], false, {})
+			const res = await handler(
+				new Request(`${authUrl}?state=not-the-nonce&token=${token}`, {
+					method: 'GET',
+					headers: { cookie: txn },
+				})
+			)
+			expect(res!.status).toBe(403)
+		})
+
+		test('the callback rejects a matching nonce with no valid token', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const start = await handler(
+				new Request(`${authUrl}/login?redirectTo=/home`, { method: 'GET' })
+			)
+			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
+			const nonce = new URL(start!.headers.get('location')!).searchParams.get('state')!
+			const res = await handler(
+				new Request(`${authUrl}?state=${nonce}&token=garbage`, {
+					method: 'GET',
+					headers: { cookie: txn },
+				})
+			)
+			expect(res!.status).toBe(403)
+		})
+
+		test('the callback establishes the session when the nonce matches + the token is valid', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const start = await handler(
+				new Request(`${authUrl}/login?redirectTo=/home`, { method: 'GET' })
+			)
+			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
+			const nonce = new URL(start!.headers.get('location')!).searchParams.get('state')!
 			const token = await signSessionToken(
 				{ token: 'tok-oauth' } as any,
 				[TOKEN_KEY],
@@ -687,15 +768,65 @@ describe('no-JS form submission (real Yoga)', () => {
 				{}
 			)
 			const res = await handler(
-				new Request(`${authUrl}?token=${token}&redirectTo=/home`, { method: 'GET' })
+				new Request(`${authUrl}?state=${nonce}&token=${token}`, {
+					method: 'GET',
+					headers: { cookie: txn },
+				})
 			)
 			expect(res!.status).toBe(302)
+			// the landing path comes from the signed cookie, not the query string
 			expect(res!.headers.get('location')).toBe('/home')
+			const setCookies = res!.headers.getSetCookie()
+			const sessionCookie = setCookies.find((c) => c.startsWith('__houdini__='))!
 			const session = await get_session(
-				new Headers({ cookie: (res!.headers.get('set-cookie') ?? '').split(';')[0] }),
+				new Headers({ cookie: sessionCookie.split(';')[0] }),
 				[TOKEN_KEY]
 			)
 			expect((session as any).token).toBe('tok-oauth')
+			// the txn cookie is burned (single-use)
+			expect(setCookies.some((c) => c.startsWith('__Host-houdini-txn=;'))).toBe(true)
+		})
+
+		test('/login with no redirectTo defaults to the current page (same-origin Referer)', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const start = await handler(
+				new Request(`${authUrl}/login`, {
+					method: 'GET',
+					headers: { referer: 'http://localhost/articles/42' },
+				})
+			)
+			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
+			const nonce = new URL(start!.headers.get('location')!).searchParams.get('state')!
+			const token = await signSessionToken({ token: 't' } as any, [TOKEN_KEY], false, {})
+			const res = await handler(
+				new Request(`${authUrl}?state=${nonce}&token=${token}`, {
+					method: 'GET',
+					headers: { cookie: txn },
+				})
+			)
+			expect(res!.status).toBe(302)
+			// landed back on the page they came from, carried through the signed cookie
+			expect(res!.headers.get('location')).toBe('/articles/42')
+		})
+
+		test('/login ignores a cross-origin Referer (falls back to /)', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const start = await handler(
+				new Request(`${authUrl}/login`, {
+					method: 'GET',
+					headers: { referer: 'http://evil.com/trap' },
+				})
+			)
+			const txn = (start!.headers.get('set-cookie') ?? '').split(';')[0]
+			const nonce = new URL(start!.headers.get('location')!).searchParams.get('state')!
+			const token = await signSessionToken({ token: 't' } as any, [TOKEN_KEY], false, {})
+			const res = await handler(
+				new Request(`${authUrl}?state=${nonce}&token=${token}`, {
+					method: 'GET',
+					headers: { cookie: txn },
+				})
+			)
+			expect(res!.headers.get('location')).toBe('/')
 		})
 
 		test('a cross-origin logout is rejected (Origin fail-closed)', async () => {
@@ -711,5 +842,253 @@ describe('no-JS form submission (real Yoga)', () => {
 			)
 			expect(res.status).toBe(403)
 		})
+	})
+})
+
+// the server-side half of session-endpoint injection: _serverHandler resolves the session endpoint
+// from the (server-only) server_config and hands it to on_render, which serializes it into the page
+// (window.__houdini__auth_url__) for the client to read at hydration. The GraphQL endpoint is NOT
+// injected — it's public config the client reads from the bundle — so it isn't passed to on_render.
+describe('session endpoint injection (server side)', () => {
+	test('resolves the session endpoint from server_config and passes it to on_render', async () => {
+		let captured: any = null
+		const handler = _serverHandler({
+			schema,
+			client: { componentCache: {}, registerProxy: vi.fn() } as any,
+			production: true,
+			manifest: { pages: {}, pagesByUrl: {}, formActions: {} } as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: {} as any,
+			server_config: {
+				auth: { sessionKeys: [TOKEN_KEY], url: '/auth/token' },
+			},
+			on_render: (args: any) => {
+				captured = args
+				return new Response('page')
+			},
+		})
+		// a plain page GET (no matching page → 404 render) still flows through on_render
+		await handler(new Request('http://localhost/'))
+		expect(captured?.authUrl).toBe('/auth/token')
+		// the GraphQL endpoint is not injected; the client derives it from the public config
+		expect(captured?.apiEndpoint).toBeUndefined()
+	})
+})
+
+describe('session cookie lifecycle', () => {
+	test('an expired session cookie is rejected (get_session → {})', async () => {
+		// a cookie whose signed exp has passed must fail closed, not be honored until the browser
+		// drops it — so a stolen cookie value stops working server-side
+		const value = await encode(
+			{ userId: 'u1', exp: Math.floor(Date.now() / 1000) - 10 },
+			TOKEN_KEY
+		)
+		const headers = new Headers({ cookie: `${session_cookie_name}=${value}` })
+		expect(await get_session(headers, [TOKEN_KEY])).toEqual({})
+	})
+
+	test('get_session strips reserved claims (exp/iat) from the session', async () => {
+		const value = await encode(
+			{ userId: 'u1', exp: Math.floor(Date.now() / 1000) + 100 },
+			TOKEN_KEY
+		)
+		const headers = new Headers({ cookie: `${session_cookie_name}=${value}` })
+		// exp (and the iat encode adds) must not leak into the app-visible session object
+		expect(await get_session(headers, [TOKEN_KEY])).toEqual({ userId: 'u1' })
+	})
+
+	test('sign_session round-trips through get_session (the in-process proxy path)', async () => {
+		// the proxy hands the in-process handler a SIGNED session; get_session must accept it (a raw
+		// JSON value would fail verification and the handler would run session-less)
+		const cookie = `${session_cookie_name}=${await sign_session({ userId: 'u1' } as any, TOKEN_KEY)}`
+		expect(await get_session(new Headers({ cookie }), [TOKEN_KEY])).toEqual({ userId: 'u1' })
+	})
+
+	test('registerProxy makes the session visible to the in-process resolver', async () => {
+		// drive the REAL proxy callback (not sign_session in isolation): a query that resolves
+		// against the local schema must see the session passed to the proxy. A raw JSON cookie
+		// would be rejected by get_session and the resolver would run session-less (the bug).
+		const client: any = { componentCache: {}, registerProxy: vi.fn() }
+		_serverHandler({
+			schema,
+			client,
+			production: true,
+			manifest: { pages: {}, pagesByUrl: {}, formActions: {}, sessionMutations: {} } as any,
+			assetPrefix: '',
+			graphqlEndpoint: '/_api',
+			componentCache: {},
+			config_file: scalarConfig as any,
+			server_config: serverConfig,
+			on_render: () => new Response('page'),
+		})
+		const proxy = client.registerProxy.mock.calls[0][1]
+		const result = await proxy({
+			query: '{ whoami }',
+			variables: {},
+			session: { userId: 'u1' },
+		})
+		expect(result.data.whoami).toBe('u1')
+	})
+})
+
+// first-class OAuth: Houdini runs the Authorization Code + PKCE flow itself against a configured
+// provider (here a stub), exchanging the code and validating the id_token server-side.
+describe('first-class OAuth', () => {
+	afterEach(() => vi.unstubAllGlobals())
+
+	const authUrl = 'http://localhost/_auth'
+	const stubProvider: any = {
+		clientId: 'cid',
+		clientSecret: 'csecret',
+		scopes: ['openid', 'email'],
+		pkce: 'S256',
+		issuer: 'https://stub.test',
+		server: async () => ({
+			issuer: 'https://stub.test',
+			authorization_endpoint: 'https://stub.test/authorize',
+			token_endpoint: 'https://stub.test/token',
+			jwks_uri: 'https://stub.test/jwks',
+		}),
+		user: ({ claims }: any) => ({ sub: claims.sub, email: claims.email }),
+	}
+	const withOAuth = () =>
+		serverWith(undefined, {
+			providers: { stub: stubProvider },
+			onSignIn: ({ user }: any) => ({ userId: user.sub }),
+		})
+
+	// mint a real RS256-signed id_token + the matching JWKS — oauth4webapi verifies the signature
+	// against the issuer's keys, so the stub has to sign properly (no alg:none shortcut)
+	async function signedIdToken(claims: any, kid = 'k1') {
+		const { publicKey, privateKey } = await crypto.subtle.generateKey(
+			{
+				name: 'RSASSA-PKCS1-v1_5',
+				modulusLength: 2048,
+				publicExponent: new Uint8Array([1, 0, 1]),
+				hash: 'SHA-256',
+			},
+			true,
+			['sign', 'verify']
+		)
+		const part = (o: any) => Buffer.from(JSON.stringify(o)).toString('base64url')
+		const data = `${part({ alg: 'RS256', typ: 'JWT', kid })}.${part(claims)}`
+		const sig = await crypto.subtle.sign(
+			'RSASSA-PKCS1-v1_5',
+			privateKey,
+			new TextEncoder().encode(data)
+		)
+		const token = `${data}.${Buffer.from(new Uint8Array(sig)).toString('base64url')}`
+		const jwk: any = await crypto.subtle.exportKey('jwk', publicKey)
+		return { token, jwks: { keys: [{ ...jwk, kid, use: 'sig', alg: 'RS256' }] } }
+	}
+
+	// a fetch that answers the stub's token endpoint (the signed id_token) and its jwks_uri
+	const stubFetch = (token: string, jwks: any) =>
+		vi.fn(async (input: any) => {
+			const url = typeof input === 'string' ? input : input.url
+			if (url.endsWith('/jwks')) {
+				return new Response(JSON.stringify(jwks), {
+					headers: { 'content-type': 'application/json' },
+				})
+			}
+			return new Response(
+				JSON.stringify({ access_token: 'at', token_type: 'bearer', id_token: token }),
+				{ headers: { 'content-type': 'application/json' } }
+			)
+		})
+
+	const startFlow = async (handler: any) => {
+		const start = await handler(
+			new Request(`${authUrl}/login?provider=stub&redirectTo=/home`, { method: 'GET' })
+		)
+		const authorize = new URL(start!.headers.get('location')!)
+		return {
+			state: authorize.searchParams.get('state')!,
+			nonce: authorize.searchParams.get('nonce')!,
+			txn: (start!.headers.get('set-cookie') ?? '').split(';')[0],
+		}
+	}
+
+	test('/login?provider mints PKCE/state/nonce, sets the txn cookie, 302s to the authorize URL', async () => {
+		const res = await withOAuth()(
+			new Request(`${authUrl}/login?provider=stub&redirectTo=/home`, { method: 'GET' })
+		)
+		expect(res!.status).toBe(302)
+		const u = new URL(res!.headers.get('location')!)
+		expect(u.origin + u.pathname).toBe('https://stub.test/authorize')
+		expect(u.searchParams.get('client_id')).toBe('cid')
+		expect(u.searchParams.get('response_type')).toBe('code')
+		expect(u.searchParams.get('code_challenge_method')).toBe('S256')
+		expect(u.searchParams.get('code_challenge')).toBeTruthy()
+		expect(u.searchParams.get('state')).toBeTruthy()
+		expect(u.searchParams.get('nonce')).toBeTruthy()
+		expect(u.searchParams.get('redirect_uri')).toContain('/_auth')
+		expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
+	})
+
+	test('an unknown provider is rejected (400)', async () => {
+		const res = await withOAuth()(
+			new Request(`${authUrl}/login?provider=nope`, { method: 'GET' })
+		)
+		expect(res!.status).toBe(400)
+	})
+
+	test('the callback exchanges the code, validates the signed id_token, and establishes the session', async () => {
+		const handler = withOAuth()
+		const { state, nonce, txn } = await startFlow(handler)
+
+		const now = Math.floor(Date.now() / 1000)
+		const { token, jwks } = await signedIdToken({
+			iss: 'https://stub.test',
+			aud: 'cid',
+			sub: 'u1',
+			email: 'u@x.com',
+			iat: now,
+			exp: now + 3600,
+			nonce,
+		})
+		vi.stubGlobal('fetch', stubFetch(token, jwks))
+
+		const res = await handler(
+			new Request(`${authUrl}?state=${state}&code=abc`, {
+				method: 'GET',
+				headers: { cookie: txn },
+			})
+		)
+		expect(res!.status).toBe(302)
+		expect(res!.headers.get('location')).toBe('/home')
+		const setCookies = res!.headers.getSetCookie()
+		const sessionCookie = setCookies.find((c) => c.startsWith('__houdini__='))!
+		const session = await get_session(new Headers({ cookie: sessionCookie.split(';')[0] }), [
+			TOKEN_KEY,
+		])
+		expect(session).toMatchObject({ userId: 'u1' })
+		expect(setCookies.some((c) => c.startsWith('__Host-houdini-txn=;'))).toBe(true)
+	})
+
+	test('a signed id_token with the wrong nonce is rejected (403)', async () => {
+		const handler = withOAuth()
+		const { state, txn } = await startFlow(handler)
+
+		const now = Math.floor(Date.now() / 1000)
+		const { token, jwks } = await signedIdToken({
+			iss: 'https://stub.test',
+			aud: 'cid',
+			sub: 'u1',
+			iat: now,
+			exp: now + 3600,
+			nonce: 'WRONG-NONCE',
+		})
+		vi.stubGlobal('fetch', stubFetch(token, jwks))
+
+		const res = await handler(
+			new Request(`${authUrl}?state=${state}&code=abc`, {
+				method: 'GET',
+				headers: { cookie: txn },
+			})
+		)
+		expect(res!.status).toBe(403)
 	})
 })

@@ -43,14 +43,9 @@ const config: ConfigFile = {
 
 	pluginTransport: 'env:HOUDINI_PLUGIN_TRANSPORT',
 
-	router: {
-		auth: {
-			url: '/auth/token',
-			// sessionKeys present → forms automatically carry a signed CSRF token the
-			// server verifies on submit (on top of the always-on Origin check)
-			sessionKeys: ['supersecret'],
-		},
-	},
+	// no router/auth config here — the session keys, session endpoint, and GraphQL apiEndpoint are
+	// all server-only now (src/server/+config.ts, typed ServerConfigFile). This file is bundled into
+	// the client for scalars, so it holds no secrets and no server-owned routing.
 }
 
 export default config
