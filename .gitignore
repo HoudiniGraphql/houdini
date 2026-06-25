@@ -9,6 +9,7 @@ bin
 .pnp.*
 __tests__
 test-results/
+.husky/
 
 .svelte-kit
 functions
