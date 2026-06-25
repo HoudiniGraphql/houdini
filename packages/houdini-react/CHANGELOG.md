@@ -1,5 +1,48 @@
 # houdini-react
 
+## 2.0.0
+
+### Major Changes
+
+- [`15c9453`](https://github.com/HoudiniGraphql/houdini/commit/15c945382821d5c4f7ddc94892a86d922fcf2c76) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Align DocumentHandle with fetching and errors fields
+
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump graphql dependency to >= 16
+
+- [#1693](https://github.com/HoudiniGraphql/houdini/pull/1693) [`7ffe142`](https://github.com/HoudiniGraphql/houdini/commit/7ffe1420c60c775a897ccb75618f23d6a25cf660) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove the `useCurrentVariables` hook. Route variables are available through `useRoute().params`.
+
+### Minor Changes
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add abortController to query and mutation args
+
+- [#1655](https://github.com/HoudiniGraphql/houdini/pull/1655) [`2c796b8`](https://github.com/HoudiniGraphql/houdini/commit/2c796b82878d96da1d38e90b6eb46e1639c2c9f3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add a `<Link>` component with a typed `to` prop checked at compile time against your app's route manifest, with `params` interpolation and custom scalar support.
+
+- [#1677](https://github.com/HoudiniGraphql/houdini/pull/1677) [`ef5363e`](https://github.com/HoudiniGraphql/houdini/commit/ef5363ed9927cf52a97932dffa3eba983af6a8e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add `createMock` for first-class testing support — returns a fully composed React component for any route, wired with a fresh cache and mock network client.
+
+- [#1698](https://github.com/HoudiniGraphql/houdini/pull/1698) [`084d6c3`](https://github.com/HoudiniGraphql/houdini/commit/084d6c37e3ce1ee1639315b07aa1081b93211752) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `@endpoint`, `@session`, and `useMutationForm` to support progressively enhanced forms
+
+- [`15c9453`](https://github.com/HoudiniGraphql/houdini/commit/15c945382821d5c4f7ddc94892a86d922fcf2c76) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - `useFragment` now reads a `@plural` fragment back as an array of data.
+
+- [#1666](https://github.com/HoudiniGraphql/houdini/pull/1666) [`cb689af`](https://github.com/HoudiniGraphql/houdini/commit/cb689af828ef44ac3109dcfbcfda61a57b64fca8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `+error.tsx` route-level error boundaries and a full routing error toolkit (`notFound()`, `redirect()`, `unauthorized()`, `forbidden()`, `httpError()`, `isRoutingError`, `isApiError`) for the React adapter.
+
+- [`15c9453`](https://github.com/HoudiniGraphql/houdini/commit/15c945382821d5c4f7ddc94892a86d922fcf2c76) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - `useFragmentHandle` now returns a `.refetch()` for refetching a `@refetchable` fragment with new argument values.
+
+- [#1685](https://github.com/HoudiniGraphql/houdini/pull/1685) [`cc47a1a`](https://github.com/HoudiniGraphql/houdini/commit/cc47a1ad7fbc1d8d7e7effc0d8935af80054e707) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Pages and layouts can now export a `headers()` function to set HTTP response headers for a route.
+
+- [#1691](https://github.com/HoudiniGraphql/houdini/pull/1691) [`257e195`](https://github.com/HoudiniGraphql/houdini/commit/257e195565013c25367c727fd44c2c73c289e791) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add search param integration into queries, Link, and goto, and read route params and search through useRoute() (replacing useLocation).
+
+- [#1700](https://github.com/HoudiniGraphql/houdini/pull/1700) [`caba000`](https://github.com/HoudiniGraphql/houdini/commit/caba000d1c52661f4562508137f40ce12df91e78) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add server-backed sessions to the React runtime, first-class OAuth support, and harden security posture for authorization story
+
+### Patch Changes
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - throw RuntimeGraphQLError from useMutation when response contains errors
+
+- Updated dependencies [[`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f6e9636`](https://github.com/HoudiniGraphql/houdini/commit/f6e9636f223ff01737a4ca0a5e87aba3bbbeaf1a), [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f), [`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956), [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c), [`8f4a044`](https://github.com/HoudiniGraphql/houdini/commit/8f4a044487b9e042cc6dd162430ff6bdf741e0aa), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+  - houdini@2.0.0
+
 ## 1.3.2
 
 ### Patch Changes

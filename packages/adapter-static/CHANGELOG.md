@@ -1,5 +1,18 @@
 # houdini-adapter-static
 
+## 2.0.0
+
+### Major Changes
+
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+### Patch Changes
+
+- Updated dependencies [[`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f6e9636`](https://github.com/HoudiniGraphql/houdini/commit/f6e9636f223ff01737a4ca0a5e87aba3bbbeaf1a), [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f), [`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956), [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c), [`8f4a044`](https://github.com/HoudiniGraphql/houdini/commit/8f4a044487b9e042cc6dd162430ff6bdf741e0aa), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+  - houdini@2.0.0
+
 ## 1.4.1
 
 ### Patch Changes

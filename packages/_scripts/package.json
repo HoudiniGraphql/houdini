@@ -1,7 +1,7 @@
 {
     "name": "scripts",
     "private": true,
-    "version": "2.0.0-next.2",
+    "version": "2.0.0",
     "description": "Build and test scripts for Houdini packages",
     "bin": "./main.js",
     "type": "module",
