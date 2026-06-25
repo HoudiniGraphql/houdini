@@ -350,9 +350,18 @@ describe('mutation mock', () => {
 // ─── Subscription mock ───────────────────────────────────────────────────────
 
 describe('subscription mock', () => {
-	test('yields successive values from an async iterable', async () => {
+	test('yields successive values, coordinated by a mutation', async () => {
+		// A gate the subscription parks on after its first value. Asserting "First" while the
+		// generator is blocked here makes the ordering deterministic — without it both values
+		// resolve in back-to-back microtasks and the render can jump straight to "Second".
+		let release!: () => void
+		const gate = new Promise<void>((resolve) => {
+			release = resolve
+		})
+
 		async function* updates() {
 			yield { userUpdate: { id: '1', __typename: 'User' as const, name: 'First' } }
+			await gate
 			yield { userUpdate: { id: '1', __typename: 'User' as const, name: 'Second' } }
 		}
 
@@ -360,11 +369,18 @@ describe('subscription mock', () => {
 			url: '/subscription-update',
 			data: {
 				UserUpdateSub: updates(),
+				// firing the mutation flips the gate, releasing the second subscription payload
+				AdvanceSubscription: () => {
+					release()
+					return { updateUserByID: { id: '1', name: 'advance', __typename: 'User' as const } }
+				},
 			},
 		})
 
 		render(<App />)
 		await screen.findByText('First')
+
+		fireEvent.click(screen.getByTestId('advance'))
 		await screen.findByText('Second')
 	})
 

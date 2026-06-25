@@ -50,7 +50,7 @@ export default function SessionToApiView() {
 			<button
 				data-testid="ask-api"
 				onClick={async () => {
-					const data = await askApi({ variables: {} })
+					const data = await askApi()
 					setApiSaw(data?.requestSession ?? '(error)')
 				}}
 			>

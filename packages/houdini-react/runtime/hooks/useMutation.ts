@@ -8,14 +8,22 @@ import type {
 import { useSession } from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'
 
-export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = (args: {
-	variables: _Input
-
+type MutationConfig<_Optimistic extends GraphQLObject> = {
 	metadata?: App.Metadata
 	fetch?: typeof globalThis.fetch
 	optimisticResponse?: _Optimistic
 	abortController?: AbortController
-}) => Promise<_Result>
+}
+
+// When the mutation has no variables its $input is `null | undefined`, so requiring a
+// `variables` key would force callers to write `{ variables: undefined }`. In that case the
+// whole argument is optional and the handler can be invoked as `mutate()`; otherwise
+// `variables` is required.
+export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = [undefined] extends [
+	_Input,
+]
+	? (args?: { variables?: _Input } & MutationConfig<_Optimistic>) => Promise<_Result>
+	: (args: { variables: _Input } & MutationConfig<_Optimistic>) => Promise<_Result>
 
 export function useMutation<
 	_Result extends GraphQLObject,
@@ -36,13 +44,10 @@ export function useMutation<
 	const [session] = useSession()
 
 	//  sending the mutation just means invoking the observer's send method
-	const mutate: MutationHandler<_Result, _Input, _Optimistic> = async ({
-		metadata,
-		fetch,
-		variables,
-		abortController,
-		...mutationConfig
-	}) => {
+	const mutate = async (
+		args: { variables?: _Input } & MutationConfig<_Optimistic> = {}
+	): Promise<_Result> => {
+		const { metadata, fetch, variables, abortController, ...mutationConfig } = args
 		const result = await observer.send({
 			variables,
 			metadata,
@@ -67,7 +72,7 @@ export function useMutation<
 		return result.data as _Result
 	}
 
-	return [mutate, pending]
+	return [mutate as MutationHandler<_Result, _Input, _Optimistic>, pending]
 }
 
 export class RuntimeGraphQLError extends Error {
