@@ -1,4 +1,5 @@
 import { mergeSchemas } from '@graphql-tools/schema'
+import { transform } from 'esbuild'
 import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
@@ -177,16 +178,112 @@ export async function get_config({
 }
 
 // helper function to load the config file
-async function read_config_file(configPath: string): Promise<ConfigFile> {
-	// on windows, we need to prepend the right protocol before we
-	// can import from an absolute path
-	const importPath = path.importPath(configPath)
+// the env-var prefix exposed to the config, mirroring Vite. ONLY keys with this prefix are
+// substituted into import.meta.env — never the rest of process.env — because houdini.config is also
+// bundled into the client, so exposing unprefixed vars would leak server secrets into the browser.
+const ENV_PREFIX = 'VITE_'
 
+// parse_env_file is a minimal .env parser (KEY=value, # comments, optional surrounding quotes).
+// Enough for the prefixed string vars we expose; it intentionally does not do dotenv-expand.
+function parse_env_file(contents: string): Record<string, string> {
+	const out: Record<string, string> = {}
+	for (const line of contents.split('\n')) {
+		const trimmed = line.trim()
+		if (!trimmed || trimmed.startsWith('#')) {
+			continue
+		}
+		const eq = trimmed.indexOf('=')
+		if (eq === -1) {
+			continue
+		}
+		const key = trimmed.slice(0, eq).trim()
+		let value = trimmed.slice(eq + 1).trim()
+		if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
+			value = value.slice(1, -1)
+		}
+		out[key] = value
+	}
+	return out
+}
+
+// load_vite_env reproduces Vite's loadEnv for the VITE_ prefix so that `houdini generate` (plain
+// node, no Vite) sees the same import.meta.env a Vite run would: the project's .env files plus the
+// prefixed shell env, shell winning. Restricted to the prefix so secrets never reach the client.
+export async function load_vite_env(configPath: string): Promise<Record<string, string>> {
+	const root = path.dirname(configPath)
+	const mode = process.env.NODE_ENV || 'development'
+	const collected: Record<string, string> = {}
+	// Vite precedence: .env < .env.local < .env.[mode] < .env.[mode].local
+	for (const file of ['.env', '.env.local', `.env.${mode}`, `.env.${mode}.local`]) {
+		const contents = await fs.readFile(path.join(root, file))
+		if (contents) {
+			Object.assign(collected, parse_env_file(contents))
+		}
+	}
+	// shell env wins over .env files
+	for (const [key, value] of Object.entries(process.env)) {
+		if (value !== undefined && key.startsWith(ENV_PREFIX)) {
+			collected[key] = value
+		}
+	}
+	const exposed: Record<string, string> = {}
+	for (const [key, value] of Object.entries(collected)) {
+		if (key.startsWith(ENV_PREFIX)) {
+			exposed[key] = value
+		}
+	}
+	return exposed
+}
+
+export async function read_config_file(configPath: string): Promise<ConfigFile> {
 	let imported: any
-	try {
-		imported = await import(/* @vite-ignore */ importPath)
-	} catch (e: any) {
-		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+
+	// fast path: a config that doesn't reference import.meta.env loads exactly as before (plain
+	// dynamic import, which handles both CJS and ESM). This keeps every existing config untouched.
+	const source = await fs.readFile(configPath)
+	if (source !== null && source.includes('import.meta.env')) {
+		// import.meta.env is Vite's env; plain node leaves it undefined, so `import.meta.env.VITE_FOO`
+		// would throw on import. Reproduce esbuild's `define` (what a Vite run does) by substituting
+		// import.meta.env with the resolved values before importing. This is a single-file source
+		// transform — no bundling or module resolution. Only ESM can use import.meta.env, so the
+		// transformed output is written as a sibling .mjs (its own imports resolve from there).
+		const mode = process.env.NODE_ENV || 'development'
+		const meta_env = {
+			...(await load_vite_env(configPath)),
+			MODE: mode,
+			DEV: mode !== 'production',
+			PROD: mode === 'production',
+			SSR: true,
+			BASE_URL: '/',
+		}
+		let tmpPath = ''
+		try {
+			const { code } = await transform(source, {
+				loader: configPath.endsWith('.ts') ? 'ts' : 'js',
+				format: 'esm',
+				define: { 'import.meta.env': JSON.stringify(meta_env) },
+			})
+			tmpPath = `${configPath}.houdini-${Date.now()}-${process.pid}.mjs`
+			await fs.writeFile(tmpPath, code)
+			imported = await import(/* @vite-ignore */ path.importPath(tmpPath))
+		} catch (e: any) {
+			throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		} finally {
+			if (tmpPath) {
+				await fs.remove(tmpPath).catch(() => {})
+			}
+		}
+	} else {
+		try {
+			// on windows, we need to prepend the right protocol before we
+			// can import from an absolute path
+			imported = await import(/* @vite-ignore */ path.importPath(configPath))
+		} catch (e: any) {
+			throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		}
 	}
 
 	// if this is wrapped in a default, use it
