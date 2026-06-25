@@ -1,5 +1,13 @@
 # create-houdini
 
+## 2.0.0
+
+### Major Changes
+
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
 ## 1.2.65
 
 ### Patch Changes
