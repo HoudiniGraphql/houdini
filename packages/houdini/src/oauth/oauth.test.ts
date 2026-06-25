@@ -82,7 +82,9 @@ describe('github provider', () => {
 			'fetch',
 			vi.fn(async (url: string) =>
 				url.endsWith('/user')
-					? new Response(JSON.stringify({ message: 'API rate limit exceeded' }), { status: 403 })
+					? new Response(JSON.stringify({ message: 'API rate limit exceeded' }), {
+							status: 403,
+						})
 					: new Response(JSON.stringify([]))
 			)
 		)

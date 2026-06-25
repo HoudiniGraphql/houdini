@@ -574,7 +574,9 @@ export function _serverHandler<ComponentType = unknown>({
 		} catch {
 			return new Response(upstreamText, {
 				status: upstreamResponse.status,
-				headers: { 'content-type': upstreamResponse.headers.get('content-type') ?? 'text/plain' },
+				headers: {
+					'content-type': upstreamResponse.headers.get('content-type') ?? 'text/plain',
+				},
 			})
 		}
 
@@ -606,7 +608,10 @@ export function _serverHandler<ComponentType = unknown>({
 			// signal the client that the cookie was set so useSession() mirrors without a refresh and
 			// without relaying (the relay POST path is only for the local-Yoga case). A boolean flag,
 			// never the token — the value itself is already in the result data the client can see.
-			body = { ...payload, extensions: { ...payload?.extensions, houdiniSessionApplied: true } }
+			body = {
+				...payload,
+				extensions: { ...payload?.extensions, houdiniSessionApplied: true },
+			}
 		}
 		carrier.headers.set('content-type', 'application/json')
 		return new Response(JSON.stringify(body), {

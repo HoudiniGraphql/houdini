@@ -33,10 +33,7 @@ function clearRedirectTxnCookie(): string {
 // origin; a missing or unrecognized Origin is rejected. Centralized so all sinks reject identically.
 export function isAllowedOrigin(request: Request, server_config?: ServerConfigFile): boolean {
 	const origin = request.headers.get('origin')
-	const allowedOrigins = [
-		new URL(request.url).origin,
-		...(server_config?.allowedOrigins ?? []),
-	]
+	const allowedOrigins = [new URL(request.url).origin, ...(server_config?.allowedOrigins ?? [])]
 	return !!origin && allowedOrigins.includes(origin)
 }
 

@@ -112,7 +112,10 @@ describe('@session proxy (remote api, no local schema)', () => {
 		// a multipart body the proxy must forward as-is; the operation name comes from the header, so
 		// the proxy never parses the body and the session is still written.
 		const form = new FormData()
-		form.set('operations', JSON.stringify({ operationName: 'Login', query: 'mutation Login {...}' }))
+		form.set(
+			'operations',
+			JSON.stringify({ operationName: 'Login', query: 'mutation Login {...}' })
+		)
 		form.set('map', '{}')
 		const res = await proxyHandler()(
 			new Request(PROXY_URL, {
@@ -141,7 +144,11 @@ describe('@session proxy (remote api, no local schema)', () => {
 	test('rejects an over-large body (413) without forwarding', async () => {
 		const upstream = stubUpstream({ data: { login: { session: { token: 'abc' } } } })
 		const res = await proxyHandler({ auth: { sessionKeys: [KEY] }, formMaxBodyBytes: 8 })(
-			proxyPOST({ operationName: 'Login', query: 'mutation Login { a very long body }', variables: {} })
+			proxyPOST({
+				operationName: 'Login',
+				query: 'mutation Login { a very long body }',
+				variables: {},
+			})
 		)
 		expect(res.status).toBe(413)
 		expect(upstream).not.toHaveBeenCalled()
@@ -162,7 +169,11 @@ describe('@session proxy (remote api, no local schema)', () => {
 	test('a non-@session mutation is forwarded but never writes a session', async () => {
 		stubUpstream({ data: { somethingElse: { id: '1' } } })
 		const res = await proxyHandler()(
-			proxyPOST({ operationName: 'SomethingElse', query: 'mutation SomethingElse {...}', variables: {} })
+			proxyPOST({
+				operationName: 'SomethingElse',
+				query: 'mutation SomethingElse {...}',
+				variables: {},
+			})
 		)
 		expect(res.headers.get('set-cookie')).toBe(null)
 		const payload = await res.json()

@@ -57,7 +57,8 @@ export class HoudiniClient {
 		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 		this.url =
 			url ??
-			(globalThis.window ? '' : `http://localhost:${serverPort}`) + resolveApiEndpoint(config())
+			(globalThis.window ? '' : `http://localhost:${serverPort}`) +
+				resolveApiEndpoint(config())
 
 		this.plugins = flatten(plugins)
 		this.config = config()
@@ -163,4 +164,3 @@ function flatten<T>(source?: NestedList<T>): T[] {
 		return acc.concat(element)
 	}, [])
 }
-
