@@ -159,6 +159,7 @@ a variable. Doing this is relatively simple, just update the query inside of `+p
 query Info($id: Int! = 1) {
     species(id: $id) {
         id
+        pokedexNumber
         name
         flavor_text
         sprites {
@@ -200,27 +201,29 @@ Then copy and paste this block as the last child of the `Container` component:
 
 ## Loading State
 
-Since Houdini's router starts fetching data the moment navigation begins, your component always receives fully-loaded data as props. There is no window where `Info.species` could be `null` on the initial render. You won't crash clicking those nav buttons.
+By default a route doesn't render until all of its data has resolved, which means the user stares at the previous page (or a blank screen on first load) while the request is in flight. Houdini can do better: with the `@loading` directive it renders the page right away and streams each value in as it arrives, so the Pokédex shell appears immediately and fills in as the data lands.
 
-If you want to show a visual indicator while a navigation is in flight, wrap the subtree in a `<Suspense>` boundary with a fallback:
+You opt in by tagging fields with `@loading`. Only tagged fields are part of the loading shape, so mark every field your component reads while the query is pending. When the directive is present, Houdini wraps the route in a Suspense boundary and streams the response: the layout and shell flush first, then the marked fields arrive as pending placeholders.
 
-```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
-import { Suspense } from 'react'
+{/* TODO(example): add `@loading` to the relevant fields in `+page.gql` */}
 
-export default function Page({ Info }: PageProps) {
-    return (
-        <Suspense fallback={<Container />}>
-            {/* your content */}
-        </Suspense>
-    )
-}
-```
+In the component, reach for `isPending` from `$houdini` to tell a placeholder apart from a resolved value and render a skeleton in its place. It's a type guard, so TypeScript narrows the field to its real type on the loaded branch.
+
+{/* TODO(example): import `isPending` and guard each tagged field in `+page.tsx` */}
+
+In the next chapter we'll push these directives down into component fragments so each component owns its own loading shape and the route doesn't have to know about it. The [Loading States guide](~/loading-data/loading-states) covers the rest: placeholder counts for lists, cascading the directive across a whole subtree, and composing loading shapes through fragments.
 
 ## Error Handling
 
-{/* TODO: error handling via route-level hooks is not yet implemented for the React adapter.
-    When it lands, add a section here showing how to validate the `id` param (1–151)
-    and throw a 400 response for out-of-range values, mirroring the SvelteKit beforeLoad hook. */}
+Not every id maps to a Pokémon. The `species` field is nullable in the schema, so navigating to an id outside the first generation (try `/152`) resolves `Info.species` to `null`, and reading `Info.species.name` throws. There are two layers worth knowing about.
+
+The first is graceful degradation in the page itself. Guard the nullable result so the view renders a friendly empty state instead of crashing when there's no match.
+
+{/* TODO(example): guard `Info.species` being null in `+page.tsx` and render a "not found" state */}
+
+The second is a safety net for anything you didn't anticipate. The starter already wraps the app in a top-level error boundary (`src/+index.tsx`) that catches any error thrown while rendering and shows a fallback, so an unexpected failure degrades to a single "something went wrong" page rather than a blank one.
+
+When you want dedicated, route-scoped error pages with real HTTP status codes, Houdini has you covered there too: a `+error.tsx` next to your route renders an error boundary for that branch of the tree, and helpers like `notFound()` let you signal a specific status from within a page. See the [Handling Errors guide](~/routing/handling-errors) for the full story.
 
 ## What's Next?
 

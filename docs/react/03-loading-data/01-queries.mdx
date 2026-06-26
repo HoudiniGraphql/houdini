@@ -26,8 +26,10 @@ query ShowList {
 
 The result arrives as a prop named after the query. Destructure it directly in the function signature:
 
-```jsx title="src/routes/shows/+page.jsx"
-export default function ShowsPage({ ShowList }) {
+```tsx title="src/routes/shows/+page.tsx&typescriptToggle=true"
+import type { PageProps } from './$types'
+
+export default function ShowsPage({ ShowList }: PageProps) {
   return (
     <ul>
       {ShowList.shows.map((show) => (
@@ -136,7 +138,7 @@ The methods available on the handle depend on the query's directives. A query wi
 
 Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results and handles are typed automatically. (Route params and search live on the generated `PageRoute` type, read via [`useRoute`](~/api-reference/useRoute), so they can't be accidentally destructured off the component props.)
 
-```tsx title="src/routes/shows/+page.tsx"
+```tsx title="src/routes/shows/+page.tsx&typescriptToggle=false"
 import type { PageProps } from './$types'
 
 export default function ShowsPage({ ShowList }: PageProps) {
@@ -152,7 +154,7 @@ export default function ShowsPage({ ShowList }: PageProps) {
 
 Layout components use `LayoutProps` from the same module, which includes `children` alongside any layout query results:
 
-```tsx title="src/routes/+layout.tsx"
+```tsx title="src/routes/+layout.tsx&typescriptToggle=false"
 import type { LayoutProps } from './$types'
 
 export default function RootLayout({ AppShell, children }: LayoutProps) {

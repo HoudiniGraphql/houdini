@@ -232,7 +232,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type otherInfo = {
 							readonly "shape"?: otherInfo$data;
 							readonly " $fragments": {
-								"otherInfo": any;
+								"otherInfo": { readonly "expected a resolved otherInfo fragment reference"?: never };
 							};
 						};
 
@@ -265,7 +265,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a resolved TestFragment fragment reference"?: never };
 							};
 						};
 
@@ -297,7 +297,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralRow = ReadonlyArray<{
 							readonly "shape"?: PluralRow$data;
 							readonly " $fragments": {
-								"PluralRow": any;
+								"PluralRow": { readonly "expected a resolved PluralRow fragment reference"?: never };
 							};
 						}>;
 
@@ -326,7 +326,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralArgs = ReadonlyArray<{
 							readonly "shape"?: PluralArgs$data;
 							readonly " $fragments": {
-								"PluralArgs": any;
+								"PluralArgs": { readonly "expected a resolved PluralArgs fragment reference"?: never };
 							};
 						}>;
 					`),
@@ -344,7 +344,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralLoading = ReadonlyArray<{
 							readonly "shape"?: PluralLoading$data;
 							readonly " $fragments": {
-								"PluralLoading": any;
+								"PluralLoading": { readonly "expected a resolved PluralLoading fragment reference"?: never };
 							};
 						}>;
 
@@ -377,7 +377,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a resolved TestFragment fragment reference"?: never };
 							};
 						};
 
@@ -409,7 +409,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a resolved TestFragment fragment reference"?: never };
 							};
 						};
 
@@ -439,7 +439,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a resolved TestFragment fragment reference"?: never };
 							};
 						};
 
@@ -1216,7 +1216,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type Foo = {
 							readonly "shape"?: Foo$data;
 							readonly " $fragments": {
-								"Foo": any;
+								"Foo": { readonly "expected a resolved Foo fragment reference"?: never };
 							};
 						};
 
