@@ -57,7 +57,7 @@ Most of deployment is identical whether you run one server or many. Two things o
 
 **Set `auth.sessionKeys` explicitly.** Without them, Houdini signs sessions with a random key generated per process. That's fine on one server, but across instances the keys won't match (a cookie signed by one instance won't verify on another), and they don't survive a restart or redeploy. Point them at a secret your instances share, usually from the environment:
 
-```ts title="src/server/+config.ts"
+```ts title="src/server/+config.ts&typescriptToggle=true"
 import type { ServerConfigFile } from 'houdini'
 
 export default {

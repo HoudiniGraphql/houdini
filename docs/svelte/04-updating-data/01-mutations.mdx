@@ -41,7 +41,7 @@ Mutations usually do best when combined with at least one fragment grabbing the 
 
 Using a mutation inside a form action looks the same as anywhere else. Pass the `RequestEvent` to `mutate` so SvelteKit's `fetch` handling works correctly (header forwarding, `handleFetch` hook, etc.):
 
-```typescript title="src/routes/+page.server.ts"
+```typescript title="src/routes/+page.server.ts&typescriptToggle=true"
 import { graphql } from '$houdini'
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
