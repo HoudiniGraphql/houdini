@@ -29,7 +29,7 @@ export async function transform_file(
 		return { code: page.content, map: page.map }
 	}
 
-	const script = parseJS(page.content, isJSX ? { plugins: ['jsx'] } : {})
+	const script = parseJS(page.content, isJSX ? { plugins: ['jsx'] } : {}, page.filepath)
 
 	// The headers() export of a +page/+layout only ever runs on the server. When
 	// building for the client we strip it so server-only logic (secrets, env

@@ -1,3 +1,4 @@
+import { decode, encode, type SourceMapSegment } from '@jridgewell/sourcemap-codec'
 import type { Script, TransformPage } from 'houdini'
 import { printJS, parseJS } from 'houdini'
 import { runPipeline, formatErrors } from 'houdini'
@@ -39,7 +40,8 @@ export default async function apply_transforms(
 				position = { start: 0, end: 0 }
 			}
 		} else {
-			script = parseJS(page.content)
+			// pass the filepath so recast names the map's source (set up by printJS below)
+			script = parseJS(page.content, undefined, page.filepath)
 		}
 	} catch (e) {
 		return { code: page.content, map: page.map }
@@ -65,16 +67,17 @@ export default async function apply_transforms(
 	if (page.filepath.endsWith('.svelte')) {
 		const { code: scriptCode, map: rawMap } = await printJS(result.script)
 
-		// The script was extracted from inside the .svelte file, so its AST positions are
-		// 0-indexed relative to the script content, not the full file. Shift all generated-line
-		// numbers in the source map by the number of lines that precede the script tag so that
-		// the map correctly references positions inside the full .svelte file.
+		// The script was extracted from inside the .svelte file, so recast's positions are
+		// relative to the script content (0-indexed), not the full file. Offset BOTH the
+		// generated and original line numbers by the number of lines before the <script> tag
+		// so the map references positions inside the full .svelte file. (The previous version
+		// only shifted the generated side, leaving original positions off by the same amount.)
 		let map: SourceMapInput | undefined
 		if (rawMap) {
 			const linesBefore = page.content.slice(0, position!.start).split('\n').length - 1
 			const mapObj =
 				typeof (rawMap as any).toJSON === 'function' ? (rawMap as any).toJSON() : rawMap
-			map = { ...mapObj, mappings: ';'.repeat(linesBefore) + mapObj.mappings }
+			map = offset_script_sourcemap(mapObj, linesBefore, page.filepath, page.content)
 		}
 
 		return {
@@ -88,6 +91,38 @@ export default async function apply_transforms(
 		inputSourceMap: page.map,
 	})
 	return { code, map }
+}
+
+// offset_script_sourcemap rewrites a source map generated for a .svelte file's extracted
+// <script> content so it lines up with the full file: every generated line and every original
+// line moves down by the number of lines before the <script> tag, and the source is named for
+// the .svelte file. Shifting both sides (not just the generated one) is what keeps stack traces
+// and breakpoints on the correct lines inside the script.
+export function offset_script_sourcemap(
+	rawMap: { mappings: string; names?: string[] },
+	linesBefore: number,
+	filepath: string,
+	content: string
+): SourceMapInput {
+	const decoded = decode(rawMap.mappings)
+	for (const line of decoded) {
+		for (const segment of line) {
+			// segment = [genColumn, sourceIndex, originalLine, originalColumn, nameIndex];
+			// originalLine (index 2) is absolute after decode, so bump it into file space.
+			if (segment.length >= 4) {
+				;(segment as number[])[2] += linesBefore
+			}
+		}
+	}
+	// prepend empty generated lines so generated positions also reference the full file
+	const generatedShift: SourceMapSegment[][] = Array.from({ length: linesBefore }, () => [])
+	return {
+		version: 3,
+		sources: [filepath],
+		sourcesContent: [content],
+		names: rawMap.names ?? [],
+		mappings: encode([...generatedShift, ...decoded]),
+	}
 }
 
 function replace_tag_content(source: string, start: number, end: number, insert: string) {
