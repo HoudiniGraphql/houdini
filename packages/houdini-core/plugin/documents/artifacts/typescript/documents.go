@@ -335,12 +335,12 @@ func generateFragmentTypes(
 	// (... is missing ... required in { Fragment: <brand> }). A @loading fragment also
 	// accepts a pending reference.
 	fragmentMarker := fmt.Sprintf(
-		`{ readonly "expected a resolved %s fragment reference"?: never }`,
+		`{ readonly "expected a %s fragment spread"?: never }`,
 		doc.Name,
 	)
 	if documentLoading {
 		fragmentMarker = fmt.Sprintf(
-			`{ readonly "expected a resolved %s fragment reference"?: never } | LoadingType`,
+			`{ readonly "expected a %s fragment spread"?: never } | LoadingType`,
 			doc.Name,
 		)
 	}

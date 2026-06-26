@@ -242,7 +242,7 @@ export type TestFragment$input = never;
 export type TestFragment = {
 	readonly "shape"?: TestFragment$data;
 	readonly " $fragments": {
-		"TestFragment": { readonly "expected a resolved TestFragment fragment reference"?: never };
+		"TestFragment": { readonly "expected a TestFragment fragment spread"?: never };
 	};
 };
 
@@ -2852,7 +2852,7 @@ export type UserBase$input = never;
 export type UserBase = {
 	readonly "shape"?: UserBase$data;
 	readonly " $fragments": {
-		"UserBase": { readonly "expected a resolved UserBase fragment reference"?: never };
+		"UserBase": { readonly "expected a UserBase fragment spread"?: never };
 	};
 };
 
@@ -4672,7 +4672,7 @@ export type PluralRow$input = never;
 export type PluralRow = ReadonlyArray<{
 	readonly "shape"?: PluralRow$data;
 	readonly " $fragments": {
-		"PluralRow": { readonly "expected a resolved PluralRow fragment reference"?: never };
+		"PluralRow": { readonly "expected a PluralRow fragment spread"?: never };
 	};
 }>;
 
