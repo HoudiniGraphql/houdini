@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.1
+
+### Patch Changes
+
+- [#1704](https://github.com/HoudiniGraphql/houdini/pull/1704) [`56a57d2`](https://github.com/HoudiniGraphql/houdini/commit/56a57d26837190503e5380ee1c3cd84c17cf613c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improved ergonomics for `@loading`.
+
 ## 2.0.0
 
 ### Major Changes
