@@ -484,7 +484,9 @@ export async function codegen_setup(
 			const child = spawn(executable, args, {
 				// stdio/WASM plugins carry the protocol over stdin+stdout, so those must be pipes.
 				// websocket plugins talk over TCP, so let stdout/stderr through to the console.
-				stdio: pluginUsesStdio ? ['pipe', 'pipe', 'inherit'] : ['inherit', 'inherit', 'inherit'],
+				stdio: pluginUsesStdio
+					? ['pipe', 'pipe', 'inherit']
+					: ['inherit', 'inherit', 'inherit'],
 				detached: process.platform !== 'win32',
 			})
 
@@ -562,12 +564,12 @@ export async function codegen_setup(
 								})
 
 								// format_hook_error already pretty-printed this above; flag the
-							// rejection so the HMR pipeline doesn't also dump a raw stack trace.
-							pending.reject(
-								Object.assign(new Error(`Failed to call ${name}`), {
-									alreadyLogged: true,
-								})
-							)
+								// rejection so the HMR pipeline doesn't also dump a raw stack trace.
+								pending.reject(
+									Object.assign(new Error(`Failed to call ${name}`), {
+										alreadyLogged: true,
+									})
+								)
 							} else {
 								pending.resolve(response.result)
 							}
