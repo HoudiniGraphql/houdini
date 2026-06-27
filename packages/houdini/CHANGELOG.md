@@ -1,5 +1,15 @@
 # houdini
 
+## 2.0.1
+
+### Patch Changes
+
+- [#1704](https://github.com/HoudiniGraphql/houdini/pull/1704) [`56a57d2`](https://github.com/HoudiniGraphql/houdini/commit/56a57d26837190503e5380ee1c3cd84c17cf613c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improved ergonomics for `@loading`.
+
+- [#1704](https://github.com/HoudiniGraphql/houdini/pull/1704) [`56a57d2`](https://github.com/HoudiniGraphql/houdini/commit/56a57d26837190503e5380ee1c3cd84c17cf613c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix source maps for route and component files: rewriting `graphql()` tags no longer shifts stack traces and breakpoints off the original source lines.
+
+- [#1704](https://github.com/HoudiniGraphql/houdini/pull/1704) [`56a57d2`](https://github.com/HoudiniGraphql/houdini/commit/56a57d26837190503e5380ee1c3cd84c17cf613c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix a disk I/O error when the Houdini vite plugin is enabled for both the main and worker build pipelines.
+
 ## 2.0.0
 
 ### Major Changes
