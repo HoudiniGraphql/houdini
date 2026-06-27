@@ -2,7 +2,8 @@ import type { PageLoad } from './$types'
 import { graphql } from '$houdini'
 
 // issue #1408: a @paginate fragment spread on a document-level @loading query. the fragment
-// itself carries no @loading; it relies on the query-level @loading cascading into the spread.
+// declares @loading so it can be rendered during the parent's loading frame; its pagination
+// handlers must no-op while the data is still pending.
 const store = graphql(`
 	query PaginatedFragmentAtLoading @loading {
 		user(id: "1", snapshot: "paginated-fragment-at-loading", delay: 2000) {

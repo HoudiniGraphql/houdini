@@ -332,13 +332,15 @@ func generateFragmentTypes(
 	// render it. The brand's single property is a human-readable message keyed by the
 	// fragment name, so it shows up in the type error both when a loading reference is
 	// passed (no properties in common with the brand) and when the spread is missing
-	// (... is missing ... required in { Fragment: <brand> }). A @loading fragment also
-	// accepts a pending reference.
+	// (... is missing ... required in { Fragment: <brand> }). A fragment that can render
+	// during a loading frame — i.e. it carries @loading anywhere, on its definition OR on a
+	// field — also accepts a pending reference; only a fragment with no @loading at all
+	// rejects one.
 	fragmentMarker := fmt.Sprintf(
 		`{ readonly "expected a %s fragment spread"?: never }`,
 		doc.Name,
 	)
-	if documentLoading {
+	if documentLoading || hasAnyLoadingDirectives(doc.Selections) {
 		fragmentMarker = fmt.Sprintf(
 			`{ readonly "expected a %s fragment spread"?: never } | LoadingType`,
 			doc.Name,

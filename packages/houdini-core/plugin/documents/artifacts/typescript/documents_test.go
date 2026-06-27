@@ -344,7 +344,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralLoading = ReadonlyArray<{
 							readonly "shape"?: PluralLoading$data;
 							readonly " $fragments": {
-								"PluralLoading": { readonly "expected a PluralLoading fragment spread"?: never };
+								"PluralLoading": { readonly "expected a PluralLoading fragment spread"?: never } | LoadingType;
 							};
 						}>;
 
