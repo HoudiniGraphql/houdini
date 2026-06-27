@@ -5,7 +5,8 @@ import type { Db } from '../lib/db.js'
 import { pathToFileURL } from 'node:url'
 import type { PluginOption } from 'vite'
 
-import { init_db, get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import { get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import { db_path } from '../router/conventions.js'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
 import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema.js'
@@ -25,16 +26,20 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 	// load the current config
 	const config = await get_config()
 
-	// Always start with a fresh DB — the pipeline rebuilds everything on each dev start.
-	// This avoids journal-mode mismatches (WAL from old node:sqlite runs) and stale schema.
-	const [db, db_file] = await init_db(config, false)
+	// The orchestration DB is opened lazily in the houdini plugin's configResolved hook, not
+	// here: that lets us skip it for worker builds (vite `worker.plugins`), which must not open
+	// or recreate a second connection to the same SQLite file while the main build is using it
+	// (it races the main build and throws a disk I/O error — see #1703). We only need the path
+	// up front so the sub-plugins can reference it. The main build still starts from a fresh DB.
+	const db_file = db_path(config)
 
 	// build up the arguments we'll pass to the sub-plugins
 	const ctx: VitePluginContext = {
 		...opts,
 		config,
 		db_file,
-		db,
+		// assigned in houdini()'s configResolved; never opened for worker builds
+		db: undefined as unknown as Db,
 		// pick up adapter from config file if not provided in opts
 		adapter: opts?.adapter ?? (config.config_file as any).adapter,
 	}

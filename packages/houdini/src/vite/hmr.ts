@@ -551,7 +551,12 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				try {
 					await callback(filesWithContent, [...filesToDelete], currentBatchId.toString())
 				} catch (err) {
-					console.error('[houdini] HMR pipeline error:', err)
+					// errors that were already pretty-printed (e.g. a plugin hook failure
+					// surfaced by format_hook_error) carry `alreadyLogged`; don't dump the
+					// raw stack trace on top of the formatted output.
+					if (!(err as { alreadyLogged?: boolean })?.alreadyLogged) {
+						console.error('[houdini] HMR pipeline error:', err)
+					}
 				}
 
 				// Drain any pending batches that accumulated while we were processing

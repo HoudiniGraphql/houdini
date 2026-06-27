@@ -336,7 +336,7 @@ import { PendingValue } from '$houdini'
 With this change, `data.species` is **always an object**. We now have to look at one of its fields to
 know if we are loading:
 
-```svelte title="src/routes/[[id]]/+page.svelte"
+```svelte title="src/routes/[[id]]/+page.svelte&typescriptToggle=true"
 <script lang="ts">
     import { PendingValue } from '$houdini'
 
@@ -565,6 +565,46 @@ This implicitly marks `name` and `...Sprite_species` with `@loading` as well.
 
 
 :::
+
+## Checking for Loading with `isPending`
+
+Comparing a field to `PendingValue` is perfect when you're looking at a single value you tagged with
+`@loading`, like `species.name === PendingValue` or `$data.id === PendingValue`. The value in your hand
+isn't always a leaf, though. A document-level `@loading`, a `@loading(cascade: true)`, or a fragment
+reference can hand you an object or a list whose _contents_ are pending rather than the `PendingValue`
+symbol itself, and `value === PendingValue` is always `false` for those.
+
+For those cases Houdini exports `isPending`. It returns `true` when the value (or anything nested inside
+it) is still loading, and as a type guard it narrows the value to its resolved type on the `false` branch:
+
+```svelte title="src/components/CityInfo.svelte&typescriptToggle=true"
+<script lang="ts">
+    import { fragment, graphql, isPending } from '$houdini'
+    import type { CityInfo_city } from '$houdini'
+
+    let { city }: { city: CityInfo_city } = $props()
+
+    const data = $derived(fragment(city, graphql(`
+        fragment CityInfo_city on City @loading {
+            name
+            mayor {
+                name
+            }
+        }
+    `)))
+</script>
+
+{#if isPending($data)}
+    loading...
+{:else}
+    {$data.name}, mayor {$data.mayor.name}
+{/if}
+```
+
+Here `$data` is an object whether or not it's loading, so `$data === PendingValue` would never be `true`;
+`isPending($data)` walks it for you. Reach for `isPending` whenever you're checking a whole object, a list
+element, or a fragment that might still be loading, and keep `=== PendingValue` for comparing a specific
+scalar field.
 
 ## Final Thoughts
 

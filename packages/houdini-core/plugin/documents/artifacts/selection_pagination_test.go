@@ -303,7 +303,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -524,7 +524,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -647,7 +647,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -1446,7 +1446,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 

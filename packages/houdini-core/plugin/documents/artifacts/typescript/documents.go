@@ -11,7 +11,6 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
-	
 )
 
 // DocumentContext holds document-specific state that was previously stored in global variables
@@ -328,20 +327,42 @@ func generateFragmentTypes(
 	// consumed as an array, so the reference type is wrapped in ReadonlyArray (the
 	// $data type below stays the single-item shape).
 	dataTypeName := fmt.Sprintf("%s$data", doc.Name)
+	// The " $fragments" marker is a phantom brand that a pending (LoadingType) reference is
+	// NOT assignable to, so a loading reference can't be passed to a fragment that can't
+	// render it. The brand's single property is a human-readable message keyed by the
+	// fragment name, so it shows up in the type error both when a loading reference is
+	// passed (no properties in common with the brand) and when the spread is missing
+	// (... is missing ... required in { Fragment: <brand> }). A fragment that can render
+	// during a loading frame — i.e. it carries @loading anywhere, on its definition OR on a
+	// field — also accepts a pending reference; only a fragment with no @loading at all
+	// rejects one.
+	fragmentMarker := fmt.Sprintf(
+		`{ readonly "expected a %s fragment spread"?: never }`,
+		doc.Name,
+	)
+	if documentLoading || hasAnyLoadingDirectives(doc.Selections) {
+		fragmentMarker = fmt.Sprintf(
+			`{ readonly "expected a %s fragment spread"?: never } | LoadingType`,
+			doc.Name,
+		)
+	}
 	referenceShape := fmt.Sprintf(`{
 	readonly "shape"?: %s;
 	readonly " $fragments": {
-		"%s": any;
+		"%s": %s;
 	};
-}`, dataTypeName, doc.Name)
+}`, dataTypeName, doc.Name, fragmentMarker)
 	if pluralFragment {
 		referenceShape = fmt.Sprintf("ReadonlyArray<%s>", referenceShape)
 	}
 	mainType := fmt.Sprintf("export type %s = %s;", doc.Name, referenceShape)
 	types = append(types, mainType)
 
-	// Generate fragment data type (with single indentation for fragments)
-	if hasAnyLoadingDirectives(doc.Selections) {
+	// Generate fragment data type (with single indentation for fragments). The loading
+	// variant is generated when the fragment has field-level @loading OR a definition-level
+	// @loading (`fragment X on Y @loading`); the latter cascades into every field, and
+	// composes with any field-level marks rather than being cancelled by them.
+	if hasAnyLoadingDirectives(doc.Selections) || documentLoading {
 		// Generate union type with normal and loading states
 		normalType, _ := generateSelectionType(
 			ctx,
@@ -352,7 +373,7 @@ func generateFragmentTypes(
 			collectedDocs,
 			false,
 		)
-		hasGlobalLoading := documentLoading && !hasAnyLoadingDirectives(doc.Selections)
+		hasGlobalLoading := documentLoading
 		loadingType, _ := generateLoadingStateType(
 			ctx,
 			doc.Selections,
@@ -417,7 +438,11 @@ func generateOperationTypes(
 			collectedDocs,
 			false,
 		)
-		hasGlobalLoading := hasDocumentLevelLoading(doc) && !hasAnyLoadingDirectives(doc.Selections)
+		// Document-level @loading turns on the global loading shape (every field
+		// present as a placeholder). Field-level @loading directives layer on top to
+		// configure individual fields (e.g. @loading(count:) on a list); they must not
+		// switch the document out of global mode and drop the unmarked fields.
+		hasGlobalLoading := hasDocumentLevelLoading(doc)
 		loadingType, _ := generateLoadingStateType(
 			ctx,
 			doc.Selections,
@@ -553,7 +578,6 @@ func generateSelectionType(
 	}
 
 	// onlyFragments logic is now handled in the first pass when determining visibility
-
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
@@ -930,7 +954,6 @@ func generateInterfaceUnionTypeWithLoading(
 			}
 		}
 
-
 		// union/interface arms merge fields across several inline fragments, so the
 		// per-node sort FlattenSelection applies doesn't survive the merge. only the
 		// $unmasked type wants a stable global order and only tests need it sorted, so
@@ -1275,7 +1298,11 @@ func generateLoadingStateType(
 			}
 
 			if hasFragmentLoading {
-				// Fragment spread with @loading (or global loading) - preserve fragment structure in loading state
+				// Fragment spread with @loading (or global loading): the spread's data is
+				// pending while it loads, so mark the reference as LoadingType in the loading
+				// variant. This keeps the variant a genuine loading variant (it carries a
+				// PendingValue) so isPending can detect it, matching the runtime where the
+				// fragment's pending fields are co-located on the reference.
 				fragmentName := selection.FieldName
 				if selection.FragmentRef != nil {
 					fragmentName = *selection.FragmentRef
@@ -1283,7 +1310,7 @@ func generateLoadingStateType(
 				fragmentIndent := strings.Repeat("\t", indentLevel+2)
 				fragmentFields = append(
 					fragmentFields,
-					fmt.Sprintf("%s%s: {};", fragmentIndent, fragmentName),
+					fmt.Sprintf("%s%s: LoadingType;", fragmentIndent, fragmentName),
 				)
 			}
 			continue
@@ -1382,8 +1409,8 @@ func generateLoadingStateType(
 						unionType := generateInterfaceUnionTypeWithLoading(
 							ctx,
 							selection,
-							true,  // readonly
-							true,  // isLoadingState
+							true, // readonly
+							true, // isLoadingState
 							collectedDocs,
 							false, // unmasked
 							indentLevel+1,
@@ -1409,6 +1436,12 @@ func generateLoadingStateType(
 							return "", childErr
 						}
 						fieldType = childType
+
+						// Apply array syntax if this is a list type
+						if selection.TypeModifiers != nil &&
+							strings.Contains(*selection.TypeModifiers, "]") {
+							fieldType = fmt.Sprintf("%s[]", fieldType)
+						}
 					}
 				} else {
 					// Field with @loading directive (leaf or no loading children) - becomes LoadingType
@@ -1444,6 +1477,12 @@ func generateLoadingStateType(
 					return "", childErr
 				}
 				fieldType = childType
+
+				// Apply array syntax if this is a list type
+				if selection.TypeModifiers != nil &&
+					strings.Contains(*selection.TypeModifiers, "]") {
+					fieldType = fmt.Sprintf("%s[]", fieldType)
+				}
 			} else {
 				// Field without loading - skip it in loading state
 				continue

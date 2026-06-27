@@ -32,7 +32,7 @@ While preparing a request, plugins are iterated in the order they are passed to 
 
 A client plugin is a function that returns an object with hooks for the phases we want to intercept:
 
-```typescript title="src/plugins/custom_plugin.ts"
+```typescript title="src/plugins/custom_plugin.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const sayHello: ClientPlugin = () => {
@@ -58,7 +58,7 @@ export default new HoudiniClient({
 
 That's the basic shape. Now let's look at a more useful example: a retry plugin that re-runs a query when the response contains errors:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const retry: ClientPlugin = () => {
@@ -83,7 +83,7 @@ The five phases split into two directions.
 
 **Enter hooks** (`start`, `beforeNetwork`, `network`) carry information toward the server. We call `next` to pass to the next plugin, or `resolve` to short-circuit the chain and start returning a value:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const simpleFetch: ClientPlugin = () => {
@@ -105,7 +105,7 @@ A few rules for enter hooks:
 
 **Exit hooks** (`afterNetwork`, `end`) process a value as it returns from the pipeline. We use `resolve` to keep the chain flowing back to the user:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const logErrors: ClientPlugin = () => {
@@ -138,7 +138,7 @@ If it's unclear which phase to use, work through these questions:
 
 To share state between phases of the same request, store values on `ctx.stuff`:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const timer: ClientPlugin = () => {
@@ -160,7 +160,7 @@ const timer: ClientPlugin = () => {
 
 To track state across multiple network requests, initialize it before returning the hooks object. Houdini calls the outer function once when the store is created:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const trackVariables: ClientPlugin = () => {
@@ -184,7 +184,7 @@ A store can receive multiple updates for a given set of inputs; subscriptions an
 
 A plugin can return any combination of hook objects, `null`, or arrays of hooks. This is useful for toggling functionality based on configuration:
 
-```typescript title="src/plugins/custom_plugin.ts"
+```typescript title="src/plugins/custom_plugin.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 import externalPlugin from 'third-party'
 

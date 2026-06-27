@@ -502,8 +502,62 @@ export const PendingValue = Symbol('houdini_loading')
 
 export type LoadingType = typeof PendingValue
 
-export function isPending(value: any): value is LoadingType {
-	return typeof value === 'symbol'
+// ContainsPending is true when T holds a PendingValue (LoadingType) anywhere:
+// directly, as a list element, or nested in an object field. This lets isPending
+// narrow a whole loading-state object/list, not just a scalar leaf.
+type ContainsPending<T> = [T] extends [LoadingType]
+	? true
+	: T extends readonly (infer E)[]
+		? ContainsPending<E>
+		: T extends object
+			? true extends { [K in keyof T]-?: ContainsPending<T[K]> }[keyof T]
+				? true
+				: false
+			: false
+
+// The members of a union whose value is (or contains) a pending placeholder. For a
+// generated `{ ...data } | { ...loading }` result, this resolves to the loading member,
+// so the false branch of the guard narrows to the fully-resolved member.
+type PendingMembers<T> = T extends unknown ? (ContainsPending<T> extends true ? T : never) : never
+
+// isPending returns true when `value` is a pending placeholder or contains one anywhere
+// (it walks objects and arrays). Pass a scalar leaf (e.g. `isPending(user.name)`) to
+// short-circuit both the runtime walk and the type-level recursion.
+export function isPending<T>(value: T): value is PendingMembers<T> {
+	return containsPendingValue(value)
+}
+
+function containsPendingValue(value: unknown, seen?: Set<unknown>): boolean {
+	// match any symbol, not `=== PendingValue`: PendingValue is a non-global Symbol(),
+	// so the server and client hold distinct instances that never compare equal across
+	// the realm boundary. typeof is realm-agnostic (matches the original implementation).
+	if (typeof value === 'symbol') {
+		return true
+	}
+	if (value === null || typeof value !== 'object') {
+		return false
+	}
+	// guard against cyclic structures
+	seen = seen ?? new Set()
+	if (seen.has(value)) {
+		return false
+	}
+	seen.add(value)
+
+	if (Array.isArray(value)) {
+		for (const element of value) {
+			if (containsPendingValue(element, seen)) {
+				return true
+			}
+		}
+		return false
+	}
+	for (const key of Object.keys(value)) {
+		if (containsPendingValue((value as Record<string, unknown>)[key], seen)) {
+			return true
+		}
+	}
+	return false
 }
 
 export const CachePolicy = {

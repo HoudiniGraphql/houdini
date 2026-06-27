@@ -2,7 +2,7 @@ import path from 'node:path'
 import type { ResolvedConfig, ConfigEnv as ViteEnv, Plugin as VitePlugin } from 'vite'
 
 import type { VitePluginContext } from './index.js'
-import { codegen_setup } from '../lib/codegen.js'
+import { codegen_setup, init_db } from '../lib/codegen.js'
 import * as fs from '../lib/fs.js'
 import type { CompilerProxy } from '../lib/index.js'
 
@@ -25,6 +25,21 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 
 		async configResolved(conf) {
 			viteConfig = conf
+
+			// Worker builds (vite `worker.plugins`) must not touch the orchestration DB. Codegen
+			// is a project-global, run-once step done by the main build; a worker pipeline opening
+			// a second connection that recreates the same SQLite file races the main build and
+			// throws a disk I/O error (#1703). Workers skip the DB and codegen entirely.
+			if (conf.isWorker) {
+				return
+			}
+
+			// open the orchestration DB lazily (the plugin's default export no longer does this
+			// eagerly, so that the worker check above can run first)
+			if (!ctx.db) {
+				const [db] = await init_db(ctx.config, false)
+				ctx.db = db
+			}
 		},
 
 		async config(userConfig, env) {
@@ -75,6 +90,11 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		},
 
 		async buildStart() {
+			// worker pipelines neither generate nor own a DB connection (see configResolved)
+			if (viteConfig.isWorker) {
+				return
+			}
+
 			if (!compiler && !devServer) {
 				compiler = await codegen_setup(ctx.config, 'dev', ctx.db, ctx.db_file)
 			}
@@ -114,7 +134,12 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		closeBundle: {
 			order: 'post',
 			async handler() {
-				if (viteEnv.mode !== 'production' || devServer || viteConfig.build.ssr) {
+				if (
+					viteEnv.mode !== 'production' ||
+					devServer ||
+					viteConfig.build.ssr ||
+					viteConfig.isWorker
+				) {
 					return
 				}
 

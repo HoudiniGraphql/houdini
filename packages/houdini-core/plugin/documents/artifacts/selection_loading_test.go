@@ -305,7 +305,7 @@ export type MonkeyListQuery$result = {
 	readonly monkeys: {
 		readonly pageInfo: LoadingType;
 		readonly " $fragments": {
-			AnimalsList: {};
+			AnimalsList: LoadingType;
 		};
 	};
 };
@@ -559,11 +559,11 @@ export type Query$result = {
 	readonly catOwners: {
 		readonly cats: {
 			readonly id: LoadingType;
-		};
+		}[];
 		readonly User: {
 			readonly firstName: LoadingType;
 		};
-	};
+	}[];
 };
 
 export type Query$input = null | undefined;
@@ -757,7 +757,7 @@ export type Query$result = {
 		readonly Cat: {
 			readonly name: LoadingType;
 		};
-	};
+	}[];
 };
 
 export type Query$input = null | undefined;
@@ -919,7 +919,7 @@ export type Query$result = {
 } | {
 	readonly entity: {
 		readonly " $fragments": {
-			Info: {};
+			Info: LoadingType;
 		};
 	};
 };
@@ -1104,7 +1104,7 @@ export type Query$result = {
 		readonly User: {
 			readonly firstName: LoadingType;
 		};
-	};
+	}[];
 };
 
 export type Query$input = null | undefined;
@@ -1730,7 +1730,7 @@ export type GlobalLoadingSpreadQuery$result = {
 } | {
 	readonly monkeys: {
 		readonly " $fragments": {
-			ConnectionInfo: {};
+			ConnectionInfo: LoadingType;
 		};
 	};
 };
@@ -1751,6 +1751,46 @@ export type GlobalLoadingSpreadQuery$artifact = typeof artifact
 
 "HoudiniHash=f68f32cc631419ea7b0fcbdf8849a91e66be8fbd77af9543cfda312e02438370"`,
 					),
+				},
+			},
+			{
+				Name: "document-level @loading composes with field-level @loading(count) on a list",
+				Pass: true,
+				Input: []string{
+					`query GlobalListConfig @loading {
+            monkeys {
+              pageInfo {
+                hasNextPage
+              }
+              edges @loading(count: 2) {
+                node {
+                  id
+                }
+              }
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"GlobalListConfig": "import type { LoadingType } from \"houdini/runtime\";\nconst artifact = {\n    \"name\": \"GlobalListConfig\",\n    \"kind\": \"HoudiniQuery\",\n    \"hash\": \"bf928586ecef8632f1df8ce14f2ec7d9012348852c086f026c174035128d92ba\",\n    \"raw\": `query GlobalListConfig {\n    monkeys {\n        pageInfo {\n            hasNextPage\n            __typename\n        }\n        edges {\n            node {\n                id\n                __typename\n            }\n            __typename\n        }\n        __typename\n    }\n}\n`,\n\n    \"rootType\": \"Query\",\n    \"stripVariables\": [] as Array<string>,\n\n    \"selection\": {\n        \"fields\": {\n            \"monkeys\": {\n                \"type\": \"MonkeyConnection\",\n                \"keyRaw\": \"monkeys\",\n\n                \"selection\": {\n                    \"fields\": {\n                        \"__typename\": {\n                            \"type\": \"String\",\n                            \"keyRaw\": \"__typename\",\n                            \"loading\": {\n                                \"kind\": \"value\",\n                            },\n                        },\n\n                        \"edges\": {\n                            \"type\": \"MonkeyEdge\",\n                            \"keyRaw\": \"edges\",\n\n                            \"directives\": [{\n                                \"name\": \"loading\",\n                                \"arguments\": {\n                                    \"count\": {\n                                        \"kind\": \"IntValue\",\n                                        \"value\": \"2\"\n                                    }\n                                }\n                            }],\n\n\n                            \"selection\": {\n                                \"fields\": {\n                                    \"__typename\": {\n                                        \"type\": \"String\",\n                                        \"keyRaw\": \"__typename\",\n                                        \"loading\": {\n                                            \"kind\": \"value\",\n                                        },\n                                    },\n\n                                    \"node\": {\n                                        \"type\": \"Monkey\",\n                                        \"keyRaw\": \"node\",\n                                        \"nullable\": true,\n\n                                        \"selection\": {\n                                            \"fields\": {\n                                                \"__typename\": {\n                                                    \"type\": \"String\",\n                                                    \"keyRaw\": \"__typename\",\n                                                    \"loading\": {\n                                                        \"kind\": \"value\",\n                                                    },\n                                                },\n\n                                                \"id\": {\n                                                    \"type\": \"ID\",\n                                                    \"keyRaw\": \"id\",\n                                                    \"loading\": {\n                                                        \"kind\": \"value\",\n                                                    },\n                                                    \"visible\": true,\n                                                },\n                                            },\n                                        },\n\n                                        \"loading\": {\n                                            \"kind\": \"continue\",\n                                        },\n                                        \"visible\": true,\n                                    },\n                                },\n                            },\n\n                            \"loading\": {\n                                \"kind\": \"continue\",\n                                \"list\": {\n                                    \"depth\": 1,\n                                    \"count\": 2,\n                                },\n                            },\n                            \"visible\": true,\n                        },\n\n                        \"pageInfo\": {\n                            \"type\": \"PageInfo\",\n                            \"keyRaw\": \"pageInfo\",\n\n                            \"selection\": {\n                                \"fields\": {\n                                    \"__typename\": {\n                                        \"type\": \"String\",\n                                        \"keyRaw\": \"__typename\",\n                                        \"loading\": {\n                                            \"kind\": \"value\",\n                                        },\n                                    },\n\n                                    \"hasNextPage\": {\n                                        \"type\": \"Boolean\",\n                                        \"keyRaw\": \"hasNextPage\",\n                                        \"loading\": {\n                                            \"kind\": \"value\",\n                                        },\n                                        \"visible\": true,\n                                    },\n                                },\n                            },\n\n                            \"loading\": {\n                                \"kind\": \"continue\",\n                            },\n                            \"visible\": true,\n                        },\n                    },\n                },\n\n                \"loading\": {\n                    \"kind\": \"continue\",\n                },\n                \"visible\": true,\n            },\n        },\n    },\n\n    \"pluginData\": {},\n    \"enableLoadingState\": \"local\",\n    \"policy\": \"CacheOrNetwork\",\n    \"partial\": false\n} as const\n\nexport default artifact\n\nexport type GlobalListConfig = {\n\treadonly \"input\"?: GlobalListConfig$input;\n\treadonly \"result\": GlobalListConfig$result | undefined;\n};\n\nexport type GlobalListConfig$result = {\n\treadonly monkeys: {\n\t\treadonly pageInfo: {\n\t\t\treadonly hasNextPage: boolean;\n\t\t};\n\t\treadonly edges: ({\n\t\t\treadonly node: {\n\t\t\t\treadonly id: string;\n\t\t\t} | null;\n\t\t})[];\n\t};\n} | {\n\treadonly monkeys: {\n\t\treadonly pageInfo: {\n\t\t\treadonly hasNextPage: LoadingType;\n\t\t};\n\t\treadonly edges: {\n\t\t\treadonly node: {\n\t\t\t\treadonly id: LoadingType;\n\t\t\t};\n\t\t}[];\n\t};\n};\n\nexport type GlobalListConfig$input = null | undefined;\n\nexport type GlobalListConfig$unmasked = {\n\treadonly monkeys: {\n\t\treadonly __typename: \"MonkeyConnection\";\n\t\treadonly edges: ({\n\t\t\treadonly __typename: \"MonkeyEdge\";\n\t\t\treadonly node: {\n\t\t\t\treadonly __typename: \"Monkey\";\n\t\t\t\treadonly id: string;\n\t\t\t} | null;\n\t\t})[];\n\t\treadonly pageInfo: {\n\t\t\treadonly __typename: \"PageInfo\";\n\t\t\treadonly hasNextPage: boolean;\n\t\t};\n\t};\n};\n\nexport type GlobalListConfig$artifact = typeof artifact\n\n\"HoudiniHash=bf928586ecef8632f1df8ce14f2ec7d9012348852c086f026c174035128d92ba\"",
+				},
+			},
+			{
+				Name: "definition-level @loading on a fragment generates a loading variant",
+				Pass: true,
+				Input: []string{
+					`query CascadeFragmentLoadingQuery {
+            entity {
+              ... on Cat {
+                ...CascadeFragmentLoading
+              }
+            }
+          }`,
+					`fragment CascadeFragmentLoading on Cat @loading {
+            name
+          }`,
+				},
+				Extra: map[string]any{
+					"CascadeFragmentLoading": "import type { LoadingType } from \"houdini/runtime\";\nconst artifact = {\n    \"name\": \"CascadeFragmentLoading\",\n    \"kind\": \"HoudiniFragment\",\n    \"hash\": \"ae47388a479222f23e79d8bac545d2111a5698c2fcae08e6c8028813d56ec112\",\n    \"raw\": `fragment CascadeFragmentLoading on Cat {\n    name\n    __typename\n    id\n}\n`,\n\n    \"rootType\": \"Cat\",\n    \"stripVariables\": [] as Array<string>,\n\n    \"selection\": {\n        \"fields\": {\n            \"__typename\": {\n                \"type\": \"String\",\n                \"keyRaw\": \"__typename\",\n                \"loading\": {\n                    \"kind\": \"value\",\n                },\n                \"visible\": true,\n            },\n\n            \"id\": {\n                \"type\": \"ID\",\n                \"keyRaw\": \"id\",\n                \"loading\": {\n                    \"kind\": \"value\",\n                },\n                \"visible\": true,\n            },\n\n            \"name\": {\n                \"type\": \"String\",\n                \"keyRaw\": \"name\",\n                \"loading\": {\n                    \"kind\": \"value\",\n                },\n                \"visible\": true,\n            },\n        },\n    },\n\n    \"pluginData\": {},\n    \"enableLoadingState\": \"global\",\n} as const\n\nexport default artifact\n\nexport type CascadeFragmentLoading$input = never;\n\nexport type CascadeFragmentLoading = {\n\treadonly \"shape\"?: CascadeFragmentLoading$data;\n\treadonly \" $fragments\": {\n\t\t\"CascadeFragmentLoading\": { readonly \"expected a CascadeFragmentLoading fragment spread\"?: never } | LoadingType;\n\t};\n};\n\nexport type CascadeFragmentLoading$data = {\n\treadonly name: string;\n} | {\n\treadonly name: LoadingType;\n};\n\nexport type CascadeFragmentLoading$artifact = typeof artifact\n\n\"HoudiniHash=ae47388a479222f23e79d8bac545d2111a5698c2fcae08e6c8028813d56ec112\"",
 				},
 			},
 		},

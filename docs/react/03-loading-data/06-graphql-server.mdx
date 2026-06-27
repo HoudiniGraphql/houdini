@@ -58,7 +58,7 @@ Because resolvers run exclusively on the server, there's no risk of leaking sens
 
 To change the default `/_api` path the local API is served at, set `endpoint` in the server-only `src/server/+config.ts` (typed `ServerConfigFile`). Codegen bakes it into the client, so you only set it in one place:
 
-```ts title="src/server/+config.ts"
+```ts title="src/server/+config.ts&typescriptToggle=true"
 import type { ServerConfigFile } from 'houdini'
 
 export default {

@@ -6,7 +6,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$houdini: path.resolve('./packages/houdini/src'),
-			'houdini/test': path.resolve('./packages/houdini/legacy/test'),
+			'houdini/test': path.resolve('./packages/houdini/src/test'),
 			'houdini/vite': path.resolve('./packages/houdini/src/vite'),
 			'houdini/codegen': path.resolve('./packages/houdini/src/codegen'),
 			'houdini/runtime': path.resolve('./packages/houdini/src/runtime'),
@@ -18,6 +18,7 @@ export default defineConfig({
 			'./packages/*/src/**/*.test.{ts,js}',
 			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
 			'./packages/houdini-react/package/**/*.test.{ts,js}',
+			'./packages/houdini-svelte/package/**/*.test.{ts,js}',
 			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
 			'./site/**/*.test.{ts,js}',
 		],

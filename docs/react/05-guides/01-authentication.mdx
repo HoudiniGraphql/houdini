@@ -25,7 +25,7 @@ Auth configuration lives in the server config file at `src/server/+config.ts`, a
 
 The one thing both strategies need is `sessionKeys`, the secret (or secrets) that sign and verify the session cookie:
 
-```ts title="src/server/+config.ts"
+```ts title="src/server/+config.ts&typescriptToggle=true"
 import type { ServerConfigFile } from 'houdini'
 
 export default {
@@ -146,7 +146,7 @@ For "log in with Google," the user authorizes with a third party that redirects 
 
 Providers are configured under `auth.providers`. Out of the box Houdini ships two adapters from `houdini/oauth`: `oidc`, which works with any OpenID Connect provider (Google, Microsoft, Auth0, Okta, Apple), and `github`. GitHub doesn't speak OIDC, which is what makes it a good worked example for [writing a custom provider](#a-custom-provider-adapter) later on.
 
-```ts title="src/server/+config.ts"
+```ts title="src/server/+config.ts&typescriptToggle=true"
 import { github, oidc } from 'houdini/oauth'
 
 export default {
@@ -263,7 +263,7 @@ When neither built-in adapter fits, there are two ways to extend the flow withou
 
 A provider adapter is just an object matching the exported `OAuthProvider` type. It names the authorization server's endpoints (`server()`) and maps the token response to a user (`user()`); the `github` adapter is the worked example to copy. This is the path for a provider that speaks plain OAuth 2.0 rather than OpenID Connect (no `issuer`, so no `id_token`, so identity comes from an API call):
 
-```ts title="src/server/providers.ts"
+```ts title="src/server/providers.ts&typescriptToggle=true"
 import type { OAuthProvider } from 'houdini/oauth'
 
 export function discord(config: { clientId: string; clientSecret: string }): OAuthProvider {
@@ -294,7 +294,7 @@ It then goes in `providers` alongside the built-ins. Houdini still runs the Auth
 
 If we already run an OAuth worker (say a Cloudflare Worker that does the provider dance), we can delegate to it instead of configuring `providers`. We point `auth.redirect` at the integration's login endpoint:
 
-```ts title="src/server/+config.ts"
+```ts title="src/server/+config.ts&typescriptToggle=true"
 export default {
     auth: {
         sessionKeys: ['supersecret'], // shared with the integration

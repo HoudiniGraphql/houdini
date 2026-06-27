@@ -232,7 +232,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type otherInfo = {
 							readonly "shape"?: otherInfo$data;
 							readonly " $fragments": {
-								"otherInfo": any;
+								"otherInfo": { readonly "expected a otherInfo fragment spread"?: never };
 							};
 						};
 
@@ -265,7 +265,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a TestFragment fragment spread"?: never };
 							};
 						};
 
@@ -297,7 +297,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralRow = ReadonlyArray<{
 							readonly "shape"?: PluralRow$data;
 							readonly " $fragments": {
-								"PluralRow": any;
+								"PluralRow": { readonly "expected a PluralRow fragment spread"?: never };
 							};
 						}>;
 
@@ -326,7 +326,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralArgs = ReadonlyArray<{
 							readonly "shape"?: PluralArgs$data;
 							readonly " $fragments": {
-								"PluralArgs": any;
+								"PluralArgs": { readonly "expected a PluralArgs fragment spread"?: never };
 							};
 						}>;
 					`),
@@ -344,7 +344,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type PluralLoading = ReadonlyArray<{
 							readonly "shape"?: PluralLoading$data;
 							readonly " $fragments": {
-								"PluralLoading": any;
+								"PluralLoading": { readonly "expected a PluralLoading fragment spread"?: never } | LoadingType;
 							};
 						}>;
 
@@ -377,7 +377,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a TestFragment fragment spread"?: never };
 							};
 						};
 
@@ -409,7 +409,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a TestFragment fragment spread"?: never };
 							};
 						};
 
@@ -439,7 +439,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
 							readonly " $fragments": {
-								"TestFragment": any;
+								"TestFragment": { readonly "expected a TestFragment fragment spread"?: never };
 							};
 						};
 
@@ -1216,7 +1216,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type Foo = {
 							readonly "shape"?: Foo$data;
 							readonly " $fragments": {
-								"Foo": any;
+								"Foo": { readonly "expected a Foo fragment spread"?: never };
 							};
 						};
 
