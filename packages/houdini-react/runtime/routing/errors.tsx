@@ -1,6 +1,8 @@
 import type { GraphQLError } from 'houdini/runtime'
 import React from 'react'
 
+import { StatusContext } from '../contexts.js'
+
 export class GraphQLErrors extends Error {
 	graphqlErrors: GraphQLError[]
 
@@ -73,9 +75,9 @@ export function redirect(status: 300 | 301 | 302 | 303 | 307 | 308, location: st
 	throw new RedirectError(status, location)
 }
 
-// Mutable ref passed from the server renderer so that a synchronous RoutingError
-// or redirect() can propagate the correct HTTP status/location before streaming.
-export const StatusContext = React.createContext<{ status: number; location?: string } | null>(null)
+// StatusContext is defined in ../contexts.js (a dependency-only leaf module) so its
+// identity survives Vite HMR re-evaluation; re-exported here to keep the existing surface.
+export { StatusContext }
 
 type HoudiniErrorBoundaryProps = {
 	errorView: React.ComponentType<{

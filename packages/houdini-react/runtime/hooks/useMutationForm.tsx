@@ -3,6 +3,7 @@ import type { MutationArtifact, GraphQLObject, GraphQLVariables } from 'houdini/
 import { coerceFormData, interpolateRedirect } from 'houdini/runtime'
 import React from 'react'
 
+import { FormStatusContext } from '../contexts.js'
 import { useSession, useRoute, useFormResult, useFormToken } from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'
 
@@ -40,10 +41,9 @@ export type MutationForm<_Result = any> = {
 	pending: boolean
 }
 
-// FormStatusContext carries the nearest <Form>'s pending state to useMutationFormStatus(),
-// the no-prop-drilling ergonomic of React's useFormStatus (which only tracks function-action
-// submissions, so it can't see our forms).
-const FormStatusContext = React.createContext<{ pending: boolean }>({ pending: false })
+// FormStatusContext (defined in ../contexts.js) carries the nearest <Form>'s pending state
+// to useMutationFormStatus(), the no-prop-drilling ergonomic of React's useFormStatus (which
+// only tracks function-action submissions, so it can't see our forms).
 
 /** useMutationFormStatus reads the pending state of the nearest <Form> from a child. */
 export function useMutationFormStatus(): { pending: boolean } {

@@ -13,6 +13,12 @@ import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
 
+import {
+	RouterContextObject as Context,
+	LocationContext,
+	Is404Context,
+	PageContext,
+} from '../contexts.js'
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
@@ -611,7 +617,7 @@ export function RouterContextProvider({
 	)
 }
 
-type RouterContext = {
+export type RouterContext = {
 	client: HoudiniClient
 	cache: Cache
 
@@ -661,8 +667,6 @@ export type FormResult = Record<string, { data: any; errors: any }>
 export type PendingCache = SuspenseCache<
 	Promise<void> & { resolve: () => void; reject: (message: string) => void }
 >
-
-const Context = React.createContext<RouterContext | null>(null)
 
 export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
@@ -739,21 +743,6 @@ export function useSession(): [
 
 	return [ctx.session, updateSession]
 }
-
-const LocationContext = React.createContext<{
-	pathname: string
-	params: Record<string, any>
-	// the parsed query string of the current url (declared search params coerced to
-	// their scalar type, other keys raw; repeated keys are arrays).
-	search: Record<string, any>
-	// a function to imperatively navigate to a url
-	goto: Goto
-}>({
-	pathname: '',
-	params: {},
-	search: {},
-	goto: () => {},
-})
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
@@ -1018,7 +1007,8 @@ class NotFoundLayoutBoundary extends React.Component<
 	}
 }
 
-export const Is404Context = React.createContext(false)
+// re-exported (defined in ../contexts.js) so existing `routing` barrel consumers keep working
+export { Is404Context }
 
 export function NotFoundGate({ children }: { children: React.ReactNode }) {
 	const is404 = React.useContext(Is404Context)
@@ -1027,8 +1017,6 @@ export function NotFoundGate({ children }: { children: React.ReactNode }) {
 	}
 	return <>{children}</>
 }
-
-const PageContext = React.createContext<{ params: Record<string, any> }>({ params: {} })
 
 export function PageContextProvider({
 	keys,
