@@ -1,0 +1,5 @@
+query LoadingErrorQuery @loading {
+	user(id: "999", snapshot: "loading-error", delay: 100) {
+		name
+	}
+}

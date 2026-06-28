@@ -25,6 +25,8 @@ export const routes = {
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
 	loading_paginated_fragment: '/loading-paginated-fragment',
 	loading_interactive: '/loading-interactive',
+	loading_error: '/loading-error',
+	loading_error_link: '/loading-error-link',
 	refetchable_fragment: '/refetchable-fragment',
 	refetchable_fragment_custom: '/refetchable-fragment-custom',
 	optimistic_keys: '/optimistic-keys',
