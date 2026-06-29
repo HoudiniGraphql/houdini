@@ -1,5 +1,13 @@
 # houdini-react
 
+## 2.0.2
+
+### Patch Changes
+
+- [#1708](https://github.com/HoudiniGraphql/houdini/pull/1708) [`1a7d56d`](https://github.com/HoudiniGraphql/houdini/commit/1a7d56d347402344311ea11332b89f0ea1308b0e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix a query with `@loading` that errors during SSR hanging on its loading state instead of reaching the nearest `+error.tsx` boundary.
+
+- [#1706](https://github.com/HoudiniGraphql/houdini/pull/1706) [`c60923d`](https://github.com/HoudiniGraphql/houdini/commit/c60923d347c900c790fb201aa81738f52df319c4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix a "Could not find router context" crash that could occur during development when editing a route file triggered an HMR update.
+
 ## 2.0.1
 
 ### Patch Changes
