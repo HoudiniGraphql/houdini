@@ -24,7 +24,8 @@
 		"format:check": "biome format",
 		"release": "pnpm run build && node packages/_scripts/release.js",
 		"release:snapshot": "pnpm run build && node packages/_scripts/release.js --snapshot",
-		"version": "changeset version"
+		"version": "changeset version",
+		"version:ci": "node packages/_scripts/version-ci.js"
 	},
 	"devDependencies": {
 		"@babel/plugin-syntax-import-assertions": "^7.29.7",
