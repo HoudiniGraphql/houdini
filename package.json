@@ -24,7 +24,8 @@
 		"format:check": "biome format",
 		"release": "pnpm run build && node packages/_scripts/release.js",
 		"release:snapshot": "pnpm run build && node packages/_scripts/release.js --snapshot",
-		"version": "changeset version"
+		"version": "changeset version",
+		"version:ci": "bash -lc 'for attempt in 1 2 3; do pnpm run version && exit 0; if [ \"$attempt\" -lt 3 ]; then echo \"changeset version failed, retrying in $((attempt * 5))s...\"; sleep $((attempt * 5)); fi; done; exit 1'"
 	},
 	"devDependencies": {
 		"@babel/plugin-syntax-import-assertions": "^7.29.7",
