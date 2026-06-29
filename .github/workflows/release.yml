@@ -108,7 +108,8 @@ jobs:
                   createGithubReleases: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_CONFIG_PROVENANCE: true 
+                  NPM_CONFIG_PROVENANCE: true
+                  HOUDINI_CHANGESET_DIAGNOSTICS: '1'
 
             - name: Publish Package
               if: steps.changesets.outputs.hasChangesets == 'false'
