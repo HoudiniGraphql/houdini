@@ -26,6 +26,7 @@ declare global {
 		__houdini__auth_url__?: string | null
 		__houdini__pending_artifacts__?: Record<string, QueryArtifact>
 		__houdini__pending_data__?: Record<string, any>
+		__houdini__pending_errors__?: Record<string, any>
 		__houdini__pending_variables__?: Record<string, GraphQLVariables>
 		__houdini__pending_cache__?: any[]
 		__houdini__nav_caches__?: RouterCache
@@ -126,6 +127,26 @@ export function hydrate_page(
 			initialData[artifactName] = observer
 		}
 	}
+
+	// an @loading query that errored streams its errors here (its data is null, so it has no
+	// pending_data entry above). build a store that already carries the errors so the page's
+	// useQueryResult throws to the error boundary instead of hanging on the loading frame.
+	for (const [artifactName, errors] of Object.entries(window.__houdini__pending_errors__ ?? {})) {
+		const artifact = window.__houdini__pending_artifacts__?.[artifactName]
+		if (!artifact) {
+			continue
+		}
+		initialArtifacts[artifactName] = artifact
+		const variables = window.__houdini__pending_variables__?.[artifactName]
+		const observer = window.__houdini__client__!.observe({
+			artifact,
+			cache: window.__houdini__cache__,
+			initialVariables: variables,
+		})
+		observer.update((state) => ({ ...state, fetching: false, errors }))
+		initialData[artifactName] = observer
+	}
+	window.__houdini__pending_errors__ = {}
 
 	if (!window.__houdini__nav_caches__) {
 		window.__houdini__nav_caches__ = router_cache({

@@ -1,4 +1,4 @@
-import type { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
+import type { GraphQLError, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
 import type { QueryArtifact } from 'houdini/runtime'
 import type { Cache } from 'houdini/runtime/cache'
 import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
@@ -19,6 +19,7 @@ import {
 	Is404Context,
 	PageContext,
 } from '../contexts.js'
+import { escapeScriptTag } from '../escape.js'
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
@@ -291,6 +292,64 @@ function usePageData({
 			? data_cache.get(artifact.name)!
 			: client.observe({ artifact, cache })
 
+		// surface a query error to the client. an @loading query streams its result while the
+		// document is still open, so on the initial SSR load the client is parked on the loading
+		// frame waiting for this query's pending signal to resolve. unlike the success path the
+		// store carries no data we can hydrate from the cache (errors aren't cache data), so we
+		// stream the errors directly and rebuild an erroring store on the client. without this the
+		// pending signal never resolves and the page hangs on the loading state instead of reaching
+		// the nearest error boundary.
+		function stream_error(errors: GraphQLError[]) {
+			injectToStream?.(`
+				<script>
+				{
+					const artifactName = ${escapeScriptTag(JSON.stringify(artifact.name))}
+					const errors = ${escapeScriptTag(JSON.stringify(errors))}
+					const variables = ${escapeScriptTag(JSON.stringify(observer.state.variables))}
+					const artifact = ${escapeScriptTag(JSON.stringify(artifact))}
+
+					// build a document store that already carries the errors so useQueryResult
+					// throws to the nearest boundary the moment it reads the store
+					const __houdini__error_store__ = (knownArtifact) => {
+						const store = window.__houdini__client__.observe({
+							artifact: knownArtifact ?? artifact,
+							cache: window.__houdini__cache__,
+							initialVariables: variables,
+						})
+						store.update((state) => ({ ...state, fetching: false, errors }))
+						return store
+					}
+
+					// if the client has already hydrated (a client-side navigation to an @loading
+					// route) push the error store straight into the live caches and release the signal
+					if (window.__houdini__nav_caches__) {
+						const caches = window.__houdini__nav_caches__
+						caches.data_cache.set(
+							artifactName,
+							__houdini__error_store__(caches.artifact_cache.get(artifactName))
+						)
+						if (caches.ssr_signals.has(artifactName)) {
+							caches.ssr_signals.get(artifactName).resolve()
+							caches.ssr_signals.delete(artifactName)
+						}
+					} else {
+						// otherwise the page module hasn't run yet (the common @loading case): stash the
+						// error so hydrate_page can build the error store when it sets up the caches
+						const pendingArtifacts = (window.__houdini__pending_artifacts__ =
+							window.__houdini__pending_artifacts__ || {})
+						pendingArtifacts[artifactName] = artifact
+						const pendingVariables = (window.__houdini__pending_variables__ =
+							window.__houdini__pending_variables__ || {})
+						pendingVariables[artifactName] = variables
+						const pendingErrors = (window.__houdini__pending_errors__ =
+							window.__houdini__pending_errors__ || {})
+						pendingErrors[artifactName] = errors
+					}
+				}
+				</script>
+			`)
+		}
+
 		// store the observer immediately so useQueryResult can access it
 		// during SSR rendering before the fetch resolves
 		let resolve: () => void = () => {}
@@ -307,9 +366,12 @@ function usePageData({
 				.then(async () => {
 					data_cache.set(id, observer)
 
-					// if there is an error, signal completion (the error is visible via
-					// useQueryResult reading observer.state.errors) and clean up
+					// if there is an error, stream it to the client (so an @loading query
+					// reaches the error boundary instead of hanging on the loading state) and
+					// clean up. on the client data_cache.set above is enough for useQueryResult
+					// to read the errors and throw; the stream is what carries them across SSR.
 					if (observer.state.errors && observer.state.errors.length > 0) {
+						stream_error(observer.state.errors)
 						ssr_signals.delete(id)
 						resolve()
 						return
@@ -428,7 +490,14 @@ function usePageData({
 					if (err?.name === 'AbortError') {
 						return
 					}
-					reject(err)
+					// a thrown error (e.g. a throwOnError plugin) never lands in observer.state, so
+					// seed it as a synthetic GraphQL error on the store and stream it to the client,
+					// otherwise an @loading query that rejects hangs on the loading state
+					const errors = [{ message: err?.message ?? String(err) }]
+					observer.update((state) => ({ ...state, fetching: false, errors }))
+					data_cache.set(id, observer)
+					stream_error(errors)
+					resolve()
 				})
 		})
 
