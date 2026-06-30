@@ -122,8 +122,10 @@ func generateInputTypeDefinitions(
 		}
 		sort.Strings(enumNames)
 
-		// generate import statement
-		finalContent.WriteString("import { ")
+		// generate import statement - the enum option types are only ever
+		// referenced in type positions, so use `import type` to stay compatible
+		// with TypeScript's verbatimModuleSyntax
+		finalContent.WriteString("import type { ")
 		for i, enumName := range enumNames {
 			if i > 0 {
 				finalContent.WriteString(", ")
