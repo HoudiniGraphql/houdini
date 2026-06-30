@@ -20,6 +20,10 @@ func TestValidate_Houdini(t *testing.T) {
 				"Ghost": {
 					Keys: []string{"aka", "name"},
 				},
+				"Cat": {
+					Keys:         []string{"name"},
+					ResolveQuery: "cat",
+				},
 			},
 			RuntimeScalars: map[string]string{
 				"ViewerIDFromSession": "ID",
@@ -37,6 +41,7 @@ func TestValidate_Houdini(t *testing.T) {
 			type Subscription {
 				newMessage: String
 				anotherMessage: String
+				userUpdate: User
 			}
 
 			type Cat {
@@ -76,6 +81,7 @@ func TestValidate_Houdini(t *testing.T) {
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 				ghost: Ghost!
+				cat(name: String!): Cat
 			}
 
 			input UserFilter {
@@ -92,6 +98,7 @@ func TestValidate_Houdini(t *testing.T) {
 				addFriend: AddFriendOutput!
 				deleteUser(id: ID!): DeleteUserOutput!
 				updateGhost: Ghost!
+				updateNode: Node
 			}
 
 			union Human = User
@@ -1007,6 +1014,123 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@with providing all required arguments passes validation",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" }
+				) {
+					friends(limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with omitting a required argument fails validation",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int" }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with omitting a required String! argument fails validation",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					name: { type: "String!" },
+					limit: { type: "Int" }
+				) {
+					friends(name: $name, limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "optional fragment argument with default can be passed explicitly via @with",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int", default: 10 }
+				) {
+					friends(limit: $limit) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "spreading without @with when all args have defaults passes validation",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int", default: 10 },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment
+					}
+				}`,
+				},
+			},
+			{
+				Name: "required argument alongside optional default — required must be passed",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "required argument alongside optional default — passing only required is valid",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					limit: { type: "Int!" },
+					offset: { type: "Int", default: 0 }
+				) {
+					friends(limit: $limit, offset: $offset) { id }
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(limit: 10)
+					}
+				}`,
+				},
+			},
+			{
 				Name: "@with rejects mistyped fields nested in input objects",
 				Pass: false,
 				Input: []string{
@@ -1917,6 +2041,67 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@refetchable on a Node type (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnNode on User @refetchable {
+						firstName
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a non-Node type that has a resolve query (happy path)",
+				Pass: true,
+				Input: []string{
+					`
+					fragment RefetchableOnCat on Cat @refetchable {
+						name
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on a type that is not a Node and has no resolve query",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnGhost on Ghost @refetchable {
+						name
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable on Query is not allowed (queries are refetchable by default)",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableOnQuery on Query @refetchable {
+						rootScalar
+					}
+				`,
+				},
+			},
+			{
+				Name: "@refetchable and @paginate on the same document is not allowed",
+				Pass: false,
+				Input: []string{
+					`
+					fragment RefetchableAndPaginated on User @refetchable {
+						friendsConnection(first: 10) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+				},
+			},
+			{
 				Name: "limit pagination requires first",
 				Pass: false,
 				Input: []string{
@@ -2384,6 +2569,288 @@ func TestValidate_Houdini(t *testing.T) {
 					    ...frag
 				    }
 			   }`,
+				},
+			},
+			{
+				Name: "@refetch on an object field (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchFriend {
+						addFriend {
+							friend @refetch {
+								firstName
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch in a subscription (positive)",
+				Pass: true,
+				Input: []string{
+					`subscription RefetchSub {
+						userUpdate @refetch {
+							id
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch outside a mutation (negative)",
+				Pass: false,
+				Input: []string{
+					`query RefetchQuery {
+						user(name: "foo") {
+							bestFriend @refetch {
+								id
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on a scalar field (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation RefetchScalar {
+						addFriend {
+							friend {
+								firstName @refetch
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on an abstract field (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchNode {
+						updateNode @refetch {
+							id
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch on a plain list field (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation RefetchList {
+						addFriend {
+							friend {
+								friends @refetch {
+									id
+								}
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@refetch combined with @paginate (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation RefetchAndPaginate {
+						addFriend {
+							friend {
+								believers @refetch @paginate {
+									edges {
+										node {
+											id
+										}
+									}
+								}
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@plural fragment spread on a list field (positive)",
+				Pass: true,
+				Input: []string{
+					`fragment PluralRow on User @plural {
+						firstName
+					}`,
+					`query PluralQuery {
+						users(limit: 10) {
+							...PluralRow
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@plural fragment spread on a non-list field (negative)",
+				Pass: false,
+				Input: []string{
+					`fragment PluralRow on User @plural {
+						firstName
+					}`,
+					`query PluralQuery {
+						user(name: "foo") {
+							...PluralRow
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@plural combined with @paginate (negative)",
+				Pass: false,
+				Input: []string{
+					`fragment PluralPaginated on User @plural {
+						believers @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint on a mutation with a valid relative redirect and leaf path (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.id }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint without a redirect (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation AddFriendForm @endpoint {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @endpoint {
+						user(name: "x") { id }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with an absolute URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "https://evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect with a protocol-relative URL (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "//evil.com/users") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect without a leading slash (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "users/new") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend.nope }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint redirect path resolving to an object (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation AddFriendForm @endpoint(redirect: "/users/{ addFriend.friend }") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields entry matching a variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields nested path on a real variable (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["input.field"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@endpoint fields entry not matching any variable (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation UpdateForm($input: InputType) @endpoint(fields: ["nope"]) {
+						update(input: $input)
+					}`,
+				},
+			},
+			{
+				Name: "@session path resolving to an object (positive)",
+				Pass: true,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.friend") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session path resolving to a scalar (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.friend.id") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session path missing from the selection set (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session(path: "addFriend.nope") {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session without a path (negative)",
+				Pass: false,
+				Input: []string{
+					`mutation LoginForm @session {
+						addFriend { friend { id } }
+					}`,
+				},
+			},
+			{
+				Name: "@session on a query (negative)",
+				Pass: false,
+				Input: []string{
+					`query Whoami @session(path: "user") {
+						user(name: "x") { id }
+					}`,
 				},
 			},
 		},

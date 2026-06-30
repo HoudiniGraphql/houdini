@@ -4,13 +4,66 @@ import type {
 	GraphQLVariables,
 	FragmentArtifact,
 	QueryResult,
+	SubscriptionSpec,
 } from 'houdini/runtime'
 import * as React from 'react'
 
 import { useRouterContext } from '../routing/index.js'
 import { useDocumentSubscription } from './useDocumentSubscription.js'
 
+// useFragment reads a fragment's data back out of the cache. When the fragment is marked
+// @plural it is spread on a list field, so the reference is an array of fragment references
+// and the hook returns an array of data (see usePluralFragment below).
+
+// plural overloads: the reference is an array of fragment references
 export function useFragment<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input extends GraphQLVariables = GraphQLVariables,
+>(
+	reference: ReadonlyArray<_Data | { ' $fragments': _ReferenceType }>,
+	document: { artifact: FragmentArtifact }
+): _Data[]
+export function useFragment<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input extends GraphQLVariables = GraphQLVariables,
+>(
+	reference: ReadonlyArray<_Data | { ' $fragments': _ReferenceType }> | null,
+	document: { artifact: FragmentArtifact }
+): _Data[] | null
+
+// singular overload: the reference is a single fragment reference
+export function useFragment<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input extends GraphQLVariables = GraphQLVariables,
+>(
+	reference: _Data | { ' $fragments': _ReferenceType } | null,
+	document: { artifact: FragmentArtifact }
+): _Data | null
+
+export function useFragment(reference: any, document: { artifact: FragmentArtifact }): any {
+	const plural = Boolean(document.artifact.plural)
+
+	// a non-plural fragment given a list of references is a mistake (the fragment needs
+	// @plural to be read as an array)
+	if (!plural && Array.isArray(reference)) {
+		throw new Error(
+			`useFragment received a list of references for "${document.artifact.name}", but it is not marked @plural.`
+		)
+	}
+
+	// Both implementations run on every render so the rules of hooks are preserved; the one
+	// that isn't relevant is fed a null reference and becomes a no-op. Which result we return
+	// is keyed off the static @plural artifact flag, so a given call-site is always consistent.
+	const singularResult = useSingularFragment(plural ? null : reference, document)
+	const pluralResult = usePluralFragment(plural ? (reference ?? null) : null, document)
+
+	return plural ? pluralResult : singularResult
+}
+
+function useSingularFragment<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables = GraphQLVariables,
@@ -67,7 +120,9 @@ export function useFragment<
 		artifact: document.artifact,
 		variables,
 		initialValue: cachedValue,
-		disabled: loading,
+		// no parent means there is nothing to subscribe to (eg a null reference, or this
+		// singular hook running in no-op mode for a @plural fragment)
+		disabled: loading || !parent,
 		send: {
 			stuff: {
 				parentID: parent,
@@ -78,6 +133,119 @@ export function useFragment<
 	})
 
 	return storeValue.data
+}
+
+// usePluralFragment consumes a @plural fragment: the reference is an array of fragment
+// references (one per item in the list the fragment was spread on). Each item is bound to
+// its own cache record, so we keep the list in state and register one cache subscription
+// per item inside a single effect. A subscription message carries the new value for just
+// that record, so we patch it into the list in place rather than re-reading everything.
+// Doing the subscriptions in one effect keeps the hook count stable regardless of how many
+// items the list contains (we can't call a hook per item).
+function usePluralFragment<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input extends GraphQLVariables = GraphQLVariables,
+>(
+	references: ReadonlyArray<_Data | { ' $fragments': _ReferenceType }> | null,
+	document: { artifact: FragmentArtifact }
+): _Data[] | null {
+	const { cache } = useRouterContext()
+	const artifact = document.artifact
+
+	// resolve the cache record + variables for each reference in the list
+	// biome-ignore lint/correctness/useExhaustiveDependencies: document is a stable import
+	const entries = React.useMemo(
+		() =>
+			references
+				? references.map((reference) =>
+						fragmentReference<_Data, _Input, _ReferenceType>(reference, document)
+					)
+				: null,
+		[references]
+	)
+
+	// a stable key describing which records (and variables) we are bound to, so we only
+	// re-seed and re-subscribe when the set of records actually changes (eg an insert/remove)
+	const subscriptionKey = entries
+		? entries
+				.map((entry) => `${entry.parent}:${JSON.stringify(entry.variables ?? {})}`)
+				.join('|')
+		: ''
+
+	// read every item from the cache. used to seed the list, and to re-seed it when the set
+	// of records changes (membership changes don't necessarily message the existing records).
+	const readAll = (): _Data[] | null => {
+		if (!references || !entries) {
+			return null
+		}
+		return entries.map(({ parent, variables, loading }, i) =>
+			parent
+				? (cache.read({ selection: artifact.selection, parent, variables, loading })
+						.data as _Data)
+				: (references[i] as _Data)
+		)
+	}
+
+	const [data, setData] = React.useState<_Data[] | null>(readAll)
+
+	// the subscriptionKey the current `data` was seeded for; starts matching the initial
+	// useState seed so we don't redundantly re-seed on mount
+	const seededKey = React.useRef(subscriptionKey)
+
+	// re-seed when the set of records changes, then subscribe to each record individually.
+	// onMessage carries the new value for just that record, so we patch it in place.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on subscriptionKey
+	React.useEffect(() => {
+		if (seededKey.current !== subscriptionKey) {
+			seededKey.current = subscriptionKey
+			setData(readAll())
+		}
+
+		if (!entries) {
+			return
+		}
+
+		const specs: SubscriptionSpec[] = []
+		entries.forEach(({ parent, variables, loading }, index) => {
+			if (!parent || loading) {
+				return
+			}
+			const spec: SubscriptionSpec = {
+				rootType: artifact.rootType,
+				kind: artifact.kind,
+				selection: artifact.selection,
+				parentID: parent,
+				variables: () => variables ?? {},
+				onMessage: (message) => {
+					// only a cache write ('update') carries a new value for this record. other
+					// messages (eg 'refetch' from cache.refresh()) don't apply to a fragment,
+					// which has no refetch of its own; the refreshed value arrives as an 'update'.
+					if (message.kind !== 'update') {
+						return
+					}
+					setData((current) => {
+						if (!current) {
+							return current
+						}
+						const next = current.slice()
+						next[index] = message.data as _Data
+						return next
+					})
+				},
+			}
+			cache.subscribe(spec)
+			specs.push(spec)
+		})
+
+		return () => {
+			for (const spec of specs) {
+				cache.unsubscribe(spec)
+			}
+		}
+	}, [subscriptionKey])
+
+	return data
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(

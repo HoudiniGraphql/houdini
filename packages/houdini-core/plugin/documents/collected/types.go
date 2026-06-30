@@ -136,6 +136,7 @@ func (s *Selection) Clone(includeChildren bool) *Selection {
 		Visible:        s.Visible,
 		Internal:       s.Internal,
 		ComponentField: s.ComponentField,
+		Description:    s.Description,
 	}
 
 	// clone pointer fields

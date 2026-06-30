@@ -16,7 +16,7 @@ import type {
 import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
-import { useClient, useLocation, useSession } from '../routing/Router.js'
+import { useClient, useLocationContext, useSession } from '../routing/Router.js'
 
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
@@ -36,7 +36,7 @@ export function useDocumentHandle<
 	// Stable cursor stacks for SinglePage pagination — must survive re-renders caused by store updates
 	const previousCursorsRef = React.useRef<(string | null)[]>([])
 	const nextCursorsRef = React.useRef<(string | null)[]>([])
-	const location = useLocation()
+	const location = useLocationContext()
 
 	// grab the current session value
 	const [session] = useSession()
@@ -234,5 +234,10 @@ type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObjec
 					loadNext: OffsetHandlers<_Data, _Input>['loadNextPage']
 					loadNextPending: boolean
 				}
-			: // the artifact does not support a known pagination method, don't add anything
-				{}
+			: // a @refetchable fragment: embedded query keyed by id, re-run with new args
+				_Artifact extends { refetch: { paginated: false } }
+				? {
+						refetch: (variables?: Partial<_Input>) => Promise<_Data>
+					}
+				: // the artifact does not support a known pagination method, don't add anything
+					{}

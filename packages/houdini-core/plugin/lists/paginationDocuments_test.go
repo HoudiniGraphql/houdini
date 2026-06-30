@@ -27,7 +27,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 
 			type Legend {
 				title: String!
-				believers(limit: Int, offset: Int): [User!]!
+				believers(title: String, limit: Int, offset: Int): [User!]!
 			}
 
 			type User implements Node {
@@ -560,6 +560,166 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				},
 			},
 			{
+				// regression: a fragment whose name contains "paginated" must still get its
+				// pagination documents generated. discovery used `NOT LIKE '%_paginated%'` to
+				// skip the internal "<name>_paginated" docs, but LIKE's '_' is a single-char
+				// wildcard, so "MyPaginatedFriends" was wrongly skipped (issue surfaced via #1408).
+				Name: "fragment whose name contains 'paginated'",
+				Pass: true,
+				Input: []string{
+					`
+						fragment MyPaginatedFriends on User {
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment MyPaginatedFriends_paginated_c9Zhk  on User {
+              __typename
+              friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+								__typename
+							}
+							id
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...MyPaginatedFriends_paginated_c9Zhk @mask_disable @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("MyPaginatedFriends"),
+						)),
+				},
+			},
+			{
+				// companion to the case above: "paginated" at the very START of the name has no
+				// preceding character, so the buggy `%_paginated%` LIKE never matched it. testing
+				// it guards against an over-eager fix (e.g. `GLOB '*paginated*'` dropping the
+				// underscore) that would wrongly exclude it.
+				Name: "fragment whose name starts with 'paginated'",
+				Pass: true,
+				Input: []string{
+					`
+						fragment PaginatedFriends on User {
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment PaginatedFriends_paginated_c9Zhk  on User {
+              __typename
+              friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+								__typename
+							}
+							id
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...PaginatedFriends_paginated_c9Zhk @mask_disable @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("PaginatedFriends"),
+						)),
+				},
+			},
+			{
 				Name: "fragment on custom resolve query",
 				Pass: true,
 				Input: []string{
@@ -613,6 +773,69 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						`,
 							graphql.FragmentPaginationQueryName("Believers"),
+						)),
+				},
+			},
+			{
+				Name: "fragment @argument reuses the resolve key variable when names collide",
+				Pass: true,
+				Input: []string{
+					`
+fragment BelieverPages on Legend @arguments(title: { type: "String" }) {
+believers(title: $title, limit: 10) @paginate {
+firstName
+}
+}
+`,
+				},
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.TypeConfig["Legend"] = plugins.TypeConfig{
+						Keys:         []string{"title"},
+						ResolveQuery: "legend",
+					}
+				},
+				// the resolve key `title` and the fragment @argument `title` collapse to a single
+				// non-null variable on the pagination query; @with still references it by name.
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+fragment BelieverPages_paginated_3ovGOt on Legend {
+title
+__typename
+believers(title: $title, limit: $limit, offset: $offset) @paginate {
+firstName
+__typename
+id
+}
+}
+`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "title",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "limit",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "offset",
+							Type: "Int",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+query %s($limit: Int = 10, $offset: Int, $title: String!) @dedupe(match: Variables) {
+legend(title: $title) {
+...BelieverPages_paginated_3ovGOt @mask_disable @with(limit: $limit, offset: $offset, title: $title)
+__typename
+title
+}
+}
+`,
+							graphql.FragmentPaginationQueryName("BelieverPages"),
 						)),
 				},
 			},
@@ -889,7 +1112,7 @@ func TestPaginationDocumentGeneration_multipleInvocations(t *testing.T) {
 
 			type Legend {
 				title: String!
-				believers(limit: Int, offset: Int): [User!]!
+				believers(title: String, limit: Int, offset: Int): [User!]!
 			}
 
 			type User implements Node {

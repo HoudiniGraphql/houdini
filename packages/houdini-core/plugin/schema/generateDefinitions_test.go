@@ -102,6 +102,9 @@ directive @when_not on FRAGMENT_SPREAD
 """@arguments is used to define the arguments of a fragment."""
 directive @arguments on FRAGMENT_DEFINITION
 
+"""@plural marks a fragment as list-shaped so it can be spread on a list field and consumed as an array of items."""
+directive @plural on FRAGMENT_DEFINITION
+
 """@with  is used to provide arguments to fragments that have been marked with @arguments"""
 directive @with on FRAGMENT_SPREAD
 
@@ -119,6 +122,18 @@ directive @loading(cascade: Boolean, count: Int) on FIELD | FRAGMENT_DEFINITION 
 
 """@required makes a nullable field always non-null by making the parent null when the field is"""
 directive @required on FIELD
+
+"""@refetch marks a record in a mutation response so the cache refetches every document that depends on it"""
+directive @refetch on FIELD
+
+"""@refetchable marks a fragment so it can be refetched on its own with new argument values"""
+directive @refetchable on FRAGMENT_DEFINITION
+
+"""@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms."""
+directive @endpoint(fields: [String!], id: String, redirect: String) on MUTATION
+
+"""@session writes the session from a mutation result: the field named by path becomes (or, with merge, is merged into) the user's session."""
+directive @session(merge: Boolean, path: String!) on MUTATION
 
 """@componentField is used to mark a field as a component field"""
 directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRAGMENT_DEFINITION | INLINE_FRAGMENT

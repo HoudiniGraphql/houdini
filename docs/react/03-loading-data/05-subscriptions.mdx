@@ -58,7 +58,7 @@ The subscription is active for as long as the component is mounted and tears dow
 
 ## Cache Integration
 
-Subscription bodies support the same list operations as mutations — `@append`, `@prepend`, `@remove`, and `@allLists`. This means a subscription can maintain a live list without any manual state management:
+Subscription bodies support the same list operations as mutations: `@append`, `@prepend`, `@remove`, and `@allLists`. This means a subscription can maintain a live list without any manual state management:
 
 ```graphql
 subscription NewComment($postId: ID!) {

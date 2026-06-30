@@ -5,11 +5,11 @@ description: API reference for Houdini's Go plugin utilities
 
 ## Database
 
-Houdini's pipeline stores everything — documents, schema types, validation results, project config — in a shared SQLite database. Every plugin gets access to it through `p.DB`, a `DatabasePool[PluginConfig]` that the runtime injects before any hooks fire.
+Houdini's pipeline stores everything (documents, schema types, validation results, project config) in a shared SQLite database. Every plugin gets access to it through `p.DB`, a `DatabasePool[PluginConfig]` that the runtime injects before any hooks fire.
 
 ### Why the abstraction
 
-The pipeline runs in two environments that need different SQLite drivers: native binaries use `zombiezen.com/go/sqlite` (a connection pool built on CGo), while WASM builds require a pure-Go driver that works inside a WASI sandbox. Rather than scattering build-tag conditionals through plugin code, the `plugins` package exposes three small interfaces — `Row`, `Stmt`, and `Conn` — and the right driver is wired in at compile time. Plugin code should never import a SQLite driver directly; it only ever sees these interfaces.
+The pipeline runs in two environments that need different SQLite drivers: native binaries use `zombiezen.com/go/sqlite` (a connection pool built on CGo), while WASM builds require a pure-Go driver that works inside a WASI sandbox. Rather than scattering build-tag conditionals through plugin code, the `plugins` package exposes three small interfaces (`Row`, `Stmt`, and `Conn`) and the right driver is wired in at compile time. Plugin code should never import a SQLite driver directly; it only ever sees these interfaces.
 
 ### Checking out connections
 
@@ -29,11 +29,11 @@ if err != nil {
 defer stmt.Finalize()
 ```
 
-For most queries you won't need to manage connections manually — the higher-level helpers do it for you.
+For most queries you won't need to manage connections manually; the higher-level helpers do it for you.
 
 ### Querying rows
 
-`StepQuery` is the standard way to read data. It checks out a connection, prepares the query, binds parameters, iterates over rows, and cleans up — all in one call:
+`StepQuery` is the standard way to read data. It checks out a connection, prepares the query, binds parameters, iterates over rows, and cleans up, all in one call:
 
 ```go
 err := p.DB.StepQuery(ctx, `
@@ -65,7 +65,7 @@ err := p.DB.ExecQuery(ctx, `
 })
 ```
 
-When you need to write many rows in a loop, prepare the statement once and call `ExecStatement` for each row — this avoids reparsing the SQL on every iteration:
+When you need to write many rows in a loop, prepare the statement once and call `ExecStatement` for each row. This avoids reparsing the SQL on every iteration:
 
 ```go
 conn, err := p.DB.Take(ctx)
@@ -92,7 +92,7 @@ for _, problem := range problems {
 
 ### Transactions
 
-Use `Transaction` to wrap a block of writes in a single commit. The returned function is designed to be deferred — it commits on success and rolls back if the error pointer is non-nil:
+Use `Transaction` to wrap a block of writes in a single commit. The returned function is designed to be deferred: it commits on success and rolls back if the error pointer is non-nil:
 
 ```go
 conn, err := p.DB.Take(ctx)
@@ -152,7 +152,7 @@ A few helpers cover the common wrapping cases: `plugins.Errorf(format, args...)`
 
 ## GraphQL Constants
 
-The `plugins/graphql` package exports named constants for every directive and list operation suffix Houdini defines internally — use these instead of hardcoding strings:
+The `plugins/graphql` package exports named constants for every directive and list operation suffix Houdini defines internally. Use these instead of hardcoding strings:
 
 ```go
 import gql "code.houdinigraphql.com/plugins/graphql"
@@ -190,13 +190,13 @@ config.DefinitionsDirectory()               // path to schema.graphql / document
 
 ## Filesystem Utilities
 
-`plugins.RecursiveCopy(ctx, fs, from, to, transform)` copies a directory tree in parallel, applying a transform function to each file's contents before writing. It only writes files whose content has changed and returns the list of paths that were updated — this is what the runtime uses internally when a plugin implements `IncludeRuntime`. Useful if your `GenerateRuntime` hook needs to copy and patch a set of template files.
+`plugins.RecursiveCopy(ctx, fs, from, to, transform)` copies a directory tree in parallel, applying a transform function to each file's contents before writing. It only writes files whose content has changed and returns the list of paths that were updated. This is what the runtime uses internally when a plugin implements `IncludeRuntime`. Useful if your `GenerateRuntime` hook needs to copy and patch a set of template files.
 
 `PluginDirFromContext(ctx)` returns the absolute path to the directory containing your plugin binary. Use it to resolve assets or templates that you bundle alongside the binary.
 
 ## Testing
 
-The `plugins/tests` package provides a table-driven test harness that spins up a full in-memory pipeline — schema, extraction, parsing, and validation — and then hands control to your plugin.
+The `plugins/tests` package provides a table-driven test harness that spins up a full in-memory pipeline (schema, extraction, parsing, and validation) and then hands control to your plugin.
 
 ### RunTable
 
@@ -236,9 +236,9 @@ The harness creates an in-memory SQLite database, loads the schema, extracts and
 
 Three optional hooks on `Table` let you override any phase:
 
-- `SetupTest` — runs after the database is populated but before your plugin executes. Use it to insert additional rows or configure state.
-- `PerformTest` — replaces the default execution sequence entirely. Use it when you only want to test a single hook (e.g. just `Validate`) or when you need to assert on error details.
-- `VerifyTest` — replaces the default assertion. By default it calls `ValidateExpectedDocuments`; override it to make custom assertions against the database.
+- `SetupTest`: runs after the database is populated but before your plugin executes. Use it to insert additional rows or configure state.
+- `PerformTest`: replaces the default execution sequence entirely. Use it when you only want to test a single hook (e.g. just `Validate`) or when you need to assert on error details.
+- `VerifyTest`: replaces the default assertion. By default it calls `ValidateExpectedDocuments`; override it to make custom assertions against the database.
 
 ```go
 tests.RunTable(t, tests.Table[MyPluginConfig, *MyPlugin]{
@@ -272,7 +272,7 @@ Each `Test` can override the project config for that case alone:
 
 ## Glob Walking
 
-The `plugins/glob` package provides a parallel filesystem walker that understands picomatch-style glob patterns — the same format used in `houdini.config.js`'s `include` and `exclude` fields.
+The `plugins/glob` package provides a parallel filesystem walker that understands picomatch-style glob patterns, the same format used in `houdini.config.js`'s `include` and `exclude` fields.
 
 ### Basic usage
 
@@ -295,11 +295,11 @@ err := walker.Walk(ctx, afero.NewOsFs(), "/project", func(relPath string) error 
 
 The walker supports the same glob syntax used by Vite and picomatch:
 
-- `*` — any characters within a single path segment
-- `**` — any number of path segments (globstar)
-- `?` — any single character
-- `[abc]` — character class
-- `{a,b,c}` — brace expansion (expanded at `AddInclude`/`AddExclude` time)
+- `*`: any characters within a single path segment
+- `**`: any number of path segments (globstar)
+- `?`: any single character
+- `[abc]`: character class
+- `{a,b,c}`: brace expansion (expanded at `AddInclude`/`AddExclude` time)
 
 ### Checking a single path
 

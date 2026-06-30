@@ -13,20 +13,32 @@ import { componentField_unit_path, houdini_root } from 'houdini/router/conventio
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
+import { strip_named_export } from './strip-headers.js'
+
 const AST = recast.types.builders
 
 export type ComponentFieldRow = { type: string; field: string; fragment: string }
 
 export async function transform_file(
 	page: TransformPage,
-	cfRows: ComponentFieldRow[]
+	cfRows: ComponentFieldRow[],
+	opts: { stripHeaders?: boolean } = {}
 ): Promise<{ code: string; map?: SourceMapInput }> {
 	const isJSX = page.filepath.endsWith('.tsx') || page.filepath.endsWith('.jsx')
 	if (!isJSX && !page.filepath.endsWith('.ts') && !page.filepath.endsWith('.js')) {
 		return { code: page.content, map: page.map }
 	}
 
-	const script = parseJS(page.content, isJSX ? { plugins: ['jsx'] } : {})
+	const script = parseJS(page.content, isJSX ? { plugins: ['jsx'] } : {}, page.filepath)
+
+	// The headers() export of a +page/+layout only ever runs on the server. When
+	// building for the client we strip it so server-only logic (secrets, env
+	// vars) it might read never ends up in the browser bundle. Rollup keeps it
+	// otherwise: route views become preserved-signature chunks, so an unused
+	// export isn't tree-shaken away on its own.
+	if (opts.stripHeaders) {
+		strip_named_export(script, 'headers')
+	}
 
 	const cfMap: Record<string, Record<string, string>> = {}
 	for (const row of cfRows) {
@@ -43,10 +55,16 @@ export async function transform_file(
 
 			const properties = [AST.objectProperty(AST.stringLiteral('artifact'), artifactRef)]
 
-			if (is_paginated(parsedDocument)) {
+			// both @paginate and @refetchable fragments embed the document in a
+			// separate query that useFragmentHandle uses to refetch.
+			if (is_paginated(parsedDocument) || is_refetchable(parsedDocument)) {
 				if (artifact.kind !== ArtifactKind.Query) {
-					// fragment/subscription pagination: the refetch artifact is a separate query
-					const refetchName = artifact.name + '_Pagination_Query'
+					// fragment/subscription pagination (and @refetchable): the refetch
+					// artifact is a separate query. @paginate embeds a _Pagination_Query;
+					// @refetchable embeds a _Refetch_Query.
+					const refetchName =
+						artifact.name +
+						(is_paginated(parsedDocument) ? '_Pagination_Query' : '_Refetch_Query')
 					const { id: refetchRef } = artifact_import({
 						page,
 						script,
@@ -108,4 +126,16 @@ function is_paginated(doc: graphql.DocumentNode): boolean {
 		},
 	})
 	return paginated
+}
+
+function is_refetchable(doc: graphql.DocumentNode): boolean {
+	let refetchable = false
+	graphql.visit(doc, {
+		Directive(node) {
+			if (node.name.value === 'refetchable') {
+				refetchable = true
+			}
+		},
+	})
+	return refetchable
 }

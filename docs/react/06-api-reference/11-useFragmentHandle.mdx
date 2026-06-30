@@ -33,10 +33,33 @@ export function ShowList({ show }: { show: ShowList_show }) {
 }
 ```
 
+## Refetch
+
+When the fragment is marked with `@refetchable`, the handle also carries a `refetch` method that re-runs the fragment with new argument values:
+
+```tsx
+import { graphql, useFragmentHandle } from '$houdini'
+import type { UserInfo } from '$houdini'
+
+export function UserInfo({ user }: { user: UserInfo }) {
+  const { data, refetch } = useFragmentHandle(user, graphql(`
+    fragment UserInfo on User @refetchable @arguments(filter: { type: "String" }) {
+      friends(filter: $filter) {
+        name
+      }
+    }
+  `))
+
+  return <button onClick={() => refetch({ filter: 'aki' })}>filter</button>
+}
+```
+
+We only pass the arguments we want to change; the record's id is derived from the data on screen. See [Refetchable Fragments](~/loading-data/fragments#refetchable-fragments) for the details.
+
 **Signature**
 
 ```ts
 function useFragmentHandle(reference, document): handle
 ```
 
-Returns the same `DocumentHandle` shape as [`useQueryHandle`](~/api-reference/useQueryHandle) — `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`.
+Returns the same `DocumentHandle` shape as [`useQueryHandle`](~/api-reference/useQueryHandle): `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`, or a `refetch` method if it uses `@refetchable`.

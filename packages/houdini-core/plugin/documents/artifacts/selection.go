@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
@@ -53,8 +52,9 @@ func writeSelectionDocument(
 	artifactPath := projectConfig.ArtifactPath(name)
 
 	// skip the write if the content hasn't changed (common on incremental runs)
-	if existing, err := afero.ReadFile(fs, artifactPath); err == nil && string(existing) == artifact {
-		return "", nil
+	if existing, err := afero.ReadFile(fs, artifactPath); err == nil &&
+		string(existing) == artifact {
+		return artifactPath, nil
 	}
 
 	// write the file to disk
@@ -141,11 +141,19 @@ func GenerateSelectionDocument(
 	// dedupe config
 	dedupe := ""
 
+	// @plural marks a fragment as list-shaped (consumed as an array of items)
+	pluralValue := ""
+
 	// we need to compute the cache policy for the document
 	cachePolicy := projectConfig.DefaultCachePolicy
 	partial := projectConfig.DefaultPartial
 	for _, directive := range doc.Directives {
 		switch directive.Name {
+		case graphql.PluralDirective:
+			pluralValue = `
+
+    "plural": true,`
+
 		case graphql.DedupeDirective:
 			cancel := "last"
 			match := "Variables"
@@ -315,6 +323,13 @@ func GenerateSelectionDocument(
     "partial": %v`, partial)
 	}
 
+	// @endpoint emits the form metadata (parsed redirect, multipart flag, form id)
+	// the runtime hook and server form handler consume
+	endpointValue := buildEndpointArtifact(doc)
+
+	// @session emits the sessionPath — the result field whose value becomes the session
+	sessionValue := buildSessionArtifact(doc)
+
 	// we need to track the optimistic keys
 	optimistic := ""
 	if flags.OptimisticKeys {
@@ -412,12 +427,50 @@ func GenerateSelectionDocument(
     "enableLoadingState": "%s",`, flags.HasLoading)
 	}
 
+	// document-level operations (eg @refetch) collected during the walk
+	operations := ""
+	if len(flags.RootOperations) > 0 {
+		var opBuilder strings.Builder
+		for i, op := range flags.RootOperations {
+			if i > 0 {
+				opBuilder.WriteString(", ")
+			}
+
+			var pathBuilder strings.Builder
+			pathBuilder.WriteByte('[')
+			for j, field := range op.Path {
+				if j > 0 {
+					pathBuilder.WriteByte(',')
+				}
+				pathBuilder.WriteByte('"')
+				pathBuilder.WriteString(field)
+				pathBuilder.WriteByte('"')
+			}
+			pathBuilder.WriteByte(']')
+
+			opBuilder.WriteString(fmt.Sprintf(`{
+        "action": "%s",
+        "type": "%s",
+        "path": %s
+    }`, op.Action, op.Type, pathBuilder.String()))
+		}
+		operations = fmt.Sprintf(`
+
+    "operations": [%s],`, opBuilder.String())
+	}
+
 	// compute the type definitions
+	unmaskedSelection, err := FlattenSelection(ctx, docs, name, false, sortKeys)
+	if err != nil {
+		return "", err
+	}
 	typeDefs, imports, err := typescript.GenerateDocumentTypeDefs(
 		projectConfig,
 		rootTypes,
 		docs,
 		doc,
+		unmaskedSelection,
+		sortKeys,
 	)
 	if err != nil {
 		return "", err
@@ -434,9 +487,9 @@ const artifact = {
     "rootType": "%s",
     "stripVariables": %s as Array<string>,
 
-    "selection": %s,
+    "selection": %s,%s
 
-    "pluginData": %s,%s%s%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s%s%s%s%s
 } as const
 
 export default artifact
@@ -453,9 +506,13 @@ export default artifact
 		doc.TypeCondition,
 		string(stripVariables),
 		selectionValues,
+		operations,
 		string(marshaledData),
 		componentFields,
 		dedupe,
+		pluralValue,
+		endpointValue,
+		sessionValue,
 		inputTypes,
 		loadingValue,
 		policyValue,
@@ -561,6 +618,18 @@ func (pb *PathBuilder) Current() []string {
 	return result
 }
 
+// FieldPath returns the response path ending at the given field, making sure the
+// field's own alias is the final segment. inline fragments invoke
+// stringifyFieldSelection without pushing the field onto the builder, so we append
+// it when it isn't already there. shared by @refetch and pagination (@list/@paginate).
+func (pb *PathBuilder) FieldPath(selection *collected.Selection) []string {
+	current := pb.Current()
+	if len(current) == 0 || current[len(current)-1] != *selection.Alias {
+		current = append(current, *selection.Alias)
+	}
+	return current
+}
+
 // Len returns the current path depth
 func (pb *PathBuilder) Len() int {
 	return len(pb.path)
@@ -595,7 +664,12 @@ func stringifySelection(
 	loadingTypes := []string{}
 
 	for _, selection := range selections {
-		hasLoading := false
+		// inherit the cascading loading state (a document-level @loading, or a parent
+		// field's @loading(cascade: true)) so that fragment spreads participate in the
+		// loading state just like fields do. without this a spread under a global @loading
+		// is omitted from the loading-state selection entirely. mirrors the field path,
+		// which seeds hasLoading from forceLoading.
+		hasLoading := forceLoading
 		for _, directive := range selection.Directives {
 			switch directive.Name {
 			case graphql.LoadingDirective:
@@ -979,6 +1053,19 @@ func stringifyFieldSelection(
 	indent5 := strings.Repeat(spacing, level+4)
 	indent6 := strings.Repeat(spacing, level+5)
 
+	// @refetch is a document-level operation: record the path to this field's
+	// record so the runtime can refresh every dependent document after the write
+	for _, directive := range selection.Directives {
+		if directive.Name == graphql.RefetchDirective {
+			flags.RootOperations = append(flags.RootOperations, RootOperation{
+				Action: "refetch",
+				Type:   selection.FieldType,
+				Path:   pathBuilder.FieldPath(selection),
+			})
+			break
+		}
+	}
+
 	// figure out the pagination state
 	var paginatedMode *string
 	paginatedTargetType := "Query"
@@ -1001,17 +1088,8 @@ func stringifyFieldSelection(
 		// @paginate always wins over @list when both appear in the same document
 		if flags.Refetch == nil || selection.List.Paginated {
 			// use the computed path for list operations (both paginated and non-paginated)
-			currentPath := pathBuilder.Current()
-
-			// For list fields (both @list and @paginate), ensure the field is included in the path
-			// This handles cases where fragments don't include the field in the path
-			fullPath := currentPath
-			if len(currentPath) == 0 || currentPath[len(currentPath)-1] != *selection.Alias {
-				fullPath = append(currentPath, *selection.Alias)
-			}
-
 			flags.Refetch = &RefetchSpec{
-				Path:       fullPath,
+				Path:       pathBuilder.FieldPath(selection),
 				Paginated:  selection.List.Paginated,
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
@@ -1704,11 +1782,10 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	switch arg.Kind {
 	case "Variable":
 		attrs = fmt.Sprintf(`
-%sname: {
+%s"name": {
 %s"kind": "Name",
 %s"value": "%s",
-%s},
-%s"value": "%s"`, indent1, indent2, indent2, arg.Raw, indent1, indent1, arg.Raw)
+%s}`, indent1, indent2, indent2, arg.Raw, indent1)
 	case "String", "Enum":
 		attrs = fmt.Sprintf(`
 %s"value": "%s"`, indent1, arg.Raw)
@@ -1735,17 +1812,27 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 %s"values": [%s]`, indent1, children,
 		)
 	case "Object":
+		indent3 := strings.Repeat(spacing, level+3)
 		fields := ""
 		for _, child := range arg.Children {
 			if len(fields) > 0 {
 				fields += ", "
 			}
-			fields += fmt.Sprintf(
-				`{"%s": %s}`,
-				child.Name,
-				serializeFragmentArgument(child.Value, level+1),
-			)
+			fields += fmt.Sprintf(`{
+%s"kind": "ObjectField",
+%s"name": {
+%s"kind": "Name",
+%s"value": "%s",
+%s},
+%s"value": %s
+%s}`,
+				indent2,
+				indent2, indent3, indent3, child.Name, indent2,
+				indent2, serializeFragmentArgument(child.Value, level+2),
+				indent1)
 		}
+		attrs = fmt.Sprintf(`
+%s"fields": [%s]`, indent1, fields)
 	}
 
 	return fmt.Sprintf(`{
@@ -1758,6 +1845,17 @@ type ArtifactFlags struct {
 	Refetch         *RefetchSpec
 	ComponentFields bool
 	HasLoading      string
+	// document-level operations collected during the walk (eg @refetch)
+	RootOperations []RootOperation
+}
+
+// RootOperation is a side effect applied after a document's response is written
+// to the cache. @refetch records the path to a record that every dependent
+// document should refetch.
+type RootOperation struct {
+	Action string
+	Type   string
+	Path   []string
 }
 
 type SelectionFlags struct {

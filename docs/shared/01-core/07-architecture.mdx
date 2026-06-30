@@ -49,33 +49,33 @@ For example, in a Svelte component we might write:
 {$UserList.data?.users?.map((user) => user.name).join(', ')}
 ```
 
-From that single tagged template literal, Houdini generates the `UserList` result and variable types, a store for loading the query, and cache metadata for every selected field. The important idea is that the document is the source of truth — everything else is derived.
+From that single tagged template literal, Houdini generates the `UserList` result and variable types, a store for loading the query, and cache metadata for every selected field. The important idea is that the document is the source of truth; everything else is derived.
 
 ## How the compiler works
 
 This is where things get interesting. The compiler has to satisfy two constraints that pull in different directions: it's deeply integrated with Vite, which means there will always be a Node.js layer involved. But parsing and validating thousands of GraphQL documents in a hot-reload loop is the kind of work that really wants a compiled language.
 
-The solution is a process-per-plugin model with a Node.js orchestrator. Node handles Vite integration, pipeline sequencing, and spawning. The heavy pipeline work — extraction, validation, codegen — runs in Go plugins (or any compiled binary).
+The solution is a process-per-plugin model with a Node.js orchestrator. Node handles Vite integration, pipeline sequencing, and spawning. The heavy pipeline work (extraction, validation, codegen) runs in Go plugins (or any compiled binary).
 
 ### Plugins as long-running processes
 
-When the compiler starts, it spawns each plugin as a child process and keeps it alive. During `houdini generate`, that means the processes persist for the duration of one run. During `vite dev`, they persist for the entire dev session — startup cost is paid once, and each incremental build is just the orchestrator sending hook invocations to already-running processes.
+When the compiler starts, it spawns each plugin as a child process and keeps it alive. During `houdini generate`, that means the processes persist for the duration of one run. During `vite dev`, they persist for the entire dev session. Startup cost is paid once, and each incremental build is just the orchestrator sending hook invocations to already-running processes.
 
 Each plugin registers itself with its name, the hooks it implements, and how it wants to be ordered relative to other plugins. After that, the orchestrator knows exactly which processes to call for each stage of the pipeline.
 
 ### WebSocket communication
 
-The orchestrator and plugins communicate over WebSockets. The persistent connection means there's no per-call handshake overhead — we connect once and send hook invocations over the open socket for as long as the session runs. When the orchestrator goes away (Vite restarts, process killed, `generate` finishes), the connection close propagates to every plugin and they exit cleanly. No orphaned processes to hunt down.
+The orchestrator and plugins communicate over WebSockets. The persistent connection means there's no per-call handshake overhead: we connect once and send hook invocations over the open socket for as long as the session runs. When the orchestrator goes away (Vite restarts, process killed, `generate` finishes), the connection close propagates to every plugin and they exit cleanly. No orphaned processes to hunt down.
 
 ### SQLite as shared memory
 
-Plugin processes need to share data — schema definitions, extracted documents, artifact metadata — across process boundaries and across language runtimes. We use a single SQLite database file for this. The path is passed to every plugin as a flag at startup, and each plugin connects directly.
+Plugin processes need to share data (schema definitions, extracted documents, artifact metadata) across process boundaries and across language runtimes. We use a single SQLite database file for this. The path is passed to every plugin as a flag at startup, and each plugin connects directly.
 
-SQLite in WAL mode supports concurrent reads without blocking, which matters for hooks like `Validate` and `GenerateDocuments` that are independent of each other and can run in parallel. More broadly, the database schema is the contract between the orchestrator and every plugin. A plugin written in Go, Rust, or anything else just needs to open the same file — no serialization layer, no bespoke protocol for state transfer.
+SQLite in WAL mode supports concurrent reads without blocking, which matters for hooks like `Validate` and `GenerateDocuments` that are independent of each other and can run in parallel. More broadly, the database schema is the contract between the orchestrator and every plugin. A plugin written in Go, Rust, or anything else just needs to open the same file: no serialization layer, no bespoke protocol for state transfer.
 
 ### Vite's role during dev
 
-During development, Vite drives the compiler. When source files change, Vite's HMR pipeline calls the orchestrator, which triggers an incremental pipeline run starting from the appropriate hook. Because plugins are already running and the database already has the previous build's state, only the work that's actually stale gets redone. The orchestrator also serializes concurrent triggers — if a schema watcher and a file watcher fire at the same time, they queue rather than racing.
+During development, Vite drives the compiler. When source files change, Vite's HMR pipeline calls the orchestrator, which triggers an incremental pipeline run starting from the appropriate hook. Because plugins are already running and the database already has the previous build's state, only the work that's actually stale gets redone. The orchestrator also serializes concurrent triggers: if a schema watcher and a file watcher fire at the same time, they queue rather than racing.
 
 During `houdini generate`, the same pipeline runs end-to-end once and exits.
 

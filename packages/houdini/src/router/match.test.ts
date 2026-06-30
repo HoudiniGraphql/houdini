@@ -1,6 +1,5 @@
 import { test, expect, describe } from 'vitest'
 
-import { testConfigFile } from '../test/index.js'
 import { exec, find_match, parse_page_pattern } from './match.js'
 import type { RouterManifest } from './types.js'
 
@@ -89,7 +88,7 @@ describe('route_params', () => {
 		},
 		{
 			name: 'Route with multiple optional chained parameters (first present)',
-			pattern: '/lang/[[lang=language]]/[[country=country]]',
+			pattern: '/lang/[[lang]]/[[country]]',
 			url: '/lang/en',
 			expected: {
 				variables: {
@@ -143,17 +142,140 @@ describe('find_match parse and match', async () => {
 							pattern: pattern.pattern,
 							// the params used to execute the pattern and extract the variables
 							params: pattern.params,
+							searchParams: [],
 						},
 					}),
 					{}
 				),
+				pagesByUrl: {},
 			}
 
-			const configFile = testConfigFile()
-
 			// find the match
-			const [match] = find_match(configFile, manifest, expected)
+			const [match] = find_match(manifest, expected)
 			expect(match?.id).toEqual(expected)
 		})
 	}
+})
+
+describe('find_match search params', () => {
+	function pageFor(
+		url: string,
+		extra: {
+			documents?: RouterManifest<any>['pages'][string]['documents']
+			searchParams?: RouterManifest<any>['pages'][string]['searchParams']
+		} = {}
+	): RouterManifest<any>['pages'][string] {
+		const parsed = parse_page_pattern(url)
+		return {
+			id: url,
+			url,
+			pattern: parsed.pattern,
+			params: parsed.params,
+			searchParams: extra.searchParams ?? [],
+			documents: extra.documents ?? {},
+			component: () => Promise.resolve({ default: (() => null) as any }),
+		}
+	}
+
+	function match(page: RouterManifest<any>['pages'][string], current: string) {
+		const [, variables] = find_match({ pages: { [page.id]: page }, pagesByUrl: {} }, current)
+		return variables
+	}
+
+	test('fills a nullable scalar search param', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'q', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/search?q=hello')).toEqual({ q: 'hello' })
+	})
+
+	test('coerces a search param to its scalar type', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'page', type: 'Int', wrappers: [] }],
+		})
+		expect(match(page, '/search?page=2')).toEqual({ page: 2 })
+	})
+
+	test('expands a List search param from repeated keys', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'tags', type: 'String', wrappers: ['List', 'NonNull'] }],
+		})
+		expect(match(page, '/search?tags=a&tags=b')).toEqual({ tags: ['a', 'b'] })
+	})
+
+	test('a single value for a List search param stays a one-element array', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'tags', type: 'String', wrappers: ['List', 'NonNull'] }],
+		})
+		expect(match(page, '/search?tags=a')).toEqual({ tags: ['a'] })
+	})
+
+	test('leaves an absent search param unset', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'q', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/search')).toEqual({})
+	})
+
+	test('combines route params and search params', () => {
+		const page = pageFor('/user/[id]', {
+			documents: {
+				Q: { artifact: null as any, loading: false, variables: { id: { type: 'ID' } } },
+			},
+			searchParams: [{ name: 'ref', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/user/42?ref=abc')).toEqual({ id: '42', ref: 'abc' })
+	})
+
+	test('a route param wins over a same-named search param', () => {
+		const page = pageFor('/user/[id]', {
+			searchParams: [{ name: 'id', type: 'String', wrappers: [] }],
+		})
+		expect(match(page, '/user/42?id=99')).toEqual({ id: '42' })
+	})
+
+	// the third tuple element is the parsed query string surfaced on
+	// useLocation().search
+	function searchOf(page: RouterManifest<any>['pages'][string], current: string) {
+		const [, , search] = find_match({ pages: { [page.id]: page }, pagesByUrl: {} }, current)
+		return search
+	}
+
+	test('coerces declared search params in the parsed search object', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'page', type: 'Int', wrappers: [] }],
+		})
+		expect(searchOf(page, '/search?page=2')).toEqual({ page: 2 })
+	})
+
+	test('passes UI-only keys through as raw strings', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'page', type: 'Int', wrappers: [] }],
+		})
+		expect(searchOf(page, '/search?page=2&tab=reviews')).toEqual({ page: 2, tab: 'reviews' })
+	})
+
+	test('collapses repeated keys into arrays', () => {
+		const page = pageFor('/search')
+		expect(searchOf(page, '/search?id=1&id=2')).toEqual({ id: ['1', '2'] })
+	})
+
+	test('coerces a declared List search param to an array of its scalar type', () => {
+		const page = pageFor('/search', {
+			searchParams: [{ name: 'ids', type: 'Int', wrappers: ['List', 'NonNull'] }],
+		})
+		expect(searchOf(page, '/search?ids=1&ids=2')).toEqual({ ids: [1, 2] })
+	})
+
+	test('excludes route params (only query-string keys appear)', () => {
+		const page = pageFor('/user/[id]', {
+			searchParams: [{ name: 'ref', type: 'String', wrappers: [] }],
+		})
+		expect(searchOf(page, '/user/42?ref=abc')).toEqual({ ref: 'abc' })
+	})
+
+	test('is empty when there is no query string', () => {
+		const page = pageFor('/search')
+		expect(searchOf(page, '/search')).toEqual({})
+	})
 })

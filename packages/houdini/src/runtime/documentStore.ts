@@ -276,13 +276,19 @@ export class DocumentStore<
 			}
 
 			if (input instanceof Request) {
-				// the body of the request contains the query and variables
-				const body = await input.json()
-				if (!Array.isArray(body)) {
-					queries = [body]
+				// the body of the request contains the query and variables. a multipart
+				// (file upload) body isn't JSON, so skip introspection and let it fall
+				// through to the real fetch rather than crash.
+				if ((input.headers.get('content-type') ?? '').includes('application/json')) {
+					const body = await input.clone().json()
+					if (!Array.isArray(body)) {
+						queries = [body]
+					}
 				}
-			} else {
-				const body = JSON.parse(init?.body as string)
+			} else if (typeof init?.body === 'string') {
+				// a multipart (FormData) body is not a string, so it's left untouched here
+				// and falls through to the real fetch below.
+				const body = JSON.parse(init.body)
 				if (!Array.isArray(body)) {
 					queries = [body]
 				}
@@ -607,9 +613,12 @@ class ClientPluginContextWrapper {
 		const firstInit = !ctx.stuff.inputs?.init
 		const hasChanged = Object.keys(changed).length > 0 || firstInit
 		if (hasChanged) {
-			// only marshal the changed variables so we don't double marshal
+			// only marshal the changed variables so we don't double marshal.
+			// Use source.stuff.inputs?.marshaled as the base — ctx.stuff comes from the
+			// caller-supplied `values` object (which starts with marshaled: {}) so it
+			// does not carry the previously-marshaled variables that haven't changed.
 			const newVariables = {
-				...ctx.stuff.inputs?.marshaled,
+				...source.stuff.inputs?.marshaled,
 				...marshalInputs({
 					artifact,
 					input: changed,
@@ -717,6 +726,7 @@ export type ClientPluginContext = {
 		disableWrite?: boolean
 		disableRead?: boolean
 		disableSubscriptions?: boolean
+		disablePartial?: boolean
 		applyUpdates?: string[]
 		serverSideFallback?: boolean
 	}

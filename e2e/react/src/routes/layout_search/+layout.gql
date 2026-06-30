@@ -1,0 +1,5 @@
+query LayoutSearch($limit: Int) {
+	usersList(limit: $limit, snapshot: "search_params") {
+		id
+	}
+}

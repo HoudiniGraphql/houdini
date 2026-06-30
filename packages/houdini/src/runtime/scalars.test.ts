@@ -685,33 +685,24 @@ describe('parseScalar', () => {
 			expected: 1.0,
 		},
 		{
-			title: 'Custom with Marshal',
+			// custom scalars are stored in the URL already marshaled, so the value is
+			// used directly — the configured marshal function is NOT applied on read
+			title: 'Custom scalar uses the url value directly (marshal not applied)',
 			type: 'MyScalar',
 			value: '1.0',
-			expected: 100.0,
+			expected: '1.0',
 		},
 		{
-			title: 'Custom mo Marshal',
+			title: 'Custom scalar without a marshal also passes through',
 			type: 'MyScalar2',
 			value: '1.0',
 			expected: '1.0',
 		},
 	]
 
-	const config = testConfigFile({
-		scalars: {
-			MyScalar: {
-				type: 'number',
-				marshal(val: string) {
-					return parseInt(val, 10) * 100
-				},
-			},
-		},
-	})
-
 	for (const row of table) {
 		test(row.title, () => {
-			expect(parseScalar(config, row.type, row.value)).toEqual(row.expected)
+			expect(parseScalar(row.type, row.value)).toEqual(row.expected)
 		})
 	}
 })

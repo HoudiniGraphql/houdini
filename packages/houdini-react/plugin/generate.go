@@ -529,6 +529,7 @@ import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
 import { router_cache, StatusContext } from '../../runtime/routing'
+import { escapeScriptTag } from '../../runtime/escape'
 // @ts-expect-error
 import client from '%s/src/+client'
 // @ts-expect-error
@@ -536,6 +537,26 @@ import App from "./App"
 import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
 
 import config from '%s/houdini.config.js'
+
+// route_headers maps a page id to its ordered headers() loaders. It is a
+// server-only export so headers() stays out of the client bundle; attach it to
+// the manifest here so the request handler can evaluate it before streaming.
+import * as manifest_module from '$houdini/plugins/houdini-react/runtime/manifest'
+for (const id of Object.keys(manifest_module.route_headers ?? {})) {
+	if (router_manifest.pages[id]) {
+		router_manifest.pages[id].headers = manifest_module.route_headers[id]
+	}
+}
+// form_actions is server-only too: attach the @endpoint mutation loaders so the no-JS
+// form handler can resolve a submitted form's mutation artifact.
+if (manifest_module.form_actions) {
+	router_manifest.formActions = manifest_module.form_actions
+}
+// session_mutations (name → sessionPath) is server-only too: the session-mint plugin and the
+// no-JS form handler use it to find the result field that becomes the session.
+if (manifest_module.session_mutations) {
+	router_manifest.sessionMutations = manifest_module.session_mutations
+}
 
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable, cssLinks }) =>
@@ -546,6 +567,10 @@ export const on_render =
 		session,
 		manifest,
 		componentCache,
+		headers,
+		formResult,
+		formToken,
+		authUrl,
 	}) => {
 		const cache = new Cache({
 			disabled: false,
@@ -562,6 +587,16 @@ export const on_render =
 		// HoudiniErrorBoundary can set the correct HTTP status/location before streaming.
 		const statusRef = { status: is404 ? 404 : 200, location: undefined }
 
+		// renderToStream only hands back injectToStream as a return value, i.e. after <App> has
+		// already been constructed — too late to pass it down as a prop for the first render.
+		// We thread a stable wrapper that delegates to this holder, then fill the holder once
+		// renderToStream resolves. @loading queries resolve after the shell flushes (so the
+		// holder is set by the time their resolution scripts stream); non-@loading queries
+		// resolve before the shell and simply no-op the wrapper, falling back to the initial
+		// cache as before. Sourcing it this way (rather than react-streaming's useStream context)
+		// keeps the bare react-streaming import out of the isomorphic runtime, which trips a
+		// "loaded in browser" poison-pill assertion under browser-like test environments.
+		const streamHolder = {}
 		const {
 			readable,
 			injectToStream,
@@ -572,33 +607,53 @@ export const on_render =
 					initialURL: url,
 					cache: cache,
 					session: session,
+					formResult: formResult ?? null,
+					formToken: formToken ?? null,
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
+					injectToStream: (chunk) => streamHolder.injectToStream?.(chunk),
 					...router_cache()
 				})
 			),
 			{ webStream: production, userAgent: 'Vite' }
 		)
+		streamHolder.injectToStream = injectToStream
 
-		injectToStream(` + "`" + `
+		// The page bootstrap below is intentionally not async. On a streaming page (e.g. an
+		// @loading query renders its loading state inside a Suspense boundary, so the shell
+		// flushes immediately and the document stays open), an async module runs the moment
+		// it loads — before the deferred react-refresh preamble, which waits for the still-open
+		// document to finish parsing. That makes every JSX import throw "can't detect preamble".
+		// A plain (deferred) module runs in document order, after the preamble.
+		injectToStream(`+"`"+`
 		<script>
-			window.__houdini__initial__cache__ = ${cache.serialize()};
-			window.__houdini__initial__session__ = ${JSON.stringify(session)};
+			window.__houdini__initial__cache__ = ${escapeScriptTag(cache.serialize())};
+			window.__houdini__initial__session__ = ${escapeScriptTag(JSON.stringify(session))};
+			window.__houdini__form_result__ = ${escapeScriptTag(JSON.stringify(formResult ?? null))};
+			window.__houdini__form_token__ = ${escapeScriptTag(JSON.stringify(formToken ?? null))};
+			window.__houdini__auth_url__ = ${escapeScriptTag(JSON.stringify(authUrl ?? null))};
 		</script>
 
 		${documentPremable ?? ''}
 
-		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '" async=""></script>' : ''}
-	` + "`" + `)
+		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '"></script>' : ''}
+	`+"`"+`)
 
 		if (pipeTo && pipe) {
+			// route headers must be set on the underlying response before any of
+			// the stream is written
+			if (headers && typeof pipe.setHeader === 'function') {
+				for (const [key, value] of Object.entries(headers)) {
+					pipe.setHeader(key, value)
+				}
+			}
 			pipeTo(pipe)
 			return true
 		} else if (statusRef.location) {
-			return new Response(null, { status: statusRef.status, headers: { Location: statusRef.location } })
+			return new Response(null, { status: statusRef.status, headers: { ...headers, Location: statusRef.location } })
 		} else {
-			return new Response(readable, { status: statusRef.status })
+			return new Response(readable, { status: statusRef.status, headers })
 		}
 	}
 
@@ -624,11 +679,11 @@ export function createServerAdapter(options) {
 	// config.js — varies by local_schema, local_yoga, and component fields
 	schemaLine := "const schema = null"
 	if manifest.LocalSchema {
-		schemaLine = fmt.Sprintf("import schema from '%s/src/api/+schema'", rootRel)
+		schemaLine = fmt.Sprintf("import schema from '%s/src/server/+schema'", rootRel)
 	}
 	yogaLine := "const yoga = null"
 	if manifest.LocalYoga {
-		yogaLine = fmt.Sprintf("import yoga from '%s/src/api/+yoga'", rootRel)
+		yogaLine = fmt.Sprintf("import yoga from '%s/src/server/+yoga'", rootRel)
 	}
 
 	// Component field wrapper imports (relative from render/ to componentFields/)
@@ -647,8 +702,18 @@ export function createServerAdapter(options) {
 		cacheBody = "\n" + strings.Join(cfCacheEntries, "\n") + "\n"
 	}
 
+	// server-only config: src/server/+config (HoudiniServerConfig) holds secrets — sessionKeys, and
+	// later oauth — that must never reach houdini.config, which the client bundles for scalars. It
+	// is passed to the adapter SEPARATELY from config_file (never merged), so the public and
+	// server configs stay distinct, mirroring how the build loads them.
+	serverConfigImport := "const server_config = {}"
+	if manifest.LocalConfig {
+		serverConfigImport = fmt.Sprintf("import server_config from '%s/src/server/+config'", rootRel)
+	}
+
 	configContent := fmt.Sprintf(`import { createServerAdapter as createAdapter } from './server'
 import config_file from '%s/houdini.config'
+%s
 
 %s%s
 %s
@@ -664,10 +729,11 @@ export function createServerAdapter(options) {
 		componentCache,
 		graphqlEndpoint: endpoint,
 		config_file,
+		server_config,
 		...options,
 	})
 }
-`, rootRel, cfImportBlock, schemaLine, yogaLine, apiEndpoint, cacheBody)
+`, rootRel, serverConfigImport, cfImportBlock, schemaLine, yogaLine, apiEndpoint, cacheBody)
 
 	configPath := filepath.Join(rDir, "config.js")
 	if ok, err := writeIfChanged(p.Filesystem(), configPath, configContent); err != nil {
@@ -773,7 +839,7 @@ func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) 
 func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries, layoutQueries, errorQueries []string, params map[string]*ParamTypeInfo) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("import { DocumentHandle, RouteProp } from '%s'\n", runtimeRel))
+	b.WriteString(fmt.Sprintf("import { DocumentHandle } from '%s'\n", runtimeRel))
 	b.WriteString("import React from 'react'\n")
 	for _, q := range allQueries {
 		b.WriteString(fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '%s/%s'\n",
@@ -783,9 +849,11 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString(fmt.Sprintf("import type { RoutingError } from '%s'\n", runtimeRel))
 
 	paramsType := formatParamsType(params)
+	routeKeys := formatRouteKeyUnion(params)
 
-	// PageProps
-	b.WriteString(fmt.Sprintf("\nexport type PageProps = {\n\tParams: %s,\n", paramsType))
+	// PageProps — only the page's query results + handles. Route params and search live
+	// on PageRoute (read via useRoute), so they can't be accidentally destructured here.
+	b.WriteString("\nexport type PageProps = {\n")
 	for _, q := range pageQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
@@ -793,7 +861,7 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString("}\n")
 
 	// LayoutProps
-	b.WriteString(fmt.Sprintf("\nexport type LayoutProps = {\n\tParams: %s,\n\tchildren: React.ReactNode,\n", paramsType))
+	b.WriteString("\nexport type LayoutProps = {\n\tchildren: React.ReactNode,\n")
 	for _, q := range layoutQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
@@ -801,12 +869,20 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	b.WriteString("}\n")
 
 	// ErrorProps
-	b.WriteString(fmt.Sprintf("\nexport type ErrorProps = {\n\tParams: %s,\n\terrors: Array<Error | GraphQLError | RoutingError>,\n\tchildren: React.ReactNode,\n", paramsType))
+	b.WriteString("\nexport type ErrorProps = {\n\terrors: Array<Error | GraphQLError | RoutingError>,\n\tchildren: React.ReactNode,\n")
 	for _, q := range errorQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
 	}
 	b.WriteString("}\n")
+
+	// PageRoute / LayoutRoute / ErrorRoute — the route's params (from path segments) and
+	// search (the component's nullable, non-route query variables). Consumed via
+	// useRoute<PageRoute>(). Both are derived from the query inputs so they carry the exact
+	// scalar types (including unmarshaled custom scalars like Date).
+	b.WriteString(formatRouteType("PageRoute", pageQueries, routeKeys, paramsType))
+	b.WriteString(formatRouteType("LayoutRoute", layoutQueries, routeKeys, paramsType))
+	b.WriteString(formatRouteType("ErrorRoute", errorQueries, routeKeys, paramsType))
 
 	return b.String()
 }
@@ -821,6 +897,45 @@ func formatParamsType(params map[string]*ParamTypeInfo) string {
 		parts = append(parts, fmt.Sprintf("%s: string", k))
 	}
 	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// formatRouteKeyUnion returns the route's param names as a string-literal union (e.g.
+// "'id' | 'postId'"), or "never" when the route has no dynamic segments. Used to split a
+// query's input into its path-param and search halves.
+func formatRouteKeyUnion(params map[string]*ParamTypeInfo) string {
+	if len(params) == 0 {
+		return "never"
+	}
+	keys := sortedKeys(params)
+	var quoted []string
+	for _, k := range keys {
+		quoted = append(quoted, fmt.Sprintf("'%s'", k))
+	}
+	return strings.Join(quoted, " | ")
+}
+
+// formatRouteType emits a PageRoute/LayoutRoute/ErrorRoute type: params are the route-key
+// subset of the component's query inputs and search is everything else (the nullable,
+// non-route variables). With no queries there's no input to derive from, so params falls
+// back to the path-segment names typed as string and search is empty.
+func formatRouteType(name string, queries []string, routeKeys, paramsType string) string {
+	var params, search string
+	if len(queries) == 0 {
+		params = paramsType
+		search = "{}"
+	} else {
+		inputs := make([]string, 0, len(queries))
+		for _, q := range queries {
+			inputs = append(inputs, q+"$input")
+		}
+		combined := strings.Join(inputs, " & ")
+		if len(inputs) > 1 {
+			combined = "(" + combined + ")"
+		}
+		params = fmt.Sprintf("Pick<%s, Extract<keyof %s, %s>>", combined, combined, routeKeys)
+		search = fmt.Sprintf("Omit<%s, %s>", combined, routeKeys)
+	}
+	return fmt.Sprintf("\nexport type %s = {\n\tparams: %s,\n\tsearch: %s,\n}\n", name, params, search)
 }
 
 // ---- component field helpers ----

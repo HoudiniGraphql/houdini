@@ -1,4 +1,4 @@
-import type { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
+import type { GraphQLError, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
 import type { QueryArtifact } from 'houdini/runtime'
 import type { Cache } from 'houdini/runtime/cache'
 import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
@@ -6,12 +6,22 @@ import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
 import type { LRUCache } from 'houdini/runtime'
-import { marshalSelection, marshalInputs } from 'houdini/runtime'
+import { marshalSelection, marshalInputs, getAuthUrl, HOUDINI_SESSION_EVENT } from 'houdini/runtime'
+import type { HoudiniSessionEventDetail } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext, useEffect } from 'react'
 
+import {
+	RouterContextObject as Context,
+	LocationContext,
+	Is404Context,
+	PageContext,
+} from '../contexts.js'
+import { escapeScriptTag } from '../escape.js'
+import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
+import type { Goto } from '../routes.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
@@ -51,11 +61,21 @@ export function Router({
 }) {
 	// the current route is just a string in state.
 	const [currentURL, setCurrentURL] = React.useState(() => {
-		return initialURL || window.location.pathname
+		return initialURL || window.location.pathname + window.location.search
 	})
 
-	// find the matching page for the current route
-	const [page, variables] = find_match(configFile, manifest, currentURL)
+	// find the matching page for the current route. find_match also hands back the parsed
+	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
+	// and search params arrive in their url transport form, so we unmarshal them once here
+	// — the rich values feed both the query variables (which marshalInputs re-marshals for
+	// the request) and useRoute()'s params/search.
+	const [page, rawVariables, rawSearch] = find_match(manifest, currentURL)
+	const unmarshalers = scalarUnmarshalers(
+		[...(page?.params ?? []), ...(page?.searchParams ?? [])],
+		getCurrentConfig()?.scalars
+	)
+	const variables = unmarshalScalars(rawVariables ?? {}, unmarshalers)
+	const search = unmarshalScalars(rawSearch, unmarshalers)
 	const is404 = !page
 	// When no exact match, find the deepest prefix-matching page to render
 	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
@@ -88,7 +108,7 @@ export function Router({
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (globalThis.window && window.location.pathname !== currentURL) {
+		if (globalThis.window && window.location.pathname + window.location.search !== currentURL) {
 			window.history.pushState({}, '', currentURL)
 		}
 	}, [currentURL])
@@ -99,7 +119,7 @@ export function Router({
 			return
 		}
 		const onChange = (_evt: PopStateEvent) => {
-			setCurrentURL(window.location.pathname)
+			setCurrentURL(window.location.pathname + window.location.search)
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {
@@ -107,8 +127,26 @@ export function Router({
 		}
 	}, [])
 
-	// the function to call to navigate to a url
-	const goto = (url: string) => {
+	// the function to call to navigate. accepts either a ready-made url string or a
+	// typed target { to, params, search } that is assembled (and custom scalars
+	// marshaled) exactly the way <Link> builds its href. The typed surface is the
+	// shared Goto contract; the implementation takes the loose runtime shape.
+	const goto = ((
+		target:
+			| string
+			| { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
+	) => {
+		const url =
+			typeof target === 'string'
+				? target
+				: buildHref(
+						target.to,
+						manifest.pages[manifest.pagesByUrl[target.to]],
+						getCurrentConfig()?.scalars,
+						target.params,
+						target.search
+					)
+
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()
 		// clear pending signals so the next render starts fresh load_query calls
@@ -116,7 +154,7 @@ export function Router({
 
 		// perform the navigation
 		setCurrentURL(url)
-	}
+	}) as Goto
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
@@ -125,10 +163,19 @@ export function Router({
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
-			const [page, variables] = find_match(configFile, manifest, url)
+			const [page, rawVariables] = find_match(manifest, url)
 			if (!page) {
 				return
 			}
+			// unmarshal any custom-scalar route/search params so the preloaded query
+			// marshals them the same way the rendered one does
+			const variables = unmarshalScalars(
+				rawVariables ?? {},
+				scalarUnmarshalers(
+					[...page.params, ...page.searchParams],
+					getCurrentConfig()?.scalars
+				)
+			)
 
 			// load the page component if necessary
 			if (['page', 'component'].includes(which)) {
@@ -146,33 +193,34 @@ export function Router({
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
-		<VariableContext.Provider value={variables}>
-			<LocationContext.Provider
-				value={{
-					pathname: currentURL,
-					goto,
-					params: variables ?? {},
-				}}
-			>
-				<Is404Context.Provider value={is404}>
-					{is404 ? (
-						<NotFoundLayoutBoundary key={targetPage.id}>
-							<PageComponent url={currentURL} key={targetPage.id + '__404'} />
-						</NotFoundLayoutBoundary>
-					) : (
-						<PageComponent url={currentURL} key={targetPage.id} />
-					)}
-				</Is404Context.Provider>
-			</LocationContext.Provider>
-		</VariableContext.Provider>
+		<LocationContext.Provider
+			value={{
+				pathname: currentURL,
+				goto,
+				params: variables ?? {},
+				search,
+			}}
+		>
+			<Is404Context.Provider value={is404}>
+				{is404 ? (
+					<NotFoundLayoutBoundary key={targetPage.id}>
+						<PageComponent url={currentURL} key={targetPage.id + '__404'} />
+					</NotFoundLayoutBoundary>
+				) : (
+					<PageComponent url={currentURL} key={targetPage.id} />
+				)}
+			</Is404Context.Provider>
+		</LocationContext.Provider>
 	)
 }
 
-// export the location information in context
-export const useLocation = () => useContext(LocationContext)
+// internal accessor for the raw location context. the public surface is useRoute, which
+// layers the per-route param/search types on top of this. not re-exported from the package
+// index, so it isn't part of the public API.
+export const useLocationContext = () => useContext(LocationContext)
 
 export const ClientRedirect = ({ to }: { to: string }) => {
-	const { goto } = useLocation()
+	const { goto } = useLocationContext()
 	useEffect(() => {
 		goto(to)
 	}, [to])
@@ -244,6 +292,64 @@ function usePageData({
 			? data_cache.get(artifact.name)!
 			: client.observe({ artifact, cache })
 
+		// surface a query error to the client. an @loading query streams its result while the
+		// document is still open, so on the initial SSR load the client is parked on the loading
+		// frame waiting for this query's pending signal to resolve. unlike the success path the
+		// store carries no data we can hydrate from the cache (errors aren't cache data), so we
+		// stream the errors directly and rebuild an erroring store on the client. without this the
+		// pending signal never resolves and the page hangs on the loading state instead of reaching
+		// the nearest error boundary.
+		function stream_error(errors: GraphQLError[]) {
+			injectToStream?.(`
+				<script>
+				{
+					const artifactName = ${escapeScriptTag(JSON.stringify(artifact.name))}
+					const errors = ${escapeScriptTag(JSON.stringify(errors))}
+					const variables = ${escapeScriptTag(JSON.stringify(observer.state.variables))}
+					const artifact = ${escapeScriptTag(JSON.stringify(artifact))}
+
+					// build a document store that already carries the errors so useQueryResult
+					// throws to the nearest boundary the moment it reads the store
+					const __houdini__error_store__ = (knownArtifact) => {
+						const store = window.__houdini__client__.observe({
+							artifact: knownArtifact ?? artifact,
+							cache: window.__houdini__cache__,
+							initialVariables: variables,
+						})
+						store.update((state) => ({ ...state, fetching: false, errors }))
+						return store
+					}
+
+					// if the client has already hydrated (a client-side navigation to an @loading
+					// route) push the error store straight into the live caches and release the signal
+					if (window.__houdini__nav_caches__) {
+						const caches = window.__houdini__nav_caches__
+						caches.data_cache.set(
+							artifactName,
+							__houdini__error_store__(caches.artifact_cache.get(artifactName))
+						)
+						if (caches.ssr_signals.has(artifactName)) {
+							caches.ssr_signals.get(artifactName).resolve()
+							caches.ssr_signals.delete(artifactName)
+						}
+					} else {
+						// otherwise the page module hasn't run yet (the common @loading case): stash the
+						// error so hydrate_page can build the error store when it sets up the caches
+						const pendingArtifacts = (window.__houdini__pending_artifacts__ =
+							window.__houdini__pending_artifacts__ || {})
+						pendingArtifacts[artifactName] = artifact
+						const pendingVariables = (window.__houdini__pending_variables__ =
+							window.__houdini__pending_variables__ || {})
+						pendingVariables[artifactName] = variables
+						const pendingErrors = (window.__houdini__pending_errors__ =
+							window.__houdini__pending_errors__ || {})
+						pendingErrors[artifactName] = errors
+					}
+				}
+				</script>
+			`)
+		}
+
 		// store the observer immediately so useQueryResult can access it
 		// during SSR rendering before the fetch resolves
 		let resolve: () => void = () => {}
@@ -260,9 +366,12 @@ function usePageData({
 				.then(async () => {
 					data_cache.set(id, observer)
 
-					// if there is an error, signal completion (the error is visible via
-					// useQueryResult reading observer.state.errors) and clean up
+					// if there is an error, stream it to the client (so an @loading query
+					// reaches the error boundary instead of hanging on the loading state) and
+					// clean up. on the client data_cache.set above is enough for useQueryResult
+					// to read the errors and throw; the stream is what carries them across SSR.
 					if (observer.state.errors && observer.state.errors.length > 0) {
+						stream_error(observer.state.errors)
 						ssr_signals.delete(id)
 						resolve()
 						return
@@ -274,7 +383,23 @@ function usePageData({
 					injectToStream?.(`
 						<script>
 						{
-								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer__)
+								// the resolved cache snapshot for this streamed query. when the bootstrap
+								// module has already run (data arrived after hydration) we hydrate the live
+								// cache directly; otherwise the module is still deferred (an @loading query
+								// streams its data while the document is open) so we queue the snapshot for
+								// hydrate_page to apply once it creates the cache. without this the snapshot
+								// would be dropped and the query would hydrate with null data.
+								const __houdini__snapshot__ = ${cache.serialize()}
+								if (window.__houdini__cache__) {
+									// hydrate into a fresh layer and merge it down, rather than clobbering the
+									// shared hydration layer (which would drop everything hydrated before it)
+									const __houdini__layer__ = window.__houdini__cache__.hydrate(__houdini__snapshot__)
+									if (__houdini__layer__) {
+										window.__houdini__cache__._internal_unstable.storage.resolveLayer(__houdini__layer__.id)
+									}
+								} else {
+									(window.__houdini__pending_cache__ = window.__houdini__pending_cache__ || []).push(__houdini__snapshot__)
+								}
 
 								const artifactName = "${artifact.name}"
 								const value = ${JSON.stringify(
@@ -365,7 +490,14 @@ function usePageData({
 					if (err?.name === 'AbortError') {
 						return
 					}
-					reject(err)
+					// a thrown error (e.g. a throwOnError plugin) never lands in observer.state, so
+					// seed it as a synthetic GraphQL error on the store and stream it to the client,
+					// otherwise an @loading query that rejects hangs on the loading state
+					const errors = [{ message: err?.message ?? String(err) }]
+					observer.update((state) => ({ ...state, fetching: false, errors }))
+					data_cache.set(id, observer)
+					stream_error(errors)
+					resolve()
 				})
 		})
 
@@ -489,6 +621,8 @@ export function RouterContextProvider({
 	ssr_signals,
 	last_variables,
 	session: ssrSession = {},
+	formResult = null,
+	formToken = null,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -499,22 +633,33 @@ export function RouterContextProvider({
 	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
+	formResult?: FormResult | null
+	formToken?: string | null
 }) {
 	// the session is top level state
 	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
-	// if we detect an event that contains a new session value
+	// if we detect an event that contains a new session value. The detail carries the subtree
+	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
+	// it wholesale; a legacy plain-session detail is treated as a replace.
 	const handleNewSession = React.useCallback((event: Event) => {
-		setSession((event as CustomEvent<App.Session>).detail)
+		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
+		const isWrapped =
+			detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+		const next = (
+			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
+		) as App.Session
+		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+		setSession((prev) => (merge ? { ...prev, ...next } : next))
 	}, [])
 
 	React.useEffect(() => {
-		window.addEventListener('_houdini_session_', handleNewSession)
+		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 
 		// cleanup this component
 		return () => {
-			window.removeEventListener('_houdini_session_', handleNewSession)
+			window.removeEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
 		}
 	}, [handleNewSession])
 
@@ -530,6 +675,10 @@ export function RouterContextProvider({
 				last_variables,
 				session,
 				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
+				replaceSession: (next) => setSession(next),
+				clearSession: () => setSession({}),
+				formResult,
+				formToken,
 			}}
 		>
 			{children}
@@ -537,7 +686,7 @@ export function RouterContextProvider({
 	)
 }
 
-type RouterContext = {
+export type RouterContext = {
 	client: HoudiniClient
 	cache: Cache
 
@@ -563,13 +712,30 @@ type RouterContext = {
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
+
+	// replace the client-side session wholesale (login establishes a fresh session). Local
+	// state only — the cookie is set separately (the @session token relay / server form handler).
+	replaceSession: (next: App.Session) => void
+
+	// replace the client-side session with an empty one (logout); pairs with the server clear
+	clearSession: () => void
+
+	// the result of a no-JS form submission (keyed by form id), injected by the server on
+	// the PRG error re-render so useMutationForm can seed its initial state inline.
+	formResult: FormResult | null
+
+	// the session-bound CSRF token forms render in their hidden field (always present from a
+	// server render; null only when there is no server, e.g. a static export).
+	formToken: string | null
 }
+
+// FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
+// form id (the mutation name, or an explicit useMutationForm({ id })).
+export type FormResult = Record<string, { data: any; errors: any }>
 
 export type PendingCache = SuspenseCache<
 	Promise<void> & { resolve: () => void; reject: (message: string) => void }
 >
-
-const Context = React.createContext<RouterContext | null>(null)
 
 export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
@@ -581,6 +747,20 @@ export const useRouterContext = () => {
 	return ctx
 }
 
+// useFormResult returns the server-injected result for a given form id, or null. The
+// result is threaded through the router context on both render paths (the server passes it
+// as a prop; the client hydration entry reads it from the streamed window global), so the
+// enhanced form's initial state matches the no-JS re-rendered HTML.
+export function useFormResult(formId: string): { data: any; errors: any } | null {
+	return useRouterContext().formResult?.[formId] ?? null
+}
+
+// useFormToken returns the session-bound CSRF token to render in a form's hidden field, or
+// null when there is no server render to mint it (e.g. a static export).
+export function useFormToken(): string | null {
+	return useRouterContext().formToken
+}
+
 export function useClient() {
 	return useRouterContext().client
 }
@@ -589,39 +769,40 @@ export function useCache() {
 	return useRouterContext().cache
 }
 
-export function updateLocalSession(session: App.Session) {
+export function updateLocalSession(session: App.Session, merge = false) {
 	window.dispatchEvent(
-		new CustomEvent<App.Session>('_houdini_session_', {
+		new CustomEvent<HoudiniSessionEventDetail>(HOUDINI_SESSION_EVENT, {
 			bubbles: true,
-			detail: session,
+			detail: { session, merge },
 		})
 	)
 }
 
-export function useSession(): [App.Session, (newSession: Partial<App.Session>) => void] {
+export function useSession(): [
+	App.Session,
+	(newSession: Partial<App.Session> | null) => Promise<void>,
+] {
 	const ctx = useRouterContext()
 
-	// when we update the session we have to do 2 things. (1) we have to update the local state
-	// that we will use on the client (2) we have to send a request to the server so that it
-	// can update the cookie that we use for the session
-	const updateSession = (newSession: Partial<App.Session>) => {
+	// updateSession does two things: (1) update the local client state, and (2) persist to the
+	// session cookie through the always-on auth endpoint (Origin-gated, so a cross-origin page
+	// can't forge a write). Pass a partial object to merge it into the session, or `null` to
+	// log out — clearing the local session and deleting the cookie. It's awaitable so callers
+	// can wait for the cookie to settle before navigating.
+	const updateSession = async (newSession: Partial<App.Session> | null) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		ctx.data_cache.clear()
 		ctx.ssr_signals.clear()
 
-		// update the local state
-		ctx.setSession(newSession)
-
-		// figure out the url that we will use to send values to the server
-		const auth = configFile.router?.auth
-		if (!auth) {
-			return
+		if (newSession === null) {
+			ctx.clearSession()
+		} else {
+			ctx.setSession(newSession)
 		}
-		const url = 'redirect' in auth ? auth.redirect : auth.url
 
-		fetch(url!, {
+		await fetch(getAuthUrl(), {
 			method: 'POST',
-			body: JSON.stringify(newSession),
+			body: JSON.stringify({ session: newSession }),
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
@@ -631,23 +812,6 @@ export function useSession(): [App.Session, (newSession: Partial<App.Session>) =
 
 	return [ctx.session, updateSession]
 }
-
-export function useCurrentVariables(): GraphQLVariables {
-	return React.useContext(VariableContext)
-}
-
-const VariableContext = React.createContext<GraphQLVariables>(null)
-
-const LocationContext = React.createContext<{
-	pathname: string
-	params: Record<string, any>
-	// a function to imperatively navigate to a url
-	goto: (url: string) => void
-}>({
-	pathname: '',
-	params: {},
-	goto: () => {},
-})
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
@@ -686,7 +850,7 @@ function useLinkBehavior({
 	goto,
 	preload,
 }: {
-	goto: (url: string) => void
+	goto: Goto
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
 	// always use the click handler
@@ -702,7 +866,7 @@ function useLinkBehavior({
 	}
 }
 
-function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
+function useLinkNavigation({ goto }: { goto: Goto }) {
 	// navigations need to be registered as transitions
 	const [_pending, startTransition] = React.useTransition()
 
@@ -741,6 +905,12 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			const target = link.attributes.getNamedItem('href')?.value
 			// make sure its a link we recognize
 			if (!target?.startsWith('/')) {
+				return
+			}
+
+			// the session/auth endpoint and its sub-paths (e.g. the /login redirect-login entry) are
+			// server endpoints, not client routes — let the browser navigate so the redirect flow runs
+			if (target.startsWith(getAuthUrl())) {
 				return
 			}
 
@@ -906,7 +1076,8 @@ class NotFoundLayoutBoundary extends React.Component<
 	}
 }
 
-export const Is404Context = React.createContext(false)
+// re-exported (defined in ../contexts.js) so existing `routing` barrel consumers keep working
+export { Is404Context }
 
 export function NotFoundGate({ children }: { children: React.ReactNode }) {
 	const is404 = React.useContext(Is404Context)
@@ -916,8 +1087,6 @@ export function NotFoundGate({ children }: { children: React.ReactNode }) {
 	return <>{children}</>
 }
 
-const PageContext = React.createContext<{ params: Record<string, any> }>({ params: {} })
-
 export function PageContextProvider({
 	keys,
 	children,
@@ -925,7 +1094,7 @@ export function PageContextProvider({
 	keys: string[]
 	children: React.ReactNode
 }) {
-	const location = useLocation()
+	const location = useLocationContext()
 	const params = Object.fromEntries(
 		Object.entries(location.params).filter(([key]) => keys.includes(key))
 	)
@@ -933,12 +1102,42 @@ export function PageContextProvider({
 	return <PageContext.Provider value={{ params }}>{children}</PageContext.Provider>
 }
 
-export function useRoute<PageProps extends { Params: {} }>(): RouteProp<PageProps['Params']> {
-	return useContext(PageContext)
+// useRoute is the single hook for reading the current route: the route's params (scoped to
+// this route's path segments) and search, both typed when a generated PageRoute/LayoutRoute
+// is supplied, plus the current pathname and goto. This replaces the old useLocation —
+// params/search live here rather than on the component props. Unlike a conventional
+// useLocation it also carries params and goto, which is why it's named for the route.
+export function useRoute<
+	// the default leaves params/search empty (not a loose record) so that reading them
+	// without passing the route's generated PageRoute type is a compile error, while
+	// pathname and goto stay available for navigation-only code.
+	_Route extends { params: any; search: any } = { params: {}; search: {} },
+>(): {
+	pathname: string
+	params: _Route['params']
+	search: _Route['search']
+	goto: Goto
+} {
+	const location = useLocationContext()
+	const route = useContext(PageContext)
+	return {
+		pathname: location.pathname,
+		params: route.params as _Route['params'],
+		search: location.search as _Route['search'],
+		goto: location.goto,
+	}
 }
 
-export type RouteProp<Params> = {
-	params: Params
+// A route shape for useRoute. A route's generated PageRoute/LayoutRoute already satisfies the
+// `{ params; search }` shape, so the common case is useRoute<PageRoute>(). For a route-agnostic
+// component (e.g. a reusable paginator that assumes its route exposes `after`/`first` search
+// params) there's no single generated type to pass — use GenericRoute to type the axis you
+// depend on and leave the other `never` (which falls back to a loose record). Search comes
+// first since that's the usual reason to reach for it, so a search-only component writes
+// GenericRoute<{ ... }> and a params-only one writes GenericRoute<never, { ... }>.
+export type GenericRoute<Search = never, Params = never> = {
+	params: [Params] extends [never] ? Record<string, any> : Params
+	search: [Search] extends [never] ? Record<string, any> : Search
 }
 
 // a signal promise is a promise is used to send signals by having listeners attach

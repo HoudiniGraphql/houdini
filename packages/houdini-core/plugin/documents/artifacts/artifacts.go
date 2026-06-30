@@ -105,9 +105,7 @@ func GenerateDocumentArtifacts(
 					continue
 				}
 
-				if fp != "" {
-					filepaths.Append(fp)
-				}
+				filepaths.Append(fp)
 			}
 		}()
 	}

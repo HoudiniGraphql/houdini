@@ -3,6 +3,8 @@ title: Pages and Layouts
 description: File-based routing in Houdini's React framework
 ---
 
+import Notice from '@components/docs/Notice.astro'
+
 Houdini uses a filesystem-based router. Routes live in `src/routes`, and the path of a file maps directly to the URL it handles.
 
 ## Pages and Layouts
@@ -42,16 +44,52 @@ src/routes/(app)/show/+page.jsx    → /show
 src/routes/(auth)/login/+page.jsx  → /login
 ```
 
-The `(app)` and `(auth)` segments are invisible to the router — they exist purely to let you share a `+layout.jsx` across a subset of routes without that grouping appearing in the URL.
+The `(app)` and `(auth)` segments are invisible to the router; they exist purely to let you share a `+layout.jsx` across a subset of routes without that grouping appearing in the URL.
 
 ## Route Parameters
 
 Dynamic segments are marked with square brackets:
 
-- `src/routes/show/[id]/+page.jsx` — matches `/show/1`, `/show/abc`, etc.
-- `src/routes/assets/[...filepath]/+page.jsx` — rest syntax, matches any number of segments
-- `src/routes/[[lang]]/home/+page.jsx` — double brackets mark an optional parameter
+- `src/routes/show/[id]/+page.jsx` matches `/show/1`, `/show/abc`, etc.
+- `src/routes/assets/[...filepath]/+page.jsx` uses rest syntax, matching any number of segments
+- `src/routes/[[lang]]/home/+page.jsx` uses double brackets to mark an optional parameter
 
-Optional parameters cannot follow rest parameters — the rest segment is greedy and will consume everything after it.
+Optional parameters cannot follow rest parameters, because the rest segment is greedy and will consume everything after it.
+
+A query's variables can come from the URL's query string too, not just its path. See [Search Params](~/loading-data/queries#search-params) for how a route's nullable variables map onto `?key=value`.
+
+## Response Headers
+
+A `+page.jsx` or `+layout.jsx` can export a `headers()` function to set HTTP response headers for the route. This is the place for cache directives, security headers, and anything else you'd otherwise have to configure at the CDN or adapter level:
+
+```jsx title="src/routes/+page.tsx&typescriptToggle=true"
+export function headers() {
+  return {
+    'Cache-Control': 'public, max-age=3600',
+    'X-Frame-Options': 'DENY',
+  }
+}
+
+export default () => <div>Hello Houdini!</div>
+```
+
+When a page renders, Houdini evaluates the `headers()` exports of the page and every layout in its chain, then merges the results. On a conflict the page wins over its layouts, and an inner layout wins over an outer one.
+
+Because layouts apply to everything beneath them, the root `+layout.jsx` is the natural place for app-wide headers like `Content-Security-Policy`, `Strict-Transport-Security`, or `X-Frame-Options` that you want on every document response:
+
+```jsx title="src/routes/+layout.tsx&typescriptToggle=true"
+export function headers() {
+  return {
+    'Content-Security-Policy': "default-src 'self'",
+    'Strict-Transport-Security': 'max-age=63072000',
+  }
+}
+```
+
+These headers apply to the page (document) responses Houdini renders. They do not affect responses from your GraphQL endpoint, which is handled separately.
+
+<Notice variant="info">
+  `headers()` only ever runs on the server (it is stripped from the client bundle), so it's safe to read server-only secrets or environment variables inside it. It runs before the response is streamed, so it can't depend on query data; headers must be determinable from the request alone.
+</Notice>
 
 

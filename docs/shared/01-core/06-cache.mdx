@@ -5,8 +5,8 @@ description: Programmatic access to Houdini's runtime cache for reading, writing
 
 ## Cache API
 
-There are times where Houdini's [automatic cache updates](/svelte/api/mutation#updating-fields)
-or [list operation fragments](/svelte/api/mutation#lists) are not sufficient. For those times,
+There are times where Houdini's [automatic cache updates](~/updating-data/mutations)
+or [list operation fragments](~/updating-data/updating-lists#operations) are not sufficient. For those times,
 Houdini provides a programatic API for interacting with the cache directly. If you
 find yourself relying on this API for a considerable amount of your business logic,
 please open an issue or discussion on GitHub so we can try to figure out if there
@@ -98,7 +98,7 @@ cache.get('User', { id: '1' }).read({
 })
 ```
 
-For more information about fragment variables, head over to the [fragment api reference](/svelte/api/fragment#fragment-arguments).
+For more information about fragment variables, head over to the [fragment api reference](~/loading-data/fragments#fragment-arguments).
 
 ## Updating Cache Values
 
@@ -185,7 +185,7 @@ cache.get('User', { id: '1' }).write({
 })
 ```
 
-For more information about fragment variables, head over to the [fragment api reference](/svelte/api/fragment#fragment-arguments).
+For more information about fragment variables, head over to the [fragment api reference](~/loading-data/fragments#fragment-arguments).
 
 ### Updating Relationships
 
@@ -243,7 +243,7 @@ user.delete()
 
 If you want to reload a record's values from your API (for example, after a mutation
 that you know changed data on the server), you can use the `refresh` method. Every
-document whose data contains the record will refetch itself over the network —
+document whose data contains the record will refetch itself over the network,
 including documents that only include the record through a fragment spread:
 
 ```typescript
@@ -255,10 +255,14 @@ user.refresh()
 Unlike `markStale` (which waits for the next fetch to reload the data), `refresh`
 triggers the network requests immediately.
 
+If a mutation or subscription already returns the record that changed, you can get
+this same behavior declaratively by tagging the field with `@refetch` instead of
+calling `refresh()` yourself. See [Refetching Changed Data](~/updating-data/mutations#refetching-changed-data).
+
 ## Lists
 
 Another primitive provided by the `cache` instance is `List` and it provide a programatic
-API for the same operations supported by the [list operation fragments](/svelte/api/mutation#lists).
+API for the same operations supported by the [list operation fragments](~/updating-data/updating-lists#operations).
 
 Accessing a list can be done with the `list` method:
 
@@ -297,7 +301,7 @@ allFriends.when({ favorites: true }).append(user1)
 ## Stale Data
 
 If you want fine-grained logic for marking data as stale, you can use the programmatic api. For more
-information on stale data in Houdini, check out the [Svelte Caching Data guide](/svelte/cache/#stale-data).
+information on stale data in Houdini, check out the [Svelte Caching Data guide](~/core/cache#stale-data).
 
 ```typescript
 import { cache, graphql } from '$houdini'

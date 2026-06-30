@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -12,6 +13,7 @@ import (
 
 	plugins "code.houdinigraphql.com/plugins"
 	pluginglob "code.houdinigraphql.com/plugins/glob"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // ProjectManifest is the static description of a project's routes and queries.
@@ -23,7 +25,24 @@ type ProjectManifest struct {
 	Artifacts       []string                      `json:"artifacts"`
 	LocalSchema     bool                          `json:"local_schema"`
 	LocalYoga       bool                          `json:"local_yoga"`
+	LocalConfig     bool                          `json:"local_config"`
 	ComponentFields map[string]ComponentFieldInfo `json:"component_fields"`
+	Mutations       []string                      `json:"mutations"`
+	Subscriptions   []string                      `json:"subscriptions"`
+	// FormActions are the names of mutations carrying @endpoint — the form-submittable
+	// ones whose artifacts the no-JS form handler loads server-side.
+	FormActions []string `json:"form_actions"`
+	// SessionMutations maps each @session mutation's name to where (path) and how (merge) it
+	// writes the session. Used by the session-mint plugin (any execution) and the no-JS form
+	// handler (inline cookie write). Independent of FormActions.
+	SessionMutations map[string]SessionMutationInfo `json:"session_mutations"`
+}
+
+// SessionMutationInfo is how a @session mutation writes the session: the result field `Path`
+// whose value is written, and whether it merges into (vs replaces) the existing session.
+type SessionMutationInfo struct {
+	Path  string `json:"path"`
+	Merge bool   `json:"merge"`
 }
 
 type PageManifest struct {
@@ -36,6 +55,14 @@ type PageManifest struct {
 	Path          string                    `json:"path"`
 	ErrorPath     string                    `json:"error_path"`
 	Params        map[string]*ParamTypeInfo `json:"params"`
+	// SearchParams are the nullable query variables in scope for this page that are
+	// not satisfied by a route segment. They can be supplied via URLSearchParams and
+	// are always optional (a missing one resolves to null), so they can never turn a
+	// query into a failing request. See issue #1210.
+	SearchParams map[string]*ParamTypeInfo `json:"search_params"`
+	// Headers is true when the view file exports a `headers()` function whose
+	// result should be merged into the HTTP response before streaming.
+	Headers bool `json:"headers"`
 }
 
 // ParamTypeInfo describes the GraphQL type of a URL route parameter.
@@ -87,7 +114,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	}
 
 	routesDir := filepath.Join(projectConfig.ProjectRoot, "src", "routes")
-	apiDir := filepath.Join(projectConfig.ProjectRoot, "src", "api")
+	serverDir := filepath.Join(projectConfig.ProjectRoot, "src", "server")
 
 	manifest := ProjectManifest{
 		Pages:           map[string]PageManifest{},
@@ -98,8 +125,17 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		ComponentFields: map[string]ComponentFieldInfo{},
 	}
 
-	// Load all route GQL documents from the database.
-	pageDocByDir, layoutDocByDir, err := p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	// Load all route GQL documents from the database, plus mutation/subscription names.
+	var pageDocByDir map[string]routeDoc
+	var layoutDocByDir map[string]routeDoc
+	pageDocByDir, layoutDocByDir, manifest.Mutations, manifest.Subscriptions, manifest.FormActions, err = p.loadRouteDocuments(ctx, projectConfig.ProjectRoot, routesDir)
+	if err != nil {
+		return ProjectManifest{}, err
+	}
+
+	// @session mutations (name → sessionPath) — independent of the route documents above, since a
+	// session-establishing mutation need not be a form.
+	manifest.SessionMutations, err = p.loadSessionMutations(ctx)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -202,6 +238,8 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Layouts:       clone(state.availableLayouts),
 				Path:          relPath,
 				Params:        buildParams(url, newVariables),
+				SearchParams:  buildSearchParams(url, newVariables),
+				Headers:       info.layoutHeaders,
 			}
 			newLayoutIDs = append(newLayoutIDs, id)
 		}
@@ -250,6 +288,8 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				Path:          relPath,
 				ErrorPath:     errorPath,
 				Params:        buildParams(url, allVars),
+				SearchParams:  buildSearchParams(url, allVars),
+				Headers:       info.pageHeaders,
 			}
 		}
 
@@ -278,7 +318,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		}
 	}
 
-	manifest.LocalSchema, manifest.LocalYoga, err = p.detectLocalAPI(apiDir)
+	manifest.LocalSchema, manifest.LocalYoga, manifest.LocalConfig, err = p.detectLocalServer(serverDir)
 	if err != nil {
 		return ProjectManifest{}, err
 	}
@@ -286,13 +326,41 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 	return manifest, nil
 }
 
+// loadSessionMutations returns every @session mutation keyed to where (path) and how (merge)
+// it writes the session.
+func (p *HoudiniReact) loadSessionMutations(ctx context.Context) (map[string]SessionMutationInfo, error) {
+	// allocated lazily so it stays nil (not an empty map) when no mutation carries @session,
+	// matching how FormActions is left nil when empty
+	var result map[string]SessionMutationInfo
+	err := p.DB.StepQuery(ctx, `
+		SELECT d.name, av_path.raw, av_merge.raw
+		FROM documents d
+			JOIN document_directives dd ON dd.document = d.id AND dd.directive = $session_directive
+			LEFT JOIN document_directive_arguments dda_path ON dda_path.parent = dd.id AND dda_path.name = 'path'
+			LEFT JOIN argument_values av_path ON av_path.id = dda_path.value
+			LEFT JOIN document_directive_arguments dda_merge ON dda_merge.parent = dd.id AND dda_merge.name = 'merge'
+			LEFT JOIN argument_values av_merge ON av_merge.id = dda_merge.value
+		WHERE d.kind = 'mutation'
+	`, map[string]any{"session_directive": graphql.SessionDirective}, func(q plugins.Row) {
+		name := q.ColumnText(0)
+		path := q.ColumnText(1)
+		if name != "" && path != "" {
+			if result == nil {
+				result = map[string]SessionMutationInfo{}
+			}
+			result[name] = SessionMutationInfo{Path: path, Merge: q.ColumnText(2) == "true"}
+		}
+	})
+	return result, err
+}
+
 // loadRouteDocuments queries the database for all +page.gql and +layout.gql documents
-// and their variables in a single trip, keyed by directory path relative to routesDir.
+// and their variables, plus all mutation and subscription names, in a single trip.
 func (p *HoudiniReact) loadRouteDocuments(
 	ctx context.Context,
 	projectRoot string,
 	routesDir string,
-) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, err error) {
+) (pageDocByDir map[string]routeDoc, layoutDocByDir map[string]routeDoc, mutations []string, subscriptions []string, endpointMutations []string, err error) {
 	pageDocByDir = map[string]routeDoc{}
 	layoutDocByDir = map[string]routeDoc{}
 
@@ -305,32 +373,59 @@ func (p *HoudiniReact) loadRouteDocuments(
 	docsByID := map[int64]*docEntry{}
 
 	err = p.DB.StepQuery(ctx, `
-		SELECT d.id, d.name, rd.filepath,
+		SELECT d.id, d.name, d.kind, rd.filepath,
 		       CASE WHEN EXISTS(
 		           SELECT 1 FROM document_directives dd
-		           WHERE dd.document = d.id AND dd.directive = 'loading'
+		           WHERE dd.document = d.id AND dd.directive = $loading_directive
 		       ) THEN 1 ELSE 0 END AS loading,
 		       dv.name,
 		       dv.type,
-		       COALESCE(dv.type_modifiers, '')
+		       COALESCE(dv.type_modifiers, ''),
+		       CASE WHEN EXISTS(
+		           SELECT 1 FROM document_directives dd
+		           WHERE dd.document = d.id AND dd.directive = $endpoint_directive
+		       ) THEN 1 ELSE 0 END AS has_endpoint
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
 		LEFT JOIN document_variables dv ON dv.document = d.id
-		WHERE d.kind = 'query'
-		  AND (rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
+		WHERE d.kind IN ('query', 'mutation', 'subscription')
+		  AND (d.kind != 'query' OR rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
 		ORDER BY d.id
-	`, nil, func(q plugins.Row) {
+	`, map[string]any{
+		"loading_directive":  graphql.LoadingDirective,
+		"endpoint_directive": graphql.EndpointDirective,
+	}, func(q plugins.Row) {
 		id := q.ColumnInt64(0)
+		name := q.ColumnText(1)
+		kind := q.ColumnText(2)
+
+		if kind == "mutation" || kind == "subscription" {
+			if _, seen := docsByID[id]; !seen {
+				docsByID[id] = nil // mark as seen so we don't double-append
+				if kind == "mutation" {
+					mutations = append(mutations, name)
+					// mutations carrying @endpoint are form-submittable; the no-JS form
+					// handler needs their artifacts reachable on the server.
+					if q.ColumnInt(8) == 1 {
+						endpointMutations = append(endpointMutations, name)
+					}
+				} else {
+					subscriptions = append(subscriptions, name)
+				}
+			}
+			return
+		}
+
 		entry, ok := docsByID[id]
 		if !ok {
-			fp := q.ColumnText(2)
+			fp := q.ColumnText(3)
 			fullPath := filepath.Join(projectRoot, fp)
 			dirKey, _ := filepath.Rel(routesDir, filepath.Dir(fullPath))
 			entry = &docEntry{
 				doc: routeDoc{
-					name:      q.ColumnText(1),
+					name:      name,
 					filepath:  fp,
-					loading:   q.ColumnInt(3) == 1,
+					loading:   q.ColumnInt(4) == 1,
 					variables: map[string]VariableTypeInfo{},
 				},
 				isPage: strings.HasSuffix(fp, "+page.gql"),
@@ -338,19 +433,22 @@ func (p *HoudiniReact) loadRouteDocuments(
 			}
 			docsByID[id] = entry
 		}
-		// columns 4-6 are NULL when there are no variables (LEFT JOIN)
-		if varName := q.ColumnText(4); varName != "" {
+		// columns 5-7 are NULL when there are no variables (LEFT JOIN)
+		if varName := q.ColumnText(5); varName != "" {
 			entry.doc.variables[varName] = VariableTypeInfo{
-				Type:     q.ColumnText(5),
-				Wrappers: modifiersToWrappers(q.ColumnText(6)),
+				Type:     q.ColumnText(6),
+				Wrappers: modifiersToWrappers(q.ColumnText(7)),
 			}
 		}
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	for _, entry := range docsByID {
+		if entry == nil {
+			continue // mutation/subscription sentinel
+		}
 		if entry.isPage {
 			pageDocByDir[entry.dirKey] = entry.doc
 		} else {
@@ -358,13 +456,18 @@ func (p *HoudiniReact) loadRouteDocuments(
 		}
 	}
 
-	return pageDocByDir, layoutDocByDir, nil
+	sort.Strings(mutations)
+	sort.Strings(subscriptions)
+	sort.Strings(endpointMutations)
+	return pageDocByDir, layoutDocByDir, mutations, subscriptions, endpointMutations, nil
 }
 
 type viewInfo struct {
 	pageViewPath   string // absolute path to +page.tsx or +page.jsx, empty if absent
 	layoutViewPath string // absolute path to +layout.tsx or +layout.jsx, empty if absent
 	errorViewPath  string // absolute path to +error.tsx or +error.jsx, empty if absent
+	pageHeaders    bool   // +page view exports a headers() function
+	layoutHeaders  bool   // +layout view exports a headers() function
 }
 
 // discoverViewFiles uses the parallel glob walker to find all +page and +layout view
@@ -398,12 +501,24 @@ func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) 
 		absPath := filepath.Join(routesDir, relPath)
 		base := filepath.Base(relPath)
 
+		// +page and +layout views may export a headers() function whose result is
+		// merged into the HTTP response. Detect it statically so the manifest only
+		// references modules that actually contribute headers.
+		hasHeaders := false
+		if strings.HasPrefix(base, "+page") || strings.HasPrefix(base, "+layout") {
+			if content, err := afero.ReadFile(p.Filesystem(), absPath); err == nil {
+				hasHeaders = fileExportsHeaders(string(content))
+			}
+		}
+
 		mu.Lock()
 		info := views[dir]
 		if strings.HasPrefix(base, "+page") {
 			info.pageViewPath = absPath
+			info.pageHeaders = hasHeaders
 		} else if strings.HasPrefix(base, "+layout") {
 			info.layoutViewPath = absPath
+			info.layoutHeaders = hasHeaders
 		} else {
 			info.errorViewPath = absPath
 		}
@@ -412,6 +527,35 @@ func (p *HoudiniReact) discoverViewFiles(ctx context.Context, routesDir string) 
 		return nil
 	})
 	return views, err
+}
+
+var (
+	headerFuncRe = regexp.MustCompile(`(?m)^\s*export\s+(?:async\s+)?function\s+headers\b`)
+	headerDeclRe = regexp.MustCompile(`(?m)^\s*export\s+(?:const|let|var)\s+headers\b`)
+	headerListRe = regexp.MustCompile(`(?ms)\bexport\s*\{([^}]*)\}`)
+)
+
+// fileExportsHeaders reports whether a route view module exports a value named
+// `headers`. It handles `export function headers`, `export const headers`, and
+// named export lists (`export { headers }` / `export { foo as headers }`).
+func fileExportsHeaders(content string) bool {
+	if headerFuncRe.MatchString(content) || headerDeclRe.MatchString(content) {
+		return true
+	}
+	for _, match := range headerListRe.FindAllStringSubmatch(content, -1) {
+		for _, clause := range strings.Split(match[1], ",") {
+			// The exported name is the alias after `as`, or the identifier itself.
+			fields := strings.Fields(clause)
+			if len(fields) == 0 {
+				continue
+			}
+			name := fields[len(fields)-1]
+			if name == "headers" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // dirKeyToURL converts a routesDir-relative directory key (e.g. "(subRoute)/nested")
@@ -423,12 +567,12 @@ func dirKeyToURL(dirKey string) string {
 	return "/" + filepath.ToSlash(dirKey) + "/"
 }
 
-// detectLocalAPI checks src/api for +schema and +yoga files.
-func (p *HoudiniReact) detectLocalAPI(apiDir string) (localSchema, localYoga bool, err error) {
+// detectLocalServer checks src/server for +schema, +yoga, and +config files.
+func (p *HoudiniReact) detectLocalServer(serverDir string) (localSchema, localYoga, localConfig bool, err error) {
 	fs := p.Filesystem()
-	entries, err := afero.ReadDir(fs, apiDir)
+	entries, err := afero.ReadDir(fs, serverDir)
 	if err != nil {
-		return false, false, nil // api dir doesn't exist — not an error
+		return false, false, false, nil // server dir doesn't exist — not an error
 	}
 	for _, entry := range entries {
 		name := entry.Name()
@@ -440,9 +584,11 @@ func (p *HoudiniReact) detectLocalAPI(apiDir string) (localSchema, localYoga boo
 			localSchema = true
 		case "+yoga":
 			localYoga = true
+		case "+config":
+			localConfig = true
 		}
 	}
-	return localSchema, localYoga, nil
+	return localSchema, localYoga, localConfig, nil
 }
 
 // pageID converts a URL (like "/(subRoute)/nested/") to a manifest ID (like "__subRoute__nested").
@@ -481,7 +627,6 @@ func modifiersToWrappers(modifiers string) []string {
 	return wrappers
 }
 
-
 // routeRelPath returns the document filepath relative to routesDir for queries,
 // using forward slashes.
 func routeRelPath(dbFilepath, projectRoot, routesDir string) string {
@@ -490,20 +635,68 @@ func routeRelPath(dbFilepath, projectRoot, routesDir string) string {
 	return toSlash(rel)
 }
 
-// buildParams extracts [param] segments from url and maps them to their types.
+// routeSegmentParams extracts the param names declared by the dynamic segments of a
+// route path (either a URL like "/shows/[id]" or a filepath under src/routes). It
+// understands the supported segment forms — [id], [[optional]], and [...rest] — and
+// normalizes each to the bare variable name.
+//
+// This is the single place the routing convention is decoded. Keeping it here means a
+// new convention (or a different router) can be supported by changing one function
+// rather than every consumer that needs to know which variables a route fills.
+func routeSegmentParams(path string) []string {
+	var names []string
+	for _, part := range strings.Split(path, "/") {
+		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
+			name := strings.Trim(part, "[]")
+			name = strings.TrimPrefix(name, "...")
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// routeParamSet is routeSegmentParams as a lookup set.
+func routeParamSet(path string) map[string]bool {
+	names := map[string]bool{}
+	for _, name := range routeSegmentParams(path) {
+		names[name] = true
+	}
+	return names
+}
+
+// buildParams maps a route's dynamic segments to the types of the variables they fill.
+// A segment with no matching variable maps to nil (an unconstrained param).
 func buildParams(url string, variables map[string]VariableTypeInfo) map[string]*ParamTypeInfo {
 	params := map[string]*ParamTypeInfo{}
-	for _, part := range strings.Split(url, "/") {
-		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			name := part[1 : len(part)-1]
-			if info, ok := variables[name]; ok {
-				params[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
-			} else {
-				params[name] = nil
-			}
+	for _, name := range routeSegmentParams(url) {
+		if info, ok := variables[name]; ok {
+			params[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
+		} else {
+			params[name] = nil
 		}
 	}
 	return params
+}
+
+// buildSearchParams returns the variables in scope that can be supplied via
+// URLSearchParams: every nullable variable that is not already consumed by a
+// route segment. Required (NonNull) variables are excluded so that a missing
+// search param can never produce a failing query (issue #1210).
+func buildSearchParams(url string, variables map[string]VariableTypeInfo) map[string]*ParamTypeInfo {
+	routeNames := routeParamSet(url)
+
+	searchParams := map[string]*ParamTypeInfo{}
+	for name, info := range variables {
+		if routeNames[name] {
+			continue
+		}
+		// a NonNull outer wrapper means the variable is required — skip it
+		if len(info.Wrappers) > 0 && info.Wrappers[0] == "NonNull" {
+			continue
+		}
+		searchParams[name] = &ParamTypeInfo{Type: info.Type, Wrappers: info.Wrappers}
+	}
+	return searchParams
 }
 
 func clone(s []string) []string {

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 
 import type { PluginSpec } from './codegen.js'
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS router_config (
     redirect TEXT UNIQUE,
     session_keys TEXT NOT NULL UNIQUE,
     url TEXT,
-    mutation TEXT UNIQUE
+    mutation TEXT UNIQUE,
+    providers TEXT
 );
 
 -- Runtime Scalar Definition
@@ -379,6 +381,24 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
     FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
+-- refetch_meta carries the "refetch" artifact-block metadata for documents that are
+-- refetchable but are NOT lists (e.g. @refetchable fragments). Lists keep their refetch
+-- metadata on discovered_lists since it is intrinsic to pagination; this table is for the
+-- list-less case so we don't have to fake a discovered_lists row.
+CREATE TABLE IF NOT EXISTS refetch_meta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document INTEGER NOT NULL,
+    selection INTEGER NOT NULL,
+    target_type TEXT NOT NULL,
+    method TEXT NOT NULL DEFAULT 'offset',
+    mode TEXT NOT NULL DEFAULT 'Infinite',
+    page_size INTEGER NOT NULL DEFAULT 0,
+    embedded BOOLEAN NOT NULL DEFAULT false,
+
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (selection) REFERENCES selections(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
   depends_on TEXT NOT NULL,
@@ -399,6 +419,10 @@ CREATE INDEX IF NOT EXISTS idx_discovered_lists_document ON discovered_lists(doc
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_node ON discovered_lists(node);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_list_field ON discovered_lists(list_field);
 -- note: no index on discovered_lists(connection) — boolean column, ~2 distinct values
+
+-- refetch_meta
+CREATE INDEX IF NOT EXISTS idx_refetch_meta_selection ON refetch_meta(selection);
+CREATE INDEX IF NOT EXISTS idx_refetch_meta_document ON refetch_meta(document);
 
 -- types
 CREATE INDEX IF NOT EXISTS idx_types_kind_operation ON types(kind, operation);
@@ -491,6 +515,14 @@ CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_c
 CREATE INDEX IF NOT EXISTS idx_argument_value_children_document ON argument_value_children(document);
 `
 
+// schema_version is a checksum of create_schema, stamped into the database's
+// PRAGMA user_version. When the schema changes the checksum changes, so a
+// persisted database from an older compiler is detected as stale and rebuilt
+// from scratch (we deliberately don't migrate — see connect_db). The value is
+// masked to 31 bits to fit SQLite's signed 32-bit user_version field.
+export const schema_version =
+	parseInt(createHash('sha1').update(create_schema).digest('hex').slice(0, 8), 16) & 0x7fffffff
+
 export async function write_config(
 	db: Db,
 	config: Config,
@@ -571,36 +603,33 @@ export async function write_config(
 		db.run('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)', [name, type])
 	}
 
-	// write router config
-	if (config.config_file.router) {
-		const session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		const api_endpoint: string | null = null
-		let url: string | null = null
-		let mutation: string | null = null
-		let redirect: string | null = null
-
-		if (config.config_file.router.auth) {
-			if ('mutation' in config.config_file.router.auth) {
-				mutation = config.config_file.router.auth.mutation
-			} else {
-				redirect = config.config_file.router.auth.redirect
-			}
-			url = config.config_file.router.auth.url ?? null
-		}
-
+	// write router config. The secrets (session_keys) come from server_config (src/server/+config)
+	// and never reach the client. The GraphQL endpoint (api_endpoint) is server-only config too;
+	// codegen bakes it into the client as the local API path.
+	{
+		const auth = config.server_config.auth
 		db.run(
-			`INSERT INTO router_config (redirect, session_keys, url, mutation, redirect, api_endpoint)
+			`INSERT INTO router_config (api_endpoint, redirect, session_keys, url, mutation, providers)
 			 VALUES (?, ?, ?, ?, ?, ?)`,
-			[redirect, session_keys, url, mutation, redirect, api_endpoint]
+			[
+				config.server_config.endpoint ?? null,
+				// the trusted redirect-login integration url (enables /login + the loginURL helper)
+				auth?.redirect?.url ?? null,
+				auth?.sessionKeys?.join(',') ?? '',
+				auth?.url ?? null,
+				null,
+				// the configured first-class OAuth provider names — codegen bakes these into the
+				// typed `provider` argument of loginURL, and /login gates on them too
+				auth?.providers ? Object.keys(auth.providers).join(',') : null,
+			]
 		)
 	}
 
 	// add watch_schema_config
 	if (config.config_file.watchSchema) {
-		const url =
-			typeof config.config_file.watchSchema.url === 'string'
-				? config.config_file.watchSchema.url
-				: config.config_file.watchSchema.url(env)
+		// watchSchema.url is optional now — fall back to the top-level `url`. Resolve a function form.
+		const configuredUrl = config.config_file.watchSchema.url ?? config.config_file.url
+		const url = typeof configuredUrl === 'function' ? configuredUrl(env) : (configuredUrl ?? '')
 		const headers = !config.config_file.watchSchema.headers
 			? {}
 			: typeof config.config_file.watchSchema.headers === 'function'

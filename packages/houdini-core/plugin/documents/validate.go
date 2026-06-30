@@ -10,8 +10,6 @@ import (
 	"sort"
 	"strings"
 
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
@@ -1761,6 +1759,119 @@ func ValidateOptimisticKeyOnScalar(
 	}
 }
 
+func ValidateRefetchDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// @refetch marks the record(s) returned by a field so the cache refetches every
+	// document that depends on them. the field has to return a keyable object/abstract
+	// type (a list of them is fine — we refresh each), so we reject scalars, keyless
+	// types, and fields that already carry the list/pagination machinery.
+	query := `
+	SELECT
+	  s.field_name,
+	  tf.type_modifiers,
+	  t.kind AS fieldTypeKind,
+	  COALESCE(tc.keys, c.default_keys) AS keys,
+	  rd.filepath,
+	  sr.row,
+	  sr.column,
+	  d.name AS documentName,
+	  d.kind AS documentKind,
+	  EXISTS(
+	    SELECT 1 FROM selection_directives sd2
+	    WHERE sd2.selection_id = s.id AND sd2.directive IN ($list_directive, $paginate_directive)
+	  ) AS hasListDirective
+	FROM selections s
+	  JOIN selection_directives sd ON s.id = sd.selection_id
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN types t ON tf.type = t.name
+	  LEFT JOIN type_configs tc ON tc.name = tf.type
+	  CROSS JOIN config c
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE sd.directive = $refetch_directive
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	bindings := map[string]any{
+		"refetch_directive":  graphql.RefetchDirective,
+		"list_directive":     graphql.ListDirective,
+		"paginate_directive": graphql.PaginationDirective,
+	}
+
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
+		fieldName := stmt.ColumnText(0)
+		fieldTypeKind := stmt.ColumnText(2)
+		keys := strings.TrimSpace(stmt.ColumnText(3))
+		filepath := stmt.ColumnText(4)
+		row := int(stmt.ColumnInt(5))
+		column := int(stmt.ColumnInt(6))
+		docName := stmt.ColumnText(7)
+		docKind := stmt.ColumnText(8)
+		hasListDirective := stmt.ColumnInt(9) != 0
+
+		location := []*plugins.ErrorLocation{{Filepath: filepath, Line: row, Column: column}}
+
+		// @refetch is a side effect of writing a response; it belongs on a mutation
+		// or subscription. on a query it would refetch the document itself.
+		if docKind != "mutation" && docKind != "subscription" {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s can only be used in a mutation or subscription, but field %q appears in %s %q",
+					graphql.RefetchDirective, fieldName, docKind, docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			return
+		}
+
+		// the field has to return an object/abstract type so we can identify a record
+		if fieldTypeKind != "OBJECT" && fieldTypeKind != "INTERFACE" && fieldTypeKind != "UNION" {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s can only be used on fields that return an object type, but field %q in document %q returns a %s",
+					graphql.RefetchDirective, fieldName, docName, fieldTypeKind,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			return
+		}
+
+		// @list / @paginate fields have their own machinery and aren't single records
+		if hasListDirective {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s cannot be combined with @%s or @%s (field %q in document %q)",
+					graphql.RefetchDirective, graphql.ListDirective, graphql.PaginationDirective, fieldName, docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+			return
+		}
+
+		// we need keys to identify the record to refetch
+		if keys == "" || keys == "[]" {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf(
+					"@%s can only be used on types with keys, but field %q in document %q returns a keyless type",
+					graphql.RefetchDirective, fieldName, docName,
+				),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: location,
+			})
+		}
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidateOptimisticKeyFullSelection(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -1942,5 +2053,111 @@ func ValidateOptimisticKeyFullSelection(
 				break
 			}
 		}
+	}
+}
+
+// ValidatePluralDirective enforces the constraints around the @plural directive (mirrors
+// Relay's @relay(plural: true) rules):
+//   - a @plural fragment may only be spread on a list field (a field backed by a GraphQL list),
+//     since the consumer receives the whole list as an array.
+//   - @plural may not be combined with @paginate, whose refetch machinery assumes a single record.
+func ValidatePluralDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	// Rule 1: a @plural fragment must be spread on a list field. We look at every fragment
+	// spread whose referenced fragment definition carries @plural, resolve the enclosing
+	// parent field's type_modifiers, and flag any whose modifiers do not encode a list
+	// (list types contain "]" in the inner→outer modifier encoding). Spreads with no
+	// enclosing field (parent_id IS NULL, e.g. at the document root) are also invalid.
+	spreadQuery := `
+	SELECT
+	  spread.field_name AS fragmentName,
+	  rd.filepath,
+	  sr.row,
+	  sr.column
+	FROM selections spread
+	  JOIN selection_refs sr ON sr.child_id = spread.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN documents frag ON frag.name = spread.field_name AND frag.kind = 'fragment'
+	  JOIN document_directives dd ON dd.document = frag.id AND dd.directive = $plural_directive
+	  LEFT JOIN selections pf ON pf.id = sr.parent_id
+	  LEFT JOIN type_fields tf ON tf.id = pf.type
+	WHERE spread.kind = 'fragment'
+	  AND (sr.parent_id IS NULL OR tf.type_modifiers IS NULL OR tf.type_modifiers NOT LIKE '%]%')
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	err := db.StepQuery(ctx, spreadQuery, map[string]any{
+		"plural_directive": graphql.PluralDirective,
+	}, func(stmt plugins.Row) {
+		fragmentName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		row := int(stmt.ColumnInt(2))
+		column := int(stmt.ColumnInt(3))
+
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"fragment %q is marked @%s and can only be spread on a list field",
+				fragmentName,
+				graphql.PluralDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+
+	// Rule 2: @plural and @paginate cannot coexist on the same fragment.
+	paginateQuery := `
+	SELECT
+	  d.name AS fragmentName,
+	  rd.filepath,
+	  dd.row,
+	  dd.column
+	FROM documents d
+	  JOIN document_directives dd ON dd.document = d.id AND dd.directive = $plural_directive
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE d.kind = 'fragment'
+	  AND EXISTS (
+	    SELECT 1
+	    FROM selections s
+	      JOIN selection_refs sr ON sr.child_id = s.id AND sr.document = d.id
+	      JOIN selection_directives sd ON sd.selection_id = s.id
+	    WHERE sd.directive = $paginate_directive
+	  )
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	err = db.StepQuery(ctx, paginateQuery, map[string]any{
+		"plural_directive":   graphql.PluralDirective,
+		"paginate_directive": graphql.PaginationDirective,
+	}, func(stmt plugins.Row) {
+		fragmentName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		row := int(stmt.ColumnInt(2))
+		column := int(stmt.ColumnInt(3))
+
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"fragment %q cannot use both @%s and @%s",
+				fragmentName,
+				graphql.PluralDirective,
+				graphql.PaginationDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
 	}
 }

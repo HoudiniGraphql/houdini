@@ -1,4 +1,10 @@
-import { extractPageInfo, cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import {
+	extractPageInfo,
+	cursorHandlers,
+	offsetHandlers,
+	getCurrentConfig,
+	entityRefetchVariables,
+} from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
@@ -24,11 +30,11 @@ export function useFragmentHandle<
 	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
 ): any {
-	// get the fragment values
 	const fragmentData = useFragment<_Data, _ReferenceType, _Input>(reference, document)
-
-	// look at the fragment reference to get the variables
-	const { variables } = fragmentReference<_Data, _Input, _ReferenceType>(reference, document)
+	const { variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
+		reference,
+		document
+	)
 
 	const client = useClient()
 	const [session] = useSession()
@@ -36,30 +42,25 @@ export function useFragmentHandle<
 	const [forwardPending, setForwardPending] = React.useState(false)
 	const [backwardPending, setBackwardPending] = React.useState(false)
 
-	// Stable cursor stacks for SinglePage pagination — must survive re-renders
 	const previousCursorsRef = React.useRef<(string | null)[]>([])
 	const nextCursorsRef = React.useRef<(string | null)[]>([])
 
 	const refetchArtifact = document.refetchArtifact as QueryArtifact | undefined
 	const refetchPath = refetchArtifact?.refetch?.path
 
-	// Dedicated observer for pagination queries — separate from the fragment observer.
-	// cursorHandlers derives entity variables (e.g. { id }) and artifact defaults
-	// automatically via the type config, so no manual variable extraction is needed here.
 	const paginationObserver = React.useMemo(() => {
 		if (!refetchArtifact?.refetch?.paginated) return null
 		return client.observe<_Data, _Input>({ artifact: refetchArtifact })
 	}, [refetchArtifact?.name])
 
-	// Subscribe to the pagination observer so React re-renders whenever a new page is fetched
-	// or served from cache (CacheOrNetwork). The fragment store subscription only watches the
-	// initial page's cache key; the observer is the live source of truth for SinglePage
-	// pagination where each page lives at its own per-cursor cache key.
+	const isSinglePage = refetchArtifact?.refetch?.mode === 'SinglePage'
+
+	// Subscribe to the pagination observer so the component re-renders when a new page lands.
+	// For SinglePage we pass disablePartial so partial cache hits (entity found but connection
+	// not yet fetched) are never resolved back to the observer — we go straight to the network
+	// and update the observer only once we have a complete page.
 	const subscribeToObserver = React.useCallback(
-		(onChange: () => void) => {
-			if (!paginationObserver) return () => {}
-			return paginationObserver.subscribe(onChange)
-		},
+		(fn: () => void) => paginationObserver?.subscribe(() => fn()) ?? (() => {}),
 		[paginationObserver]
 	)
 	const getObserverSnapshot = React.useCallback(
@@ -72,30 +73,51 @@ export function useFragmentHandle<
 		getObserverSnapshot
 	)
 
-	// Extract entity-level data from the pagination query response. For Node targetType
-	// the response is { node: EntityData }; we take the first root field to handle any type.
-	// Guard against partial cache hits (artifact has partial:true): only use the entity once the
-	// paginated connection field at refetch.path[0] is actually present in the response.
 	const paginationEntityData = React.useMemo<_Data | null>(() => {
 		if (!paginationData || !refetchArtifact?.selection?.fields) return null
 		const rootField = Object.keys(refetchArtifact.selection.fields)[0]
 		if (!rootField) return null
-		const entity = (paginationData as any)[rootField]
-		if (!entity) return null
-		const path = refetchArtifact.refetch?.path
-		if (path && path.length > 0 && (entity as any)[path[0]] == null) {
-			return null
-		}
-		return entity as _Data
+		return (paginationData as any)[rootField] ?? null
 	}, [paginationData, refetchArtifact])
 
-	const isSinglePage = refetchArtifact?.refetch?.mode === 'SinglePage'
+	// @refetchable fragments embed the fragment in a query keyed by id (paginated: false).
+	// We observe that query so refetch() can swap in fresh data computed with new argument
+	// values, just like SinglePage pagination swaps in the latest page.
+	const isRefetchable = !!refetchArtifact?.refetch && !refetchArtifact.refetch.paginated
 
-	// For SinglePage: use the pagination observer's entity data (each page has its own
-	// cache key) once a page fetch has landed. For Infinite: always use fragmentData,
-	// which reads accumulated pages from cache via the fragment's cache subscription.
+	const refetchObserver = React.useMemo(() => {
+		if (!isRefetchable || !refetchArtifact) return null
+		return client.observe<_Data, _Input>({ artifact: refetchArtifact })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetchArtifact?.name, isRefetchable])
+
+	const subscribeToRefetch = React.useCallback(
+		(fn: () => void) => refetchObserver?.subscribe(() => fn()) ?? (() => {}),
+		[refetchObserver]
+	)
+	const getRefetchSnapshot = React.useCallback(
+		() => refetchObserver?.state.data ?? null,
+		[refetchObserver]
+	)
+	const refetchData = React.useSyncExternalStore(
+		subscribeToRefetch,
+		getRefetchSnapshot,
+		getRefetchSnapshot
+	)
+
+	const refetchEntityData = React.useMemo<_Data | null>(() => {
+		if (!refetchData || !refetchArtifact?.selection?.fields) return null
+		const rootField = Object.keys(refetchArtifact.selection.fields)[0]
+		if (!rootField) return null
+		return (refetchData as any)[rootField] ?? null
+	}, [refetchData, refetchArtifact])
+
 	const displayData =
-		isSinglePage && paginationEntityData !== null ? paginationEntityData : fragmentData
+		isSinglePage && paginationEntityData !== null
+			? paginationEntityData
+			: isRefetchable && refetchEntityData !== null
+				? refetchEntityData
+				: fragmentData
 
 	const wrapLoad = <_Result>(
 		setLoading: (val: boolean) => void,
@@ -120,7 +142,19 @@ export function useFragmentHandle<
 		if (!refetchArtifact?.refetch?.paginated || !paginationObserver) return null
 
 		const fetchFn: FetchFn<_Data, _Input> = (args) => {
-			return paginationObserver.send({ ...args, session })
+			return paginationObserver.send({
+				...args,
+				session,
+				stuff: { silenceLoading: true },
+				cacheParams: {
+					disableSubscriptions: true,
+					// Suppress partial cache hits so an in-flight forward navigation never
+					// briefly resolves with an entity that is missing its connection field.
+					// Full cache hits (partial: false) still resolve, so backward navigation
+					// continues to be served instantly from cache.
+					disablePartial: true,
+				},
+			})
 		}
 
 		const fetchUpdate = (args: any, updates: string[]) => {
@@ -139,10 +173,10 @@ export function useFragmentHandle<
 			const handlers = cursorHandlers<_Data, _Input>({
 				artifact: refetchArtifact,
 				getState: () => displayData as _Data | null,
-				// Use the observer's own variable state so cursor history is preserved
-				// across page navigations without manual tracking in the hook.
 				getVariables: () =>
 					(paginationObserver.state.variables ?? variables) as NonNullable<_Input>,
+				// no-op pagination while the parent is still in its @loading state (issue #1408)
+				getLoading: () => loading,
 				fetch: fetchFn,
 				fetchUpdate,
 				getSession: async () => session,
@@ -167,6 +201,8 @@ export function useFragmentHandle<
 				getState: () => displayData as _Data | null,
 				getVariables: () =>
 					(paginationObserver.state.variables ?? variables) as NonNullable<_Input>,
+				// no-op pagination while the parent is still in its @loading state (issue #1408)
+				getLoading: () => loading,
 				storeName: refetchArtifact.name,
 				fetch: fetchFn,
 				fetchUpdate: async (args: any, updates = ['append']) =>
@@ -181,11 +217,58 @@ export function useFragmentHandle<
 		}
 
 		return null
-	}, [refetchArtifact, paginationObserver, displayData, session, forwardPending, backwardPending])
+	}, [
+		refetchArtifact,
+		paginationObserver,
+		displayData,
+		session,
+		forwardPending,
+		backwardPending,
+		loading,
+	])
+
+	// the fragment's current argument values: the initial args overlaid with everything that
+	// has been passed to refetch() so far. we track these explicitly rather than reading them
+	// back off the embedded query, whose variables also carry the synthetic id-lookup keys.
+	const [refetchArgs, setRefetchArgs] = React.useState<Partial<_Input>>({})
+
+	// re-run the embedded query with new argument values. the entity's id is derived from
+	// the fragment data (the parent reference), which always carries the visible id. we must
+	// NOT derive it from displayData: after a refetch that becomes the embedded query result,
+	// which masks the entity's id out of its selection, so reading it back would yield
+	// `id: undefined` and clobber the real id on a second refetch.
+	const refetch = React.useMemo(() => {
+		if (!isRefetchable || !refetchObserver || !refetchArtifact) return undefined
+		return (newVariables?: _Input) => {
+			setRefetchArgs((prev) => ({ ...prev, ...newVariables }))
+			const idVariables = entityRefetchVariables(
+				getCurrentConfig(),
+				refetchArtifact.refetch?.targetType,
+				fragmentData as Record<string, any> | null
+			)
+			return refetchObserver.send({
+				variables: {
+					...(refetchObserver.state.variables ?? variables),
+					...idVariables,
+					...newVariables,
+				} as _Input,
+				// suppress loading-state placeholder data during the transition so the
+				// currently displayed value stays put until the fresh result arrives
+				stuff: { silenceLoading: true },
+				cacheParams: { disableSubscriptions: true, disablePartial: true },
+				session,
+			})
+		}
+	}, [isRefetchable, refetchObserver, refetchArtifact, fragmentData, variables, session])
+
+	const displayVariables = isRefetchable
+		? ({ ...(variables as Record<string, any>), ...refetchArgs } as _Input)
+		: variables
 
 	return {
 		...handle,
-		variables,
+		variables: displayVariables,
 		data: displayData,
+		refetch,
 	}
 }

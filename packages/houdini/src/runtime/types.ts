@@ -90,6 +90,9 @@ export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
 	enableLoadingState?: 'global' | 'local'
+	// @plural marks the fragment as list-shaped: it is spread on a list field and
+	// consumed as an array of items rather than a single record.
+	plural?: boolean
 }
 
 export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
@@ -109,6 +112,25 @@ export type InputObject = {
 	runtimeScalars: Record<string, string>
 }
 
+// the parsed @endpoint(redirect:) template: literal string segments interleaved with
+// interpolation paths (each a dotted field path as a string array), e.g.
+// ["/users/", ["createUser", "id"]]. Built by the compiler; interpolated identically by
+// the server form handler and the client form hook.
+export type RedirectTemplate = ReadonlyArray<string | readonly string[]>
+
+// @endpoint metadata on a mutation artifact: the marker that a mutation is form-submittable
+// plus what the runtime/server need to drive the form.
+export type EndpointSpec = {
+	redirect?: RedirectTemplate
+	multipart?: boolean
+	id?: string
+	// an optional allowlist of form-field names (`@endpoint(fields: […])`). When present,
+	// only these submitted keys are accepted; everything else is dropped before the mutation
+	// runs — the mitigation for in-schema over-posting / mass assignment. Entries use the
+	// same dotted/`[]` vocabulary as form field names ("input.email", "tags[]").
+	fields?: readonly string[]
+}
+
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	name: string
 	kind: _Kind
@@ -117,6 +139,12 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
+	endpoint?: EndpointSpec
+	// @session: a dotted path into the mutation result whose object value writes App.Session.
+	// Orthogonal to `endpoint` — present on any session-writing mutation, form or not.
+	sessionPath?: string
+	// @session(merge: true): upsert the value into the existing session instead of replacing it.
+	sessionMerge?: boolean
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {
@@ -130,8 +158,17 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
+	// document-level operations applied after the response is written to the cache.
+	// @refetch records the path to a record that every dependent document should refetch.
+	operations?: readonly RootOperation[]
 	pluginData: Record<string, any>
 }>
+
+export type RootOperation = {
+	action: 'refetch'
+	type: string
+	path: readonly string[]
+}
 
 export type HoudiniFetchContext = {
 	variables: () => {}
@@ -179,14 +216,8 @@ export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete' | 'toggle' | 'upsert'
 	list?: string
 	type?: string
-	parentID?: {
-		kind: string
-		value: string
-	}
-	listID?: {
-		kind: string
-		value: string
-	}
+	parentID?: ValueNode
+	listID?: ValueNode
 	position?: 'first' | 'last'
 	target?: 'all'
 	// when conditions are encoded as filter nodes so that variable references
@@ -292,6 +323,9 @@ export type CacheMessage<_Data = any> =
 
 export type SubscriptionSpec = Readonly<{
 	rootType: string
+	// the kind of document that registered this subscription. used to decide
+	// which documents a cache.refresh() should ask to refetch.
+	kind?: ArtifactKinds
 	selection: SubscriptionSelection
 	onMessage: (message: CacheMessage) => void
 	parentID?: string
@@ -318,11 +352,17 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 	stale: boolean
 	source: DataSources | null
 	variables: _Input | null
+	// response-level GraphQL extensions (e.g. the @session mint token under
+	// `houdiniSession`); present when the network response carried an extensions object
+	extensions?: Record<string, any>
 }
 
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
 	errors: GraphQLError[] | null
+	// response-level GraphQL extensions (e.g. the @session session-mint token under
+	// `houdiniSession`); present when the network response carried an extensions object
+	extensions?: Record<string, any>
 }
 
 export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
@@ -462,8 +502,62 @@ export const PendingValue = Symbol('houdini_loading')
 
 export type LoadingType = typeof PendingValue
 
-export function isPending(value: any): value is LoadingType {
-	return typeof value === 'symbol'
+// ContainsPending is true when T holds a PendingValue (LoadingType) anywhere:
+// directly, as a list element, or nested in an object field. This lets isPending
+// narrow a whole loading-state object/list, not just a scalar leaf.
+type ContainsPending<T> = [T] extends [LoadingType]
+	? true
+	: T extends readonly (infer E)[]
+		? ContainsPending<E>
+		: T extends object
+			? true extends { [K in keyof T]-?: ContainsPending<T[K]> }[keyof T]
+				? true
+				: false
+			: false
+
+// The members of a union whose value is (or contains) a pending placeholder. For a
+// generated `{ ...data } | { ...loading }` result, this resolves to the loading member,
+// so the false branch of the guard narrows to the fully-resolved member.
+type PendingMembers<T> = T extends unknown ? (ContainsPending<T> extends true ? T : never) : never
+
+// isPending returns true when `value` is a pending placeholder or contains one anywhere
+// (it walks objects and arrays). Pass a scalar leaf (e.g. `isPending(user.name)`) to
+// short-circuit both the runtime walk and the type-level recursion.
+export function isPending<T>(value: T): value is PendingMembers<T> {
+	return containsPendingValue(value)
+}
+
+function containsPendingValue(value: unknown, seen?: Set<unknown>): boolean {
+	// match any symbol, not `=== PendingValue`: PendingValue is a non-global Symbol(),
+	// so the server and client hold distinct instances that never compare equal across
+	// the realm boundary. typeof is realm-agnostic (matches the original implementation).
+	if (typeof value === 'symbol') {
+		return true
+	}
+	if (value === null || typeof value !== 'object') {
+		return false
+	}
+	// guard against cyclic structures
+	seen = seen ?? new Set()
+	if (seen.has(value)) {
+		return false
+	}
+	seen.add(value)
+
+	if (Array.isArray(value)) {
+		for (const element of value) {
+			if (containsPendingValue(element, seen)) {
+				return true
+			}
+		}
+		return false
+	}
+	for (const key of Object.keys(value)) {
+		if (containsPendingValue((value as Record<string, unknown>)[key], seen)) {
+			return true
+		}
+	}
+	return false
 }
 
 export const CachePolicy = {

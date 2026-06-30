@@ -23,6 +23,7 @@ export function cursorHandlers<
 	getState,
 	getVariables,
 	getSession,
+	getLoading,
 	previousCursors = [],
 	nextCursors = [],
 }: {
@@ -32,6 +33,10 @@ export function cursorHandlers<
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
+	// true while the fragment is spread on a parent that is still rendering its @loading state.
+	// the cache stamps this onto the fragment reference, so the handlers can no-op instead of
+	// firing a node(id: PendingValue) request that can never resolve (issue #1408).
+	getLoading?: () => boolean
 	previousCursors?: (string | null)[]
 	nextCursors?: (string | null)[]
 }): CursorHandlers<_Data, _Input> {
@@ -107,6 +112,19 @@ export function cursorHandlers<
 		return extractPageInfo(getState(), artifact.refetch?.path ?? [])
 	}
 
+	// a resolved no-op result used when there is nothing to paginate (e.g. the parent entity
+	// is still in its @loading state, so its id is a PendingValue placeholder)
+	const loadingNoOp = (): Promise<QueryResult<_Data, _Input>> =>
+		Promise.resolve({
+			data: getState(),
+			errors: null,
+			fetching: false,
+			partial: false,
+			stale: false,
+			source: DataSource.Cache,
+			variables: getVariables(),
+		})
+
 	return {
 		loadNextPage: ({
 			first,
@@ -119,6 +137,12 @@ export function cursorHandlers<
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			// the parent entity hasn't resolved yet (still @loading): don't fire a node(id:
+			// PendingValue) request that can't succeed
+			if (getLoading?.()) {
+				return loadingNoOp()
+			}
+
 			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 			const direction = artifact.refetch?.direction
 
@@ -220,6 +244,11 @@ export function cursorHandlers<
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			// the parent entity hasn't resolved yet (still @loading): nothing to paginate
+			if (getLoading?.()) {
+				return loadingNoOp()
+			}
+
 			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 			const direction = artifact.refetch?.direction
 
@@ -307,6 +336,11 @@ export function cursorHandlers<
 		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = args ?? {}
 
+			// the parent entity hasn't resolved yet (still @loading): nothing to refetch
+			if (getLoading?.()) {
+				return loadingNoOp()
+			}
+
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {
 				return await parentFetch(args)
@@ -390,6 +424,7 @@ export function offsetHandlers<
 	fetch: parentFetch,
 	fetchUpdate: parentFetchUpdate,
 	getSession,
+	getLoading,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
@@ -398,6 +433,8 @@ export function offsetHandlers<
 	getState: () => _Data | null
 	getVariables: () => _Input
 	getSession: () => Promise<App.Session>
+	// true while the fragment's parent is still rendering its @loading state (issue #1408)
+	getLoading?: () => boolean
 }) {
 	// Get the Pagination Mode
 	const isSinglePage = artifact.refetch?.mode === 'SinglePage'
@@ -431,6 +468,11 @@ export function offsetHandlers<
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			// the parent entity hasn't resolved yet (still @loading): nothing to paginate
+			if (getLoading?.()) {
+				return
+			}
+
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
 				...getVariables(),
@@ -462,6 +504,19 @@ export function offsetHandlers<
 		},
 		async fetch(params: FetchParams<_Input> = {}): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params
+
+			// the parent entity hasn't resolved yet (still @loading): nothing to refetch
+			if (getLoading?.()) {
+				return {
+					data: getState(),
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: getVariables() ?? null,
+				}
+			}
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {

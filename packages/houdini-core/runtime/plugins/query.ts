@@ -70,6 +70,7 @@ export const query = (cache: Cache) =>
 					// save the new subscription spec
 					subscriptionSpec = {
 						rootType: ctx.artifact.rootType,
+						kind: ctx.artifact.kind,
 						selection: ctx.artifact.selection,
 						variables: () => variables,
 						onMessage: (message) => {

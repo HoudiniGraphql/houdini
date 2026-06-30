@@ -1,0 +1,5 @@
+query RefetchableCustomQuery {
+	refetchableEntity(id: "1") {
+		...RefetchableEntityInfo @with(size: 50)
+	}
+}

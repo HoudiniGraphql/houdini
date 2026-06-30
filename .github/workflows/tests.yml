@@ -12,6 +12,37 @@ env:
     PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
 
 jobs:
+    verify_changesets:
+        name: Verify Changeset Consistency
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request'
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: Check houdini-core changesets include houdini
+              run: |
+                  FAILED=0
+                  ADDED=$(git diff --name-only --diff-filter=A "origin/${{ github.base_ref }}...HEAD" -- '.changeset/*.md' | grep -v 'README.md' || true)
+
+                  if [ -z "$ADDED" ]; then
+                    echo "No new changeset files."
+                    exit 0
+                  fi
+
+                  while IFS= read -r file; do
+                    [ -z "$file" ] && continue
+                    frontmatter=$(awk '/^---$/{f++; if(f==2) exit; next} f==1{print}' "$file")
+                    if echo "$frontmatter" | grep -qE "^('houdini-core'|\"houdini-core\"):"; then
+                      if ! echo "$frontmatter" | grep -qE "^('houdini'|\"houdini\"):"; then
+                        echo "::error file=$file::Changeset bumps houdini-core without bumping houdini. Every houdini-core bump must include a houdini bump so consumers pick it up."
+                        FAILED=1
+                      fi
+                    fi
+                  done <<< "$ADDED"
+
+                  exit $FAILED
+
     format:
         name: Format
         runs-on: ubuntu-latest
@@ -75,7 +106,40 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - run: pnpm --filter e2e-react generate
             - run: pnpm run tests
+
+    e2e_unit_tests:
+        name: Unit Tests (e2e-react)
+        runs-on: ubuntu-latest
+        needs: [format]
+        if: always()
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.head_ref || github.sha }}
+            - uses: actions/setup-node@v3
+              with:
+                node-version: 24.9.0
+            - uses: actions/setup-go@v4
+              with:
+                  go-version: '1.23.2'
+                  cache: true
+            - uses: pnpm/action-setup@v4.1.0
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+            - uses: actions/cache@v3
+              with:
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - run: pnpm --filter e2e-react unit
 
     go_tests:
         name: Go Tests
@@ -162,7 +226,7 @@ jobs:
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
             - if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
-            - if: matrix.framework != 'e2e-react'
+            - if: matrix.framework == 'e2e-kit'
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
             - if: matrix.framework == 'e2e-react'
               run: pnpm --filter ${{ matrix.framework }} tests

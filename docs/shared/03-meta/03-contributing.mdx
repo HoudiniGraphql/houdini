@@ -7,9 +7,9 @@ First off, thanks for the interest in contributing to Houdini.
 
 This document should provide some guidance for working on the project, including tips for local development and an introduction to the internal architecture and relevant files.
 
-**Note**: this document contains links to files that could easily be invalidated by future work. If you run into a broken link, please open a PR to fix it — keeping documentation up to date is as important as any bug fix or new feature.
+**Note**: this document contains links to files that could easily be invalidated by future work. If you run into a broken link, please open a PR to fix it. Keeping documentation up to date is as important as any bug fix or new feature.
 
-Before diving in, the [architecture guide](/api/architecture) is worth a read — it explains how the compiler's process model works, how plugins communicate, and how the shared database fits together. That context makes the rest of this document a lot easier to follow.
+Before diving in, the [architecture guide](~/core/architecture) is worth a read. It explains how the compiler's process model works, how plugins communicate, and how the shared database fits together. That context makes the rest of this document a lot easier to follow.
 
 ## General Introduction
 
@@ -17,7 +17,7 @@ At a high level, Houdini is broken up into a few parts. The core compiler pipeli
 
 ## Local Development
 
-The quickest way to test and develop new features is by using the [end-to-end tests](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e/kit). Starting with `pnpm i && pnpm build` at the root of the repository will handle linking everything up. Once that's done, run `pnpm dev` inside the `e2e/kit` directory to start both the web app and API development servers. After all of this, visiting `localhost:5173` should show the end-to-end test suite. We recommend creating a route in that application to work against — don't worry about where it "belongs", we'll sort that out when the PR is open.
+The quickest way to test and develop new features is by using the [end-to-end tests](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e/kit). Starting with `pnpm i && pnpm build` at the root of the repository will handle linking everything up. Once that's done, run `pnpm dev` inside the `e2e/kit` directory to start both the web app and API development servers. After all of this, visiting `localhost:5173` should show the end-to-end test suite. We recommend creating a route in that application to work against. Don't worry about where it "belongs"; we'll sort that out when the PR is open.
 
 Make sure you're using Node.js and pnpm versions compatible with the `engines` config in the repo's `package.json`, otherwise behavior between local, CI, and deploy environments may diverge. Some good options for managing multiple Node versions:
 
@@ -27,7 +27,7 @@ Make sure you're using Node.js and pnpm versions compatible with the `engines` c
 
 ## Code Generation
 
-Houdini's code generation pipeline is written in Go. The core pipeline logic lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core), with framework-specific codegen in the corresponding package (e.g. [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react)). The shared library for building plugins lives in [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins). Each plugin runs as a long-running process and communicates with the Node.js orchestrator over WebSocket, sharing state through a common SQLite database — see the [architecture guide](/api/architecture) for the full picture.
+Houdini's code generation pipeline is written in Go. The core pipeline logic lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core), with framework-specific codegen in the corresponding package (e.g. [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react)). The shared library for building plugins lives in [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins). Each plugin runs as a long-running process and communicates with the Node.js orchestrator over WebSocket, sharing state through a common SQLite database. See the [architecture guide](~/core/architecture) for the full picture.
 
 The pipeline tasks fall into three categories:
 
@@ -53,7 +53,7 @@ The cache is built on two core operations: writing data and subscribing to a sel
 
 When writing, the cache walks the result and stores every field value in a normalized map keyed by entity ID. References to other entities are stored as references rather than inline values, so updates only need to happen in one place regardless of how many times an entity appears across queries.
 
-Subscriptions keep stores up to date as values change. The cache walks a given selection and embeds a reference to the store's `set` function alongside the field values for each entity. When data is written, the cache captures every relevant `set` function and calls it with the updated selection. For a good conceptual introduction to normalized caching, the [urql docs on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/) are worth a read — the concepts carry over even if some implementation details differ.
+Subscriptions keep stores up to date as values change. The cache walks a given selection and embeds a reference to the store's `set` function alongside the field values for each entity. When data is written, the cache captures every relevant `set` function and calls it with the updated selection. For a good conceptual introduction to normalized caching, the [urql docs on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/) are worth a read; the concepts carry over even if some implementation details differ.
 
 ## End-to-End Tests
 
@@ -82,7 +82,7 @@ The Go pipeline tests live in `plugin/` subdirectories of each package (e.g. `pa
 go test ./...
 ```
 
-Each test uses `tests.RunTable` from `plugins/tests/` — it spins up an in-memory SQLite database, runs the pipeline steps (extract → validate → generate), and asserts on the resulting artifacts. These are the right tests to write when you change Go plugin logic.
+Each test uses `tests.RunTable` from `plugins/tests/`. It spins up an in-memory SQLite database, runs the pipeline steps (extract → validate → generate), and asserts on the resulting artifacts. These are the right tests to write when you change Go plugin logic.
 
 ### Playwright e2e tests (e2e apps)
 
@@ -91,12 +91,12 @@ The `e2e/kit/` (SvelteKit) and `e2e/react/` apps each have a family of scripts f
 | Script | What it does |
 |---|---|
 | `build:` | Rebuilds all packages from the repo root (`pnpm run build`) |
-| `build:test` | `build:` then runs Playwright (`pnpm test`) — use this to verify changes against a fresh build |
+| `build:test` | `build:` then runs Playwright (`pnpm test`): use this to verify changes against a fresh build |
 | `build:build` | `build:` then builds the e2e app itself (produces a static output) |
-| `build:tests` | `build:build` then runs Playwright — use this when you also need the app compiled |
+| `build:tests` | `build:build` then runs Playwright: use this when you also need the app compiled |
 | `build:dev` | `build:` then starts the dev server |
 | `build:generate` | `build:` then runs `houdini generate` |
-| `tests` / `test` | Playwright only, no rebuild — use when packages are already built |
+| `tests` / `test` | Playwright only, no rebuild: use when packages are already built |
 
 For faster iteration when only one package changed, the `compile:*` variants recompile a single package without doing a full root build:
 
@@ -134,7 +134,7 @@ A CI job runs automatically on any PR that touches `packages/houdini/src/runtime
 When thinking about adding a feature, a few questions help frame the work:
 
 1. **Does the feature appear in GraphQL documents?** If so, figure out how to persist what the user writes in the generated artifacts. The runtime walks the selection field when writing values to the cache and can look for special keys to perform additional logic when processing a response.
-2. **Are there validation steps needed?** Validators protect users but also provide guarantees to the runtime — they can save a lot of conditional checks when processing server responses.
+2. **Are there validation steps needed?** Validators protect users but also provide guarantees to the runtime; they can save a lot of conditional checks when processing server responses.
 3. **Can the framework layer help the runtime?** Because the generated code lives in the user's project, things like reactive statements and lifecycle functions work out of the box.
 
-An end-to-end feature will typically touch the artifact generator and the runtime at minimum. It's easy to get lost in how the pieces fit together — the implementation of list operations in the codebase is a good worked example to trace through when getting oriented.
+An end-to-end feature will typically touch the artifact generator and the runtime at minimum. It's easy to get lost in how the pieces fit together, so the implementation of list operations in the codebase is a good worked example to trace through when getting oriented.

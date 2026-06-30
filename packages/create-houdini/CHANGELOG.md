@@ -1,94 +1,12 @@
 # create-houdini
 
-## 2.0.0-next.14
-
-### Patch Changes
-
-- [`68d7de4`](https://github.com/HoudiniGraphql/houdini/commit/68d7de47bfd264a8eb33fe79443d90d95d5712d4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Resolve each template package version independently to avoid stamping versions that haven't been published yet
-
-## 2.0.0-next.13
-
-### Patch Changes
-
-- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: commander ^15, graphql 16.14.1, @clack/prompts ^1.5.1
-
-## 2.0.0-next.12
-
-### Patch Changes
-
-- [`68f815be`](https://github.com/HoudiniGraphql/houdini/commit/68f815bebe8884898659a55528e2da5a5776dbd1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update create script to reflect new init flow
-
-## 2.0.0-next.11
-
-### Patch Changes
-
-- [`9058799a`](https://github.com/HoudiniGraphql/houdini/commit/9058799a7518f69d98f382f9be7eb7275fe86c74) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve init flow and fix dependency issues
-
-## 2.0.0-next.10
-
-### Patch Changes
-
-- [`899054d5`](https://github.com/HoudiniGraphql/houdini/commit/899054d5d0ec1416dc0e4a3d8bd745093b951642) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix document count when generating ; fix scaffold config runtime"
-
-## 2.0.0-next.9
-
-### Patch Changes
-
-- [`03e91242`](https://github.com/HoudiniGraphql/houdini/commit/03e912421b88610e9686b600f8e25d0c320ffa37) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - create is more flexible
-
-## 2.0.0-next.8
-
-### Patch Changes
-
-- [`b23ed369`](https://github.com/HoudiniGraphql/houdini/commit/b23ed369c1a5810acc731364bc5667d085da88b3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump create
-
-## 2.0.0-next.7
-
-### Patch Changes
-
-- [`8f470769`](https://github.com/HoudiniGraphql/houdini/commit/8f4707693ea2a554b603f92996670e25fee719a1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump create
-
-## 2.0.0-next.6
-
-### Patch Changes
-
-- [#1615](https://github.com/HoudiniGraphql/houdini/pull/1615) [`86124847`](https://github.com/HoudiniGraphql/houdini/commit/861248477429683de8f329bcb2a4da075b9d6122) Thanks [@github-actions](https://github.com/apps/github-actions)! - Fix package.json included in generated runtime
-
-## 2.0.0-next.5
-
-### Minor Changes
-
-- [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
-
-## 2.0.0-go.4
-
-### Patch Changes
-
-- [#1612](https://github.com/HoudiniGraphql/houdini/pull/1612) [`0150e386`](https://github.com/HoudiniGraphql/houdini/commit/0150e386b02b36fb3c98a2cf7f3036e147c93cc7) Thanks [@github-actions](https://github.com/apps/github-actions)! - bump create
-
-## 2.0.0-go.3
-
-### Minor Changes
-
-- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
-
-## 2.0.0-go.2
+## 2.0.0
 
 ### Major Changes
 
-- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
 
-## 2.0.0-go.1
-
-### Patch Changes
-
-- [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
-
-## 2.0.0-go.0
-
-### Major Changes
-
-- [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
 
 ## 1.2.65
 

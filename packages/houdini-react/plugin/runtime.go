@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/afero"
 
 	plugins "code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // TransformRuntime patches static runtime files as they are copied into the plugin directory.
@@ -42,6 +44,37 @@ func (p *HoudiniReact) TransformRuntime(ctx context.Context, fp string, content 
 
 		return fmt.Sprintf("import client from '%s'\nexport default () => client\n",
 			filepath.ToSlash(relPath)), nil
+
+	case "index.tsx":
+		// expose loginURL from the runtime barrel ONLY when a login flow is configured: a redirect
+		// integration (router_config.redirect) OR first-class OAuth providers (router_config.providers),
+		// both from src/server/+config. Without either there is no /login to start, so the helper stays
+		// out of the public surface. login.ts itself is always copied but not re-exported by default.
+		var redirectURL, providers string
+		_ = p.DB.StepQuery(ctx, `SELECT redirect, providers FROM router_config LIMIT 1`, nil, func(q plugins.Row) {
+			redirectURL = q.ColumnText(0)
+			providers = q.ColumnText(1)
+		})
+		if providers != "" {
+			// first-class OAuth: emit a typed loginURL whose `provider` is the configured union, so
+			// loginURL({ provider: 'twitter' }) is a compile error against the real provider set.
+			names := strings.Split(providers, ",")
+			quoted := make([]string, len(names))
+			for i, name := range names {
+				quoted[i] = "'" + name + "'"
+			}
+			content += fmt.Sprintf(
+				"\nimport { loginURL as _loginURL } from './login.js'\n"+
+					"export function loginURL(opts: { provider: %s; redirectTo?: string }): string {\n"+
+					"\treturn _loginURL({ redirectTo: opts.redirectTo, params: { provider: opts.provider } })\n"+
+					"}\n",
+				strings.Join(quoted, " | "),
+			)
+		} else if redirectURL != "" {
+			// escape hatch: the generic loginURL (the worker owns provider selection)
+			content += "\nexport { loginURL } from './login.js'\n"
+		}
+		return content, nil
 	}
 
 	return content, nil
@@ -227,29 +260,149 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	manifestPath := filepath.Join(runtimeDir, "manifest.ts")
 
 	existing, _ := afero.ReadFile(p.Filesystem(), manifestPath)
-	if string(existing) == content {
-		return []string{}, nil
+	if string(existing) != content {
+		if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
+			return nil, err
+		}
+		if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+			return nil, err
+		}
+		changed = append(changed, manifestPath)
 	}
 
-	if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
-		return nil, err
-	}
-	if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+	mockContent, err := formatMockFile(manifest)
+	if err != nil {
 		return nil, err
 	}
 
-	return append(changed, manifestPath), nil
+	mockPath := filepath.Join(runtimeDir, "mock.ts")
+	existingMock, _ := afero.ReadFile(p.Filesystem(), mockPath)
+	if string(existingMock) != mockContent {
+		if err := plugins.WriteFile(p.Filesystem(), mockPath, []byte(mockContent), 0644); err != nil {
+			return nil, err
+		}
+		changed = append(changed, mockPath)
+	}
+
+	return changed, nil
+}
+
+// formatMockFile generates the typed createMock function for all routes.
+//
+// Uses a single generic function with precomputed route param types so TypeScript
+// gives "Property 'params' is missing in type ... but required in type { params: { id: string } }"
+// with concrete, human-readable types rather than the verbose _ParamObj<readonly [...]> form.
+func formatMockFile(manifest ProjectManifest) (string, error) {
+	var sb strings.Builder
+
+	sb.WriteString("import React from 'react'\n")
+	sb.WriteString("import { _createMock, buildMockPath } from './testing'\n")
+
+	// Per-route param/search typing is shared with <Link> and goto (defined in routes.ts,
+	// derived from the manifest) so createMock accepts exactly the params and search the
+	// route declares, with no duplicate rules generated here.
+	if len(manifest.Pages) > 0 {
+		sb.WriteString("import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n")
+	}
+
+	// Collect unique query and mutation names across all pages.
+	// Both import $unmasked (fully-resolved server payload, fragments inlined, no masks) and $input.
+	allQueryNames := map[string]bool{}
+	for _, page := range manifest.Pages {
+		for _, q := range page.Queries {
+			allQueryNames[q] = true
+		}
+	}
+	hasMutations := len(manifest.Mutations) > 0 && len(manifest.Pages) > 0
+	hasSubscriptions := len(manifest.Subscriptions) > 0 && len(manifest.Pages) > 0
+
+	if len(allQueryNames) > 0 || hasMutations || hasSubscriptions {
+		sb.WriteString("\n")
+		for _, name := range sortedKeys(allQueryNames) {
+			sb.WriteString(fmt.Sprintf(
+				"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+				name, name, name,
+			))
+		}
+		if hasMutations {
+			for _, m := range manifest.Mutations {
+				if !allQueryNames[m] {
+					sb.WriteString(fmt.Sprintf(
+						"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+						m, m, m,
+					))
+				}
+			}
+		}
+		if hasSubscriptions {
+			for _, s := range manifest.Subscriptions {
+				if !allQueryNames[s] {
+					sb.WriteString(fmt.Sprintf(
+						"import type { %s$unmasked, %s$input } from '$houdini/artifacts/%s'\n",
+						s, s, s,
+					))
+				}
+			}
+		}
+	}
+
+	sb.WriteString("\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n")
+
+	if len(manifest.Pages) == 0 {
+		// No routes yet — simple stub so the file is still importable.
+		sb.WriteString("export function createMock({ url, params = {}, search, data }: { url: string; params?: Record<string, string>; search?: Record<string, unknown>; data: Record<string, any> }): React.ComponentType<{}> {\n")
+		sb.WriteString("\treturn _createMock({ path: buildMockPath(url, params, search), data })\n")
+		sb.WriteString("}\n")
+		return sb.String(), nil
+	}
+
+	// Per-route mock data types. Required keys are the queries the route uses; mutations
+	// and subscriptions are optional keys. Mutation handlers get vars typed as $input;
+	// subscription handlers are AsyncIterables that yield $unmasked values.
+	for _, id := range sortedKeys(manifest.Pages) {
+		page := manifest.Pages[id]
+		sb.WriteString(fmt.Sprintf("type _TestData_%s = {\n", id))
+		for _, q := range page.Queries {
+			sb.WriteString(fmt.Sprintf("\t%s: _MockValue<%s$unmasked, %s$input>\n", q, q, q))
+		}
+		for _, m := range manifest.Mutations {
+			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<%s$unmasked, %s$input>\n", m, m, m))
+		}
+		for _, s := range manifest.Subscriptions {
+			sb.WriteString(fmt.Sprintf("\t%s?: _MockValue<AsyncIterable<%s$unmasked>, %s$input>\n", s, s, s))
+		}
+		sb.WriteString("}\n\n")
+	}
+
+	// _RouteData maps each URL literal to its per-route mock-data type. This is the only
+	// route→type map the mock owns; the param and search typing comes from the shared
+	// ParamsForRoute / SearchForRoute imported above.
+	sb.WriteString("type _RouteData = {\n")
+	for _, id := range sortedKeys(manifest.Pages) {
+		page := manifest.Pages[id]
+		cleanURL := stripRouteGroups(page.URL)
+		sb.WriteString(fmt.Sprintf("\t%q: _TestData_%s\n", cleanURL, id))
+	}
+	sb.WriteString("}\n")
+	sb.WriteString("type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n")
+
+	sb.WriteString("export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n")
+	sb.WriteString("\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n")
+	sb.WriteString("}\n")
+
+	return sb.String(), nil
 }
 
 // hookSpec describes how to inject per-document overloads into one hook file.
 type hookSpec struct {
-	file        string // filename within the hooks/ directory
-	kind        string // "query", "mutation", "subscription", or "fragment"
-	marker      string // text immediately before which overloads are inserted
-	preamble    string // extra import line to prepend (empty if not needed)
-	// paginationQuery is the name of the pagination query document for paginated fragments, or ""
-	imports     func(name string, paginationQuery string) string
-	overloads   func(name string, paginationQuery string) string
+	file     string // filename within the hooks/ directory
+	kind     string // "query", "mutation", "subscription", or "fragment"
+	marker   string // text immediately before which overloads are inserted
+	preamble string // extra import line to prepend (empty if not needed)
+	// paginationQuery is the name of the pagination query document for paginated fragments, or "";
+	// plural is true when the document is a @plural fragment.
+	imports     func(name string, paginationQuery string, plural bool) string
+	overloads   func(name string, paginationQuery string, plural bool) string
 	passthrough string // generic overload inserted last, bridges concrete overloads to the implementation
 }
 
@@ -261,10 +414,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQuery.ts",
 		kind:   "query",
 		marker: "export function useQuery<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf(
 				"export function useQuery(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): %s$result\n",
 				name, name, name,
@@ -276,10 +429,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQueryHandle.ts",
 		kind:   "query",
 		marker: "export function useQueryHandle<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf(
 				"export function useQueryHandle(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): DocumentHandle<%s$artifact, %s$result, GraphQLVariables>\n",
 				name, name, name, name,
@@ -291,10 +444,20 @@ var hookSpecs = []hookSpec{
 		file:   "useFragment.ts",
 		kind:   "fragment",
 		marker: "export function useFragment<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$data, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, plural bool) string {
+			// @plural fragments are spread on a list field, so they take a list of
+			// references and return a list of data
+			if plural {
+				return fmt.Sprintf(
+					"export function useFragment(reference: ReadonlyArray<{ readonly %q: { %s: any } }>, document: { artifact: %s$artifact }): %s$data[]\n"+
+						"export function useFragment(reference: ReadonlyArray<{ readonly %q: { %s: any } }> | null, document: { artifact: %s$artifact }): %s$data[] | null\n",
+					fragmentKeyLiteral, name, name, name,
+					fragmentKeyLiteral, name, name, name,
+				)
+			}
 			return fmt.Sprintf(
 				"export function useFragment(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact }): %s$data\n"+
 					"export function useFragment(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact }): %s$data | null\n",
@@ -309,7 +472,7 @@ var hookSpecs = []hookSpec{
 		kind:   "fragment",
 		marker: "export function useFragmentHandle<",
 		// For paginated fragments, import the pagination query artifact too.
-		imports: func(name string, paginationQuery string) string {
+		imports: func(name string, paginationQuery string, _ bool) string {
 			base := fmt.Sprintf("import type { %s$data, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 			if paginationQuery != "" {
 				base += fmt.Sprintf("import type { %s$artifact } from '$houdini/artifacts/%s'\n", paginationQuery, paginationQuery)
@@ -319,7 +482,7 @@ var hookSpecs = []hookSpec{
 		// For paginated fragments, return DocumentHandle typed with the pagination query artifact
 		// so TypeScript exposes loadNext/loadPrevious/pageInfo on the returned handle.
 		// For non-paginated fragments, fall back to DocumentHandle<QueryArtifact, ...>.
-		overloads: func(name string, paginationQuery string) string {
+		overloads: func(name string, paginationQuery string, _ bool) string {
 			if paginationQuery != "" {
 				return fmt.Sprintf(
 					"export function useFragmentHandle(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact; refetchArtifact?: %s$artifact }): DocumentHandle<%s$artifact, %s$data, %s$input>\n"+
@@ -341,10 +504,10 @@ var hookSpecs = []hookSpec{
 		file:   "useMutation.ts",
 		kind:   "mutation",
 		marker: "export function useMutation<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input, %s$optimistic } from '$houdini/artifacts/%s'\n", name, name, name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf(
 				"export function useMutation(document: { artifact: %s$artifact }): [MutationHandler<%s$result, %s$input, %s$optimistic>, boolean]\n",
 				name, name, name, name,
@@ -353,13 +516,28 @@ var hookSpecs = []hookSpec{
 		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
 	},
 	{
+		file:   "useMutationForm.tsx",
+		kind:   "mutation",
+		marker: "export function useMutationForm<",
+		imports: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf("import type { %s$result, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
+		},
+		overloads: func(name string, _ string, _ bool) string {
+			return fmt.Sprintf(
+				"export function useMutationForm(document: { artifact: %s$artifact }, opts?: UseMutationFormOptions<%s$result>): MutationForm<%s$result>\n",
+				name, name, name,
+			)
+		},
+		passthrough: "export function useMutationForm<_Result extends GraphQLObject, _Input extends GraphQLVariables>(document: { artifact: MutationArtifact }, opts?: UseMutationFormOptions<_Result>): MutationForm<_Result>",
+	},
+	{
 		file:   "useSubscription.ts",
 		kind:   "subscription",
 		marker: "export function useSubscription<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf(
 				"export function useSubscription(document: { artifact: %s$artifact }, variables?: %s$input): %s$result\n",
 				name, name, name,
@@ -371,10 +549,10 @@ var hookSpecs = []hookSpec{
 		file:   "useSubscriptionHandle.ts",
 		kind:   "subscription",
 		marker: "export function useSubscriptionHandle<",
-		imports: func(name string, _ string) string {
+		imports: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string, _ string) string {
+		overloads: func(name string, _ string, _ bool) string {
 			return fmt.Sprintf(
 				"export function useSubscriptionHandle(document: { artifact: %s$artifact }, variables?: %s$input): SubscriptionHandle<%s$result, %s$input>\n",
 				name, name, name, name,
@@ -449,34 +627,57 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 
 	hooksDir := filepath.Join(projectConfig.PluginRuntimeDirectory(p.Name()), "hooks")
 
-	// Load all visible documents grouped by kind in a single DB trip.
+	// Load all visible documents grouped by kind in a single DB trip, also noting which
+	// fragments are marked @plural (so useFragment overloads can take/return a list).
 	docsByKind := map[string][]string{} // kind → []name
+	pluralFragments := map[string]bool{}
 	err = p.DB.StepQuery(ctx, `
-		SELECT d.name, d.kind
+		SELECT d.name, d.kind, dd.document IS NOT NULL AS plural
 		FROM documents d
+		LEFT JOIN document_directives dd ON dd.document = d.id AND dd.directive = 'plural'
 		WHERE d.visible = 1
 		ORDER BY d.name ASC
 	`, nil, func(q plugins.Row) {
-		docsByKind[q.ColumnText(1)] = append(docsByKind[q.ColumnText(1)], q.ColumnText(0))
+		name := q.ColumnText(0)
+		docsByKind[q.ColumnText(1)] = append(docsByKind[q.ColumnText(1)], name)
+		if q.ColumnInt(2) == 1 {
+			pluralFragments[name] = true
+		}
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the set of visible fragments that are paginated. We detect pagination
-	// via discovered_lists (populated during Validate) rather than looking for
-	// a pre-existing _Pagination_Query document, because GenerateRuntime runs
-	// concurrently with GenerateDocuments and the document may not exist yet.
-	paginatedFragments := map[string]string{}
+	// Build the set of visible fragments that get an embedded refetch query, so
+	// useFragmentHandle is wired up with the generated query as its refetchArtifact.
+	// This covers both @paginate fragments (detected via discovered_lists, populated
+	// during Validate) and @refetchable fragments (detected via the directive). We
+	// don't look for a pre-existing _Pagination_Query document because GenerateRuntime
+	// runs concurrently with GenerateDocuments and it may not exist yet.
+	refetchableFragments := map[string]string{}
 	err = p.DB.StepQuery(ctx, `
-		SELECT DISTINCT d.name
+		SELECT DISTINCT d.name, 0 AS refetchable
 		FROM documents d
 		JOIN discovered_lists dl ON dl.document = d.id
 		WHERE d.visible = 1 AND d.kind = 'fragment'
 		  AND dl.paginate IS NOT NULL
+
+		UNION
+
+		SELECT DISTINCT d.name, 1 AS refetchable
+		FROM documents d
+		JOIN document_directives dd ON dd.document = d.id
+		WHERE d.visible = 1 AND d.kind = 'fragment'
+		  AND dd.directive = 'refetchable'
 	`, nil, func(q plugins.Row) {
 		name := q.ColumnText(0)
-		paginatedFragments[name] = name + "_Pagination_Query"
+		// @paginate fragments embed a <name>_Pagination_Query; @refetchable fragments
+		// embed a <name>_Refetch_Query. both are wired up as the refetchArtifact.
+		if q.ColumnInt(1) == 1 {
+			refetchableFragments[name] = graphql.FragmentRefetchQueryName(name)
+		} else {
+			refetchableFragments[name] = graphql.FragmentPaginationQueryName(name)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -514,13 +715,13 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			top.WriteString("\n")
 		}
 		for _, name := range names {
-			top.WriteString(spec.imports(name, paginatedFragments[name]))
+			top.WriteString(spec.imports(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		top.WriteString("\n")
 
 		var before strings.Builder
 		for _, name := range names {
-			before.WriteString(spec.overloads(name, paginatedFragments[name]))
+			before.WriteString(spec.overloads(name, refetchableFragments[name], pluralFragments[name]))
 		}
 		if spec.passthrough != "" {
 			before.WriteString(spec.passthrough + "\n")
@@ -559,6 +760,13 @@ func formatManifest(
 	sb.WriteString("export default {\n")
 	sb.WriteString("\tpages: {\n")
 
+	// Accumulate the ordered headers() loaders per page. These are emitted as a
+	// separate `route_headers` export (below) rather than nested in the manifest
+	// so that the client bundle, which only imports the default manifest, never
+	// references the source modules' headers() exports — letting dead-code
+	// elimination strip them from the client build.
+	headerLoadersByID := map[string][]string{}
+
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 
@@ -582,6 +790,7 @@ func formatManifest(
 		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
 		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tsearchParams: %s,\n", formatSearchParams(page.SearchParams)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -612,21 +821,120 @@ func formatManifest(
 		sb.WriteString(fmt.Sprintf("\t\t\tcomponent: () => import(%q),\n", filepath.ToSlash(componentRel)))
 
 		sb.WriteString("\t\t},\n")
+
+		// Collect the ordered headers() loaders for every segment in the layout
+		// chain (outermost first) and then the page itself. The server calls them
+		// in order and merges the results so the page wins over layouts and inner
+		// layouts win over outer ones.
+		var headerSources []string
+		for _, layoutID := range page.Layouts {
+			if layout, ok := manifest.Layouts[layoutID]; ok && layout.Headers {
+				headerSources = append(headerSources, layout.Path)
+			}
+		}
+		if page.Headers {
+			headerSources = append(headerSources, page.Path)
+		}
+		var loaders []string
+		for _, src := range headerSources {
+			srcAbs := stripViewExt(filepath.Join(projectRoot, src))
+			srcRel, err := filepath.Rel(runtimeDir, srcAbs)
+			if err != nil {
+				return "", err
+			}
+			loaders = append(loaders, fmt.Sprintf("() => import(%q).then(m => m.headers)", filepath.ToSlash(srcRel)))
+		}
+		if len(loaders) > 0 {
+			headerLoadersByID[id] = loaders
+		}
 	}
 
 	sb.WriteString("\t},\n")
+
+	// pagesByUrl maps each route's url to its page id so <Link> and goto can resolve a
+	// destination to its page in O(1), without scanning the manifest at runtime.
+	sb.WriteString("\tpagesByUrl: {\n")
+	for _, id := range sortedKeys(manifest.Pages) {
+		sb.WriteString(fmt.Sprintf("\t\t%q: %q,\n", stripRouteGroups(manifest.Pages[id].URL), id))
+	}
+	sb.WriteString("\t},\n")
+
 	sb.WriteString("} as const satisfies RouterManifest<any>\n")
 
-	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
-	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
+	// route_headers is a server-only export: it maps a page id to the ordered
+	// list of headers() loaders for that page and its layout chain. It is kept
+	// out of the default manifest so the client build can tree-shake it away.
+	if len(headerLoadersByID) > 0 {
+		sb.WriteString("\nexport const route_headers = {\n")
+		for _, id := range sortedKeys(headerLoadersByID) {
+			sb.WriteString(fmt.Sprintf("\t%q: [\n", id))
+			for _, loader := range headerLoadersByID[id] {
+				sb.WriteString(fmt.Sprintf("\t\t%s,\n", loader))
+			}
+			sb.WriteString("\t],\n")
+		}
+		sb.WriteString("}\n")
+	}
+
+	// form_actions is a server-only export: lazy literal-import thunks for the artifacts of
+	// mutations carrying @endpoint, keyed by mutation name. The no-JS form handler looks a
+	// submitted form's mutation up here. Kept out of the default manifest so the client
+	// build tree-shakes the mutation artifacts away.
+	if len(manifest.FormActions) > 0 {
+		sb.WriteString("\nexport const form_actions = {\n")
+		for _, name := range manifest.FormActions {
+			artifactAbs := filepath.Join(artifactDir, name)
+			artifactRel, err := filepath.Rel(runtimeDir, artifactAbs)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fmt.Sprintf("\t%s: () => import(%q),\n", name, filepath.ToSlash(artifactRel)))
+		}
+		sb.WriteString("}\n")
+	}
+
+	// session_mutations maps each @session mutation to where (sessionPath) and how (merge) it
+	// writes the session. Server-only: the session-mint plugin and the no-JS form handler use it.
+	// Sorted for stable output, independent of form_actions.
+	if len(manifest.SessionMutations) > 0 {
+		sessionNames := make([]string, 0, len(manifest.SessionMutations))
+		for name := range manifest.SessionMutations {
+			sessionNames = append(sessionNames, name)
+		}
+		sort.Strings(sessionNames)
+		sb.WriteString("\nexport const session_mutations = {\n")
+		for _, name := range sessionNames {
+			info := manifest.SessionMutations[name]
+			sb.WriteString(fmt.Sprintf("\t%s: { sessionPath: %q, merge: %v },\n", name, info.Path, info.Merge))
+		}
+		sb.WriteString("}\n")
+	}
+
+	// Export a name→TS-type map for custom scalars, plus the _TSType resolver that maps
+	// a GQL scalar name to its TS type. Both Link.tsx and the generated mock import
+	// _TSType from here so the resolution lives in exactly one place.
 	sb.WriteString("\nexport type RouteScalars = {\n")
 	for _, name := range sortedKeys(scalars) {
 		sb.WriteString(fmt.Sprintf("\t%s: %s\n", name, scalars[name].Type))
 	}
 	sb.WriteString("}\n")
+	sb.WriteString(tsTypeResolver)
 
 	return sb.String(), nil
 }
+
+// tsTypeResolver is the shared _TSType<T> definition emitted into manifest.ts: custom
+// scalars come from RouteScalars, built-ins map to their JS types, everything else is a
+// string. Link.tsx and the mock file both import it rather than redefining it.
+const tsTypeResolver = "\nexport type _TSType<T extends string> = T extends keyof RouteScalars\n" +
+	"\t? RouteScalars[T]\n" +
+	"\t: T extends 'Int' | 'Float'\n" +
+	"\t\t? number\n" +
+	"\t\t: T extends 'ID'\n" +
+	"\t\t\t? string | number\n" +
+	"\t\t\t: T extends 'Boolean'\n" +
+	"\t\t\t\t? boolean\n" +
+	"\t\t\t\t: string\n"
 
 // parsePagePattern converts a page URL (e.g. "/(group)/[id]/nested") into a
 // TypeScript regex literal and a params array. Route groups like (foo) are
@@ -669,7 +977,6 @@ func parsePagePattern(url string) (pattern string, params []routeParam, err erro
 
 type routeParam struct {
 	Name     string
-	Matcher  string
 	Optional bool
 	Rest     bool
 	Chained  bool
@@ -713,10 +1020,6 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 	}
 	var parts []string
 	for _, p := range params {
-		matcher := ""
-		if p.Matcher != "" {
-			matcher = p.Matcher
-		}
 		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
 		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
 		gqlType := "String"
@@ -724,8 +1027,39 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) str
 			gqlType = info.Type
 		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
+			`{ name: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, p.Optional, p.Rest, p.Chained, gqlType,
+		))
+	}
+	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
+}
+
+// formatSearchParams renders the page's searchParams as a TypeScript array literal.
+// Each entry carries the GQL type name (resolved against RouteScalars / built-in
+// scalars by _TSType<T>) and the wrapper chain so list-typed params can be
+// serialized as repeated query keys. All search params are optional by construction.
+func formatSearchParams(searchParams map[string]*ParamTypeInfo) string {
+	if len(searchParams) == 0 {
+		return "[]"
+	}
+	var parts []string
+	for _, name := range sortedKeys(searchParams) {
+		info := searchParams[name]
+		gqlType := "String"
+		wrappers := "[]"
+		if info != nil {
+			gqlType = info.Type
+			if len(info.Wrappers) > 0 {
+				quoted := make([]string, len(info.Wrappers))
+				for i, w := range info.Wrappers {
+					quoted[i] = fmt.Sprintf("%q", w)
+				}
+				wrappers = "[" + strings.Join(quoted, ", ") + "]"
+			}
+		}
+		parts = append(parts, fmt.Sprintf(
+			`{ name: %q, type: %q, wrappers: %s }`,
+			name, gqlType, wrappers,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -925,7 +1259,6 @@ func stripRouteGroups(url string) string {
 	}
 	return "/" + strings.Join(out, "/")
 }
-
 
 // GenerateTsConfig writes .houdini/tsconfig.json by copying the template from the
 // plugin runtime directory (written there by IncludeRuntime).

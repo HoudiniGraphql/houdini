@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -175,7 +172,11 @@ func PreparePaginationDocuments(
 				AND tf.name = je.value
 			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $pagination_suffix
 		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
-	 	  AND documents.name NOT LIKE '%_paginated%'
+	 	  -- exclude the internally-generated "<name>_paginated" fragments. GLOB (not LIKE)
+	 	  -- so the underscore is matched literally and case-sensitively; LIKE's '_' is a
+	 	  -- single-char wildcard, which wrongly excluded any user document whose name merely
+	 	  -- contained "paginated" (e.g. "MyPaginatedList").
+	 	  AND documents.name NOT GLOB '*_paginated*'
 		  AND existing_operations.id IS NULL
 		  AND (documents.processed = false OR documents.processed IS NULL)
 		GROUP BY discovered_lists.id
@@ -207,8 +208,14 @@ func PreparePaginationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer insertFragment.Finalize()
+	// resolve-key variables are inserted before the fragment's own @arguments. if a fragment
+	// @argument shares a name with a key (e.g. a custom-resolve type keyed by a field the
+	// fragment also takes as an argument), reuse the existing non-null key declaration instead
+	// of inserting a duplicate, which would violate UNIQUE(document, name). references resolve
+	// by name, so the @with argument still points at the same variable.
 	insertDocumentVariable, err := conn.Prepare(`
 		INSERT INTO document_variables (document, "name", type, type_modifiers, default_value, row, column) VALUES ($document, $name, $type, $type_modifiers, $default_value, 0, 0)
+		ON CONFLICT (document, "name") DO NOTHING
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))

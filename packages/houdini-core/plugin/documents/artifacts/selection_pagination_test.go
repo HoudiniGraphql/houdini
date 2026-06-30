@@ -303,7 +303,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -524,7 +524,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -647,7 +647,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -995,6 +995,40 @@ export type ScalarPagination$input = {
 	before?: Cursor | null;
 	first?: number | null;
 	last?: number | null;
+};
+
+export type ScalarPagination$unmasked = {
+	readonly user: {
+		readonly __typename: "User";
+		readonly friendsByCursorScalar: {
+			readonly __typename: "UserConnection";
+			readonly edges: ({
+				readonly __typename: "UserEdge";
+				readonly cursor: string;
+				readonly node: {
+					readonly __typename: "User";
+					readonly friendsByCursor: {
+						readonly __typename: "UserConnection";
+						readonly edges: ({
+							readonly __typename: "UserEdge";
+							readonly node: {
+								readonly __typename: "User";
+								readonly id: string;
+							} | null;
+						})[];
+					} | null;
+					readonly id: string;
+				} | null;
+			})[];
+			readonly pageInfo: {
+				readonly endCursor: string | null;
+				readonly hasNextPage: boolean;
+				readonly hasPreviousPage: boolean;
+				readonly startCursor: string | null;
+			};
+		};
+		readonly id: string;
+	};
 };
 
 export type ScalarPagination$artifact = typeof artifact
@@ -1412,7 +1446,7 @@ export type PaginatedFragment$input = never;
 export type PaginatedFragment = {
 	readonly "shape"?: PaginatedFragment$data;
 	readonly " $fragments": {
-		"PaginatedFragment": any;
+		"PaginatedFragment": { readonly "expected a PaginatedFragment fragment spread"?: never };
 	};
 };
 
@@ -1716,13 +1750,13 @@ export type TestQuery$result = {
 	readonly entitiesByCursor: {
 		readonly edges: ({
 			readonly node: {} & (({
-		readonly firstName: string;
-		readonly id: string;
-		readonly __typename: "User";
-	}) | ({
-		readonly " $fragments"?: {};
-		readonly __typename: "non-exhaustive; don't match this";
-	})) | null;
+				readonly firstName: string;
+				readonly id: string;
+				readonly __typename: "User";
+			}) | ({
+				readonly " $fragments"?: {};
+				readonly __typename: "non-exhaustive; don't match this";
+			})) | null;
 			readonly cursor: string;
 		})[];
 		readonly pageInfo: {
@@ -1739,6 +1773,30 @@ export type TestQuery$input = {
 	before?: string | null;
 	first?: number | null;
 	last?: number | null;
+};
+
+export type TestQuery$unmasked = {
+	readonly entitiesByCursor: {
+		readonly __typename: "EntityConnection";
+		readonly edges: ({
+			readonly __typename: "EntityEdge";
+			readonly cursor: string;
+			readonly node: {} & (({
+				readonly firstName: string;
+				readonly id: string;
+				readonly __typename: "User";
+			}) | ({
+				readonly " $fragments"?: {};
+				readonly __typename: "non-exhaustive; don't match this";
+			})) | null;
+		})[];
+		readonly pageInfo: {
+			readonly endCursor: string | null;
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+		};
+	};
 };
 
 export type TestQuery$artifact = typeof artifact
@@ -2013,6 +2071,31 @@ export type Info$input = {
 	after?: string | null;
 	first?: number | null;
 	id?: number | null;
+};
+
+export type Info$unmasked = {
+	readonly species: {
+		readonly __typename: "Species";
+		readonly id: number;
+		readonly moves: {
+			readonly __typename: "SpeciesMoveConnection";
+			readonly edges: ({
+				readonly __typename: "SpeciesMoveEdge";
+				readonly cursor: string;
+				readonly node: {
+					readonly __typename: "SpeciesMove";
+					readonly id: number;
+				} | null;
+			})[];
+			readonly pageInfo: {
+				readonly __typename: "PageInfo";
+				readonly endCursor: string | null;
+				readonly hasNextPage: boolean;
+				readonly hasPreviousPage: boolean;
+				readonly startCursor: string | null;
+			};
+		};
+	} | null;
 };
 
 export type Info$artifact = typeof artifact

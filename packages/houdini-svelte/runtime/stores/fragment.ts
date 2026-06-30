@@ -8,7 +8,7 @@ import type {
 	GraphQLVariables,
 } from 'houdini/runtime'
 import { CompiledFragmentKind, fragmentKey } from 'houdini/runtime'
-import { derived } from 'svelte/store'
+import { derived, readable } from 'svelte/store'
 
 import { isBrowser } from '../adapter.js'
 import type { FragmentStoreInstance } from '../types.js'
@@ -33,7 +33,67 @@ export class FragmentStore<
 		this.name = storeName
 	}
 
+	// @plural fragments are spread on a list field, so they are read as a list of
+	// references and produce a store whose value is the array of data.
 	get(
+		initialValue: ReadonlyArray<_Data | { [fragmentKey]: _ReferenceType }> | null
+	): FragmentStoreInstance<_Data[] | null, _Input> & { initialValue: _Data[] | null }
+	get(
+		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
+	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null }
+	get(
+		initialValue:
+			| _Data
+			| { [fragmentKey]: _ReferenceType }
+			| ReadonlyArray<_Data | { [fragmentKey]: _ReferenceType }>
+			| null
+	): any {
+		if (this.artifact.plural || Array.isArray(initialValue)) {
+			// a non-plural fragment given a list of references is a mistake
+			if (!this.artifact.plural) {
+				throw new Error(
+					`fragment "${this.artifact.name}" was given a list of references but is not marked @plural.`
+				)
+			}
+			return this.#getPlural(
+				(Array.isArray(initialValue) ? initialValue : []) as Array<
+					_Data | { [fragmentKey]: _ReferenceType }
+				>
+			)
+		}
+
+		// the array case returned above, so this is a single reference
+		return this.#getOne(initialValue as _Data | { [fragmentKey]: _ReferenceType } | null)
+	}
+
+	// getPlural reads one instance per reference and combines them into a single store
+	// holding the array of data.
+	#getPlural(
+		references: Array<_Data | { [fragmentKey]: _ReferenceType }>
+	): FragmentStoreInstance<_Data[] | null, _Input> & { initialValue: _Data[] | null } {
+		// derived() requires at least one input store; short-circuit the empty case
+		if (references.length === 0) {
+			const empty = readable<_Data[]>([])
+			return {
+				initialValue: [],
+				variables: {} as _Input,
+				kind: CompiledFragmentKind,
+				subscribe: empty.subscribe,
+			}
+		}
+
+		const instances = references.map((reference) => this.#getOne(reference))
+		const combined = derived(instances, ($values) => $values as _Data[])
+
+		return {
+			initialValue: instances.map((instance) => instance.initialValue) as _Data[],
+			variables: instances[0].variables,
+			kind: CompiledFragmentKind,
+			subscribe: combined.subscribe,
+		}
+	}
+
+	#getOne(
 		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
 	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
 		const { variables, parent } =

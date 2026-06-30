@@ -4,6 +4,7 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
 	schemaPath: '../_api/schema.graphql',
+	url: 'http://localhost:4000/graphql',
 	defaultPartial: true,
 	runtimeDir: '.houdini',
 	// logLevel: 'Full',
@@ -31,6 +32,13 @@ const config = {
 		},
 		UnionAorB: {
 			keys: [],
+		},
+		RefetchableEntity: {
+			keys: ['id'],
+			resolve: {
+				queryField: 'refetchableEntity',
+				arguments: (entity) => ({ id: entity.id }),
+			},
 		},
 	},
 

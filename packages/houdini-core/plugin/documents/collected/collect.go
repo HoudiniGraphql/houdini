@@ -230,6 +230,7 @@ func collectDoc(
 				statements.Search,
 				statements.DocumentVariables,
 				statements.DocumentDirectives,
+				statements.RefetchMeta,
 				statements.PossibleTypes,
 				statements.InputTypes,
 			} {
@@ -788,6 +789,44 @@ func collectDoc(
 				return
 			}
 
+			// attach refetch metadata for list-less refetchable documents. this drives the
+			// artifact "refetch" block the same way a discovered_lists row does for lists,
+			// but without pretending the document contains a list.
+			err = db.StepStatement(ctx, statements.RefetchMeta, func() {
+				documentName := statements.RefetchMeta.GetText("document_name")
+				doc, ok := documents[documentName]
+				if !ok {
+					return
+				}
+
+				mode := statements.RefetchMeta.GetText("mode")
+				if mode == "" {
+					mode = "Infinite"
+				}
+				method := statements.RefetchMeta.GetText("method")
+				if method == "" {
+					method = "offset"
+				}
+
+				doc.Refetch = &DocumentRefetch{
+					Path:       []string{},
+					Method:     method,
+					PageSize:   int(statements.RefetchMeta.GetInt64("page_size")),
+					Mode:       mode,
+					TargetType: statements.RefetchMeta.GetText("target_type"),
+					Embedded:   statements.RefetchMeta.GetBool("embedded"),
+					Paginated:  false,
+					Direction:  "forward",
+				}
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			if errs.Len() > 0 {
+				return
+			}
+
 			// if we've gotten this far then we have recreated the full selection apart from
 			// the nested argument structure
 			valueIDs := []int64{}
@@ -909,6 +948,7 @@ type CollectStatements struct {
 	Search             plugins.Stmt
 	DocumentVariables  plugins.Stmt
 	DocumentDirectives plugins.Stmt
+	RefetchMeta        plugins.Stmt
 	PossibleTypes      plugins.Stmt
 	InputTypes         plugins.Stmt
 }
@@ -1203,6 +1243,25 @@ func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements,
 		return nil, err
 	}
 
+	// refetch_meta carries the artifact "refetch" block for list-less refetchable
+	// documents (e.g. @refetchable fragments' generated queries). it's the analog of
+	// the discovered_lists row that drives the refetch block for paginated lists.
+	refetchMeta, err := conn.Prepare(fmt.Sprintf(`
+    SELECT
+      d.name AS document_name,
+      refetch_meta.target_type,
+      refetch_meta.method,
+      refetch_meta.mode,
+      refetch_meta.page_size,
+      refetch_meta.embedded
+    FROM refetch_meta
+      JOIN documents d ON d.id = refetch_meta.document
+    WHERE d.id in %s
+  `, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
 	// we need a query that looks up every abstract type that's used in
 	// the set of documents. Split into UNION branches (no OR in JOIN) so
 	// SQLite can use indexes on each branch independently.
@@ -1345,6 +1404,7 @@ func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements,
 		Search:             search,
 		DocumentVariables:  documentVariables,
 		DocumentDirectives: documentDirectives,
+		RefetchMeta:        refetchMeta,
 		PossibleTypes:      possibleTypes,
 		InputTypes:         inputTypes,
 	}, nil
@@ -1355,6 +1415,7 @@ func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
 	s.DocumentDirectives.Finalize()
+	s.RefetchMeta.Finalize()
 	s.PossibleTypes.Finalize()
 	s.InputTypes.Finalize()
 }

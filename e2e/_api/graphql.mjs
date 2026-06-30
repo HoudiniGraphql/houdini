@@ -40,7 +40,40 @@ export const typeDefs = /* GraphQL */ `
 		ERROR
 	}
 
+	type SessionUser {
+		id: ID!
+		username: String!
+	}
+
+	type AuthSession {
+		user: SessionUser!
+	}
+
+	type LoginResult {
+		session: AuthSession!
+	}
+
+	type LogoutResult {
+		session: AuthSession
+	}
+
+	type ThemeSession {
+		theme: String!
+	}
+
+	type ThemeResult {
+		session: ThemeSession!
+	}
+
 	type Mutation {
+		# @session mutations — exercised by the react e2e (which shares these resolvers);
+		# defined here so the shared schema matches the resolvers and the server can boot.
+		login(username: String!): LoginResult!
+		logout: LogoutResult!
+		setTheme(theme: String!): ThemeResult!
+		# echoes back the session the client sent (via the fetchParams header) so the e2e can
+		# assert the managed session is what actually reaches the api on a mutation
+		requestSession: String
 		addUser(
 			"""
 			The users birth date
@@ -152,10 +185,21 @@ export const typeDefs = /* GraphQL */ `
 		Get a monkey by its id
 		"""
 		monkey(id: ID!): Monkey
+		"""
+		A non-Node entity resolved by a custom query (exercises @refetchable on a
+		type that is refetchable via a resolve config rather than Node).
+		"""
+		refetchableEntity(id: ID!): RefetchableEntity
 	}
 
 	type Subscription {
 		userUpdate(id: ID!, snapshot: String): User
+	}
+
+	"A non-Node type that is refetchable via a custom resolve query."
+	type RefetchableEntity {
+		id: ID!
+		avatarURL(size: Int): String!
 	}
 
 	type User implements Node {
@@ -499,7 +543,7 @@ export const resolvers = {
 			}
 
 			if (!user) {
-				throw new Error('User not found', { code: 404 })
+				throw new GraphQLError('User not found', { code: 404 })
 			}
 			return user
 		},
@@ -518,6 +562,9 @@ export const resolvers = {
 		},
 		cities: () => {
 			return cities
+		},
+		refetchableEntity: (_, { id }) => {
+			return { id }
 		},
 		userNodesResult: async (_, args) => {
 			if (args.forceMessage) {
@@ -610,7 +657,34 @@ export const resolvers = {
 		},
 	},
 
+	RefetchableEntity: {
+		avatarURL: (entity, { size }) => {
+			const base = `https://entity.test/${entity.id}.jpg`
+			return !size ? base : base + `?size=${size}`
+		},
+	},
+
 	Mutation: {
+		// @session login: the resolver is the authority on the session payload. it returns a
+		// whole user object (not a token) — Houdini signs the entire @session subtree, so the
+		// cookie is trusted regardless of shape, and useSession() reads the user back.
+		login: (_, { username }) => ({ session: { user: { id: 'user-' + username, username } } }),
+		// @session logout: a successful mutation with a null session clears the cookie
+		logout: () => ({ session: null }),
+		// @session(merge: true): a preference upsert — keeps the rest of the session
+		setTheme: (_, { theme }) => ({ session: { theme } }),
+		// echo back the session the client sent us via fetchParams (the `x-session-theme` header).
+		// the e2e asserts this matches the session it set client-side — proving the managed session
+		// is what the client plugin pipeline actually sends to the api.
+		requestSession: (_, args, info) => {
+			let value = ''
+			info.request.headers.forEach((headerValue, key) => {
+				if (key === 'x-session-theme') {
+					value = headerValue
+				}
+			})
+			return value
+		},
 		addNonNullUser(...args) {
 			return this.addUser(...args)
 		},

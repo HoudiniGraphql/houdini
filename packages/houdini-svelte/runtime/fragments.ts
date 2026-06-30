@@ -6,6 +6,7 @@ import type {
 	BasePaginatedFragmentStore,
 	FragmentStorePaginated,
 } from './stores/pagination/fragment.js'
+import type { FragmentStoreRefetchable } from './stores/refetchable.js'
 
 // Accepts both FragmentStore (non-paginated) and paginated variants (FragmentStoreCursor /
 // FragmentStoreOffset). The paginated classes extend BasePaginatedFragmentStore, not
@@ -14,6 +15,23 @@ import type {
 type AnyFragmentStoreFor<_Data extends GraphQLObject> =
 	| FragmentStore<_Data, {}>
 	| BasePaginatedFragmentStore<_Data, any, any>
+
+// @plural fragment overloads: the reference is a list of fragment references and the
+// resulting store holds an array of data (one entry per item in the list).
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment>,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
+export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	ref: ReadonlyArray<_Fragment> | null | undefined,
+	fragment: FragmentStore<_Data, {}>
+): Readable<Array<Exclude<_Data, undefined>>> & {
+	data: Readable<ReadonlyArray<_Fragment>>
+	artifact: FragmentArtifact
+}
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable.
@@ -35,7 +53,7 @@ export function fragment<_Data extends GraphQLObject, _Fragment extends Fragment
 	artifact: FragmentArtifact
 }
 export function fragment<_Data extends GraphQLObject>(
-	ref: Fragment<_Data> | null | undefined,
+	ref: Fragment<_Data> | ReadonlyArray<Fragment<_Data>> | null | undefined,
 	store: FragmentStore<_Data, {}>
 ) {
 	// make sure we got a query document
@@ -43,7 +61,8 @@ export function fragment<_Data extends GraphQLObject>(
 		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)
 	}
 
-	// load the fragment store for the value
+	// store.get() handles both a single reference and a list of references (for @plural
+	// fragments), and throws if a list is passed to a non-plural fragment.
 	// @ts-expect-error: ref is Fragment<_Data> but store.get() expects _Data | { [fragmentKey]: _ReferenceType };
 	// Fragment<_Data> structurally satisfies the { [fragmentKey]: _ReferenceType } branch at runtime.
 	const fragmentStore = store.get(ref)
@@ -82,4 +101,29 @@ export function paginatedFragment<_Data extends GraphQLObject>(
 	// @ts-expect-error: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
 	return fragment(initialValue, store)
+}
+
+// refetchableFragment is just like fragment but the fragment is marked with @refetchable.
+// it returns a store whose value is `{ data, variables }` plus a `refetch` method that
+// re-runs the fragment with new argument values.
+export function refetchableFragment<_Data extends GraphQLObject, _Fragment extends Fragment<_Data>>(
+	initialValue: _Fragment | null | undefined,
+	document: FragmentStoreRefetchable<_Data, {}, any>
+): ReturnType<FragmentStoreRefetchable<_Data, {}, any>['get']>
+
+export function refetchableFragment<_Data extends GraphQLObject>(
+	initialValue: Fragment<_Data> | null | undefined,
+	store: FragmentStoreRefetchable<_Data, {}, any>
+): ReturnType<FragmentStoreRefetchable<_Data, {}, any>['get']> {
+	// make sure we got a fragment document
+	if (store.kind !== 'HoudiniFragment') {
+		throw new Error(`refetchableFragment() must be passed a fragment document: ${store.kind}`)
+	}
+	// if we don't have a refetchable fragment there is a problem
+	if (!('refetchable' in store)) {
+		throw new Error('refetchableFragment() must be passed a fragment with @refetchable')
+	}
+
+	// @ts-expect-error: ref is Fragment<_Data> but store.get() expects _Data | { [fragmentKey]: _ReferenceType }
+	return store.get(initialValue)
 }

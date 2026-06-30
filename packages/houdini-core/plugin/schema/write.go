@@ -841,6 +841,23 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @plural on FRAGMENT_DEFINITION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.PluralDirective,
+		"description": "@plural marks a fragment as list-shaped so it can be spread on a list field and consumed as an array of items.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.PluralDirective,
+		"location":  "FRAGMENT_DEFINITION",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @with on FRAGMENT_SPREAD
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.WithDirective,
@@ -1013,6 +1030,118 @@ then the request will never be deduplicated.`,
 	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": graphql.RequiredDirective,
 		"location":  "FIELD",
+	})
+	if err != nil {
+		return err
+	}
+
+	// @refetch on FIELD
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.RefetchDirective,
+		"description": "@refetch marks a record in a mutation response so the cache refetches every document that depends on it",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.RefetchDirective,
+		"location":  "FIELD",
+	})
+	if err != nil {
+		return err
+	}
+
+	// @refetchable on FRAGMENT_DEFINITION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.RefetchableDirective,
+		"description": "@refetchable marks a fragment so it can be refetched on its own with new argument values",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.RefetchableDirective,
+		"location":  "FRAGMENT_DEFINITION",
+	})
+	if err != nil {
+		return err
+	}
+
+	// @endpoint(redirect: String, id: String) on MUTATION
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.EndpointDirective,
+		"description": "@endpoint generates a server endpoint for a mutation that accepts a native form POST and redirects, enabling progressively-enhanced forms.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"location":  "MUTATION",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"name":      "redirect",
+		"type":      "String",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.EndpointDirective,
+		"name":      "id",
+		"type":      "String",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive":      graphql.EndpointDirective,
+		"name":           "fields",
+		"type":           "String",
+		"type_modifiers": "!]",
+	})
+	if err != nil {
+		return err
+	}
+	// @session(path: String, merge: Boolean) on MUTATION — the mutation-driven counterpart to
+	// setSession(): the result field named by `path` is written to the session. Orthogonal to
+	// @endpoint (a session mutation need not be a form). By default it replaces the session;
+	// `merge: true` upserts it into the existing session (e.g. a preference).
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.SessionDirective,
+		"description": "@session writes the session from a mutation result: the field named by path becomes (or, with merge, is merged into) the user's session.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.SessionDirective,
+		"location":  "MUTATION",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive":      graphql.SessionDirective,
+		"name":           "path",
+		"type":           "String",
+		"type_modifiers": "!",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive": graphql.SessionDirective,
+		"name":      "merge",
+		"type":      "Boolean",
 	})
 	if err != nil {
 		return err

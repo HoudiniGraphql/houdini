@@ -3,13 +3,13 @@ title: Your GraphQL Server
 description: Co-locating your GraphQL API with your Houdini app
 ---
 
-If your backend lives in the same codebase — or doesn't exist yet — Houdini includes a built-in GraphQL server. Export a schema, and Houdini wraps it in a [Yoga](https://the-guild.dev/graphql/yoga-server) instance, serves it at `/_api`, and points the client at it automatically. No URL configuration required.
+If your backend lives in the same codebase (or doesn't exist yet), Houdini includes a built-in GraphQL server. Export a schema, and Houdini wraps it in a [Yoga](https://the-guild.dev/graphql/yoga-server) instance, serves it at `/_api`, and points the client at it automatically. No URL configuration required.
 
 ## Setup
 
-Export an executable schema from `src/api/+schema`:
+Export an executable schema from `src/server/+schema`:
 
-```typescript title="src/api/+schema.ts&typescriptToggle=true"
+```typescript title="src/server/+schema.ts&typescriptToggle=true"
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 export default makeExecutableSchema({
@@ -26,13 +26,13 @@ export default makeExecutableSchema({
 })
 ```
 
-That's the entire setup. Houdini configures the endpoint and wires the client — don't set `url` in your client config or `watchSchema` in `houdini.config.js`, since Houdini and Vite handle those respectively.
+That's the entire setup. Houdini configures the endpoint and wires the client, so don't set `url` in your client config or `watchSchema` in `houdini.config.js`, since Houdini and Vite handle those respectively.
 
 ## Custom Yoga Instance
 
-To inject context, add plugins, or otherwise customize the server, export a Yoga instance from `src/api/+yoga`. The `+schema` file is still required for codegen:
+To inject context, add plugins, or otherwise customize the server, export a Yoga instance from `src/server/+yoga`. The `+schema` file is still required for codegen:
 
-```typescript title="src/api/+yoga.ts&typescriptToggle=true"
+```typescript title="src/server/+yoga.ts&typescriptToggle=true"
 import { createYoga } from 'graphql-yoga'
 import { schema } from './+schema'
 import { db } from '../db'
@@ -48,20 +48,33 @@ export default createYoga({
 
 ## A True BFF
 
-This isn't just a co-deployed service — during SSR, queries resolve in-process with no network hop. The server renders the page and fulfills the GraphQL requests from the same runtime, which means your resolvers have direct access to the session, your database, and any internal services without exposing them to the outside world.
+This isn't just a co-deployed service. During SSR, queries resolve in-process with no network hop. The server renders the page and fulfills the GraphQL requests from the same runtime, which means your resolvers have direct access to the session, your database, and any internal services without exposing them to the outside world.
 
 ## Security
 
-Because resolvers run exclusively on the server, there's no risk of leaking sensitive information to the client. API keys, database credentials, and internal service tokens stay in the server environment — the client only ever receives the fields your queries explicitly ask for. The schema itself never has to be publicly reachable at all.
+Because resolvers run exclusively on the server, there's no risk of leaking sensitive information to the client. API keys, database credentials, and internal service tokens stay in the server environment, and the client only ever receives the fields your queries explicitly ask for. The schema itself never has to be publicly reachable at all.
 
 ## Configuration
 
-To change the default `/_api` endpoint, set `apiEndpoint` in `houdini.config.js`:
+To change the default `/_api` path the local API is served at, set `endpoint` in the server-only `src/server/+config.ts` (typed `ServerConfigFile`). Codegen bakes it into the client, so you only set it in one place:
 
-```javascript title="houdini.config.js"
+```ts title="src/server/+config.ts&typescriptToggle=true"
+import type { ServerConfigFile } from 'houdini'
+
 export default {
-  router: {
-    apiEndpoint: '/_graphql'
-  }
+  endpoint: '/_graphql'
+} satisfies ServerConfigFile
+```
+
+## Using a remote API
+
+If your GraphQL API is hosted elsewhere (no local `src/server/+schema`), point Houdini at it with the top-level `url`. It ships in the client bundle, so switch it per environment with a `VITE_`-prefixed variable; the value you pass is the default:
+
+```js title="houdini.config.js"
+/** @type {import('houdini').ConfigFile} */
+export default {
+  url: import.meta.env.VITE_API_URL ?? 'http://localhost:4000/graphql'
 }
 ```
+
+`create-houdini` scaffolds this line for you when you start from a remote endpoint. Queries and mutations go directly to that `url`; `@session` mutations are routed through Houdini's server so it can write the session cookie from the result (the value stays server-authoritative). Session signing keys still belong in `src/server/+config.ts` or the environment, never the public config.

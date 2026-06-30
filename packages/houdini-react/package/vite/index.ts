@@ -6,7 +6,7 @@ import {
 	client_build_directory,
 } from 'houdini/router/conventions'
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
-import { type RouterManifest } from 'houdini/router/types'
+import { type RouterManifest, type RouterPageManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -144,11 +144,14 @@ export default function (ctx: VitePluginContext): PluginOption {
 						assetFileNames: 'assets/[name].js',
 						entryFileNames: '[name].js',
 					},
+					// only the client app entry belongs in the client build. The adapter entry
+					// imports src/server/+config (session keys, OAuth client secrets) and is built
+					// separately into the ssr/ directory by closeBundle below; building it here too
+					// would land a server bundle in the client-served assets dir and leak those
+					// secrets. Keeping client and server outputs in separate directories lets the
+					// adapter serve only the client assets.
 					input: {
 						'entries/app': app_component_path(ctx.config),
-						...(ctx.adapter
-							? { 'entries/adapter': adapter_config_path(ctx.config) }
-							: {}),
 					},
 				},
 			}
@@ -188,7 +191,7 @@ export default function (ctx: VitePluginContext): PluginOption {
 			cfCache = null
 		},
 
-		async transform(code: string, filepath: string) {
+		async transform(code: string, filepath: string, options?: { ssr?: boolean }) {
 			filepath = path.posixify(filepath)
 
 			if (filepath.startsWith('/src/')) {
@@ -198,6 +201,10 @@ export default function (ctx: VitePluginContext): PluginOption {
 			if (!ctx.config.includeFile(filepath)) {
 				return
 			}
+
+			// headers() is server-only; strip it from the client build of route
+			// views so it never reaches the browser bundle (see transform_file).
+			const stripHeaders = !options?.ssr && /(?:^|\/)\+(?:page|layout)\.[jt]sx?$/.test(filepath)
 
 			if (cfCache === null) {
 				try {
@@ -216,7 +223,8 @@ export default function (ctx: VitePluginContext): PluginOption {
 					filepath: path.posixify(filepath),
 					watch_file: this.addWatchFile.bind(this),
 				},
-				cfCache
+				cfCache,
+				{ stripHeaders }
 			)
 		},
 
@@ -367,9 +375,20 @@ mount_static_app(App, manifest)
 					return
 				}
 
-				const { default: router_manifest } = (await server.ssrLoadModule(
+				const manifest_module = (await server.ssrLoadModule(
 					path.join(plugin_dir(ctx.config, 'houdini-react'), 'runtime', 'manifest.ts')
-				)) as { default: RouterManifest<React.Component> }
+				)) as {
+					default: RouterManifest<React.Component>
+					route_headers?: Record<string, RouterPageManifest<React.Component>['headers']>
+				}
+				const router_manifest = manifest_module.default
+				// route_headers is a server-only export; attach it to the manifest so the
+				// request handler can evaluate headers() before streaming
+				for (const id of Object.keys(manifest_module.route_headers ?? {})) {
+					if (router_manifest.pages[id]) {
+						router_manifest.pages[id].headers = manifest_module.route_headers![id]
+					}
+				}
 
 				const { createServerAdapter } = (await server.ssrLoadModule(
 					adapter_config_path(ctx.config)

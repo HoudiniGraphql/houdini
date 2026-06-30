@@ -92,9 +92,9 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 				return
 			}
 
-			// grab the polling interval
-			const interval = config.config_file.watchSchema?.interval
-			// null interval means no polling
+			// grab the polling interval (|| undefined coerces a `false`/`null` watchSchema away)
+			const interval = (config.config_file.watchSchema || undefined)?.interval
+			// null interval (or a disabled watchSchema) means no polling
 			if (interval == null) {
 				return
 			}
@@ -110,10 +110,10 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 				try {
 					await pull_schema(
 						api_url!,
-						config.config_file.watchSchema?.timeout ?? 30000,
+						(config.config_file.watchSchema || undefined)?.timeout ?? 30000,
 						config.schema_path(),
 						await config.schema_pull_headers(),
-						!(config.config_file.watchSchema?.writePolledSchema ?? true)
+						!((config.config_file.watchSchema || undefined)?.writePolledSchema ?? true)
 					)
 					error_count = 0
 				} catch (_e) {

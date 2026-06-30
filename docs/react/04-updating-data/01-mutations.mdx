@@ -4,6 +4,7 @@ description: Sending mutations in Houdini's React framework
 ---
 
 import Dedupe from '@shared/_partials/dedupe.mdx'
+import Refetch from '@shared/_partials/refetch.mdx'
 
 The `useMutation` hook wraps a GraphQL mutation and returns a tuple of `[mutate, pending]`. Call `mutate` with your variables to execute it.
 
@@ -42,7 +43,7 @@ export function AddCommentForm({ postId }: { postId: string }) {
 
 ## Error Handling
 
-Mutations always throw on error — unlike queries, there's no opt-in. Wrap calls in `try/catch` and inspect the `RuntimeGraphQLError`:
+Mutations always throw on error; unlike queries, there's no opt-in. Wrap calls in `try/catch` and inspect the `RuntimeGraphQLError`:
 
 ```jsx
 import { graphql, useMutation, RuntimeGraphQLError } from '$houdini'
@@ -66,6 +67,10 @@ After a successful mutation, Houdini automatically updates any cached fields tha
 
 For mutations that add or remove items from lists, see [Updating Lists](~/updating-data/updating-lists).
 
+## Refetching Changed Data
+
+<Refetch />
+
 ## Optimistic Updates
 
 Pass an `optimisticResponse` to apply an immediate cache update before the server responds. If the mutation fails, the optimistic update is rolled back:
@@ -83,6 +88,30 @@ await mutate({
 ```
 
 See [Optimistic Updates](~/updating-data/optimistic-updates) for a full walkthrough.
+
+## Forms
+
+To back a `<form>` with a mutation — including one that works before JavaScript loads — reach
+for `useMutationForm` instead of wiring up `onSubmit` by hand. See [Forms](~/updating-data/forms).
+
+## Writing the Session
+
+A mutation can set the user's session by marking it `@session`. The field named by the directive's
+`path` becomes the session, which the server writes into an `httpOnly` cookie:
+
+```graphql
+mutation Login($email: String!, $password: String!) @session(path: "login.session") {
+  login(email: $email, password: $password) {
+    session { token }
+  }
+}
+```
+
+Login is the obvious case, but anything that ends in "set the session from a mutation result" works
+the same way, including merging a preference into the existing session or clearing it on logout. The
+value always comes from the resolver, never from client input. The full story (replace vs. merge vs.
+clear, and running it without JavaScript via `@endpoint`) lives in the
+[authentication guide](~/guides/authentication#mutation-based-login).
 
 ## Deduplication
 

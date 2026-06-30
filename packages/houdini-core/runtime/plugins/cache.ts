@@ -6,6 +6,32 @@ import cache from '../cache.js'
 
 const serverSide = typeof globalThis.window === 'undefined'
 
+// walk the response data along a path collecting the record object(s) at the end.
+// a path segment can resolve to a list (eg a @refetch field nested under a list)
+// so each step may fan out to multiple records.
+export function recordsAtPath(
+	data: GraphQLObject | null,
+	path: readonly string[]
+): GraphQLObject[] {
+	let current: any[] = data ? [data] : []
+	for (const key of path) {
+		const next: any[] = []
+		for (const entry of current) {
+			if (entry == null) {
+				continue
+			}
+			const value = entry[key]
+			if (Array.isArray(value)) {
+				next.push(...value.flat(Infinity))
+			} else if (value != null) {
+				next.push(value)
+			}
+		}
+		current = next
+	}
+	return current.filter((entry) => entry && typeof entry === 'object')
+}
+
 export const cachePolicy =
 	({
 		enabled,
@@ -49,8 +75,12 @@ export const cachePolicy =
 						// we can only use the result if its not a partial result
 						const allowed =
 							!value.partial ||
-							// or the artifact allows for partial responses
-							(artifact.kind === ArtifactKind.Query && artifact.partial)
+							// or the artifact allows for partial responses, and the caller
+							// hasn't opted out (e.g. SinglePage pagination suppresses partial
+							// cache hits to avoid flashing intermediate states)
+							(artifact.kind === ArtifactKind.Query &&
+								artifact.partial &&
+								!ctx.cacheParams?.disablePartial)
 
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
 						if (policy === CachePolicy.CacheOnly) {
@@ -155,6 +185,40 @@ export const cachePolicy =
 						data: value.data,
 						variables: marshalVariables(ctx),
 					})
+
+					// document-level operations run once the response has been written.
+					// @refetch asks every document that depends on a record to reload
+					// itself. only mutations and subscriptions trigger this so a query
+					// can't refetch itself.
+					if (
+						(ctx.artifact.kind === ArtifactKind.Mutation ||
+							ctx.artifact.kind === ArtifactKind.Subscription) &&
+						ctx.artifact.operations?.length &&
+						!ctx.cacheParams?.disableWrite
+					) {
+						// gather every record id tagged with @refetch, deduped, so a
+						// document that depends on several of them only refetches once
+						const refreshIDs = new Set<string>()
+						for (const operation of ctx.artifact.operations) {
+							if (operation.action !== 'refetch') {
+								continue
+							}
+
+							for (const record of recordsAtPath(value.data, operation.path)) {
+								const id = targetCache._internal_unstable.id(
+									(record.__typename as string) ?? operation.type,
+									record
+								)
+								if (id) {
+									refreshIDs.add(id)
+								}
+							}
+						}
+
+						if (refreshIDs.size > 0) {
+							targetCache.refresh([...refreshIDs])
+						}
+					}
 
 					// we need to embed the fragment context values in our response
 					// and apply masking other value transforms. In order to do that,

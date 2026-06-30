@@ -5,10 +5,11 @@ package tests
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	
+
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -1003,7 +1004,7 @@ func findArgumentValue[PluginConfig any](
 	    NULL AS parent_id,
 	    NULL AS child_name,
 	    0 AS level,
-	    CAST(av.id AS TEXT) AS path
+	    0 AS child_ref_id
 	  FROM argument_values av
 	  WHERE av.id = $value_id AND av.document = $document
 
@@ -1017,7 +1018,7 @@ func findArgumentValue[PluginConfig any](
 	    avc.parent AS parent_id,
 	    avc.name AS child_name,
 	    at.level + 1 AS level,
-	    at.path || ',' || child_av.id AS path
+	    avc.id AS child_ref_id
 	  FROM arg_tree at
 	    JOIN argument_value_children avc ON avc.parent = at.id
 	    JOIN argument_values child_av ON child_av.id = avc.value
@@ -1027,13 +1028,14 @@ func findArgumentValue[PluginConfig any](
 
 	// Define an internal type to represent nodes in the tree.
 	type argNode struct {
-		id        int
-		kind      string
-		raw       string
-		parentID  *int // nil for the root
-		childName string
-		level     int
-		children  []*argNode
+		id         int
+		kind       string
+		raw        string
+		parentID   *int // nil for the root
+		childName  string
+		level      int
+		childRefID int // argument_value_children row id; reflects insertion order
+		children   []*argNode
 	}
 
 	// Use a map to keep track of nodes by id.
@@ -1054,14 +1056,16 @@ func findArgumentValue[PluginConfig any](
 			}
 			childName := s.ColumnText(4)
 			level := int(s.ColumnInt(5))
+			childRefID := int(s.ColumnInt(6))
 
 			node := &argNode{
-				id:        id,
-				kind:      kind,
-				raw:       raw,
-				parentID:  parentID,
-				childName: childName,
-				level:     level,
+				id:         id,
+				kind:       kind,
+				raw:        raw,
+				parentID:   parentID,
+				childName:  childName,
+				level:      level,
+				childRefID: childRefID,
 			}
 			nodes[id] = node
 		},
@@ -1086,6 +1090,19 @@ func findArgumentValue[PluginConfig any](
 	if root == nil {
 		return nil
 	}
+
+	// Sort children by their argument_value_children row id so list elements
+	// appear in their original insertion order regardless of argument_value ids.
+	var sortChildren func(node *argNode)
+	sortChildren = func(node *argNode) {
+		sort.Slice(node.children, func(i, j int) bool {
+			return node.children[i].childRefID < node.children[j].childRefID
+		})
+		for _, child := range node.children {
+			sortChildren(child)
+		}
+	}
+	sortChildren(root)
 
 	// Recursively convert the tree of argNodes into ExpectedArgumentValue structures.
 	var convert func(node *argNode) *ExpectedArgumentValue

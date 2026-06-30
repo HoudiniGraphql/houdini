@@ -2,13 +2,13 @@
 
 ## Database
 
-**Schema location**: `plugins/tests/test.go` (`WriteDatabaseSchema` const). No migration system — update it directly when adding/changing tables.
+**Schema location**: the canonical schema is the `create_schema` const in `packages/houdini/src/lib/database.ts` (node is the authority — it's what runs in production). `plugins/tests/schema.sql` is generated from it via `pnpm --filter houdini sync-schema` and embedded by the Go test harness; never edit the `.sql` by hand. A vitest (`src/lib/schema.test.ts`) fails if the two drift. No migration system — on a schema change the orchestration DB is rebuilt; it's version-stamped via `schema_version` / `PRAGMA user_version` (see `connect_db`), so persisted databases from older compilers are detected as stale and recreated.
 
 **Dual SQLite backends**: `plugins/db_zombiezen.go` (native, `!wasip1`) and `plugins/db_ncruces.go` (WASI, `wasip1`). Both implement the `Conn`/`Stmt`/`Row` interfaces in `plugins/conn.go`. All DB code must go through the interface.
 
-**FK indices**: SQLite does not auto-create indices on FK columns, and none exist in this schema. Add an explicit `CREATE INDEX` in the schema const for any FK column that appears in a `WHERE` or `JOIN`.
+**FK indices**: SQLite does not auto-create indices on FK columns. Add an explicit `CREATE INDEX IF NOT EXISTS` in `create_schema` for any FK column that appears in a `WHERE` or `JOIN`.
 
-**DEFERRABLE constraints**: Nearly all FKs are `DEFERRABLE INITIALLY DEFERRED` — constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity.
+**FK deferral**: FKs use `ON DELETE CASCADE`; deferral is achieved at the connection level via `PRAGMA defer_foreign_keys = ON` (set in `openDb` on the TS side and in the Go connection pragmas), so constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity. (The Go test pool doesn't enforce FKs at all.)
 
 ## Testing
 
@@ -22,6 +22,14 @@
 
 Canonical example: `packages/houdini-core/plugin/validate_test.go`. TypeScript test helpers: `testConfig()` / `testConfigFile()` in `packages/houdini/src/test/index.ts`.
 
+**Updating a golden artifact**: the artifact table tests (e.g. `selection_*_test.go`) compare the whole generated artifact with `require.Equal`, so when a codegen change shifts the expected output, do NOT hand-edit the golden surgically — that's error-prone and has caused confusion. Instead: replace the entire expected value for that case with a placeholder (`tests.Dedent(\`PLACEHOLDER\`)`), run the test, copy the `actual:` string from the failure into place, then re-run and eyeball the diff to confirm the shape changed only the way you intended. Two tips: the failure prints `actual` already Go-escaped, so it can be pasted as a plain double-quoted string (no `Dedent`/backtick juggling needed); and when a change ripples across several cases, capture each `actual:` and splice it in (anchor on the case's unique hash if keys repeat) rather than editing by hand.
+
+## React route typing
+
+Per-route TypeScript typing (which `params` and `search` a route accepts, the `RouteHrefs` union, scalar resolution) lives in **one** place: `packages/houdini-react/runtime/routes.ts`. It derives everything from the generated manifest's shape via `typeof rawManifest`, and exports `RouteHrefs`, `ParamsForRoute<H>`, `SearchForRoute<H>`, `NavTarget<H>`, and `Goto`.
+
+Anything that navigates to or references a route (`<Link>`, `goto`, `createMock`, and any future navigation/href API) must consume these shared types rather than re-deriving the rules or generating per-route type maps in Go. `formatMockFile` in `packages/houdini-react/plugin/runtime.go` is the example to follow: it imports the shared types and only generates its own mock-data types. URL construction (filling params, appending search, marshaling custom scalars) similarly goes through `buildHref` in `runtime/resolve-href.ts` — don't hand-roll it.
+
 ## Documentation
 
 Docs live in `/docs` — framework-specific content under `/docs/svelte` and `/docs/react`, shared content (reference, extending-houdini, meta) under `/docs/shared`.
@@ -33,10 +41,20 @@ When making changes, update the relevant doc pages alongside the code. This incl
 
 **Mandatory check**: before finishing any code task, run `grep -rn <changed symbol> /docs` to find pages that reference it and verify they reflect the change. Do not skip this step.
 
-**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`.
+**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`. The path's section is the page's directory name with the numeric prefix stripped — `docs/shared/01-core/07-architecture.mdx` is linked as `~/core/architecture`, not `~/api/architecture`. Verify the section, not just the `~/` form. For anchor links, the `#` attaches directly to the path with no slash before it: `~/core/cache#stale-data`, never `~/core/cache/#stale-data` — a slash before the `#` breaks the anchor.
+
+**Prose punctuation**: avoid em-dashes in doc prose. Reach for the mark that fits the clause relationship: a period between two complete sentences, a semicolon between two closely-linked independent clauses, a colon to introduce an explanation/example/list, a comma for an appositive or trailing dependent clause, and parentheses for a mid-sentence aside. In `- term — description` bullet lists, use a colon (`- term: description`). Keep an em-dash only when nothing else reads as well (emphasis or a conversational beat). Don't trade one awkward mark for another: no double colon (a mid-sentence colon directly before a code-fence-introducing colon — use a period there), no double comma (an intro phrase like "For mutations," followed by ", since …" — keep the em-dash), and use a semicolon before conjunctive adverbs like "otherwise"/"however" to avoid a comma splice.
 
 The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
 
 ## Changesets
 
-Every non-documentation change needs a changeset. Doc-only changes do not need one. Each branch should have exactly one changeset. Keep the description to one or two sentences — no bullet lists.
+Every non-documentation change needs a changeset. Doc-only changes do not need one. Keep the description to one or two sentences — no bullet lists.
+
+A changeset is a **release note for users, not a development log.** Describe the feature and its user-facing API at the level someone reading a changelog cares about — never the implementation phases, validation rules, artifact internals, or which files/packages changed. For an entire feature, one high-level sentence is the goal, e.g. "Add support for progressively enhanced mutations using `@endpoint` and `useMutationForm`."
+
+**One changeset per user-facing API surface, not one per commit, phase, or addition.** A changeset's description is rendered verbatim into the changelog of *every* package it bumps, so the unit is the API a reader sees, not the branch. When a feature gives different packages genuinely different user-facing APIs, write one changeset per package (scoped to just that package in its frontmatter) with a description for *that* package's API, so each changelog tells its own story. Example: `@refetchable` ships as three changesets — the directive (`houdini` + `houdini-core`), `refetchableFragment` (`houdini-svelte`), and `useFragmentHandle().refetch` (`houdini-react`). When the change is the same across the packages it touches (a shared version bump, or a directive whose runtime the `houdini` package merely carries alongside `houdini-core`), keep it as a single multi-package changeset — splitting would just duplicate one sentence across changelogs.
+
+Within a single package, still collapse a branch's many commits/phases into one changeset for that package; check `ls .changeset/*.md` (ignoring `README.md`) before adding one, and once a package's changeset exists **leave its description alone** as later slices land.
+
+Whenever a changeset bumps `houdini-core`, it must include a matching bump for `houdini` (the published runtime ships from `houdini`, so a core change needs a corresponding `houdini` release).

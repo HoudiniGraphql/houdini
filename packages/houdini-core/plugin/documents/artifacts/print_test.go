@@ -91,6 +91,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
       input ObjectInput {
         key: String
         block: String
+        site: Site
       }
 
       scalar ComplexType
@@ -372,6 +373,28 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 						    node(ids: $ids)
 						}
 					`),
+				},
+			},
+			{
+				Name: "Enum literal inside object argument is not quoted",
+				Pass: true,
+				Input: []string{
+					`
+					fragment EnumObjFrag on Friend @arguments(size: {type: "String"}, b: {type: "String"}) {
+					  foo(
+					    size: $size
+					    bar: $b
+					    obj: {key: "value", site: MOBILE}
+					  )
+					}
+				`,
+				},
+				Extra: map[string]any{
+					"EnumObjFrag": tests.Dedent(`
+					fragment EnumObjFrag on Friend {
+					    foo(bar: $b, obj: {key: "value", site: MOBILE}, size: $size)
+					}
+				`),
 				},
 			},
 			{

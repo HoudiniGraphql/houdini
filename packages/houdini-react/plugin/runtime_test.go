@@ -51,6 +51,77 @@ func TestTransformRuntime(t *testing.T) {
 	})
 }
 
+// TestTransformRuntimeLoginURL verifies that the loginURL helper is re-exported from the runtime
+// barrel (index.tsx) only when a redirect-login integration is configured (router_config.redirect,
+// derived from src/server/+config auth.redirect.url). Without it the helper stays out of $houdini.
+func TestTransformRuntimeLoginURL(t *testing.T) {
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `type Query { id: ID }`,
+
+		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			redirect, _ := test.Extra["redirect"].(string)
+			providers, _ := test.Extra["providers"].(string)
+			if redirect == "" && providers == "" {
+				return
+			}
+			ctx := context.Background()
+			conn, err := p.DB.Take(ctx)
+			require.NoError(t, err)
+			defer p.DB.Put(conn)
+			// session_keys is NOT NULL; redirect / providers are what gate the export
+			stmt, err := conn.Prepare(
+				`INSERT INTO router_config (redirect, providers, session_keys) VALUES ($r, $p, $s)`,
+			)
+			require.NoError(t, err)
+			require.NoError(
+				t,
+				p.DB.ExecStatement(stmt, map[string]any{"r": redirect, "p": providers, "s": ""}),
+			)
+			stmt.Finalize()
+		},
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			got, err := p.TransformRuntime(context.Background(), "index.tsx", test.Extra["input"].(string))
+			require.NoError(t, err)
+			require.Equal(t, test.Extra["expected"].(string), got)
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "re-exports loginURL when a redirect integration is configured",
+				Pass: true,
+				Extra: map[string]any{
+					"redirect": "https://worker.example/login",
+					"input":    "export * from './hooks'\n",
+					// .tsx files also receive the @refresh reset preamble
+					"expected": "// @refresh reset\nexport * from './hooks'\n\nexport { loginURL } from './login.js'\n",
+				},
+			},
+			{
+				Name: "emits a typed loginURL when first-class OAuth providers are configured",
+				Pass: true,
+				Extra: map[string]any{
+					"providers": "github,google",
+					"input":     "export * from './hooks'\n",
+					"expected": "// @refresh reset\nexport * from './hooks'\n" +
+						"\nimport { loginURL as _loginURL } from './login.js'\n" +
+						"export function loginURL(opts: { provider: 'github' | 'google'; redirectTo?: string }): string {\n" +
+						"\treturn _loginURL({ redirectTo: opts.redirectTo, params: { provider: opts.provider } })\n" +
+						"}\n",
+				},
+			},
+			{
+				Name: "omits loginURL when neither redirect nor providers is configured",
+				Pass: true,
+				Extra: map[string]any{
+					"input":    "export * from './hooks'\n",
+					"expected": "// @refresh reset\nexport * from './hooks'\n",
+				},
+			},
+		},
+	})
+}
+
 // indexStub mirrors the real core runtime index.ts: it has leading imports and
 // exports before the generic graphql() declaration, so tests verify that
 // overloads land immediately before the marker rather than at the file top.
@@ -129,8 +200,8 @@ func TestUpdateIndexFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "missing index.ts skips gracefully",
-				Pass: true,
+				Name:  "missing index.ts skips gracefully",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"no_stub": true,
@@ -138,8 +209,8 @@ func TestUpdateIndexFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "calling twice does not double-inject overloads",
-				Pass: true,
+				Name:  "calling twice does not double-inject overloads",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"call_twice": true,
@@ -291,6 +362,27 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
+				Name: "injects array overloads for a @plural fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyPluralFragment on Query @plural { id }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragment.ts": "import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\nexport function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragment.ts": "import type { MyPluralFragment$data, MyPluralFragment$artifact } from '$houdini/artifacts/MyPluralFragment'\n" +
+							"\n" +
+							"import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragment(reference: ReadonlyArray<{ readonly \" $fragments\": { MyPluralFragment: any } }>, document: { artifact: MyPluralFragment$artifact }): MyPluralFragment$data[]\n" +
+							"export function useFragment(reference: ReadonlyArray<{ readonly \" $fragments\": { MyPluralFragment: any } }> | null, document: { artifact: MyPluralFragment$artifact }): MyPluralFragment$data[] | null\n" +
+							"export function useFragment<_Data extends GraphQLObject, _ReferenceType extends {}, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: FragmentArtifact }): _Data | null\n" +
+							"export function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
 				Name: "injects useFragmentHandle overloads for non-paginated fragment",
 				Pass: true,
 				Input: []string{
@@ -334,8 +426,8 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "skips files not present in plugin runtime dir",
-				Pass: true,
+				Name:  "skips files not present in plugin runtime dir",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					// no stubs written — files don't exist, should silently skip
@@ -344,8 +436,8 @@ func TestUpdateHookFiles(t *testing.T) {
 				},
 			},
 			{
-				Name: "calling twice does not double-inject",
-				Pass: true,
+				Name:  "calling twice does not double-inject",
+				Pass:  true,
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"call_twice_hooks": true,
@@ -588,13 +680,33 @@ func TestInjectComponentFieldArtifactTypes(t *testing.T) {
 	})
 }
 
+// tsTypeManifest is the shared _TSType resolver emitted into manifest.ts after the
+// RouteScalars map (see tsTypeResolver in runtime.go). Begins with a blank line.
+const tsTypeManifest = "\nexport type _TSType<T extends string> = T extends keyof RouteScalars\n" +
+	"\t? RouteScalars[T]\n" +
+	"\t: T extends 'Int' | 'Float'\n" +
+	"\t\t? number\n" +
+	"\t\t: T extends 'ID'\n" +
+	"\t\t\t? string | number\n" +
+	"\t\t\t: T extends 'Boolean'\n" +
+	"\t\t\t\t? boolean\n" +
+	"\t\t\t\t: string\n"
+
 func TestGenerateRuntime(t *testing.T) {
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
 			type Query {
 				id: ID
 				node(id: ID!): Node
+				search(q: String, tags: [String!], first: Int!): [Node!]
 			}
+			type Subscription {
+				id: ID
+			}
+			type Mutation {
+				createUser(name: String!): User!
+			}
+			type User implements Node { id: ID! name: String! }
 			interface Node { id: ID! }
 		`,
 		SetupAlwaysPasses: true,
@@ -642,9 +754,42 @@ func TestGenerateRuntime(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, expected, string(got))
 			}
+
+			// substring assertions for cases where a full-manifest golden would be brittle
+			if substrs, ok := test.Extra["containsManifest"].([]string); ok {
+				got, err := afero.ReadFile(p.Filesystem(), manifestPath)
+				require.NoError(t, err)
+				for _, substr := range substrs {
+					require.Contains(t, string(got), substr)
+				}
+			}
+
+			mockPath := filepath.Join(config.PluginRuntimeDirectory(p.Name()), "mock.ts")
+
+			if expectedMock, ok := test.Extra["expectedMock"].(string); ok {
+				require.Contains(t, changed, mockPath)
+				got, err := afero.ReadFile(p.Filesystem(), mockPath)
+				require.NoError(t, err)
+				require.Equal(t, expectedMock, string(got))
+			}
 		},
 
 		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "@endpoint mutation generates a form_actions entry",
+				Pass: true,
+				Input: []string{
+					`mutation CreateUser($name: String!) @endpoint(redirect: "/users/{ createUser.id }") {
+						createUser(name: $name) { id }
+					}`,
+				},
+				Extra: map[string]any{
+					"containsManifest": []string{
+						"export const form_actions = {",
+						"CreateUser: () => import(",
+					},
+				},
+			},
 			{
 				Name: "empty routes generates empty manifest",
 				Pass: true,
@@ -655,11 +800,19 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
+							pagesByUrl: {
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock, buildMockPath } from './testing'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"export function createMock({ url, params = {}, search, data }: { url: string; params?: Record<string, string>; search?: Record<string, unknown>; data: Record<string, any> }): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ path: buildMockPath(url, params, search), data })\n" +
+						"}\n",
 				},
 			},
 			{
@@ -683,6 +836,23 @@ func TestGenerateRuntime(t *testing.T) {
 					// runtimeDir  = /project/.houdini/plugins/houdini-react/runtime
 					// artifacts   = ../../../artifacts/<Name>
 					// component   = ../units/entries/<id>  (entry file, not source)
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
+						"\nimport type { FinalQuery$unmasked, FinalQuery$input } from '$houdini/artifacts/FinalQuery'\n" +
+						"import type { RootQuery$unmasked, RootQuery$input } from '$houdini/artifacts/RootQuery'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData___subRoute__nested = {\n" +
+						"\tRootQuery: _MockValue<RootQuery$unmasked, RootQuery$input>\n" +
+						"\tFinalQuery: _MockValue<FinalQuery$unmasked, FinalQuery$input>\n" +
+						"}\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/nested\": _TestData___subRoute__nested\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
+						"}\n",
 					"expected": tests.Dedent(`
 						import type { RouterManifest } from 'houdini/runtime'
 
@@ -693,6 +863,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/nested",
 									pattern: /^\/nested\/?$/,
 									params: [],
+									searchParams: [],
 									documents: {
 										RootQuery: {
 											artifact: () => import("../../../artifacts/RootQuery"),
@@ -708,11 +879,14 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__subRoute__nested"),
 								},
 							},
+							pagesByUrl: {
+								"/nested": "__subRoute__nested",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -728,6 +902,21 @@ func TestGenerateRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
+						"\nimport type { MyQuery$unmasked, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData___id_ = {\n" +
+						"\tMyQuery: _MockValue<MyQuery$unmasked, MyQuery$input>\n" +
+						"}\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/[id]\": _TestData___id_\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
+						"}\n",
 					"expected": tests.Dedent(`
 						import type { RouterManifest } from 'houdini/runtime'
 
@@ -738,8 +927,9 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
+										{ name: "id", optional: false, rest: false, chained: false, type: "ID" }
 									],
+									searchParams: [],
 									documents: {
 										MyQuery: {
 											artifact: () => import("../../../artifacts/MyQuery"),
@@ -750,11 +940,79 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__id_"),
 								},
 							},
+							pagesByUrl: {
+								"/[id]": "__id_",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
+				},
+			},
+			{
+				Name: "nullable non-route variables become search params",
+				Pass: true,
+				Input: []string{
+					"query SearchQuery($q: String, $tags: [String!], $first: Int!) {\n\tsearch(q: $q, tags: $tags, first: $first) {\n\t\tid\n\t}\n}\n",
+				},
+				Filepaths: []string{
+					"src/routes/search/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/search/+page.tsx": mockView([]string{"SearchQuery"}),
+					},
+					// $q and $tags are nullable, so they surface as search params (the list
+					// keeps its wrapper chain). $first is required, so it is omitted — a
+					// missing search param can never make the query fail.
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
+						"\nimport type { SearchQuery$unmasked, SearchQuery$input } from '$houdini/artifacts/SearchQuery'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData__search = {\n" +
+						"\tSearchQuery: _MockValue<SearchQuery$unmasked, SearchQuery$input>\n" +
+						"}\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/search\": _TestData__search\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
+						"}\n",
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_search": {
+									id: "_search",
+									url: "/search",
+									pattern: /^\/search\/?$/,
+									params: [],
+									searchParams: [
+										{ name: "q", type: "String", wrappers: [] },
+										{ name: "tags", type: "String", wrappers: ["List", "NonNull"] }
+									],
+									documents: {
+										SearchQuery: {
+											artifact: () => import("../../../artifacts/SearchQuery"),
+											loading: false,
+											variables: { first: { type: "Int" }, q: { type: "String" }, tags: { type: "String" } },
+										},
+									},
+									component: () => import("../units/entries/_search"),
+								},
+							},
+							pagesByUrl: {
+								"/search": "_search",
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 			{
@@ -781,6 +1039,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/",
 									pattern: /^\/$/,
 									params: [],
+									searchParams: [],
 									documents: {
 										PageQuery: {
 											artifact: () => import("../../../artifacts/PageQuery"),
@@ -791,11 +1050,88 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/_"),
 								},
 							},
+							pagesByUrl: {
+								"/": "_",
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
+				},
+			},
+			{
+				Name: "headers() exports emit a headers loader array",
+				Pass: true,
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+layout.tsx": "export function headers() { return { 'X-From': 'layout' } }\nexport default ({children}) => <div>{children}</div>",
+						"src/routes/+page.tsx":   "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
+					},
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_": {
+									id: "_",
+									url: "/",
+									pattern: /^\/$/,
+									params: [],
+									searchParams: [],
+									documents: {
+									},
+									component: () => import("../units/entries/_"),
+								},
+							},
+							pagesByUrl: {
+								"/": "_",
+							},
+						} as const satisfies RouterManifest<any>
+
+						export const route_headers = {
+							"_": [
+								() => import("../../../../src/routes/+layout").then(m => m.headers),
+								() => import("../../../../src/routes/+page").then(m => m.headers),
+							],
+						}
+
+						export type RouteScalars = {
+						}
+					`) + "\n" + tsTypeManifest,
+				},
+			},
+			{
+				Name: "subscription appears as optional MockValue field in mock",
+				Pass: true,
+				Input: []string{
+					mockQuery("PageQuery", false),
+					"subscription UserEvents { id }",
+				},
+				Filepaths: []string{
+					"src/routes/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx": mockView([]string{"PageQuery"}),
+					},
+					"expectedMock": "import React from 'react'\n" +
+						"import { _createMock, buildMockPath } from './testing'\n" +
+						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
+						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
+						"import type { UserEvents$unmasked, UserEvents$input } from '$houdini/artifacts/UserEvents'\n" +
+						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
+						"type _TestData__ = {\n" +
+						"\tPageQuery: _MockValue<PageQuery$unmasked, PageQuery$input>\n" +
+						"\tUserEvents?: _MockValue<AsyncIterable<UserEvents$unmasked>, UserEvents$input>\n" +
+						"}\n\n" +
+						"type _RouteData = {\n" +
+						"\t\"/\": _TestData__\n" +
+						"}\n" +
+						"type _DataForRoute<H extends string> = H extends keyof _RouteData ? _RouteData[H] : never\n\n" +
+						"export function createMock<H extends RouteHrefs>(args: { url: H; data: _DataForRoute<H> } & ParamsForRoute<H> & SearchForRoute<H>): React.ComponentType<{}> {\n" +
+						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
+						"}\n",
 				},
 			},
 			{
@@ -814,12 +1150,14 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
+							pagesByUrl: {
+							},
 						} as const satisfies RouterManifest<any>
 
 						export type RouteScalars = {
 							DateTime: Date
 						}
-					`) + "\n",
+					`) + "\n" + tsTypeManifest,
 				},
 			},
 		},

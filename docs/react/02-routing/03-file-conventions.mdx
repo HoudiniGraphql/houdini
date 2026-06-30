@@ -3,7 +3,7 @@ title: File Conventions
 description: Special files in Houdini's React framework
 ---
 
-Every file Houdini treats as special starts with `+`. Everything else — utility functions, shared components, stylesheets — is ignored by the router and can live wherever makes sense for your project. The `+` prefix might look a little odd at first, but it serves two purposes: it makes Houdini files instantly recognizable in any directory listing, and it lets Houdini add new reserved filenames in the future without any risk of colliding with files you've already created.
+Every file Houdini treats as special starts with `+`. Everything else (utility functions, shared components, stylesheets) is ignored by the router and can live wherever makes sense for your project. The `+` prefix might look a little odd at first, but it serves two purposes: it makes Houdini files instantly recognizable in any directory listing, and it lets Houdini add new reserved filenames in the future without any risk of colliding with files you've already created.
 
 ## Route Files
 
@@ -13,17 +13,21 @@ These files go inside `src/routes/` and can appear in any route directory.
 |---|---|
 | `+page.jsx` | The component rendered at this route. Receives query results as props when a `+page.gql` is present. |
 | `+layout.jsx` | Wraps all child routes. Receives a `children` prop for the nested content, plus query results from `+layout.gql` if defined. |
+| `+error.jsx` | Renders an [error boundary](~/routing/handling-errors) for this route and everything nested below it. Receives an `errors` prop plus any layout query results in scope. |
 | `+page.gql` | GraphQL query (or queries) for this page. Each query's result is passed as a prop named after the query. |
 | `+layout.gql` | GraphQL query for this layout. Results are available to the layout component and all of its descendants. |
 
-## API Files
+A `+page.jsx` or `+layout.jsx` can also export a `headers()` function to set [response headers](~/routing/pages-and-layouts#response-headers) for the route.
 
-These files go in `src/api/` and are only relevant if you're using a [local GraphQL server](~/loading-data/graphql-server).
+## Server Files
+
+These files go in `src/server/`. Houdini compiles this directory into the server bundle and **never imports it from the client**, so it is the one place that is safe to read environment variables, embed secrets, or hold credentials (session signing keys, OAuth client secrets, database URLs) with no risk of any of it reaching the browser.
 
 | File | Purpose |
 |---|---|
-| `+schema.ts` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. |
-| `+yoga.ts` | Exports a custom Yoga instance — use this to inject context, add plugins, or customize behavior. Requires `+schema.ts` to also be present. |
+| `+config.ts` | Server-only configuration (typed `ServerConfigFile`): the session signing keys, the session and GraphQL endpoints, OAuth `providers` and `onSignIn`, and the form CSRF settings. See [authentication](~/guides/authentication). |
+| `+schema.ts` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. Only relevant with a [local GraphQL server](~/loading-data/graphql-server). |
+| `+yoga.ts` | Exports a custom Yoga instance. Use this to inject context, add plugins, or customize behavior. Requires `+schema.ts` to also be present. |
 
 ## App-Level Files
 

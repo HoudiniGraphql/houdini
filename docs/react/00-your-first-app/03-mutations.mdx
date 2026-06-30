@@ -96,7 +96,7 @@ export default function Page({ Info }: PageProps) {
 
 Now, try clicking on the grey star for any species. It should flip between gold and grey every time you click it.
 
-That's all there is to it! You see, Houdini maintains an in-memory representation of all of the data being shown in our UI as well as which components rely on each field. Since we asked for the fields that could change as part of our mutation, Houdini was able to detect that it needed to use the new `favorite` value to update the field of the species with the matching `id` and keep our view up to date. By the way, we could have omitted that `id` in the selection — Houdini will add it behind the scenes if we don't include it explicitly.
+That's all there is to it! You see, Houdini maintains an in-memory representation of all of the data being shown in our UI as well as which components rely on each field. Since we asked for the fields that could change as part of our mutation, Houdini was able to detect that it needed to use the new `favorite` value to update the field of the species with the matching `id` and keep our view up to date. By the way, we could have omitted that `id` in the selection. Houdini will add it behind the scenes if we don't include it explicitly.
 
 ## Mutating List Values
 
@@ -157,7 +157,7 @@ import { FavoritePreview, FavoritesContainer } from '~/components'
 </>
 ```
 
-Don't worry about the `@list` directive just yet — we'll explain what it does in a bit. For now, just confirm that you have to refresh your browser in order to see the effect of clicking the star on the section at the top. Hopefully that's not too surprising since we haven't told Houdini how to update our view in response to the mutation. Connecting those dots just requires updating the mutation to look like this:
+Don't worry about the `@list` directive just yet; we'll explain what it does in a bit. For now, just confirm that you have to refresh your browser in order to see the effect of clicking the star on the section at the top. Hopefully that's not too surprising since we haven't told Houdini how to update our view in response to the mutation. Connecting those dots just requires updating the mutation to look like this:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 const toggleFavoriteMutation = graphql(`
@@ -177,7 +177,7 @@ Go ahead, save the file and try clicking on the star. You should see the species
 
 If you look closely at the mutation you'll notice that we are using a fragment in the payload that you never defined. That fragment name follows a very specific form (`ListName_operation`) and it acts as a special instruction to the Houdini runtime. That fragment name references the `name` specified with the `@list` decorator and then an operation that you want to perform on the list is appended to the end of the fragment name. So the `FavoriteSpecies_toggle` fragment name will toggle the object that is referenced by the `species` field in the mutation, which will add or remove the object in the list named `FavoriteSpecies`.
 
-We didn't even have to worry about asking for all of the right fields — once we told Houdini which list we wanted to add it to, it was able to take care of the rest. This was the reason for the `@list` decorator in the query above: we needed a way to identify the field as a target for a list operation. If we had named that list `AllFavorites` instead, the mutation would reference `AllFavorites_toggle`.
+We didn't even have to worry about asking for all of the right fields. Once we told Houdini which list we wanted to add it to, it was able to take care of the rest. This was the reason for the `@list` decorator in the query above: we needed a way to identify the field as a target for a list operation. If we had named that list `AllFavorites` instead, the mutation would reference `AllFavorites_toggle`.
 
 `toggle` is not the only operation you can perform on a list. Houdini also supports `insert` and `remove` as well as more advanced features such as specifying conditions for these operations. For more information, check out the [Updating Lists](~/updating-data/updating-lists) guide.
 

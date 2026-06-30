@@ -3,17 +3,17 @@ title: Client Plugins
 description: How to write custom plugins that hook into Houdini's request pipeline
 ---
 
-Client plugins let us customize the runtime behavior of our application's documents — integrating with a logging service, adding retry logic, or even adding support for entirely new network capabilities like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
+Client plugins let us customize the runtime behavior of our application's documents, whether that means integrating with a logging service, adding retry logic, or even adding support for entirely new network capabilities like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
 
 ## Overview
 
 Every document in a Houdini app is backed by an observable value called a "Document Store". The store holds the latest value of the document and sends new queries to update its state. Client plugins modify this structure by hooking into five phases of the request pipeline:
 
-- `start` — runs at the beginning of every request, regardless of cache
-- `beforeNetwork` — runs when there was no cache hit and a network request is about to be made
-- `network` — performs the actual network request
-- `afterNetwork` — runs after the network request but before the cache processes the result
-- `end` — runs at the end of the request regardless of whether data came from cache or network
+- `start`: runs at the beginning of every request, regardless of cache
+- `beforeNetwork`: runs when there was no cache hit and a network request is about to be made
+- `network`: performs the actual network request
+- `afterNetwork`: runs after the network request but before the cache processes the result
+- `end`: runs at the end of the request regardless of whether data came from cache or network
 
 For some documents, `beforeNetwork`, `network`, and `afterNetwork` are short-circuited when the cache policy allows it. Think of the cache as a gatekeeper that decides whether a request can be resolved before reaching the network phases.
 
@@ -32,7 +32,7 @@ While preparing a request, plugins are iterated in the order they are passed to 
 
 A client plugin is a function that returns an object with hooks for the phases we want to intercept:
 
-```typescript title="src/plugins/custom_plugin.ts"
+```typescript title="src/plugins/custom_plugin.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const sayHello: ClientPlugin = () => {
@@ -56,9 +56,9 @@ export default new HoudiniClient({
 })
 ```
 
-That's the basic shape. Now let's look at a more useful example — a retry plugin that re-runs a query when the response contains errors:
+That's the basic shape. Now let's look at a more useful example: a retry plugin that re-runs a query when the response contains errors:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const retry: ClientPlugin = () => {
@@ -83,7 +83,7 @@ The five phases split into two directions.
 
 **Enter hooks** (`start`, `beforeNetwork`, `network`) carry information toward the server. We call `next` to pass to the next plugin, or `resolve` to short-circuit the chain and start returning a value:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const simpleFetch: ClientPlugin = () => {
@@ -99,13 +99,13 @@ const simpleFetch: ClientPlugin = () => {
 ```
 
 A few rules for enter hooks:
-- At least one hook in the chain must call `resolve` — otherwise the pipeline hangs indefinitely
+- At least one hook in the chain must call `resolve`; otherwise the pipeline hangs indefinitely
 - We can call both `resolve` and `next` in the same hook; prefer calling `resolve` first when it makes sense
 - `resolve` requires a full `QueryResult` (see [Type Definitions](#type-definitions))
 
 **Exit hooks** (`afterNetwork`, `end`) process a value as it returns from the pipeline. We use `resolve` to keep the chain flowing back to the user:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const logErrors: ClientPlugin = () => {
@@ -121,7 +121,7 @@ const logErrors: ClientPlugin = () => {
 ```
 
 Exit hook rules:
-- We don't have to pass a value to `resolve` — the last known value is used automatically
+- We don't have to pass a value to `resolve`; the last known value is used automatically
 - Exit hooks that never call `resolve` create a pipeline black hole; no data reaches the user
 
 ## Choosing a Phase
@@ -138,7 +138,7 @@ If it's unclear which phase to use, work through these questions:
 
 To share state between phases of the same request, store values on `ctx.stuff`:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const timer: ClientPlugin = () => {
@@ -160,7 +160,7 @@ const timer: ClientPlugin = () => {
 
 To track state across multiple network requests, initialize it before returning the hooks object. Houdini calls the outer function once when the store is created:
 
-```typescript title="src/client.ts"
+```typescript title="src/client.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 
 const trackVariables: ClientPlugin = () => {
@@ -178,13 +178,13 @@ const trackVariables: ClientPlugin = () => {
 
 ## Multiple Values
 
-A store can receive multiple updates for a given set of inputs — subscriptions and live queries both push multiple results through the cache. Each payload travels through the full chain using the same `resolve` function. If the original request hasn't resolved when a payload arrives, the promise resolves with that first value. This means we can call `resolve` inside event listeners to push multiple values.
+A store can receive multiple updates for a given set of inputs; subscriptions and live queries both push multiple results through the cache. Each payload travels through the full chain using the same `resolve` function. If the original request hasn't resolved when a payload arrives, the promise resolves with that first value. This means we can call `resolve` inside event listeners to push multiple values.
 
 ## Composing Plugins
 
-A plugin can return any combination of hook objects, `null`, or arrays of hooks — useful for toggling functionality based on configuration:
+A plugin can return any combination of hook objects, `null`, or arrays of hooks. This is useful for toggling functionality based on configuration:
 
-```typescript title="src/plugins/custom_plugin.ts"
+```typescript title="src/plugins/custom_plugin.ts&typescriptToggle=true"
 import type { ClientPlugin } from '$houdini'
 import externalPlugin from 'third-party'
 
@@ -202,7 +202,7 @@ const conditional: ClientPlugin = (config) => () => {
 
 ## Type Definitions
 
-The authoritative source is exported from `$houdini`. The definitions below may be slightly out of date — if there's a discrepancy, the package wins.
+The authoritative source is exported from `$houdini`. The definitions below may be slightly out of date; if there's a discrepancy, the package wins.
 
 ```typescript
 type ClientPlugin = () => {

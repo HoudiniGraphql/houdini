@@ -20,6 +20,6 @@ query UserProfile($id: ID!) @dedupe(cancelFirst: true) {
 
 The `match` argument controls what counts as "identical":
 
-- `Operation` — dedupe if any execution of this operation is pending, regardless of variables (default)
-- `Variables` — dedupe only if the variables also match
-- `None` — never dedupe
+- `Operation`: dedupe if any execution of this operation is pending, regardless of variables (default)
+- `Variables`: dedupe only if the variables also match
+- `None`: never dedupe

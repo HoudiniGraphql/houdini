@@ -1,286 +1,33 @@
 # houdini-svelte
 
-## 3.0.0-next.33
+## 3.0.1
 
 ### Patch Changes
 
-- [#1654](https://github.com/HoudiniGraphql/houdini/pull/1654) [`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - GraphQL errors now expose `locations`, `path`, and `extensions` per the spec; augment `App.GraphQLErrorExtensions` to type your server's extensions.
+- [#1704](https://github.com/HoudiniGraphql/houdini/pull/1704) [`56a57d2`](https://github.com/HoudiniGraphql/houdini/commit/56a57d26837190503e5380ee1c3cd84c17cf613c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix source maps for route and component files: rewriting `graphql()` tags no longer shifts stack traces and breakpoints off the original source lines.
 
-- Updated dependencies [[`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1), [`3b5e7d6`](https://github.com/HoudiniGraphql/houdini/commit/3b5e7d661503b2102c0af20a7029102646ca2aa6), [`8bd7291`](https://github.com/HoudiniGraphql/houdini/commit/8bd72911a7a022ccb68e7c3b5047f144077c3e4c), [`03aba94`](https://github.com/HoudiniGraphql/houdini/commit/03aba94e0b473ed4aedd1f16ddb96d2cd64c0549), [`961a019`](https://github.com/HoudiniGraphql/houdini/commit/961a019e2ca2c9f202ec340e17e07eb6143966c0), [`b8b757a`](https://github.com/HoudiniGraphql/houdini/commit/b8b757a8c0b5c1db67a65af33cf9c684efab04a5), [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c), [`8f4a044`](https://github.com/HoudiniGraphql/houdini/commit/8f4a044487b9e042cc6dd162430ff6bdf741e0aa)]:
-  - houdini@2.0.0-next.34
-
-## 3.0.0-next.32
-
-### Patch Changes
-
-- [`bb2944a`](https://github.com/HoudiniGraphql/houdini/commit/bb2944a76c8c65efdb5cac76bc7ff838cb34ceec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin resolution when npm normalizes bin field to object form
-
-## 3.0.0-next.31
-
-### Patch Changes
-
-- [`a095fcc`](https://github.com/HoudiniGraphql/houdini/commit/a095fcc4eb51d6863a9cabc04b145fa96a53f240) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - publish wasm packages
-
-## 3.0.0-next.30
-
-### Patch Changes
-
-- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: svelte ^5.56.2, @sveltejs/kit ^2.63.0, vite ^8, rollup ^4.61.1
-
-- [#1633](https://github.com/HoudiniGraphql/houdini/pull/1633) [`f84e3cc`](https://github.com/HoudiniGraphql/houdini/commit/f84e3cc00c1c4c70acd0bac2087f08b16af3a879) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix TypeScript types for fragment masking on abstract/interface fields.
-
-## 3.0.0-next.29
-
-### Patch Changes
-
-- Updated dependencies [[`5668b992`](https://github.com/HoudiniGraphql/houdini/commit/5668b9927ace9b9574faf396d1a559b3b5ccf769)]:
-  - houdini@2.0.0-next.28
-
-## 3.0.0-next.28
-
-### Patch Changes
-
-- Updated dependencies []:
-  - houdini@2.0.0-next.27
-
-## 3.0.0-next.27
-
-### Patch Changes
-
-- Updated dependencies [[`899054d5`](https://github.com/HoudiniGraphql/houdini/commit/899054d5d0ec1416dc0e4a3d8bd745093b951642)]:
-  - houdini@2.0.0-next.26
-
-## 3.0.0-next.26
-
-### Patch Changes
-
-- Updated dependencies [[`dd9d1cbf`](https://github.com/HoudiniGraphql/houdini/commit/dd9d1cbf499b8b6f327c8d457edc3b04176d55a4)]:
-  - houdini@2.0.0-next.25
-
-## 3.0.0-next.25
-
-### Patch Changes
-
-- [`a67c5fc6`](https://github.com/HoudiniGraphql/houdini/commit/a67c5fc671b0e53e77217fa9b43dfe53ec2bb0f6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add missing extensions in modules
-
-- Updated dependencies [[`a67c5fc6`](https://github.com/HoudiniGraphql/houdini/commit/a67c5fc671b0e53e77217fa9b43dfe53ec2bb0f6)]:
-  - houdini@2.0.0-next.24
-
-## 3.0.0-next.24
-
-### Patch Changes
-
-- [#1615](https://github.com/HoudiniGraphql/houdini/pull/1615) [`86124847`](https://github.com/HoudiniGraphql/houdini/commit/861248477429683de8f329bcb2a4da075b9d6122) Thanks [@github-actions](https://github.com/apps/github-actions)! - Fix package.json included in generated runtime
-
-- Updated dependencies []:
-  - houdini@2.0.0-next.23
-
-## 3.0.0-next.23
-
-### Minor Changes
-
-- [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
-
-### Patch Changes
-
-- Updated dependencies [[`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce)]:
-  - houdini@2.0.0-next.22
-
-## 3.0.0-go.22
-
-### Patch Changes
-
-- Updated dependencies [[`14fa602a`](https://github.com/HoudiniGraphql/houdini/commit/14fa602a4aaeee3f0863e7f0c93945f0eebac51e), [`cd3fa07a`](https://github.com/HoudiniGraphql/houdini/commit/cd3fa07a6405de85f08954faa84895296f032ef4)]:
-  - houdini@2.0.0-go.21
-
-## 3.0.0-go.21
-
-### Patch Changes
-
-- Updated dependencies [[`d1848162`](https://github.com/HoudiniGraphql/houdini/commit/d18481625a443cd41f72d605b0999a0ca75c9555)]:
-  - houdini@2.0.0-go.20
-
-## 3.0.0-go.20
-
-### Minor Changes
-
-- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
-
-### Patch Changes
-
-- Updated dependencies [[`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f)]:
-  - houdini@2.0.0-go.19
-
-## 3.0.0-go.19
-
-### Patch Changes
-
-- Updated dependencies [[`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393)]:
-  - houdini@2.0.0-go.18
-
-## 3.0.0-go.18
+## 3.0.0
 
 ### Major Changes
 
-- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+- [#1701](https://github.com/HoudiniGraphql/houdini/pull/1701) [`f6e9636`](https://github.com/HoudiniGraphql/houdini/commit/f6e9636f223ff01737a4ca0a5e87aba3bbbeaf1a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - The `@load` and `@blocking` directives are no longer supported.
 
 ### Minor Changes
 
-- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add abortController to query and mutation args
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add abortController to query and mutation args
+
+- [`15c9453`](https://github.com/HoudiniGraphql/houdini/commit/15c945382821d5c4f7ddc94892a86d922fcf2c76) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - `fragment` now reads a `@plural` fragment back as an array of data.
+
+- [`15c9453`](https://github.com/HoudiniGraphql/houdini/commit/15c945382821d5c4f7ddc94892a86d922fcf2c76) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `refetchableFragment` for reading a `@refetchable` fragment and refetching it with new arguments through the returned `.refetch()`.
 
 ### Patch Changes
 
-- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - strip TypeScript type annotations from load event parameter in session transform
-
-- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix async component query for latest Svelte version
-
-- Updated dependencies [[`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
-  - houdini@2.0.0-go.17
-
-## 2.0.0-go.17
-
-### Patch Changes
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.16
-
-## 2.0.0-go.16
-
-### Patch Changes
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.15
-
-## 2.0.0-go.15
-
-### Patch Changes
-
-- Updated dependencies [[`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f), [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920)]:
-  - houdini@2.0.0-go.14
-
-## 2.0.0-go.14
-
-### Patch Changes
-
-- [#1582](https://github.com/HoudiniGraphql/houdini/pull/1582) [`dfa4033b`](https://github.com/HoudiniGraphql/houdini/commit/dfa4033bf510d78d911952052b148b08895dc0f5) Thanks [@siddarthvader](https://github.com/siddarthvader)! - fix svelte 5 root layout sessio injection and using $effect to sync the houdini and app session
-
-## 2.0.0-go.13
-
-### Patch Changes
-
-- Updated dependencies [[`62a0e62a`](https://github.com/HoudiniGraphql/houdini/commit/62a0e62a476d6183d50bda21ed939c8f267308f0)]:
-  - houdini@2.0.0-go.13
-
-## 2.0.0-go.12
-
-### Patch Changes
-
-- [`c90c92b1`](https://github.com/HoudiniGraphql/houdini/commit/c90c92b1e5966b9756676abafc314b6b8e6439fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compatability issue with go binary shim sand pnpm
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.12
-
-## 2.0.0-go.11
-
-### Patch Changes
-
-- Updated dependencies [[`2bf6cd4f`](https://github.com/HoudiniGraphql/houdini/commit/2bf6cd4fdfddec1324ba702d65436c46d50e3fe5)]:
-  - houdini@2.0.0-go.11
-
-## 2.0.0-go.10
-
-### Patch Changes
-
-- Updated dependencies [[`53fc6baa`](https://github.com/HoudiniGraphql/houdini/commit/53fc6baaa58d4022ae3495c1e0940b07e85d971c)]:
-  - houdini@2.0.0-go.10
-
-## 2.0.0-go.9
-
-### Patch Changes
-
-- Updated dependencies [[`d656515b`](https://github.com/HoudiniGraphql/houdini/commit/d656515bda5835d6e8a19b0e6eb8ecf5627fe34e)]:
-  - houdini@2.0.0-go.9
-
-## 2.0.0-go.8
-
-### Patch Changes
-
-- [`ae4cdfe4`](https://github.com/HoudiniGraphql/houdini/commit/ae4cdfe445503611ab56330fdc750f79a067ab8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix shim replacement for execution
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.8
-
-## 2.0.0-go.7
-
-### Patch Changes
-
-- [`2d60bc70`](https://github.com/HoudiniGraphql/houdini/commit/2d60bc70818bdcbefd3ba177bb56fc69b33f90ea) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - rework postinstall script
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.7
-
-## 2.0.0-go.6
-
-### Patch Changes
-
-- [`d66db310`](https://github.com/HoudiniGraphql/houdini/commit/d66db31026f37c1e8b5f661b8fbc05173b618a0e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Attempt to fix post install script
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.6
-
-## 2.0.0-go.5
-
-### Patch Changes
-
-- [`7822a62e`](https://github.com/HoudiniGraphql/houdini/commit/7822a62e0421192000dbdf55a1c4379cdfe29358) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix files entry in published package
-
-- Updated dependencies []:
-  - houdini@2.0.0-go.5
-
-## 2.0.0-go.4
-
-### Patch Changes
-
-- [`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix shim paths
-
-- Updated dependencies [[`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2)]:
-  - houdini@2.0.0-go.4
-
-## 2.0.0-go.3
-
-### Patch Changes
-
-- [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
-
-- Updated dependencies [[`043c4e29`](https://github.com/HoudiniGraphql/houdini/commit/043c4e29ce2c2f41b4a6750b191983e5d53a3540), [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448)]:
-  - houdini@2.0.0-go.3
-
-## 2.0.0-go.2
-
-### Patch Changes
-
-- Updated dependencies [[`6fe29007`](https://github.com/HoudiniGraphql/houdini/commit/6fe290071bf356ef71567ebcbf025b1802f5cb42)]:
-  - houdini@2.0.0-go.2
-
-## 2.0.0-go.1
-
-### Patch Changes
-
-- [`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump houdini dep version
-
-- Updated dependencies [[`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06)]:
-  - houdini@2.0.0-go.1
-
-## 2.0.0-go.0
-
-### Major Changes
-
-- [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
-
-### Patch Changes
-
-- Updated dependencies [[`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765)]:
-  - houdini@2.0.0-go.0
+- Updated dependencies [[`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f6e9636`](https://github.com/HoudiniGraphql/houdini/commit/f6e9636f223ff01737a4ca0a5e87aba3bbbeaf1a), [`d447227`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f), [`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`f1ae542`](https://github.com/HoudiniGraphql/houdini/commit/f1ae542be6e094b4e39b1b181176c00d4eac1956), [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c), [`8f4a044`](https://github.com/HoudiniGraphql/houdini/commit/8f4a044487b9e042cc6dd162430ff6bdf741e0aa), [`8bd407b`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+  - houdini@2.0.0
 
 ## 2.1.2
 

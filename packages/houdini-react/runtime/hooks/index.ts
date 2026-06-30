@@ -3,7 +3,15 @@ export { useQueryHandle } from './useQueryHandle.js'
 export { useFragment } from './useFragment.js'
 export { useFragmentHandle } from './useFragmentHandle.js'
 export { useMutation } from './useMutation.js'
+export { useMutationForm, useMutationFormStatus } from './useMutationForm.js'
+export { useLogoutForm } from './useLogoutForm.js'
 export { useSubscription } from './useSubscription.js'
 
 export type { DocumentHandle } from './useDocumentHandle.js'
 export type { UseQueryConfig } from './useQueryHandle.js'
+export type {
+	MutationForm,
+	MutationFormState,
+	UseMutationFormOptions,
+} from './useMutationForm.js'
+export type { LogoutForm, UseLogoutFormOptions } from './useLogoutForm.js'

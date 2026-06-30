@@ -51,6 +51,7 @@ func GenerateStores(
 			CASE
 				WHEN COUNT(dl_cursor.document) > 0 THEN 'cursor'
 				WHEN COUNT(dl_offset.document) > 0 THEN 'offset'
+				WHEN COUNT(dd_refetchable.document) > 0 THEN 'refetchable'
 				ELSE ''
 			END as refetch_method
 		FROM documents d
@@ -66,6 +67,10 @@ func GenerateStores(
 		LEFT JOIN discovered_lists dl_offset ON (
 			dl_offset.document = d.id
 			AND dl_offset.connection = 0 AND dl_offset.paginate is not null
+		)
+		LEFT JOIN document_directives dd_refetchable ON (
+			dd_refetchable.document = d.id
+			AND dd_refetchable.directive = 'refetchable'
 		)
 		GROUP BY d.id, d.name, d.kind
 		HAVING d.visible = 1
@@ -351,14 +356,25 @@ func generateFragmentStore(
 	extraFields := ""
 	if refetchMethod != config.StorePaginationTypeNone {
 		variablesRequired = true
+		// @refetchable fragments embed a <name>_Refetch_Query passed as refetchArtifact;
+		// paginated fragments a <name>_Pagination_Query passed as paginationArtifact.
+		embeddedQueryName := graphql.FragmentPaginationQueryName(name)
+		artifactBinding := "_PaginationArtifact"
+		artifactField := "paginationArtifact"
+		if refetchMethod == config.StorePaginationTypeRefetchable {
+			embeddedQueryName = graphql.FragmentRefetchQueryName(name)
+			artifactBinding = "_RefetchArtifact"
+			artifactField = "refetchArtifact"
+		}
 		extraImport = fmt.Sprintf(
 			`
-import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
-			graphql.FragmentPaginationQueryName(name),
+import %s from '$houdini/artifacts/%s.js'`,
+			artifactBinding,
+			embeddedQueryName,
 		)
 		extraFields = fmt.Sprintf(`
             variables: %t,
-            paginationArtifact: _PaginationArtifact,`, variablesRequired)
+            %s: %s,`, variablesRequired, artifactField, artifactBinding)
 	}
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'

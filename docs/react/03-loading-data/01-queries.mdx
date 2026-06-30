@@ -9,7 +9,7 @@ import AsideAccordion from "@components/docs/AsideAccordion.astro"
 
 The core idea behind Houdini's data loading model is that queries live next to the routes that use them. A `+page.gql` file defines what data a route needs, and Houdini handles the fetching, caching, and prop-threading before your component ever renders.
 
-Fetching starts at the moment navigation begins — not when the component mounts. This follows the [render-as-you-fetch](https://react.dev/reference/rsc/server-components) pattern recommended by the React docs: by the time your component renders for the first time, the data is already in the cache and arrives as props with no loading state needed.
+Fetching starts at the moment navigation begins, not when the component mounts. This follows the [render-as-you-fetch](https://react.dev/reference/rsc/server-components) pattern recommended by the React docs: by the time your component renders for the first time, the data is already in the cache and arrives as props with no loading state needed.
 
 ## Basic Usage
 
@@ -26,8 +26,10 @@ query ShowList {
 
 The result arrives as a prop named after the query. Destructure it directly in the function signature:
 
-```jsx title="src/routes/shows/+page.jsx"
-export default function ShowsPage({ ShowList }) {
+```tsx title="src/routes/shows/+page.tsx&typescriptToggle=true"
+import type { PageProps } from './$types'
+
+export default function ShowsPage({ ShowList }: PageProps) {
   return (
     <ul>
       {ShowList.shows.map((show) => (
@@ -38,13 +40,13 @@ export default function ShowsPage({ ShowList }) {
 }
 ```
 
-The prop name matches the query name exactly — `ShowList` not `data` or `props.ShowList`. Houdini enforces this through static analysis, so it needs to appear in the destructuring pattern in the function signature.
+The prop name matches the query name exactly: `ShowList`, not `data` or `props.ShowList`. This isn't just a convention. Houdini discovers which queries a route depends on by statically analyzing your component's signature, so the query name **must** appear in the destructuring pattern. If you accept a generic `props` argument and reach for `props.ShowList`, Houdini won't see the dependency and the data won't be wired up.
 
 <AsideAccordion variant="design" title="What About Query Colocation?">
 
 The prevailing wisdom is that queries should live inside the components that use them. Houdini agrees with the principle (we still colocate fragments in our component source, after all) but disagrees about where the boundary should sit.
 
-The problem is timing. By the time JavaScript is loaded and runs, it's too late to start a network request without a waterfall: navigate → download JS → parse → run component → discover query → fetch → render. The query has to live somewhere the router can find it before any JavaScript runs — outside the component tree entirely. Once you're inside a JavaScript runtime, it's too late.
+The problem is timing. By the time JavaScript is loaded and runs, it's too late to start a network request without a waterfall: navigate → download JS → parse → run component → discover query → fetch → render. The query has to live somewhere the router can find it before any JavaScript runs, outside the component tree entirely. Once you're inside a JavaScript runtime, it's too late.
 
 The `.gql` file still lives next to the `.jsx` file. This is just colocation by directory rather than file.
 
@@ -74,7 +76,7 @@ export default function RootLayout({ AppShell, children }) {
 }
 ```
 
-All queries in the chain — the page query, the layout query, any ancestor layout queries — run in parallel before the route renders. Child pages don't need to re-fetch this data either; it's already in the cache from the layout's load.
+All queries in the chain (the page query, the layout query, any ancestor layout queries) run in parallel before the route renders. Child pages don't need to re-fetch this data either; it's already in the cache from the layout's load.
 
 ## Query Variables
 
@@ -91,9 +93,27 @@ query ShowDetail($id: ID!) {
 
 The `$id` variable is populated from the `[id]` segment with no extra configuration.
 
+### Search Params
+
+A nullable variable whose name doesn't match a route parameter is populated from the query string, so a search route with an optional filter needs no extra wiring:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowSearch($genre: String, $sort: SortOrder) {
+  shows(genre: $genre, sort: $sort) {
+    title
+  }
+}
+```
+
+Visiting `/shows?genre=comedy` runs the query with `$genre` set to `"comedy"` and `$sort` left null. Because the values come straight from the URL, changing the query string re-runs the query: navigating from `/shows?genre=comedy` to `/shows?genre=drama` refetches with the new value, exactly the way a route parameter would. Repeated keys fill list variables, so `?tag=a&tag=b` lands in a `[String!]` variable as `["a", "b"]`.
+
+Only nullable variables are eligible. A missing search param resolves to null, which means it can never turn a valid URL into a failing request. That restriction is also the reason the distinction shows up at build time. A required variable has to be satisfiable from the URL alone, so if a `+page.gql` declares a non-null variable that isn't backed by a route segment and has no default, Houdini reports it during generation rather than letting the query fail later. The fix is one of three things: add the matching `[segment]`, give the variable a default value, or make it nullable so it can ride in on the query string.
+
+To construct these URLs with type safety rather than hand-writing query strings, the [`Link`](~/routing/navigation#search-params) component takes a typed `search` prop derived from the destination route's variables.
+
 ## Imperative Handles
 
-Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:
+Sometimes you need to do more than display the initial data: trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:
 
 ```jsx title="src/routes/shows/+page.jsx"
 export default function ShowsPage({ ShowList$handle }) {
@@ -112,13 +132,13 @@ export default function ShowsPage({ ShowList$handle }) {
 
 If you'd rather avoid the `.data` accessor, destructure both props and use them side by side.
 
-The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details.
+The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details. For the full handle API, see [`useQueryHandle`](~/api-reference/useQueryHandle).
 
 ## TypeScript
 
-Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results, handles, and route params are all typed automatically:
+Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results and handles are typed automatically. (Route params and search live on the generated `PageRoute` type, read via [`useRoute`](~/api-reference/useRoute), so they can't be accidentally destructured off the component props.)
 
-```tsx title="src/routes/shows/+page.tsx"
+```tsx title="src/routes/shows/+page.tsx&typescriptToggle=false"
 import type { PageProps } from './$types'
 
 export default function ShowsPage({ ShowList }: PageProps) {
@@ -134,7 +154,7 @@ export default function ShowsPage({ ShowList }: PageProps) {
 
 Layout components use `LayoutProps` from the same module, which includes `children` alongside any layout query results:
 
-```tsx title="src/routes/+layout.tsx"
+```tsx title="src/routes/+layout.tsx&typescriptToggle=false"
 import type { LayoutProps } from './$types'
 
 export default function RootLayout({ AppShell, children }: LayoutProps) {

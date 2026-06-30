@@ -61,7 +61,7 @@ process.exit(0);}
 
 import * as conventions from '../router/conventions.js'
 import type { Config } from './config.js'
-import { create_schema, write_config } from './database.js'
+import { create_schema, schema_version, write_config } from './database.js'
 import { type Db, openDb } from './db.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
@@ -102,8 +102,31 @@ export type Adapter = ((args: {
 
 export async function connect_db(config: Config): Promise<[Db, string]> {
 	const filepath = conventions.db_path(config)
-	const db = await openDb(filepath)
+	let db = await openDb(filepath)
+
+	// if a database persisted from an older compiler (eg. via --preserve-database
+	// or across WASM sessions), its schema may not match what we expect. we don't
+	// migrate — we detect the mismatch via the version stamp and rebuild from scratch.
+	// a fresh/empty database has no prior schema to be stale, so skip the rebuild
+	// there (avoids a redundant wipe + reopen on the common non-preserve path).
+	const stamped = db.get<{ user_version: number }>('PRAGMA user_version')?.user_version ?? 0
+	const existing = db.get(`SELECT 1 FROM sqlite_master WHERE type = 'table' LIMIT 1`)
+	if (existing && stamped !== schema_version) {
+		db.close()
+		try {
+			await fs.remove(filepath)
+		} catch (_e) {}
+		try {
+			await fs.remove(`${filepath}-shm`)
+		} catch (_e) {}
+		try {
+			await fs.remove(`${filepath}-wal`)
+		} catch (_e) {}
+		db = await openDb(filepath)
+	}
+
 	db.exec(create_schema)
+	db.exec(`PRAGMA user_version = ${schema_version}`)
 	db.flush()
 	return [db, filepath]
 }
@@ -205,48 +228,58 @@ export async function codegen_setup(
 		const pollDb = await openDb(db_file)
 		return new Promise<PluginSpec>((resolve, reject) => {
 			const interval = setInterval(() => {
-				pollDb.reload()
-				const row = pollDb.get<{
-					name: string
-					port: number
-					hooks: string
-					plugin_order: string
-					config_module: string | null
-				}>('SELECT * FROM plugins WHERE name = ?', [dbKey])
+				// the poll runs on a timer, so any throw here (e.g. a transient
+				// SQLITE_BUSY) would be an unhandled exception that crashes the
+				// process instead of rejecting the promise — guard the whole body.
+				try {
+					pollDb.reload()
+					const row = pollDb.get<{
+						name: string
+						port: number
+						hooks: string
+						plugin_order: string
+						config_module: string | null
+					}>('SELECT * FROM plugins WHERE name = ?', [dbKey])
 
-				if (row) {
+					if (row) {
+						clearInterval(interval)
+						clearTimeout(timeout)
+
+						pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
+							JSON.stringify(
+								config.plugins.find((p) => p.name === configKey)?.config ?? {}
+							),
+							dbKey,
+						])
+						pollDb.flush()
+						pollDb.close()
+
+						const spec: PluginSpec = {
+							name: row.name,
+							port: row.port,
+							hooks: new Set(JSON.parse(row.hooks)),
+							order: row.plugin_order as 'before' | 'after' | 'core',
+							directory:
+								config.plugins.find((p) => p.name === configKey)?.directory || '',
+						}
+						spec_results[configKey] = spec
+
+						if (row.config_module) {
+							import(row.config_module).then((module) => {
+								if (module && typeof module.default === 'function') {
+									config.config_file = module.default(config.config_file)
+								}
+								resolve(spec)
+							})
+						} else {
+							resolve(spec)
+						}
+					}
+				} catch (err) {
 					clearInterval(interval)
 					clearTimeout(timeout)
-
-					pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
-						JSON.stringify(
-							config.plugins.find((p) => p.name === configKey)?.config ?? {}
-						),
-						dbKey,
-					])
-					pollDb.flush()
 					pollDb.close()
-
-					const spec: PluginSpec = {
-						name: row.name,
-						port: row.port,
-						hooks: new Set(JSON.parse(row.hooks)),
-						order: row.plugin_order as 'before' | 'after' | 'core',
-						directory:
-							config.plugins.find((p) => p.name === configKey)?.directory || '',
-					}
-					spec_results[configKey] = spec
-
-					if (row.config_module) {
-						import(row.config_module).then((module) => {
-							if (module && typeof module.default === 'function') {
-								config.config_file = module.default(config.config_file)
-							}
-							resolve(spec)
-						})
-					} else {
-						resolve(spec)
-					}
+					reject(err)
 				}
 			}, 10)
 
@@ -351,7 +384,13 @@ export async function codegen_setup(
 							errors.forEach((error) => {
 								format_hook_error(config.root_dir, error, name, pending.hook)
 							})
-							pending.reject(new Error(`Failed to call ${name}`))
+							// format_hook_error already pretty-printed this above; flag the
+							// rejection so the HMR pipeline doesn't also dump a raw stack trace.
+							pending.reject(
+								Object.assign(new Error(`Failed to call ${name}`), {
+									alreadyLogged: true,
+								})
+							)
 						} else {
 							pending.resolve(msg.result)
 						}
@@ -443,8 +482,8 @@ export async function codegen_setup(
 
 			logger.time(`Spawn ${plugin.name}`)
 			const child = spawn(executable, args, {
-				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
-				// message protocol; stderr is always inherited so plugin logs reach the terminal.
+				// stdio/WASM plugins carry the protocol over stdin+stdout, so those must be pipes.
+				// websocket plugins talk over TCP, so let stdout/stderr through to the console.
 				stdio: pluginUsesStdio
 					? ['pipe', 'pipe', 'inherit']
 					: ['inherit', 'inherit', 'inherit'],
@@ -524,7 +563,13 @@ export async function codegen_setup(
 									format_hook_error(config.root_dir, error, name, pending.hook)
 								})
 
-								pending.reject(new Error(`Failed to call ${name}`))
+								// format_hook_error already pretty-printed this above; flag the
+								// rejection so the HMR pipeline doesn't also dump a raw stack trace.
+								pending.reject(
+									Object.assign(new Error(`Failed to call ${name}`), {
+										alreadyLogged: true,
+									})
+								)
 							} else {
 								pending.resolve(response.result)
 							}

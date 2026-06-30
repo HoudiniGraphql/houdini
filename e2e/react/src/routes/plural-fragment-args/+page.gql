@@ -1,0 +1,6 @@
+query features__plural_fragment_args {
+	usersList(snapshot: "plural_args", limit: 4) {
+		id
+		...PluralArgsRow @with(size: 100)
+	}
+}

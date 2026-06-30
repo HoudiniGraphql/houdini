@@ -1,6 +1,9 @@
+import { getAuthUrl } from 'houdini/runtime'
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { RequestPayload, FetchContext } from 'houdini/runtime/types'
+
+import { getCurrentConfig } from '../config.js'
 
 export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -38,6 +41,28 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					}
 				}
 
+				// a @session mutation against a REMOTE api has to go through Houdini's same-origin
+				// proxy so the server can sit in the request path and write the session cookie
+				// server-authoritatively. The app is remote exactly when `url` is set in the public
+				// config (with a local schema the mutation hits the local Yoga and the mint plugin
+				// signs inline). The proxy lives under the session endpoint. We override the URL but
+				// never a user-supplied custom fetch function (it owns transport).
+				const artifact = ctx.artifact as typeof ctx.artifact & { sessionPath?: string }
+				if (
+					getCurrentConfig().url &&
+					artifact.kind === ArtifactKind.Mutation &&
+					artifact.sessionPath &&
+					typeof target !== 'function'
+				) {
+					// tell the proxy which operation this is via a header so it never has to parse the
+					// (possibly multipart) body to find the session path. Must stay in sync with
+					// HOUDINI_OPERATION_HEADER in router/server.ts.
+					fetchFn = defaultFetch(getAuthUrl() + '/proxy', {
+						...ctx.fetchParams,
+						headers: { ...ctx.fetchParams?.headers, 'x-houdini-operation': ctx.name },
+					})
+				}
+
 				const result = await fetchFn({
 					// wrap the user's fetch function so we can identify SSR by checking
 					// the response.url
@@ -61,6 +86,9 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					variables: ctx.variables ?? {},
 					data: result.data,
 					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
+					// surface response-level extensions (e.g. the @session mint
+					// token) so the runtime/hooks can read them off the result
+					extensions: result.extensions,
 					partial: false,
 					stale: false,
 					source: DataSource.Network,
@@ -90,6 +118,11 @@ const defaultFetch = (
 			headers: {
 				Accept: 'application/graphql+json, application/json',
 				'Content-Type': 'application/json',
+				// a header a cross-origin <form>/simple request cannot set. The server
+				// requires it for CORS-simple POSTs to the graphql endpoint (uploads use
+				// multipart, which bypasses preflight) so it can't be a CSRF channel. Must
+				// stay in sync with HOUDINI_REQUEST_HEADER in router/server.ts.
+				'x-houdini-request': 'true',
 				...params?.headers,
 			},
 		})

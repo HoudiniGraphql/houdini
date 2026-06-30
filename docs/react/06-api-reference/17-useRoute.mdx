@@ -1,0 +1,63 @@
+---
+title: useRoute
+description: Read the current route's params, search, and navigate imperatively.
+---
+
+`useRoute` is the single hook for reading the current route. It returns the route's `params` (the path segments), its `search` (the query string), the current `pathname`, and `goto` for imperative navigation.
+
+Pass the `PageRoute` (or `LayoutRoute`) type generated for the current route file to type `params` and `search` against that route's query variables.
+
+```tsx
+import type { PageRoute } from './$types'
+import { useRoute } from '$houdini'
+
+export function ShowBreadcrumb() {
+  const { params, search } = useRoute<PageRoute>()
+  // params.id: typed from the route's [id] segment
+  // search.tab: typed from the query's nullable variables
+  return <span>Show #{params.id}</span>
+}
+```
+
+`params` and `search` are derived from the route's query, so they carry the exact scalar types, including [custom scalars](~/guides/custom-scalars), which are unmarshaled back to their runtime type (e.g. a `DateTime` search param comes back as a `Date`). See [Search Params](~/routing/navigation#search-params) for how they get into the URL.
+
+Calling `useRoute()` without a type argument still works for `pathname` and `goto`, which is handy for navigation-only code. `params` and `search` fall back to empty objects, so reading a key off them without passing your `PageRoute` is a compile error (a nudge to type it):
+
+```tsx
+const { goto } = useRoute()
+goto('/login')
+```
+
+### Route-agnostic components
+
+A reusable component (say a paginator that assumes its route exposes `after`/`first` search params) isn't tied to a single route, so there's no generated `PageRoute` to pass. Use `GenericRoute` to type the axis you depend on, and leave the other `never` (it falls back to a loose record). Search comes first, since that's the usual reason to reach for it:
+
+```tsx
+import { useRoute, type GenericRoute } from '$houdini'
+
+export function Paginator() {
+  const { search } = useRoute<GenericRoute<{ after?: string | null; first?: number | null }>>()
+  // search.after / search.first are typed; the component carries the assumption that it's
+  // rendered in a route that declares them. params was opted out, so it's loose.
+}
+```
+
+A params-only component writes `GenericRoute<never, { id: string }>`, and you can type both at once with `GenericRoute<{ tab?: string }, { id: string }>` (search, then params).
+
+**Signature**
+
+```ts
+function useRoute<Route>(): {
+  pathname: string
+  params: Route['params']
+  search: Route['search']
+  goto: Goto
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `pathname` | `string` | The current URL path (including the query string) |
+| `params` | `Route['params']` | The current route's path params, scoped to this route's segments |
+| `search` | `Route['search']` | The parsed query string: declared search params coerced/unmarshaled, other keys raw, repeated keys as arrays |
+| `goto` | `Goto` | Navigate imperatively; accepts a string or a typed `{ to, params, search }` target |

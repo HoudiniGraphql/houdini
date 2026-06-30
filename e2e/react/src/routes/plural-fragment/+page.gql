@@ -1,0 +1,6 @@
+query features__plural_fragment {
+	usersList(snapshot: "plural_fragment", limit: 4) @list(name: "PluralUsers") {
+		id
+		...PluralUserRow
+	}
+}

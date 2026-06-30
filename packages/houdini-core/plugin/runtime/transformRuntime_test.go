@@ -2,14 +2,56 @@ package runtime_test
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/runtime"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/stretchr/testify/require"
 )
+
+// the GraphQL endpoint lives in src/server/+config (router_config.api_endpoint). Codegen bakes it
+// into the client config as `apiURL` so the client knows where to send when houdini.config has no
+// public `url` — the local-API case. No render-time injection.
+func TestRuntimeTransform_configEndpoint(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `type Query { hello: String }`,
+		Tests: []tests.Test[config.PluginConfig]{
+			{Name: "bakes router_config.api_endpoint into the client config as apiURL"},
+		},
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			conn, err := plugin.DB.Take(context.Background())
+			require.Nil(t, err)
+			defer plugin.DB.Put(conn)
+
+			insert, err := conn.Prepare(
+				`INSERT INTO router_config (api_endpoint, session_keys) VALUES ('/graphql', '')`,
+			)
+			require.Nil(t, err)
+			defer insert.Finalize()
+			require.Nil(t, plugin.DB.ExecStatement(insert, map[string]any{}))
+
+			projectConfig := plugins.ProjectConfig{
+				ProjectRoot: "/proj",
+				RuntimeDir:  ".houdini",
+				Filepath:    "/proj/houdini.config.js",
+			}
+			result, err := runtime.TransformRuntime(
+				context.Background(),
+				plugin.DB,
+				projectConfig,
+				filepath.Join("imports", "config.ts"),
+				"",
+			)
+			require.Nil(t, err)
+			require.Contains(t, result, `apiURL: "/graphql"`)
+			require.Contains(t, result, "...projectConfig")
+		},
+	})
+}
 
 func TestRuntimeTransform_extraConfig(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{

@@ -1,0 +1,5 @@
+query LoadingInteractiveQuery @loading {
+	user(id: "1", snapshot: "loading-interactive", delay: 400) {
+		name
+	}
+}

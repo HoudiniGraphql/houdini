@@ -17,7 +17,7 @@ There are a few different policies that can be specified:
 - `CacheOnly` will only ever return cache data which can be a partial response
 - `NoCache` is like `NetworkOnly` but also will never write to the cache
 
-The default cache policy as well as other parameters can be changed in your [config file](/svelte/api/config).
+The default cache policy as well as other parameters can be changed in your [config file](~/core/config).
 
 ### Partial Data
 
@@ -155,7 +155,7 @@ it will be refetched over the network. This can be done in two ways:
 
 #### Globally after a timeout
 
-If you set `defaultLifetime` in your [config file](/svelte/api/config#fields) then data will
+If you set `defaultLifetime` in your [config file](~/core/config#fields) then data will
 get automatically marked stale after a certain time (in milliseconds). For example, you can
 configure so that any data older than 7 minutes is refreshed (example: `defaultLifetime: 7 * 60 * 1000`).
 When this happens, the cached data will still be returned but a new query will be sent
@@ -194,7 +194,7 @@ user.markStale('name', { when: { pattern: 'capitalize' } })
 
 There are times where Houdini's automatic cache updates or list operation fragments are not sufficient.
 For those times, Houdini provides a programatic API for interacting with the cache directly. For more
-information, check out the [Cache API reference](/svelte/api/cache)
+information, check out the [Cache API reference](~/core/cache)
 .
 
 ```typescript

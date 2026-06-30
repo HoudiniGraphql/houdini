@@ -255,6 +255,22 @@ export type TestQuery$input = {
 	id: string;
 };
 
+export type TestQuery$unmasked = {
+	readonly node: {} & (({
+		readonly id: string;
+		readonly legends: ({
+			readonly __typename: string;
+			readonly id: string;
+			readonly name: string | null;
+		} | null)[] | null;
+		readonly name: string | null;
+		readonly __typename: "Ghost";
+	}) | ({
+		readonly " $fragments"?: {};
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+};
+
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518"`),

@@ -72,15 +72,12 @@ expect.addSnapshotSerializer({
 })
 */
 
-// serialize javascript ASTs
-/*
+// serialize javascript ASTs as printed code so transform snapshots read as source.
+// (testConfig uses a fixed `/test` root, so there are no machine-specific paths to scrub.)
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
-	serialize: (val) => {
-		return recast.print(val).code.replace(new RegExp(config.projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), 'PROJECT_ROOT')
-	},
+	serialize: (val) => recast.print(val).code,
 })
-*/
 
 // serialize
 expect.addSnapshotSerializer({

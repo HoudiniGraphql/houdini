@@ -13,8 +13,11 @@ export const routes = {
 	fragment_masking_partial: '/fragment-masking-partial',
 	conditional_fragment_spread: '/conditional-fragment-spread',
 	loading_state: '/loading-state',
+	paginated_fragment_at_loading: '/bug/paginated-fragment-at-loading',
 	required_field: '/required-field',
 	Cache_Refresh: '/cache/refresh',
+	Cache_Refetch: '/cache/refetch',
+	Cache_Refetch_Subscription: '/cache/refetch-subscription',
 
 	Lists_fragment: '/lists/fragment',
 	Lists_mutation_insert: '/lists/mutation-insert',
@@ -71,6 +74,9 @@ export const routes = {
 	Pagination_fragment_required_arguments: '/pagination/fragment/required-arguments',
 	Pagination_fragment_forward_cursor_singlepage: '/pagination/fragment/forward-cursor-singlepage',
 
+	refetchable_fragment: '/refetchable-fragment',
+	refetchable_fragment_custom: '/refetchable-fragment-custom',
+
 	nested_argument_fragments: '/nested-argument-fragments',
 	nested_argument_fragments_masking: '/nested-argument-fragments-masking',
 
@@ -88,4 +94,6 @@ export const routes = {
 	Svelte5_Runes_Pagination: '/svelte5-runes/pagination',
 	Svelte5_Runes_Fragment: '/svelte5-runes/fragment',
 	Svelte5_Runes_Mutation: '/svelte5-runes/mutation',
+
+	Plural_fragment: '/plural-fragment',
 }

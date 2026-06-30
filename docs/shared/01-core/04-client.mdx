@@ -32,7 +32,7 @@ The `HoudiniClient` constructor takes the following arguments
 
 - `url` (required): the URL that your application will use to query the API
 - `fetchParams` (optional): a function that takes a [FetchParamsInput](#type-definitions) and returns additional parameters to `fetch` and other network calls made by the client.
-- `plugins` (optional): a list of [ClientPlugins](/svelte/api/client-plugins) that will be added to the Client's default list
+- `plugins` (optional): a list of [ClientPlugins](~/extending-houdini/client-plugins) that will be added to the Client's default list
 - `pipeline` (optional): a function that returns the full list of plugins that the client will use. This is only for very advanced use cases.
   If you find yourself needing this level of control, please open an issue to discuss your situation.
 - `throwOnError` (optional): takes an object of type [ThrowOnErrorParams](#type-definitions) and configures your client's error handling (see [Error Handling](#error-handling) below)
@@ -100,12 +100,12 @@ export default new HoudiniClient({
 
 Houdini's default pipeline is built from plugins exported from `$houdini/plugins`. You can import any of these to use in a custom `pipeline`:
 
-- `fetch` — resolves the pipeline by sending a standard HTTP request. The default terminating plugin. Accepts an optional handler function for fully custom request logic.
-- `query` — core behavior for queries: establishing cache subscriptions and accumulating variables.
-- `mutation` — core behavior for mutations, including optimistic responses.
-- `subscription` — core behavior for subscriptions. Accepts a `SubscriptionHandler` to wire up a WebSocket client such as `graphql-ws`.
-- `throwOnError` — included when `throwOnError` is configured on the client.
-- `fetchParams` — included when `fetchParams` is configured on the client.
+- `fetch`: resolves the pipeline by sending a standard HTTP request. The default terminating plugin. Accepts an optional handler function for fully custom request logic.
+- `query`: core behavior for queries, establishing cache subscriptions and accumulating variables.
+- `mutation`: core behavior for mutations, including optimistic responses.
+- `subscription`: core behavior for subscriptions. Accepts a `SubscriptionHandler` to wire up a WebSocket client such as `graphql-ws`.
+- `throwOnError`: included when `throwOnError` is configured on the client.
+- `fetchParams`: included when `fetchParams` is configured on the client.
 
 ## Adding Plugins
 

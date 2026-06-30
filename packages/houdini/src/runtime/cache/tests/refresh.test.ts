@@ -1,6 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test/index.js'
+import { ArtifactKind } from '../../types.js'
 import type { SubscriptionSelection } from '../../types.js'
 import { Cache } from '../index.js'
 import { rootID } from '../stuff.js'
@@ -101,6 +102,104 @@ test('refresh notifies documents subscribed to the record', () => {
 	// refreshing the root sends the message too (the document subscribes to viewer)
 	set.mockClear()
 	cache.refresh(rootID)
+	expect(set).toHaveBeenCalledTimes(1)
+	expect(set).toHaveBeenCalledWith({ kind: 'refetch' })
+})
+
+test('refresh never asks a subscription document to refetch', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: visibleSelection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// a query and a subscription both contain the record
+	const querySet = vi.fn()
+	cache.subscribe({
+		rootType: 'Query',
+		selection: visibleSelection,
+		onMessage: querySet,
+	})
+
+	const subscriptionSet = vi.fn()
+	cache.subscribe({
+		rootType: 'Subscription',
+		kind: ArtifactKind.Subscription,
+		selection: visibleSelection,
+		onMessage: subscriptionSet,
+	})
+
+	cache.refresh('User:1')
+
+	// the query refetches but the subscription is left alone — a live stream is
+	// pushed from the server, never pulled
+	expect(querySet).toHaveBeenCalledWith({ kind: 'refetch' })
+	expect(subscriptionSet).not.toHaveBeenCalled()
+})
+
+test('refreshing many records notifies a dependent document only once', () => {
+	const cache = new Cache(config)
+
+	const listSelection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: { type: 'ID', visible: true, keyRaw: 'id' },
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: listSelection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{ id: '2', firstName: 'jane' },
+					{ id: '3', firstName: 'mark' },
+				],
+			},
+		},
+	})
+
+	const set = vi.fn()
+	cache.subscribe({
+		rootType: 'Query',
+		kind: ArtifactKind.Query,
+		selection: listSelection,
+		onMessage: set,
+	})
+
+	// both friends changed, but the one document that lists them refetches once
+	cache.refresh(['User:2', 'User:3'])
+
 	expect(set).toHaveBeenCalledTimes(1)
 	expect(set).toHaveBeenCalledWith({ kind: 'refetch' })
 })

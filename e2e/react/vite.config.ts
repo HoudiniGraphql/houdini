@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import houdini from 'houdini/vite'
@@ -10,4 +11,8 @@ export default defineConfig({
 		port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
 	},
 	plugins: [houdini({ adapter }), react(), tailwindcss()],
+	test: {
+		environment: 'happy-dom',
+		include: ['src/**/*.test.{ts,tsx}'],
+	},
 })
