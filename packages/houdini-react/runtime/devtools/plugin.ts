@@ -93,7 +93,11 @@ function reactConfig(config: ConfigFile): HoudiniReactConfig | undefined {
 	]
 }
 
-function enabled(ctx: { config: ConfigFile }) {
+function enabled(ctx: { config: ConfigFile } | null | undefined) {
+	if (!ctx) {
+		return false
+	}
+
 	const mode = reactConfig(ctx.config)?.devtools ?? 'dev'
 
 	if (mode === 'never') {
