@@ -70,7 +70,7 @@ func TestInputTypeDefinitions(t *testing.T) {
 			targetPath := filepath.Join(config.DefinitionsDirectory(), "inputs.ts")
 
 			expected := tests.Dedent(`
-				import { MyEnum$options, Priority$options, Status$options } from './enums.js';
+				import type { MyEnum$options, Priority$options, Status$options } from './enums.js';
 
 				type ValueOf<T> = T[keyof T];
 
