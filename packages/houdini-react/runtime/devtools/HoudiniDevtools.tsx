@@ -241,8 +241,7 @@ function TabButton({
 }
 
 function RequestDot({ request }: { request: DevToolRequest }) {
-	const tone = request.status === 'success' ? getRequestSource(request) : request.status
-	return <span className={`hdt-dot hdt-dot--${tone ?? 'unknown'}`} />
+	return <span className={`hdt-dot hdt-dot--${request.status}`} />
 }
 
 function getRequestSource(request: DevToolRequest) {

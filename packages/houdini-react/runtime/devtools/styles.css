@@ -439,16 +439,12 @@
 	flex: 0 0 auto;
 }
 
-.hdt-dot--network {
-	background: var(--hdt-blue);
-}
-
-.hdt-dot--cache {
-	background: var(--hdt-warn);
+.hdt-dot--success {
+	background: var(--hdt-ok);
 }
 
 .hdt-dot--pending {
-	background: var(--hdt-muted);
+	background: var(--hdt-warn);
 }
 
 .hdt-dot--error {
