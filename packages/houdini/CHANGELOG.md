@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.2
+
+### Patch Changes
+
+- [#1712](https://github.com/HoudiniGraphql/houdini/pull/1712) [`f5cd43a`](https://github.com/HoudiniGraphql/houdini/commit/f5cd43ae15f897a28cc529d7cc8e6685b6fdb713) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Generate the enum imports in `inputs.ts` with `import type` so projects using TypeScript's `verbatimModuleSyntax` no longer fail to compile.
+
 ## 2.0.1
 
 ### Patch Changes
