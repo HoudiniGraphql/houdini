@@ -3,6 +3,8 @@ import type { ClientHooks, ClientPluginContext } from 'houdini/runtime/documentS
 
 export type RequestStatus = 'pending' | 'success' | 'error'
 
+export type RequestSource = NonNullable<QueryResult['source']>
+
 export type RequestPhase = keyof ClientHooks
 
 export type RequestEvent = {
