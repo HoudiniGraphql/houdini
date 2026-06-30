@@ -66,7 +66,11 @@ export function HoudiniDevtools() {
 							<button className="hdt-button" type="button" onClick={clearRequests}>
 								Clear
 							</button>
-							<button className="hdt-button" type="button" onClick={() => setOpen(false)}>
+							<button
+								className="hdt-button"
+								type="button"
+								onClick={() => setOpen(false)}
+							>
 								Close
 							</button>
 						</div>
@@ -77,7 +81,9 @@ export function HoudiniDevtools() {
 							<div className="hdt-list-toolbar">
 								<div>
 									<div className="hdt-list-title">Requests</div>
-									<div className="hdt-list-count">{filteredRequests.length} shown</div>
+									<div className="hdt-list-count">
+										{filteredRequests.length} shown
+									</div>
 								</div>
 								<SourceFilter value={sourceFilter} onChange={setSourceFilter} />
 							</div>
@@ -91,10 +97,14 @@ export function HoudiniDevtools() {
 									<div className="hdt-row-title">
 										<RequestDot request={request} />
 										<span className="hdt-name">{request.ctx.name}</span>
-										<span className="hdt-row-kind">{displayKind(request.kind)}</span>
+										<span className="hdt-row-kind">
+											{displayKind(request.kind)}
+										</span>
 									</div>
 									<div className="hdt-row-meta">
-										<span className={`hdt-row-source hdt-row-source--${getRequestSource(request) ?? 'unknown'}`}>
+										<span
+											className={`hdt-row-source hdt-row-source--${getRequestSource(request) ?? 'unknown'}`}
+										>
 											{getRequestSource(request) ?? 'unknown'}
 										</span>
 										<span>•</span>
@@ -127,7 +137,10 @@ export function HoudiniDevtools() {
 										>
 											Variables
 										</TabButton>
-										<TabButton active={detailTab === 'data'} onClick={() => setDetailTab('data')}>
+										<TabButton
+											active={detailTab === 'data'}
+											onClick={() => setDetailTab('data')}
+										>
 											Data
 										</TabButton>
 										<TabButton
@@ -142,7 +155,14 @@ export function HoudiniDevtools() {
 										<Section title="Variables" value={selected.ctx.variables} />
 									) : null}
 									{detailTab === 'data' ? (
-										<Section title="Data" value={selected.status === 'success' ? selected.result.data : null} />
+										<Section
+											title="Data"
+											value={
+												selected.status === 'success'
+													? selected.result.data
+													: null
+											}
+										/>
 									) : null}
 									{detailTab === 'errors' ? (
 										<Section
