@@ -136,7 +136,7 @@ export function Router({
 	const showLoading = useLoadingState(
 		isNavigating,
 		routerConfig.loadingDelay ?? 200,
-		routerConfig.minDuration ?? 0
+		routerConfig.minDuration ?? 400
 	)
 
 	// find the matching page for the current route. find_match also hands back the parsed

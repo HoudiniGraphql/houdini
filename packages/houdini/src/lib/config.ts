@@ -53,7 +53,7 @@ export type ConfigFile = {
 		/**
 		 * Once the @loading state is shown, keep it visible at least this long (ms) so a
 		 * response that lands just after `loadingDelay` doesn't cause a skeleton flicker.
-		 * @default 0
+		 * @default 400
 		 */
 		minDuration?: number
 	}
