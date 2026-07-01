@@ -293,15 +293,33 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 	pluginDir := projectConfig.PluginDirectory(p.Name())
 	var changed []string
 
-	// Page fallbacks — one per page that has a @loading page query
+	// which query documents are @loading, keyed by name (names are unique project-wide).
+	loadingByName := map[string]bool{}
+	for _, q := range manifest.PageQueries {
+		loadingByName[q.Name] = q.Loading
+	}
+	for _, q := range manifest.LayoutQueries {
+		loadingByName[q.Name] = q.Loading
+	}
+
+	// Page fallbacks — one per page that consumes any @loading query, its own or an
+	// inherited layout query. The fallback renders the page with every query it
+	// receives, so it must include inherited layout @loading queries too (matching the
+	// resolved page unit and PageProps); otherwise those props are undefined during the
+	// loading frame and the page crashes.
 	for id, page := range manifest.Pages {
-		pq, ok := manifest.PageQueries[id]
-		if !ok || !pq.Loading {
+		var loadingQueries []string
+		for _, name := range page.Queries {
+			if loadingByName[name] {
+				loadingQueries = append(loadingQueries, name)
+			}
+		}
+		if len(loadingQueries) == 0 {
 			continue
 		}
 		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.Path))
 		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "page"), compAbs))
-		content := generateFallbackFile(compRel, []string{pq.Name}, nil)
+		content := generateFallbackFile(compRel, loadingQueries, nil)
 		path := filepath.Join(fallbacksDir(pluginDir, "page"), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
@@ -382,9 +400,9 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	imports = append(imports, fmt.Sprintf("import Page_%s from '../pages/%s.jsx'", id, id))
 	imports = append(imports, "import client from '$houdini/plugins/houdini-react/runtime/client'")
 	if len(page.Layouts) > 0 {
-		imports = append(imports, "import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'")
+		imports = append(imports, "import { NotFoundGate, setCurrentSegment, HoldLoading } from '$houdini/plugins/houdini-react/runtime/routing'")
 	} else {
-		imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
+		imports = append(imports, "import { NotFoundGate, HoldLoading } from '$houdini/plugins/houdini-react/runtime/routing'")
 	}
 
 	// Import page fallback if page has a loading query
@@ -440,7 +458,12 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		b.WriteString("\n\n")
 		b.WriteString(strings.Join(segmentSetters, "\n"))
 	}
-	b.WriteString("\n\nexport default ({ url }) => {\n")
+	// navKey controls whether the route's boundaries remount on navigation. The Router
+	// keeps it stable while a navigation transition is in flight (so React holds the
+	// previous UI instead of flashing the loading state), and switches it to the URL
+	// once the transition has been pending long enough to warrant showing the loading
+	// state — remounting the boundaries so their @loading frames render.
+	b.WriteString("\n\nexport default ({ url, navKey, showLoading }) => {\n")
 	b.WriteString("\treturn (\n")
 	b.WriteString(nestedContent)
 	b.WriteString("\n\t)\n}\n")
@@ -454,9 +477,13 @@ func renderWrappedJSX(wrappers []string, leaf string, baseDepth int) string {
 	var lines []string
 
 	for i, w := range wrappers {
-		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s key={url}>", w))
+		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s key={navKey}>", w))
 	}
-	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+fmt.Sprintf("<%s />", leaf))
+	// The page slot: while the router wants to show the loading state, render HoldLoading
+	// (which suspends) so the page's Suspense boundary shows its @loading fallback and
+	// holds it; otherwise render the real page. The surrounding layouts render normally
+	// either way, so persistent chrome (e.g. a layout query) keeps its live data.
+	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+fmt.Sprintf("{showLoading ? <HoldLoading /> : <%s />}", leaf))
 	for i := len(wrappers) - 1; i >= 0; i-- {
 		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("</%s>", wrappers[i]))
 	}
