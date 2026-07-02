@@ -17,7 +17,9 @@ import {
 	RouterContextObject as Context,
 	LocationContext,
 	Is404Context,
+	NavigationContext,
 	PageContext,
+	PendingURLContext,
 } from '../contexts.js'
 import { escapeScriptTag } from '../escape.js'
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
@@ -341,9 +343,21 @@ export function Router({
 	// (component, artifacts, layout data) is renderable.
 	const showFrame = showLoading && currentURL === pendingURL
 
+	// the public pending-navigation surface (useNavigation). A navigation counts as
+	// pending until the destination shows its actual content: the transition can commit
+	// with the @loading frame on screen (isNavigating flips false then), so the loading
+	// state extends it. Memoized so consumers only re-render when it actually changes.
+	const navigating = isNavigating || showLoading
+	const navigation = React.useMemo(
+		() => ({ pending: navigating, to: navigating ? pendingURL : null }),
+		[navigating, pendingURL]
+	)
+
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
+		<PendingURLContext.Provider value={pendingURL}>
+		<NavigationContext.Provider value={navigation}>
 		<LocationContext.Provider
 			value={{
 				pathname: currentURL,
@@ -370,7 +384,18 @@ export function Router({
 				)}
 			</Is404Context.Provider>
 		</LocationContext.Provider>
+		</NavigationContext.Provider>
+		</PendingURLContext.Provider>
 	)
+}
+
+// useNavigation exposes the router's in-flight navigation. `pending` is true from the
+// moment a navigation starts until the destination renders its actual content — it stays
+// true while the destination's @loading state is showing — and `to` carries the
+// destination url while pending (null when idle). This is the hook for global progress
+// bars, per-link spinners, or disabling controls during a navigation.
+export function useNavigation(): { pending: boolean; to: string | null } {
+	return useContext(NavigationContext)
 }
 
 // internal accessor for the raw location context. the public surface is useRoute, which
@@ -985,9 +1010,43 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 ): [_Data | null, DocumentHandle<any, _Data, _Input>] {
 	// pull the global context values
 	const { data_cache, artifact_cache } = useRouterContext()
+	const { pathname } = useLocationContext()
+	const pendingURL = React.useContext(PendingURLContext)
+	const last_store = React.useRef<DocumentStore<_Data, _Input> | null>(null)
+	const [, bumpStore] = React.useReducer((n: number) => n + 1, 0)
 
-	// load the store reference (this will suspend)
-	const store_ref = data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>
+	// Load the store reference. data_cache.get suspends when the store is missing — the
+	// right behavior for a first render or for the navigation destination (a transition
+	// waits on it, or the page's @loading boundary catches it). But the router evicts a
+	// document mid-navigation to reload it with new variables, and a re-render of the
+	// still-visible previous page must NOT re-suspend into its own loading state: it
+	// keeps rendering from the store it already has, and the in-flight navigation swaps
+	// the tree when the replacement resolves. "Previous page" = a render whose URL lags
+	// the navigation target (pendingURL is lane-independent — see PendingURLContext).
+	// The effect below is the safety net for a kept-stale commit that never gets swapped
+	// (e.g. the navigation was superseded): it re-renders once a replacement store lands.
+	const missing = !data_cache.has(name)
+	const lagging = pendingURL !== null && pathname !== pendingURL
+	const store_ref =
+		missing && lagging && last_store.current
+			? last_store.current
+			: (data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>)
+	last_store.current = store_ref
+
+	React.useEffect(() => {
+		if (!missing) {
+			return
+		}
+		let cancelled = false
+		data_cache.waitFor(name).then(() => {
+			if (!cancelled) {
+				bumpStore()
+			}
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [missing, name])
 
 	// get the live data from the store
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
@@ -1034,9 +1093,6 @@ function useLinkBehavior({
 }
 
 function useLinkNavigation({ goto }: { goto: Goto }) {
-	// navigations need to be registered as transitions
-	const [_pending, startTransition] = React.useTransition()
-
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
 			if (!e.target) {
@@ -1085,10 +1141,11 @@ function useLinkNavigation({ goto }: { goto: Goto }) {
 			e.preventDefault()
 			e.stopPropagation()
 
-			// go to the next route as a low priority update
-			startTransition(() => {
-				goto(target)
-			})
+			// goto() runs the URL update in its own transition and tracks the pending
+			// destination urgently. Don't wrap the call in another transition here: that
+			// would drag the urgent bookkeeping (pendingURL) into the transition lane,
+			// and the committed tree couldn't tell where the navigation is headed.
+			goto(target)
 		}
 
 		window.addEventListener('click', onClick)

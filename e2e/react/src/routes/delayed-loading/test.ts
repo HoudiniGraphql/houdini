@@ -89,4 +89,27 @@ test.describe('delayed loading state', () => {
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
 		await expect(page).toHaveURL(/delay=0/)
 	})
+
+	// useNavigation reports a navigation as pending from the click until the destination
+	// shows its actual content — including while the loading state is up, even though the
+	// underlying transition commits as soon as the frame renders.
+	test('useNavigation reports the pending navigation', async ({ page }) => {
+		await goto(page, routes.delayed_loading + '?delay=0')
+		await expect(page.locator('#nav-status')).toHaveText('idle')
+
+		await page.click('#to-slow')
+		await expect(page.locator('#nav-status')).toHaveText(
+			'navigating to /delayed-loading?delay=1500'
+		)
+
+		// still pending while the loading state shows
+		await expect(page.locator('#name')).toHaveText('loading')
+		await expect(page.locator('#nav-status')).toHaveText(
+			'navigating to /delayed-loading?delay=1500'
+		)
+
+		// and idle again once the destination renders its data
+		await expect(page.locator('#name')).toHaveText('Bruce Willis')
+		await expect(page.locator('#nav-status')).toHaveText('idle')
+	})
 })

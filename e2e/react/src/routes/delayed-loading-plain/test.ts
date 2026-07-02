@@ -16,14 +16,19 @@ test.describe('delayed loading without @loading', () => {
 		await page.click('#to-slow')
 
 		// well past loadingDelay (100ms in config), the previous page is still the only
-		// thing on screen — no frame, no error boundary, no blank
+		// thing on screen — no frame, no error boundary, no blank — and useNavigation
+		// reports the held navigation so the app can render its own indicator
 		await page.waitForTimeout(400)
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
 		await expect(page.locator('#name')).toHaveCount(1)
+		await expect(page.locator('#nav-status')).toHaveText(
+			'navigating to /delayed-loading-plain?delay=1500'
+		)
 
 		// and the navigation still completes once the data lands
 		await page.waitForURL(/delay=1500/)
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
+		await expect(page.locator('#nav-status')).toHaveText('idle')
 	})
 
 	test('client nav: a fast navigation swaps immediately', async ({ page }) => {

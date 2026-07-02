@@ -180,3 +180,19 @@ export default {
 Queries whose variables don't change across a navigation aren't re-fetched, so persistent chrome—for example a layout query that doesn't depend on the route—keeps its data and never flashes. Only the parts of the page whose data actually changed show their loading state.
 
 A route without an `@loading` state has nothing to show in its place, so a slow navigation to it simply keeps the previous page on screen until the new one is ready.
+
+## Tracking navigation
+
+`useNavigation` exposes the router's in-flight navigation so your app can render its own pending UI—a global progress bar, a spinner on the clicked link, or disabling controls while a navigation settles:
+
+```tsx
+import { useNavigation } from '$houdini'
+
+export function ProgressBar() {
+    const { pending, to } = useNavigation()
+    if (!pending) return null
+    return <div className="progress-bar" aria-label={`navigating to ${to}`} />
+}
+```
+
+`pending` is true from the moment a navigation starts until the destination renders its actual content—including while the destination's `@loading` state is showing—and `to` carries the destination url while pending (`null` when idle). Note that this is different from [`useRoute`](~/api-reference/useRoute), which describes the route currently rendered: during a navigation, `useRoute` keeps answering for what's on screen while `useNavigation` describes where the router is headed.

@@ -43,6 +43,23 @@ export const LocationContext = createContext<{
 
 export const Is404Context = createContext(false)
 
+// PendingURLContext (internal) carries the raw navigation target. Unlike
+// NavigationContext.to it is NOT nulled when the router considers itself idle, so it
+// reads the same in every render lane — the transition lane renders with isPending
+// false, which would hide the target from it. useQueryResult uses this to tell whether
+// the render it is part of is the destination of an in-flight navigation (suspend on a
+// missing store) or the still-visible previous page (keep rendering the store it has).
+export const PendingURLContext = createContext<string | null>(null)
+
+// NavigationContext carries the router's in-flight navigation, if any: `pending` is true
+// from the moment a navigation starts until the destination renders its actual content
+// (it stays true while the @loading state shows), and `to` is the destination url while
+// pending. Read through useNavigation().
+export const NavigationContext = createContext<{ pending: boolean; to: string | null }>({
+	pending: false,
+	to: null,
+})
+
 export const PageContext = createContext<{ params: Record<string, any> }>({ params: {} })
 
 // Mutable ref passed from the server renderer. It carries the HTTP status/location for
