@@ -60,6 +60,7 @@ export const routes = {
 	session_to_api: '/session-to-api',
 	delayed_loading: '/delayed-loading',
 	delayed_loading_plain: '/delayed-loading-plain',
+	delayed_loading_pagination: '/delayed-loading-pagination',
 	error_recovery: '/error-recovery',
 	suspense_boundary: '/suspense-boundary',
 	suspense_boundary_link: '/suspense-boundary-link',
