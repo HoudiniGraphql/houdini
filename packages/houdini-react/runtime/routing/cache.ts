@@ -32,6 +32,15 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 		this.#dispose = dispose
 	}
 
+	// bumped by clear() so async work started before an invalidation can tell its results
+	// are stale (see load_query, which drops a completed send from a previous generation
+	// instead of re-inserting data fetched under an old session)
+	#generation = 0
+
+	get generation(): number {
+		return this.#generation
+	}
+
 	get(key: string): _Data {
 		// if there is a value, use that
 		if (super.has(key)) {
@@ -40,9 +49,7 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 
 		// we don't have a value, so we need to throw a promise
 		// that resolves when a value is passed to set()
-		throw new Promise<void>((resolve, reject) => {
-			this.#subscribe(key, resolve, reject)
-		})
+		throw this.waitFor(key)
 	}
 
 	// waitFor resolves when the key holds a value — immediately if it already does,
@@ -59,7 +66,11 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 
 	override clear() {
 		super.clear()
-		this.#callbacks.clear()
+		this.#generation++
+		// deliberately NOT clearing #callbacks: a waitFor()/get() subscriber is waiting
+		// for the key to hold a value, and after an invalidation the router refetches and
+		// set()s it again — the pre-clear subscribers must resolve then (with the fresh
+		// value) instead of hanging forever on a promise nothing can settle.
 	}
 
 	set(key: string, value: _Data) {

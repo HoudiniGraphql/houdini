@@ -90,6 +90,9 @@ type HoudiniErrorBoundaryProps = {
 type HoudiniErrorBoundaryState = {
 	hasError: boolean
 	errors: Array<Error | GraphQLError>
+	// the resetKey (current pathname) the boundary last rendered for — a caught error is
+	// cleared when it changes (see getDerivedStateFromProps)
+	resetKey: string
 }
 
 // HoudiniErrorBoundary wraps the class boundary so it can read the current pathname:
@@ -122,43 +125,38 @@ class ErrorBoundary extends React.Component<
 			this.state = {
 				hasError: true,
 				errors: context.errors ?? [new RoutingError(context.status)],
+				resetKey: props.resetKey,
 			}
 		} else {
-			this.state = { hasError: false, errors: [] }
+			this.state = { hasError: false, errors: [], resetKey: props.resetKey }
 		}
 	}
 
-	static getDerivedStateFromError(error: unknown): HoudiniErrorBoundaryState {
+	// a navigation is a retry: clear a caught error the moment a render arrives for a new
+	// URL. Doing this in derived state (not componentDidUpdate + setState) matters: the
+	// reset happens inside whatever render is already in flight, so when the router
+	// navigates away from an errored route the children render — and suspend — inside the
+	// router's own transition. isNavigating/showLoading account for the wait, the error
+	// view stays on screen until the destination is renderable, and the destination's
+	// @loading frame can show. If the retry throws again the boundary re-catches, and
+	// since resetKey is unchanged then, it can't loop.
+	static getDerivedStateFromProps(
+		props: HoudiniErrorBoundaryProps & { resetKey: string },
+		state: HoudiniErrorBoundaryState
+	): Partial<HoudiniErrorBoundaryState> | null {
+		if (props.resetKey !== state.resetKey) {
+			return { hasError: false, errors: [], resetKey: props.resetKey }
+		}
+		return null
+	}
+
+	static getDerivedStateFromError(error: unknown): Partial<HoudiniErrorBoundaryState> {
 		if (error instanceof GraphQLErrors) {
 			return { hasError: true, errors: error.graphqlErrors }
 		}
 		return {
 			hasError: true,
 			errors: [error instanceof Error ? error : new Error(String(error))],
-		}
-	}
-
-	componentDidCatch(error: Error): void {
-		if (this.context) {
-			if (error instanceof RoutingError) {
-				this.context.status = error.status
-			} else if (error instanceof RedirectError) {
-				this.context.status = error.status
-				this.context.location = error.location
-			}
-		}
-	}
-
-	componentDidUpdate(prevProps: HoudiniErrorBoundaryProps & { resetKey: string }): void {
-		// a navigation is a retry: clear the caught error so the new URL's children render.
-		// The reset runs in a transition — the children usually suspend on the new page's
-		// data, and a transition waits for it instead of needing a Suspense boundary (the
-		// error view stays up until the retry is renderable). If the retry throws again
-		// the boundary re-catches, and since resetKey is unchanged it won't loop.
-		if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
-			React.startTransition(() => {
-				this.setState({ hasError: false, errors: [] })
-			})
 		}
 	}
 

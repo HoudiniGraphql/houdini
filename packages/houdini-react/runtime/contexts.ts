@@ -72,7 +72,6 @@ export const PageContext = createContext<{ params: Record<string, any> }>({ para
 // during SSR), the errors the boundary should render on the second pass.
 export const StatusContext = createContext<{
 	status: number
-	location?: string
 	errors?: Array<Error | GraphQLError>
 } | null>(null)
 

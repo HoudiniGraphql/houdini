@@ -266,6 +266,33 @@ func generateFallbackFile(componentRel string, loadingQueries []string) string {
 	return b.String()
 }
 
+// loadingQueryIndex maps every query document name to whether it is @loading (names are
+// unique project-wide).
+func loadingQueryIndex(manifest ProjectManifest) map[string]bool {
+	index := map[string]bool{}
+	for _, q := range manifest.PageQueries {
+		index[q.Name] = q.Loading
+	}
+	for _, q := range manifest.LayoutQueries {
+		index[q.Name] = q.Loading
+	}
+	return index
+}
+
+// pageLoadingQueries returns the page's @loading query names (its own or inherited layout
+// queries), in the order the page consumes them. GenerateFallbacks uses the list to build
+// the page's loading frame and generatePageEntry uses it to decide whether the entry has a
+// frame to render — the two must agree, which is why they share this.
+func pageLoadingQueries(index map[string]bool, page PageManifest) []string {
+	var loadingQueries []string
+	for _, name := range page.Queries {
+		if index[name] {
+			loadingQueries = append(loadingQueries, name)
+		}
+	}
+	return loadingQueries
+}
+
 // GenerateFallbacks generates Suspense fallback components for routes with @loading queries.
 func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) {
 	projectConfig, err := p.DB.ProjectConfig(ctx)
@@ -280,14 +307,7 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 	pluginDir := projectConfig.PluginDirectory(p.Name())
 	var changed []string
 
-	// which query documents are @loading, keyed by name (names are unique project-wide).
-	loadingByName := map[string]bool{}
-	for _, q := range manifest.PageQueries {
-		loadingByName[q.Name] = q.Loading
-	}
-	for _, q := range manifest.LayoutQueries {
-		loadingByName[q.Name] = q.Loading
-	}
+	loadingByName := loadingQueryIndex(manifest)
 
 	// Page fallbacks — one per page that consumes any @loading query, its own or an
 	// inherited layout query. The fallback renders the page with every query it
@@ -295,12 +315,7 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 	// resolved page unit and PageProps); otherwise those props are undefined during the
 	// loading frame and the page crashes.
 	for id, page := range manifest.Pages {
-		var loadingQueries []string
-		for _, name := range page.Queries {
-			if loadingByName[name] {
-				loadingQueries = append(loadingQueries, name)
-			}
-		}
+		loadingQueries := pageLoadingQueries(loadingByName, page)
 		if len(loadingQueries) == 0 {
 			continue
 		}
@@ -373,23 +388,10 @@ func (p *HoudiniReact) GeneratePageEntries(ctx context.Context) ([]string, error
 func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, pluginDir string, cfs []componentField) string {
 	var imports []string
 
-	// which of the page's queries are @loading (its own or an inherited layout query) —
-	// this must match GenerateFallbacks, which generates the fallback unit under the
-	// same condition
-	loadingByName := map[string]bool{}
-	for _, q := range manifest.PageQueries {
-		loadingByName[q.Name] = q.Loading
-	}
-	for _, q := range manifest.LayoutQueries {
-		loadingByName[q.Name] = q.Loading
-	}
-	hasFrame := false
-	for _, name := range page.Queries {
-		if loadingByName[name] {
-			hasFrame = true
-			break
-		}
-	}
+	// whether the page has a loading frame (any @loading query, its own or an inherited
+	// layout query) — shared with GenerateFallbacks, which generates the fallback unit
+	// under the same condition
+	hasFrame := len(pageLoadingQueries(loadingQueryIndex(manifest), page)) > 0
 
 	// Import each layout unit
 	for _, layoutID := range page.Layouts {
@@ -619,7 +621,7 @@ export const on_render =
 		// Mutable ref threaded through StatusContext. It carries the response status and,
 		// when the first render pass throws, the failure the error boundary renders on the
 		// second pass (see the retry around renderToStream below).
-		const statusRef = { status: is404 ? 404 : 200, location: undefined, errors: undefined }
+		const statusRef = { status: is404 ? 404 : 200, errors: undefined }
 
 		// renderToStream only hands back injectToStream as a return value, i.e. after <App> has
 		// already been constructed — too late to pass it down as a prop for the first render.
@@ -696,6 +698,8 @@ export const on_render =
 				statusRef.status = error.status
 			} else {
 				statusRef.status = 500
+				// the thrown errors are handed to +error.tsx as-is, in production too:
+				// deciding what an error view exposes is the app's call, not the router's
 				statusRef.errors = error?.name === 'GraphQLErrors' ? error.graphqlErrors : [error]
 			}
 			// if the second pass throws too (the throw came from a layout, which renders

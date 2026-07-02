@@ -162,7 +162,7 @@ See [`useRoute`](~/api-reference/useRoute) for the full API.
 
 Navigations run as a React transition, so the current page stays on screen while the next route loads—a navigation that resolves quickly swaps straight to the new page with no intermediate flash.
 
-If a navigation stays pending longer than a configurable threshold, Houdini shows the destination route's [`@loading` state](~/loading-data/queries) (its skeleton) instead of holding the old page indefinitely. Two [config](~/core/config) options control the timing:
+If a navigation stays pending longer than a configurable threshold, Houdini shows the destination route's [`@loading` state](~/loading-data/loading-states) (its skeleton) instead of holding the old page indefinitely. Two [config](~/core/config) options control the timing:
 
 - `router.loadingDelay` (default: `200`ms): how long a navigation may stay pending before the loading state is shown. Navigations faster than this never show it.
 - `router.minDuration` (default: `400`ms): once the loading state is shown, the minimum time to keep it visible, so a response landing just after `loadingDelay` doesn't cause a flicker.
@@ -183,7 +183,7 @@ A route without an `@loading` state has nothing to show in its place, so a slow 
 
 ## Tracking navigation
 
-`useNavigation` exposes the router's in-flight navigation so your app can render its own pending UI—a global progress bar, a spinner on the clicked link, or disabling controls while a navigation settles:
+`useNavigation` exposes the router's in-flight navigation so your app can render its own pending UI: a global progress bar, a spinner on the clicked link, or disabling controls while a navigation settles.
 
 ```tsx
 import { useNavigation } from '$houdini'
@@ -195,4 +195,4 @@ export function ProgressBar() {
 }
 ```
 
-`pending` is true from the moment a navigation starts until the destination renders its actual content—including while the destination's `@loading` state is showing—and `to` carries the destination url while pending (`null` when idle). The returned object also includes `goto`—the same navigate function [`useRoute`](~/api-reference/useRoute) exposes—so navigation chrome only needs this one hook. Note that this is different from [`useRoute`](~/api-reference/useRoute), which describes the route currently rendered: during a navigation, `useRoute` keeps answering for what's on screen while `useNavigation` describes where the router is headed.
+`pending` is true from the moment a navigation starts until the destination renders its actual content (including while the destination's `@loading` state is showing), and `to` carries the destination url while pending (`null` when idle). The returned object also includes `goto`, the same navigate function [`useRoute`](~/api-reference/useRoute) exposes, so navigation chrome only needs this one hook. Note that this is different from `useRoute`, which describes the route currently rendered: during a navigation, `useRoute` keeps answering for what's on screen while `useNavigation` describes where the router is headed.
