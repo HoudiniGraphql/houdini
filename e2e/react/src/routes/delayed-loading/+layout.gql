@@ -1,0 +1,5 @@
+query DelayedLoadingChrome @loading {
+	user(id: "1", snapshot: "delayed-loading-chrome") {
+		name
+	}
+}

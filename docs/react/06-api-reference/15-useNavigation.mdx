@@ -1,0 +1,46 @@
+---
+title: useNavigation
+description: Track the router's in-flight navigation for pending UI.
+---
+
+`useNavigation` exposes the router's in-flight navigation. It returns `pending` (whether a navigation is settling), `to` (the destination url while one is), and `goto` for imperative navigation. It's the hook for navigation chrome: global progress bars, a spinner on the clicked link, or disabling controls until the destination arrives.
+
+```tsx
+import { useNavigation } from '$houdini'
+
+export function ProgressBar() {
+  const { pending, to } = useNavigation()
+  if (!pending) return null
+  return <div className="progress-bar" aria-label={`navigating to ${to}`} />
+}
+```
+
+`pending` is true from the moment a navigation starts until the destination renders its actual content. That includes the time the destination's [`@loading` state](~/loading-data/loading-states) is showing, so an indicator driven by `pending` stays up until the real data is on screen, not just until the skeleton appears. Fast navigations flip it on and off without ever showing a loading state; see [Loading States](~/routing/navigation#loading-states) for the timing knobs.
+
+`goto` is the same navigate function [`useRoute`](~/api-reference/useRoute) exposes, included here so navigation chrome only needs one hook:
+
+```tsx
+const { pending, goto } = useNavigation()
+
+<button disabled={pending} onClick={() => goto('/search')}>
+  search
+</button>
+```
+
+The two hooks answer different questions. `useRoute` describes the route currently rendered; `useNavigation` describes where the router is headed. During a navigation, `useRoute` keeps answering for what's on screen while `pending` reports the transition, and once it settles the two agree again.
+
+**Signature**
+
+```ts
+function useNavigation(): {
+  pending: boolean
+  to: string | null
+  goto: Goto
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `pending` | `boolean` | True from navigation start until the destination renders its actual content |
+| `to` | `string \| null` | The destination url while pending, `null` when idle |
+| `goto` | `Goto` | Navigate imperatively; accepts a string or a typed `{ to, params, search }` target |

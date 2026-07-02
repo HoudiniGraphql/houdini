@@ -41,6 +41,24 @@ export type ConfigFile = {
 	scalars?: ScalarMap
 
 	/**
+	 * Client-side router behavior (houdini-react).
+	 */
+	router?: {
+		/**
+		 * How long (ms) a navigation transition may stay pending before the route's
+		 * @loading state is shown. Fast navigations resolve first and never show it.
+		 * @default 200
+		 */
+		loadingDelay?: number
+		/**
+		 * Once the @loading state is shown, keep it visible at least this long (ms) so a
+		 * response that lands just after `loadingDelay` doesn't cause a skeleton flicker.
+		 * @default 400
+		 */
+		minDuration?: number
+	}
+
+	/**
 	 * A path that the generator will use to write schema.graphql and documents.gql files containing all of the internal fragment and directive definitions used in the project.
 	 */
 	definitionsPath?: string

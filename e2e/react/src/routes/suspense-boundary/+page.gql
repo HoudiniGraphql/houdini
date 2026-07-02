@@ -1,0 +1,5 @@
+query SuspenseBoundaryPage($delay: Int) {
+	user(id: "1", snapshot: "suspense-boundary", delay: $delay) {
+		name
+	}
+}

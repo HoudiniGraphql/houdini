@@ -1,0 +1,5 @@
+query DelayedLoadingPage($delay: Int) @loading {
+	user(id: "1", snapshot: "delayed-loading-page", delay: $delay) {
+		name
+	}
+}
