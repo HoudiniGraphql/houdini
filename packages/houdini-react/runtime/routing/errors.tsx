@@ -1,7 +1,7 @@
 import type { GraphQLError } from 'houdini/runtime'
 import React from 'react'
 
-import { StatusContext } from '../contexts.js'
+import { LocationContext, StatusContext } from '../contexts.js'
 
 export class GraphQLErrors extends Error {
 	graphqlErrors: GraphQLError[]
@@ -92,15 +92,24 @@ type HoudiniErrorBoundaryState = {
 	errors: Array<Error | GraphQLError>
 }
 
-export class HoudiniErrorBoundary extends React.Component<
-	HoudiniErrorBoundaryProps,
+// HoudiniErrorBoundary wraps the class boundary so it can read the current pathname:
+// route boundaries persist across same-route navigations (they aren't remounted per URL
+// anymore), so the boundary has to clear a caught error itself when the URL changes —
+// otherwise navigating away from an errored page would keep rendering the error view.
+export function HoudiniErrorBoundary(props: HoudiniErrorBoundaryProps) {
+	const { pathname } = React.useContext(LocationContext)
+	return <ErrorBoundary resetKey={pathname} {...props} />
+}
+
+class ErrorBoundary extends React.Component<
+	HoudiniErrorBoundaryProps & { resetKey: string },
 	HoudiniErrorBoundaryState
 > {
 	static contextType = StatusContext
 	declare context: React.ContextType<typeof StatusContext>
 
 	constructor(
-		props: HoudiniErrorBoundaryProps,
+		props: HoudiniErrorBoundaryProps & { resetKey: string },
 		context: React.ContextType<typeof StatusContext>
 	) {
 		super(props, context)
@@ -134,6 +143,19 @@ export class HoudiniErrorBoundary extends React.Component<
 				this.context.status = error.status
 				this.context.location = error.location
 			}
+		}
+	}
+
+	componentDidUpdate(prevProps: HoudiniErrorBoundaryProps & { resetKey: string }): void {
+		// a navigation is a retry: clear the caught error so the new URL's children render.
+		// The reset runs in a transition — the children usually suspend on the new page's
+		// data, and a transition waits for it instead of needing a Suspense boundary (the
+		// error view stays up until the retry is renderable). If the retry throws again
+		// the boundary re-catches, and since resetKey is unchanged it won't loop.
+		if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+			React.startTransition(() => {
+				this.setState({ hasError: false, errors: [] })
+			})
 		}
 	}
 
