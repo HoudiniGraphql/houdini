@@ -270,36 +270,46 @@ export function Router({
 	// typed target { to, params, search } that is assembled (and custom scalars
 	// marshaled) exactly the way <Link> builds its href. The typed surface is the
 	// shared Goto contract; the implementation takes the loose runtime shape.
-	const goto = ((
-		target:
-			| string
-			| { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
-	) => {
-		const url =
-			typeof target === 'string'
-				? target
-				: buildHref(
-						target.to,
-						manifest.pages[manifest.pagesByUrl[target.to]],
-						getCurrentConfig()?.scalars,
-						target.params,
-						target.search
-					)
+	// Referentially stable (everything it closes over is): it ships in the memoized
+	// NavigationContext value and anchors the link listener effect, so a new identity
+	// per render would re-render every useNavigation consumer and re-attach listeners.
+	const goto = React.useCallback(
+		(
+			target:
+				| string
+				| {
+						to: string
+						params?: Record<string, unknown>
+						search?: Record<string, unknown>
+				  }
+		) => {
+			const url =
+				typeof target === 'string'
+					? target
+					: buildHref(
+							target.to,
+							manifest.pages[manifest.pagesByUrl[target.to]],
+							getCurrentConfig()?.scalars,
+							target.params,
+							target.search
+						)
 
-		// We intentionally don't blanket-clear the data cache on navigation (that would
-		// force every query back through its loading state). Observers and their data
-		// survive, and per-query revalidation is handled by the navigation effect above
-		// (which honors each query's cache policy). A real session change still clears
-		// the cache (updateSession / the session event listener).
+			// We intentionally don't blanket-clear the data cache on navigation (that would
+			// force every query back through its loading state). Observers and their data
+			// survive, and per-query revalidation is handled by the navigation effect above
+			// (which honors each query's cache policy). A real session change still clears
+			// the cache (updateSession / the session event listener).
 
-		// track the destination urgently (so in-flight renders can identify it) and
-		// perform the navigation inside a transition so React keeps the current route on
-		// screen until the next one is ready (or until showLoading swaps in the frame).
-		setPendingURL(url)
-		startNavigation(() => {
-			setCurrentURL(url)
-		})
-	}) as Goto
+			// track the destination urgently (so in-flight renders can identify it) and
+			// perform the navigation inside a transition so React keeps the current route on
+			// screen until the next one is ready (or until showLoading swaps in the frame).
+			setPendingURL(url)
+			startNavigation(() => {
+				setCurrentURL(url)
+			})
+		},
+		[manifest]
+	) as Goto
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
@@ -349,42 +359,42 @@ export function Router({
 	// state extends it. Memoized so consumers only re-render when it actually changes.
 	const navigating = isNavigating || showLoading
 	const navigation = React.useMemo(
-		() => ({ pending: navigating, to: navigating ? pendingURL : null }),
-		[navigating, pendingURL]
+		() => ({ pending: navigating, to: navigating ? pendingURL : null, goto }),
+		[navigating, pendingURL, goto]
 	)
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
 		<PendingURLContext.Provider value={pendingURL}>
-		<NavigationContext.Provider value={navigation}>
-		<LocationContext.Provider
-			value={{
-				pathname: currentURL,
-				goto,
-				params: variables ?? {},
-				search,
-			}}
-		>
-			<Is404Context.Provider value={is404}>
-				{is404 ? (
-					<NotFoundLayoutBoundary key={targetPage.id}>
-						<PageComponent
-							url={currentURL}
-							showLoading={showFrame}
-							key={targetPage.id + '__404'}
-						/>
-					</NotFoundLayoutBoundary>
-				) : (
-					<PageComponent
-						url={currentURL}
-						showLoading={showFrame}
-						key={targetPage.id}
-					/>
-				)}
-			</Is404Context.Provider>
-		</LocationContext.Provider>
-		</NavigationContext.Provider>
+			<NavigationContext.Provider value={navigation}>
+				<LocationContext.Provider
+					value={{
+						pathname: currentURL,
+						goto,
+						params: variables ?? {},
+						search,
+					}}
+				>
+					<Is404Context.Provider value={is404}>
+						{is404 ? (
+							<NotFoundLayoutBoundary key={targetPage.id}>
+								<PageComponent
+									url={currentURL}
+									showLoading={showFrame}
+									key={targetPage.id + '__404'}
+								/>
+							</NotFoundLayoutBoundary>
+						) : (
+							<PageComponent
+								url={currentURL}
+								showLoading={showFrame}
+								key={targetPage.id}
+							/>
+						)}
+					</Is404Context.Provider>
+				</LocationContext.Provider>
+			</NavigationContext.Provider>
 		</PendingURLContext.Provider>
 	)
 }
@@ -392,9 +402,10 @@ export function Router({
 // useNavigation exposes the router's in-flight navigation. `pending` is true from the
 // moment a navigation starts until the destination renders its actual content — it stays
 // true while the destination's @loading state is showing — and `to` carries the
-// destination url while pending (null when idle). This is the hook for global progress
-// bars, per-link spinners, or disabling controls during a navigation.
-export function useNavigation(): { pending: boolean; to: string | null } {
+// destination url while pending (null when idle). It also carries `goto` — the same
+// navigate function useRoute exposes — so navigation chrome (progress bars, nav menus,
+// per-link spinners) only needs this one hook.
+export function useNavigation(): { pending: boolean; to: string | null; goto: Goto } {
 	return useContext(NavigationContext)
 }
 
@@ -827,24 +838,27 @@ export function RouterContextProvider({
 	// if we detect an event that contains a new session value. The detail carries the subtree
 	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
 	// it wholesale; a legacy plain-session detail is treated as a replace.
-	const handleNewSession = React.useCallback((event: Event) => {
-		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
-		const isWrapped =
-			detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
-		const next = (
-			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
-		) as App.Session
-		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+	const handleNewSession = React.useCallback(
+		(event: Event) => {
+			const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
+			const isWrapped =
+				detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+			const next = (
+				isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
+			) as App.Session
+			const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
 
-		// a new session invalidates every cached query result, exactly like updateSession():
-		// navigation no longer clears the data cache, so without this an event-driven
-		// session change (updateLocalSession) would keep serving results fetched under the
-		// old session
-		data_cache.clear()
-		ssr_signals.clear()
+			// a new session invalidates every cached query result, exactly like updateSession():
+			// navigation no longer clears the data cache, so without this an event-driven
+			// session change (updateLocalSession) would keep serving results fetched under the
+			// old session
+			data_cache.clear()
+			ssr_signals.clear()
 
-		setSession((prev) => (merge ? { ...prev, ...next } : next))
-	}, [data_cache, ssr_signals])
+			setSession((prev) => (merge ? { ...prev, ...next } : next))
+		},
+		[data_cache, ssr_signals]
+	)
 
 	React.useEffect(() => {
 		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)

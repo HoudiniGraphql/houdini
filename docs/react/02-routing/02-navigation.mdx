@@ -195,4 +195,4 @@ export function ProgressBar() {
 }
 ```
 
-`pending` is true from the moment a navigation starts until the destination renders its actual content—including while the destination's `@loading` state is showing—and `to` carries the destination url while pending (`null` when idle). Note that this is different from [`useRoute`](~/api-reference/useRoute), which describes the route currently rendered: during a navigation, `useRoute` keeps answering for what's on screen while `useNavigation` describes where the router is headed.
+`pending` is true from the moment a navigation starts until the destination renders its actual content—including while the destination's `@loading` state is showing—and `to` carries the destination url while pending (`null` when idle). The returned object also includes `goto`—the same navigate function [`useRoute`](~/api-reference/useRoute) exposes—so navigation chrome only needs this one hook. Note that this is different from [`useRoute`](~/api-reference/useRoute), which describes the route currently rendered: during a navigation, `useRoute` keeps answering for what's on screen while `useNavigation` describes where the router is headed.

@@ -18,6 +18,12 @@ export default function ({ children }: LayoutProps) {
 			<Link id="to-fast" to="/delayed-loading-plain" search={{ delay: 0 }}>
 				fast
 			</Link>
+			<button
+				id="goto-fast"
+				onClick={() => navigation.goto('/delayed-loading-plain?delay=0')}
+			>
+				goto fast
+			</button>
 			{children}
 		</div>
 	)

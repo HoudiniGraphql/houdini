@@ -31,11 +31,13 @@ test.describe('delayed loading without @loading', () => {
 		await expect(page.locator('#nav-status')).toHaveText('idle')
 	})
 
+	// this one navigates imperatively through useNavigation().goto (instead of a Link)
+	// to cover the hook's navigate function
 	test('client nav: a fast navigation swaps immediately', async ({ page }) => {
 		await goto(page, routes.delayed_loading_plain + '?delay=1500')
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
 
-		await page.click('#to-fast')
+		await page.click('#goto-fast')
 		await page.waitForURL(/delay=0/)
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
 	})

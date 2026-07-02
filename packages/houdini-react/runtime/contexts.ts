@@ -55,9 +55,14 @@ export const PendingURLContext = createContext<string | null>(null)
 // from the moment a navigation starts until the destination renders its actual content
 // (it stays true while the @loading state shows), and `to` is the destination url while
 // pending. Read through useNavigation().
-export const NavigationContext = createContext<{ pending: boolean; to: string | null }>({
+export const NavigationContext = createContext<{
+	pending: boolean
+	to: string | null
+	goto: Goto
+}>({
 	pending: false,
 	to: null,
+	goto: () => {},
 })
 
 export const PageContext = createContext<{ params: Record<string, any> }>({ params: {} })
