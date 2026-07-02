@@ -326,18 +326,36 @@ func TestGenerateFallbacks(t *testing.T) {
 						// page fallback: FinalQuery is @loading, and the page inherits the
 						// root layout's @loading RootQuery (the frame renders the page with
 						// every query it receives, so inherited ones are included too)
-						"fallbacks/page/_subRoute_nested.jsx": `import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+						"fallbacks/page/_subRoute_nested.jsx": `import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'
 import Component from '../../../../../../src/routes/subRoute/nested/+page'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 
 export const Frame = () => {
 	const { artifact_cache } = useRouterContext()
 	const cache = useCache()
+	const client = useClient()
 	const RootQuery_artifact = artifact_cache.get("RootQuery")
+	const RootQuery_data = cache.read({ selection: RootQuery_artifact.selection, loading: true }).data
+	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
+	const RootQuery_handle = useDocumentHandle({
+		artifact: RootQuery_artifact,
+		observer: RootQuery_observer,
+		storeValue: { data: RootQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+	})
 	const FinalQuery_artifact = artifact_cache.get("FinalQuery")
+	const FinalQuery_data = cache.read({ selection: FinalQuery_artifact.selection, loading: true }).data
+	const FinalQuery_observer = React.useMemo(() => client.observe({ artifact: FinalQuery_artifact, cache }), [client, FinalQuery_artifact, cache])
+	const FinalQuery_handle = useDocumentHandle({
+		artifact: FinalQuery_artifact,
+		observer: FinalQuery_observer,
+		storeValue: { data: FinalQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+	})
 	const props = {
-		RootQuery: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
-		FinalQuery: cache.read({ selection: FinalQuery_artifact.selection, loading: true }).data,
+		RootQuery: RootQuery_data,
+		RootQuery$handle: RootQuery_handle,
+		FinalQuery: FinalQuery_data,
+		FinalQuery$handle: FinalQuery_handle,
 	}
 	return <Component {...props} />
 }
@@ -355,16 +373,26 @@ export default ({ children }) => {
 }
 `,
 						// layout fallback: RootQuery is @loading
-						"fallbacks/layout/_.jsx": `import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+						"fallbacks/layout/_.jsx": `import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'
 import Component from '../../../../../../src/routes/+layout'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 
 export const Frame = () => {
 	const { artifact_cache } = useRouterContext()
 	const cache = useCache()
+	const client = useClient()
 	const RootQuery_artifact = artifact_cache.get("RootQuery")
+	const RootQuery_data = cache.read({ selection: RootQuery_artifact.selection, loading: true }).data
+	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
+	const RootQuery_handle = useDocumentHandle({
+		artifact: RootQuery_artifact,
+		observer: RootQuery_observer,
+		storeValue: { data: RootQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+	})
 	const props = {
-		RootQuery: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
+		RootQuery: RootQuery_data,
+		RootQuery$handle: RootQuery_handle,
 	}
 	return <Component {...props} />
 }

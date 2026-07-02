@@ -21,7 +21,11 @@ test.describe('delayed loading state', () => {
 
 		await page.click('#to-slow')
 		await expect(page.locator('#name')).toHaveText('loading')
+		// the frame injects real $handle props (a render-time handle read would crash
+		// otherwise), reporting the in-flight fetch
+		await expect(page.locator('#handle')).toHaveText('handle-fetching')
 		await expect(page.locator('#name')).toHaveText('Bruce Willis')
+		await expect(page.locator('#handle')).toHaveText('handle-idle')
 	})
 
 	// a navigation that resolves before loadingDelay never shows the loading state — React

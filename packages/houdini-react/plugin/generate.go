@@ -228,22 +228,35 @@ func (p *HoudiniReact) GenerateErrorWrappers(ctx context.Context) ([]string, err
 func generateFallbackFile(componentRel string, loadingQueries []string) string {
 	var b strings.Builder
 
-	b.WriteString("import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString("import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString("import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'\n")
 	b.WriteString(fmt.Sprintf("import Component from '%s'\n", componentRel))
-	b.WriteString("import { Suspense } from 'react'\n\n")
+	b.WriteString("import React, { Suspense } from 'react'\n\n")
 
 	// Frame is the loading state: the view rendered with loading-marker data for each
 	// @loading query. It serves as the Suspense fallback below and is also rendered
 	// directly by the page entry while a delayed navigation shows the loading state.
+	// The view receives the same props as the resolved unit — including the $handle for
+	// each query, built from a detached observer over a loading-state store value — so a
+	// component that reads its handle during render doesn't crash in the loading frame.
 	b.WriteString("export const Frame = () => {\n")
 	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
 	b.WriteString("\tconst cache = useCache()\n")
+	b.WriteString("\tconst client = useClient()\n")
 	for _, q := range loadingQueries {
 		b.WriteString(fmt.Sprintf("\tconst %s_artifact = artifact_cache.get(%q)\n", q, q))
+		b.WriteString(fmt.Sprintf("\tconst %s_data = cache.read({ selection: %s_artifact.selection, loading: true }).data\n", q, q))
+		b.WriteString(fmt.Sprintf("\tconst %s_observer = React.useMemo(() => client.observe({ artifact: %s_artifact, cache }), [client, %s_artifact, cache])\n", q, q, q))
+		b.WriteString(fmt.Sprintf("\tconst %s_handle = useDocumentHandle({\n", q))
+		b.WriteString(fmt.Sprintf("\t\tartifact: %s_artifact,\n", q))
+		b.WriteString(fmt.Sprintf("\t\tobserver: %s_observer,\n", q))
+		b.WriteString(fmt.Sprintf("\t\tstoreValue: { data: %s_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },\n", q))
+		b.WriteString("\t})\n")
 	}
 	b.WriteString("\tconst props = {\n")
 	for _, q := range loadingQueries {
-		b.WriteString(fmt.Sprintf("\t\t%s: cache.read({ selection: %s_artifact.selection, loading: true }).data,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t\t%s: %s_data,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t\t%s$handle: %s_handle,\n", q, q))
 	}
 	b.WriteString("\t}\n")
 	b.WriteString("\treturn <Component {...props} />\n")
