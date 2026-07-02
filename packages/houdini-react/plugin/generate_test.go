@@ -336,25 +336,41 @@ export const Frame = () => {
 	const cache = useCache()
 	const client = useClient()
 	const RootQuery_artifact = artifact_cache.get("RootQuery")
-	const RootQuery_data = cache.read({ selection: RootQuery_artifact.selection, loading: true }).data
+	const RootQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, RootQuery_artifact])
 	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
 	const RootQuery_handle = useDocumentHandle({
 		artifact: RootQuery_artifact,
 		observer: RootQuery_observer,
-		storeValue: { data: RootQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+		storeValue: RootQuery_loading,
 	})
 	const FinalQuery_artifact = artifact_cache.get("FinalQuery")
-	const FinalQuery_data = cache.read({ selection: FinalQuery_artifact.selection, loading: true }).data
+	const FinalQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: FinalQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, FinalQuery_artifact])
 	const FinalQuery_observer = React.useMemo(() => client.observe({ artifact: FinalQuery_artifact, cache }), [client, FinalQuery_artifact, cache])
 	const FinalQuery_handle = useDocumentHandle({
 		artifact: FinalQuery_artifact,
 		observer: FinalQuery_observer,
-		storeValue: { data: FinalQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+		storeValue: FinalQuery_loading,
 	})
 	const props = {
-		RootQuery: RootQuery_data,
+		RootQuery: RootQuery_loading.data,
 		RootQuery$handle: RootQuery_handle,
-		FinalQuery: FinalQuery_data,
+		FinalQuery: FinalQuery_loading.data,
 		FinalQuery$handle: FinalQuery_handle,
 	}
 	return <Component {...props} />
@@ -383,15 +399,23 @@ export const Frame = () => {
 	const cache = useCache()
 	const client = useClient()
 	const RootQuery_artifact = artifact_cache.get("RootQuery")
-	const RootQuery_data = cache.read({ selection: RootQuery_artifact.selection, loading: true }).data
+	const RootQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, RootQuery_artifact])
 	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
 	const RootQuery_handle = useDocumentHandle({
 		artifact: RootQuery_artifact,
 		observer: RootQuery_observer,
-		storeValue: { data: RootQuery_data, errors: null, fetching: true, partial: false, stale: false, source: null, variables: null },
+		storeValue: RootQuery_loading,
 	})
 	const props = {
-		RootQuery: RootQuery_data,
+		RootQuery: RootQuery_loading.data,
 		RootQuery$handle: RootQuery_handle,
 	}
 	return <Component {...props} />
