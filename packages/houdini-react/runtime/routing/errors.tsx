@@ -114,11 +114,14 @@ class ErrorBoundary extends React.Component<
 	) {
 		super(props, context)
 		// Second-pass SSR: statusRef is pre-set to an error status by on_render after the first
-		// render threw. Start in error state immediately so children never render (and never throw).
+		// render threw. Start in error state immediately so children never render (and never
+		// throw). The ref carries the actual thrown errors when it has them (e.g. GraphQL
+		// errors from a query); a bare status (a routing error / unmatched URL) renders as a
+		// RoutingError so the view can branch on the status code.
 		if (typeof window === 'undefined' && context && context.status >= 400) {
 			this.state = {
 				hasError: true,
-				errors: [new RoutingError(context.status)],
+				errors: context.errors ?? [new RoutingError(context.status)],
 			}
 		} else {
 			this.state = { hasError: false, errors: [] }

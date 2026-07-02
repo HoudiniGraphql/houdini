@@ -1,3 +1,4 @@
+import type { GraphQLError } from 'houdini/runtime'
 import { createContext } from 'react'
 
 import type { Goto } from './routes.js'
@@ -44,9 +45,14 @@ export const Is404Context = createContext(false)
 
 export const PageContext = createContext<{ params: Record<string, any> }>({ params: {} })
 
-// Mutable ref passed from the server renderer so that a synchronous RoutingError
-// or redirect() can propagate the correct HTTP status/location before streaming.
-export const StatusContext = createContext<{ status: number; location?: string } | null>(null)
+// Mutable ref passed from the server renderer. It carries the HTTP status/location for
+// the response and, when the first SSR render pass threw (error boundaries don't run
+// during SSR), the errors the boundary should render on the second pass.
+export const StatusContext = createContext<{
+	status: number
+	location?: string
+	errors?: Array<Error | GraphQLError>
+} | null>(null)
 
 // FormStatusContext carries the nearest <Form>'s pending state to useMutationFormStatus(),
 // the no-prop-drilling ergonomic of React's useFormStatus (which only tracks function-action

@@ -616,9 +616,10 @@ export const on_render =
 		// during this render write to (and read from) the same cache we serialize.
 		client.setCache(cache)
 
-		// Mutable ref so that a synchronous RoutingError or redirect() inside
-		// HoudiniErrorBoundary can set the correct HTTP status/location before streaming.
-		const statusRef = { status: is404 ? 404 : 200, location: undefined }
+		// Mutable ref threaded through StatusContext. It carries the response status and,
+		// when the first render pass throws, the failure the error boundary renders on the
+		// second pass (see the retry around renderToStream below).
+		const statusRef = { status: is404 ? 404 : 200, location: undefined, errors: undefined }
 
 		// renderToStream only hands back injectToStream as a return value, i.e. after <App> has
 		// already been constructed — too late to pass it down as a prop for the first render.
@@ -630,11 +631,7 @@ export const on_render =
 		// keeps the bare react-streaming import out of the isomorphic runtime, which trips a
 		// "loaded in browser" poison-pill assertion under browser-like test environments.
 		const streamHolder = {}
-		const {
-			readable,
-			injectToStream,
-			pipe: pipeTo,
-		} = await renderToStream(
+		const render = () => renderToStream(
 			React.createElement(StatusContext.Provider, { value: statusRef },
 				React.createElement(App, {
 					initialURL: url,
@@ -645,12 +642,69 @@ export const on_render =
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
-					injectToStream: (chunk) => streamHolder.injectToStream?.(chunk),
+					// best-effort: a dangling query from an earlier render pass can resolve
+					// after the stream has ended, and react-streaming throws on late
+					// injections (inside a floating promise, which would take the whole
+					// process down). The client refetches anything a dropped chunk carried.
+					injectToStream: (chunk) => {
+						try {
+							streamHolder.injectToStream?.(chunk)
+						} catch (_) {}
+					},
 					...router_cache()
 				})
 			),
 			{ webStream: production, userAgent: 'Vite' }
 		)
+
+		// respond without a rendered body — the redirect and render-failure paths
+		const respondEmpty = (status, location) => {
+			if (pipe && typeof pipe.setHeader === 'function') {
+				for (const [key, value] of Object.entries(headers ?? {})) {
+					pipe.setHeader(key, value)
+				}
+				if (location) {
+					pipe.setHeader('Location', location)
+				}
+				pipe.statusCode = status
+				pipe.end()
+				return true
+			}
+			return new Response(null, {
+				status,
+				headers: location ? { ...headers, Location: location } : headers,
+			})
+		}
+
+		let stream
+		try {
+			stream = await render()
+		} catch (error) {
+			// Error boundaries don't run during SSR, so a component that throws on the
+			// first pass — notFound(), redirect(), or a query resolving with GraphQL
+			// errors — rejects the stream instead of rendering +error.tsx. A redirect
+			// needs no body: answer with the Location directly. Anything else is recorded
+			// on statusRef and rendered once more: HoudiniErrorBoundary starts in its
+			// error state when the context carries an error status, so the second pass
+			// streams the error view with the right status instead of a raw stack trace.
+			// Name checks instead of instanceof so a duplicated runtime module (e.g. two
+			// import specifiers resolving separately in dev) can't break the detection.
+			if (error?.name === 'RedirectError' && error.location) {
+				return respondEmpty(error.status, error.location)
+			}
+			if (error?.name === 'RoutingError') {
+				statusRef.status = error.status
+			} else {
+				statusRef.status = 500
+				statusRef.errors = error?.name === 'GraphQLErrors' ? error.graphqlErrors : [error]
+			}
+			// if the second pass throws too (the throw came from a layout, which renders
+			// above the error boundary, or the route has no +error.tsx at all) the
+			// rejection propagates as if there were no retry: the adapter answers with
+			// the error's status and message, exactly like before
+			stream = await render()
+		}
+		const { readable, injectToStream, pipe: pipeTo } = stream
 		streamHolder.injectToStream = injectToStream
 
 		// The page bootstrap below is intentionally not async. On a streaming page (e.g. an
@@ -681,10 +735,10 @@ export const on_render =
 					pipe.setHeader(key, value)
 				}
 			}
+			// the second render pass can carry an error status (404/500)
+			pipe.statusCode = statusRef.status
 			pipeTo(pipe)
 			return true
-		} else if (statusRef.location) {
-			return new Response(null, { status: statusRef.status, headers: { ...headers, Location: statusRef.location } })
 		} else {
 			return new Response(readable, { status: statusRef.status, headers })
 		}
