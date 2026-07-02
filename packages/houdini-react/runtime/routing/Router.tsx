@@ -49,6 +49,8 @@ type ComponentType = any
 // just after the delay doesn't cause a skeleton flicker:
 //   - it has been visible for at least `minDuration` ms
 //   - the target page's data has landed (`waitForData` resolves)
+// A navigation that starts while the state is already showing re-arms the minDuration
+// clock, so the new destination's data can't flash in right as the original hold expires.
 // Note that `active` flips false as soon as the loading frame commits (the frame doesn't
 // suspend, so the transition finishes with it on screen) — which is why the hide side
 // waits on the data explicitly instead of trusting `active`.
@@ -68,8 +70,12 @@ function useLoadingState({
 
 	React.useEffect(() => {
 		if (active) {
-			// already showing — nothing to schedule, keep it up
+			// already showing — a new navigation is starting while the loading state is
+			// up. Keep it up, but re-arm the minimum-duration clock: measured from the
+			// first show, the hold could expire right as this navigation's data lands,
+			// flashing the freshly-loaded content in and out of the loading state.
 			if (show) {
+				shownAt.current = performance.now()
 				return
 			}
 			// wait out the delay; if we're still pending, switch the loading state on

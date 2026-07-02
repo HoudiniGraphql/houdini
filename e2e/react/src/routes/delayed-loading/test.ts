@@ -63,4 +63,30 @@ test.describe('delayed loading state', () => {
 		// minDuration is 600ms in config; assert a generous lower bound to avoid CI flake.
 		expect(heldFor).toBeGreaterThanOrEqual(400)
 	})
+
+	// a navigation that starts while the loading state is showing re-arms the
+	// minDuration clock: even though the second navigation's data is ready almost
+	// immediately, the loading state is held a fresh minDuration from that navigation —
+	// otherwise the hold measured from the first show could expire right as the new data
+	// lands, flashing it in.
+	test('client nav: navigating during the hold re-arms minDuration', async ({ page }) => {
+		await goto(page, routes.delayed_loading + '?delay=0')
+		await expect(page.locator('#name:visible')).toHaveText('Bruce Willis')
+
+		await page.click('#to-slow')
+		await expect(page.locator('#name:visible')).toHaveText('loading')
+
+		// navigate again mid-hold to a variant whose data resolves immediately
+		await page.waitForTimeout(450)
+		await page.click('#to-fast')
+
+		// without the re-arm, the original hold (600ms from the first show) would have
+		// expired by now and the fast data would already be on screen
+		await page.waitForTimeout(300)
+		await expect(page.locator('#name:visible')).toHaveText('loading')
+
+		// and the navigation still settles on the fast variant's data
+		await expect(page.locator('#name:visible')).toHaveText('Bruce Willis')
+		await expect(page).toHaveURL(/delay=0/)
+	})
 })
