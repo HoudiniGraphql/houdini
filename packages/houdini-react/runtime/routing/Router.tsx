@@ -29,7 +29,6 @@ import { GraphQLErrors, RoutingError, StatusContext } from './errors.js'
 
 type PageComponent = React.ComponentType<{
 	url: string
-	navKey?: string
 	showLoading?: boolean
 	children?: React.ReactNode
 }>
@@ -42,27 +41,28 @@ const PreloadWhich = {
 
 type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
 type ComponentType = any
-// A single never-resolving promise. A component that throws it suspends forever, which
-// lets us hold a Suspense boundary on its fallback (the @loading frame) for as long as
-// we keep the component mounted — see HoldLoading below.
-const HOLD_FOREVER = new Promise<void>(() => {})
-
-// HoldLoading suspends unconditionally. The generated entry renders it in the page's
-// slot while the router wants to show the loading state, so the page's Suspense
-// boundary shows its @loading fallback. The surrounding layout boundaries are
-// unaffected (they render their live data), and because the suspension is caught by the
-// page boundary it never propagates up — so the entry still commits and no transition
-// deadlocks on it.
-export const HoldLoading = () => {
-	throw HOLD_FOREVER
-}
 
 // useLoadingState decides whether to show the route's @loading state during navigation.
-// `active` is the transition's pending flag. It returns true only once `active` has been
-// pending for at least `loadingDelay` ms (so fast navigations never show it), and once
-// shown it stays true for at least `minDuration` ms (so a response landing just after
-// the delay doesn't cause a skeleton flicker). After that it follows `active`.
-function useLoadingState(active: boolean, loadingDelay: number, minDuration: number): boolean {
+// `active` is the navigation transition's pending flag. The state flips on only once
+// `active` has been pending for at least `loadingDelay` ms (so fast navigations never
+// show it). Once shown it stays on until BOTH of these are true, so a response landing
+// just after the delay doesn't cause a skeleton flicker:
+//   - it has been visible for at least `minDuration` ms
+//   - the target page's data has landed (`waitForData` resolves)
+// Note that `active` flips false as soon as the loading frame commits (the frame doesn't
+// suspend, so the transition finishes with it on screen) — which is why the hide side
+// waits on the data explicitly instead of trusting `active`.
+function useLoadingState({
+	active,
+	loadingDelay,
+	minDuration,
+	waitForData,
+}: {
+	active: boolean
+	loadingDelay: number
+	minDuration: number
+	waitForData: () => Promise<void>
+}): boolean {
 	const [show, setShow] = React.useState(false)
 	const shownAt = React.useRef<number | null>(null)
 
@@ -74,8 +74,7 @@ function useLoadingState(active: boolean, loadingDelay: number, minDuration: num
 			}
 			// wait out the delay; if we're still pending, switch the loading state on
 			const timeout = setTimeout(() => {
-				shownAt.current =
-					typeof performance !== 'undefined' ? performance.now() : 0
+				shownAt.current = performance.now()
 				setShow(true)
 			}, loadingDelay)
 			return () => clearTimeout(timeout)
@@ -85,15 +84,27 @@ function useLoadingState(active: boolean, loadingDelay: number, minDuration: num
 		if (!show) {
 			return
 		}
-		// otherwise keep it up until it has been visible for at least minDuration
-		const now = typeof performance !== 'undefined' ? performance.now() : 0
-		const elapsed = now - (shownAt.current ?? now)
-		const remaining = Math.max(0, minDuration - elapsed)
-		const timeout = setTimeout(() => {
-			shownAt.current = null
-			setShow(false)
-		}, remaining)
-		return () => clearTimeout(timeout)
+		// otherwise wait for the page's data, then keep the loading state up until it has
+		// been visible for at least minDuration. waiting on the data here means the page
+		// never mounts with its query still missing (which would re-suspend it into the
+		// Suspense fallback and briefly double-render the frame).
+		let cancelled = false
+		let timeout: ReturnType<typeof setTimeout> | undefined
+		waitForData().then(() => {
+			if (cancelled) {
+				return
+			}
+			const elapsed = performance.now() - (shownAt.current ?? performance.now())
+			const remaining = Math.max(0, minDuration - elapsed)
+			timeout = setTimeout(() => {
+				shownAt.current = null
+				setShow(false)
+			}, remaining)
+		})
+		return () => {
+			cancelled = true
+			clearTimeout(timeout)
+		}
 	}, [active, show, loadingDelay, minDuration])
 
 	return show
@@ -132,12 +143,13 @@ export function Router({
 	// surface the route's @loading frame (see showLoading → the entry's page slot);
 	// fast navigations never show it, and once shown it stays up for `minDuration`.
 	const [isNavigating, startNavigation] = React.useTransition()
-	const routerConfig = (getCurrentConfig() as any)?.router ?? {}
-	const showLoading = useLoadingState(
-		isNavigating,
-		routerConfig.loadingDelay ?? 200,
-		routerConfig.minDuration ?? 400
-	)
+
+	// pendingURL tracks the navigation target *urgently* (outside the transition), so a
+	// render that happens while the transition is still pending can tell whether it is
+	// looking at the destination (transition lane: currentURL === pendingURL) or at the
+	// still-committed previous route (urgent lane: currentURL lags behind). The loading
+	// frame is only ever shown on the destination — see the showLoading prop below.
+	const [pendingURL, setPendingURL] = React.useState<string | null>(null)
 
 	// find the matching page for the current route. find_match also hands back the parsed
 	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
@@ -176,6 +188,23 @@ export function Router({
 	const PageComponent = component_cache.get(targetPage.id)!
 	const [session] = useSession()
 
+	// decide whether the entry should render its @loading frame instead of the page.
+	// values come from the router config (bundled client-side; they're UI timing, not
+	// secrets), clamped so a bad value can't schedule a negative timeout.
+	const routerConfig = getCurrentConfig()?.router ?? {}
+	const showLoading = useLoadingState({
+		active: isNavigating,
+		loadingDelay: Math.max(0, routerConfig.loadingDelay ?? 200),
+		minDuration: Math.max(0, routerConfig.minDuration ?? 400),
+		// resolves once every query of the page being rendered has a store in data_cache
+		// (including error stores — load_query seeds those too, so an errored query
+		// releases the loading state instead of pinning it)
+		waitForData: () =>
+			Promise.all(
+				Object.keys(targetPage.documents).map((name) => data_cache.waitFor(name))
+			).then(() => {}),
+	})
+
 	// if we got this far then we're past suspense
 
 	//
@@ -195,8 +224,10 @@ export function Router({
 			return
 		}
 		const onChange = (_evt: PopStateEvent) => {
+			const url = window.location.pathname + window.location.search
+			setPendingURL(url)
 			startNavigation(() => {
-				setCurrentURL(window.location.pathname + window.location.search)
+				setCurrentURL(url)
 			})
 		}
 		window.addEventListener('popstate', onChange)
@@ -212,12 +243,14 @@ export function Router({
 	// changed (or aren't cached) are evicted + reloaded by loadData with their loading
 	// state. We reuse the variables already unmarshaled for this render rather than
 	// re-parsing the URL. This also covers back/forward (popstate), which bypasses goto.
-	const navigated = React.useRef(false)
+	// The guard compares URLs (not a boolean) so Strict Mode's double effect invocation
+	// on mount doesn't slip past it and revalidate the initial page.
+	const lastRevalidatedURL = React.useRef(currentURL)
 	React.useEffect(() => {
-		if (!navigated.current) {
-			navigated.current = true
+		if (lastRevalidatedURL.current === currentURL) {
 			return
 		}
+		lastRevalidatedURL.current = currentURL
 		for (const name of Object.keys(targetPage.documents)) {
 			if (data_cache.has(name)) {
 				data_cache.get(name).send({ variables, session })
@@ -247,12 +280,14 @@ export function Router({
 
 		// We intentionally don't blanket-clear the data cache on navigation (that would
 		// force every query back through its loading state). Observers and their data
-		// survive, and per-query revalidation is handled by the navigation effect below
+		// survive, and per-query revalidation is handled by the navigation effect above
 		// (which honors each query's cache policy). A real session change still clears
-		// the cache via updateSession().
+		// the cache (updateSession / the session event listener).
 
+		// track the destination urgently (so in-flight renders can identify it) and
 		// perform the navigation inside a transition so React keeps the current route on
-		// screen until the next one is ready (or until showLoading flips on).
+		// screen until the next one is ready (or until showLoading swaps in the frame).
+		setPendingURL(url)
 		startNavigation(() => {
 			setCurrentURL(url)
 		})
@@ -291,7 +326,15 @@ export function Router({
 		},
 	})
 
-	// TODO: cleanup navigation caches
+	// The loading frame only renders on the destination of the navigation: while a
+	// transition is pending, the committed tree still has the previous currentURL
+	// (pendingURL differs), so an urgent re-render of it — e.g. the showLoading flip —
+	// keeps showing the previous page instead of swapping it for its own frame. The
+	// destination (transition lane, where currentURL === pendingURL) renders the frame,
+	// which doesn't suspend, so the transition commits as soon as the rest of the entry
+	// (component, artifacts, layout data) is renderable.
+	const showFrame = showLoading && currentURL === pendingURL
+
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
@@ -308,16 +351,14 @@ export function Router({
 					<NotFoundLayoutBoundary key={targetPage.id}>
 						<PageComponent
 							url={currentURL}
-							navKey={targetPage.id}
-							showLoading={showLoading}
+							showLoading={showFrame}
 							key={targetPage.id + '__404'}
 						/>
 					</NotFoundLayoutBoundary>
 				) : (
 					<PageComponent
 						url={currentURL}
-						navKey={targetPage.id}
-						showLoading={showLoading}
+						showLoading={showFrame}
 						key={targetPage.id}
 					/>
 				)}
@@ -763,8 +804,16 @@ export function RouterContextProvider({
 			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
 		) as App.Session
 		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+
+		// a new session invalidates every cached query result, exactly like updateSession():
+		// navigation no longer clears the data cache, so without this an event-driven
+		// session change (updateLocalSession) would keep serving results fetched under the
+		// old session
+		data_cache.clear()
+		ssr_signals.clear()
+
 		setSession((prev) => (merge ? { ...prev, ...next } : next))
-	}, [])
+	}, [data_cache, ssr_signals])
 
 	React.useEffect(() => {
 		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
@@ -1128,7 +1177,12 @@ export function router_cache({
 	const result: RouterCache = {
 		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
-		data_cache: suspense_cache(initialData),
+		// observers accumulate across navigations now that goto doesn't clear the cache,
+		// so the LRU capacity limit is reachable on long sessions. When it silently evicts
+		// a store, let the store's plugins release whatever they hold.
+		data_cache: suspense_cache(initialData, (store) => {
+			store.cleanup()
+		}),
 		ssr_signals: suspense_cache(),
 		last_variables: suspense_cache(),
 	}

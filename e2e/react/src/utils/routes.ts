@@ -59,4 +59,6 @@ export const routes = {
 	session_mutation: '/session-mutation',
 	session_to_api: '/session-to-api',
 	delayed_loading: '/delayed-loading',
+	delayed_loading_plain: '/delayed-loading-plain',
+	error_recovery: '/error-recovery',
 } as const

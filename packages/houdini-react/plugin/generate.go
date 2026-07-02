@@ -225,55 +225,42 @@ func (p *HoudiniReact) GenerateErrorWrappers(ctx context.Context) ([]string, err
 
 // ---- fallback generation ----
 
-func generateFallbackFile(componentRel string, loadingQueries, requiredQueries []string) string {
+func generateFallbackFile(componentRel string, loadingQueries []string) string {
 	var b strings.Builder
 
-	b.WriteString("import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString("import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
 	b.WriteString(fmt.Sprintf("import Component from '%s'\n", componentRel))
 	b.WriteString("import { Suspense } from 'react'\n\n")
 
-	b.WriteString("export default ({ children }) => {\n")
+	// Frame is the loading state: the view rendered with loading-marker data for each
+	// @loading query. It serves as the Suspense fallback below and is also rendered
+	// directly by the page entry while a delayed navigation shows the loading state.
+	b.WriteString("export const Frame = () => {\n")
 	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
+	b.WriteString("\tconst cache = useCache()\n")
 	for _, q := range loadingQueries {
 		b.WriteString(fmt.Sprintf("\tconst %s_artifact = artifact_cache.get(%q)\n", q, q))
 	}
-	b.WriteString("\n\treturn (\n")
-	b.WriteString("\t\t<Suspense fallback={\n")
-
-	// required_queries object
-	var reqParts []string
-	for _, q := range requiredQueries {
-		reqParts = append(reqParts, fmt.Sprintf("%s: %s$data", q, q))
-	}
-	reqStr := "{}"
-	if len(reqParts) > 0 {
-		reqStr = "{ " + strings.Join(reqParts, ", ") + " }"
-	}
-
-	// loading_queries object
-	var loadParts []string
+	b.WriteString("\tconst props = {\n")
 	for _, q := range loadingQueries {
-		loadParts = append(loadParts, fmt.Sprintf("%s: %s_artifact", q, q))
+		b.WriteString(fmt.Sprintf("\t\t%s: cache.read({ selection: %s_artifact.selection, loading: true }).data,\n", q, q))
 	}
-	loadStr := "{}"
-	if len(loadParts) > 0 {
-		loadStr = "{ " + strings.Join(loadParts, ", ") + " }"
-	}
+	b.WriteString("\t}\n")
+	b.WriteString("\treturn <Component {...props} />\n")
+	b.WriteString("}\n\n")
 
-	b.WriteString(fmt.Sprintf("\t\t\t<Fallback required_queries={%s} loading_queries={%s} />\n", reqStr, loadStr))
-	b.WriteString("\t\t}>\n")
+	b.WriteString("export default ({ children }) => {\n")
+	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
+	// reading the artifacts here suspends the wrapper (not the fallback) until they're
+	// cached, so by the time the boundary mounts, Frame can always render synchronously
+	for _, q := range loadingQueries {
+		b.WriteString(fmt.Sprintf("\tartifact_cache.get(%q)\n", q))
+	}
+	b.WriteString("\n\treturn (\n")
+	b.WriteString("\t\t<Suspense fallback={<Frame />}>\n")
 	b.WriteString("\t\t\t{children}\n")
 	b.WriteString("\t\t</Suspense>\n")
 	b.WriteString("\t)\n")
-	b.WriteString("}\n\n")
-
-	b.WriteString("const Fallback = ({ required_queries, loading_queries }) => {\n")
-	b.WriteString("\tconst cache = useCache()\n")
-	b.WriteString("\tlet props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({\n")
-	b.WriteString("\t\t...prev,\n")
-	b.WriteString("\t\t[name]: cache.read({ selection: artifact.selection, loading: true }).data\n")
-	b.WriteString("\t}), required_queries)\n")
-	b.WriteString("\treturn <Component {...props} />\n")
 	b.WriteString("}\n")
 
 	return b.String()
@@ -319,7 +306,7 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 		}
 		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.Path))
 		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "page"), compAbs))
-		content := generateFallbackFile(compRel, loadingQueries, nil)
+		content := generateFallbackFile(compRel, loadingQueries)
 		path := filepath.Join(fallbacksDir(pluginDir, "page"), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
@@ -336,7 +323,7 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 		}
 		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, layout.Path))
 		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "layout"), compAbs))
-		content := generateFallbackFile(compRel, []string{lq.Name}, nil)
+		content := generateFallbackFile(compRel, []string{lq.Name})
 		path := filepath.Join(fallbacksDir(pluginDir, "layout"), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
@@ -386,6 +373,24 @@ func (p *HoudiniReact) GeneratePageEntries(ctx context.Context) ([]string, error
 func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, pluginDir string, cfs []componentField) string {
 	var imports []string
 
+	// which of the page's queries are @loading (its own or an inherited layout query) —
+	// this must match GenerateFallbacks, which generates the fallback unit under the
+	// same condition
+	loadingByName := map[string]bool{}
+	for _, q := range manifest.PageQueries {
+		loadingByName[q.Name] = q.Loading
+	}
+	for _, q := range manifest.LayoutQueries {
+		loadingByName[q.Name] = q.Loading
+	}
+	hasFrame := false
+	for _, name := range page.Queries {
+		if loadingByName[name] {
+			hasFrame = true
+			break
+		}
+	}
+
 	// Import each layout unit
 	for _, layoutID := range page.Layouts {
 		imports = append(imports, fmt.Sprintf("import Layout_%s from '../layouts/%s.jsx'", layoutID, layoutID))
@@ -400,14 +405,14 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	imports = append(imports, fmt.Sprintf("import Page_%s from '../pages/%s.jsx'", id, id))
 	imports = append(imports, "import client from '$houdini/plugins/houdini-react/runtime/client'")
 	if len(page.Layouts) > 0 {
-		imports = append(imports, "import { NotFoundGate, setCurrentSegment, HoldLoading } from '$houdini/plugins/houdini-react/runtime/routing'")
+		imports = append(imports, "import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'")
 	} else {
-		imports = append(imports, "import { NotFoundGate, HoldLoading } from '$houdini/plugins/houdini-react/runtime/routing'")
+		imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
 	}
 
-	// Import page fallback if page has a loading query
-	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
-		imports = append(imports, fmt.Sprintf("import PageFallback_%s from '../fallbacks/page/%s.jsx'", id, id))
+	// Import the page fallback (boundary + loading frame) if the page has one
+	if hasFrame {
+		imports = append(imports, fmt.Sprintf("import PageFallback_%s, { Frame as Frame_%s } from '../fallbacks/page/%s.jsx'", id, id, id))
 	}
 
 	// Import layout fallbacks for layouts with loading queries
@@ -445,12 +450,22 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	// level and the layouts above it render normally.
 	wrappers = append(wrappers, "NotFoundGate")
 
-	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
+	if hasFrame {
 		wrappers = append(wrappers, "PageFallback_"+id)
 	}
 
+	// The page slot: while the router wants to show the loading state (a navigation
+	// pending longer than loadingDelay), render the loading frame directly instead of
+	// the page — plain conditional rendering, nothing suspends. Pages without a frame
+	// ignore showLoading entirely: the transition just keeps the previous page on
+	// screen until this one is ready.
+	leaf := fmt.Sprintf("<Page_%s />", id)
+	if hasFrame {
+		leaf = fmt.Sprintf("{showLoading ? <Frame_%s /> : <Page_%s />}", id, id)
+	}
+
 	// Render the nested JSX with correct per-depth indentation (base = 2 tabs).
-	nestedContent := renderWrappedJSX(wrappers, "Page_"+id, 2)
+	nestedContent := renderWrappedJSX(wrappers, leaf, 2)
 
 	var b strings.Builder
 	b.WriteString(strings.Join(imports, "\n"))
@@ -458,12 +473,7 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		b.WriteString("\n\n")
 		b.WriteString(strings.Join(segmentSetters, "\n"))
 	}
-	// navKey controls whether the route's boundaries remount on navigation. The Router
-	// keeps it stable while a navigation transition is in flight (so React holds the
-	// previous UI instead of flashing the loading state), and switches it to the URL
-	// once the transition has been pending long enough to warrant showing the loading
-	// state — remounting the boundaries so their @loading frames render.
-	b.WriteString("\n\nexport default ({ url, navKey, showLoading }) => {\n")
+	b.WriteString("\n\nexport default ({ showLoading }) => {\n")
 	b.WriteString("\treturn (\n")
 	b.WriteString(nestedContent)
 	b.WriteString("\n\t)\n}\n")
@@ -472,18 +482,14 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 }
 
 // renderWrappedJSX renders a sequence of JSX wrappers (outermost first) around a leaf
-// component, incrementing indentation by one tab per nesting level.
+// expression (rendered verbatim), incrementing indentation by one tab per nesting level.
 func renderWrappedJSX(wrappers []string, leaf string, baseDepth int) string {
 	var lines []string
 
 	for i, w := range wrappers {
-		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s key={navKey}>", w))
+		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s>", w))
 	}
-	// The page slot: while the router wants to show the loading state, render HoldLoading
-	// (which suspends) so the page's Suspense boundary shows its @loading fallback and
-	// holds it; otherwise render the real page. The surrounding layouts render normally
-	// either way, so persistent chrome (e.g. a layout query) keeps its live data.
-	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+fmt.Sprintf("{showLoading ? <HoldLoading /> : <%s />}", leaf))
+	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+leaf)
 	for i := len(wrappers) - 1; i >= 0; i-- {
 		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("</%s>", wrappers[i]))
 	}

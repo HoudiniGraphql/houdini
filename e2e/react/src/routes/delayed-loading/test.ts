@@ -18,6 +18,9 @@ test.describe('delayed loading state', () => {
 
 		await page.click('#to-slow')
 		await expect(page.locator('#name:visible')).toHaveText('loading')
+		// the frame is rendered directly (not pinned as a Suspense fallback), so there is
+		// no hidden duplicate of the page in the DOM while the loading state shows
+		await expect(page.locator('#name')).toHaveCount(1)
 		await expect(page.locator('#name:visible')).toHaveText('Bruce Willis')
 	})
 

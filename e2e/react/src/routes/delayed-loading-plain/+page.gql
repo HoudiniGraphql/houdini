@@ -1,0 +1,5 @@
+query DelayedLoadingPlainPage($delay: Int) {
+	user(id: "1", snapshot: "delayed-loading-plain", delay: $delay) {
+		name
+	}
+}
