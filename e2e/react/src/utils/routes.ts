@@ -61,4 +61,6 @@ export const routes = {
 	delayed_loading: '/delayed-loading',
 	delayed_loading_plain: '/delayed-loading-plain',
 	error_recovery: '/error-recovery',
+	suspense_boundary: '/suspense-boundary',
+	suspense_boundary_link: '/suspense-boundary-link',
 } as const
