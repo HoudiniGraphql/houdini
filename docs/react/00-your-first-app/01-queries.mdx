@@ -321,15 +321,52 @@ might want to pass a field directly.
 
 ## Error Handling
 
-Not every id maps to a Pokémon. The `species` field is nullable in the schema, so navigating to an id outside the first generation (try `/152`) resolves `Info.species` to `null`, and reading `Info.species.name` throws. There are two layers worth knowing about.
+Errors are a fact of life when building applications. You might encounter a runtime error from accessing a feild on a `null` or `undefined` value. Or maybe your API returns an error 
+for a particular input. Regardless of the reason, your application's error states should be taken just as seriously as your happy path or loading states. To faciliate this, Houdini 
+allows you to define a `+error.tsx` file in your route tree. This file defines an error boundary that wraps the page (and any subroutes). The component returned from an error file 
+not only receives the same query references as props but it also receives an `errors` prop containing the thrown error:
 
-The first is graceful degradation in the page itself. Guard the nullable result so the view renders a friendly empty state instead of crashing when there's no match.
+```tsx 
+import { Container, Display, FavoritesContainer, Panel } from "~/components";
+import { ErrorProps } from "./$types";
 
-{/* TODO(example): guard `Info.species` being null in `+page.tsx` and render a "not found" state */}
+export default function ErrorView({ errors }: ErrorProps) {
+	const message =
+		errors?.map((e) => e.message).join("\n") || "Something went wrong";
 
-The second is a safety net for anything you didn't anticipate. The starter already wraps the app in a top-level error boundary (`src/+index.tsx`) that catches any error thrown while rendering and shows a fallback, so an unexpected failure degrades to a single "something went wrong" page rather than a blank one.
+	return (
+		<>
+			<FavoritesContainer>
+				<p>No Favorites Selected</p>
+			</FavoritesContainer>
+			<Container>
+				<Panel side="left">
+					<Display
+						id="species-error"
+						style={{
+							flexGrow: 1,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							textAlign: "center",
+							fontSize: "32px",
+							padding: "24px",
+							whiteSpace: "pre-wrap",
+						}}
+					>
+						{message}
+					</Display>
+				</Panel>
+				<Panel side="right">{null}</Panel>
+			</Container>
+		</>
+	);
+}
+```
 
-When you want dedicated, route-scoped error pages with real HTTP status codes, Houdini has you covered there too: a `+error.tsx` next to your route renders an error boundary for that branch of the tree, and helpers like `notFound()` let you signal a specific status from within a page. See the [Handling Errors guide](~/routing/handling-errors) for the full story.
+With this page defined, navigate to `/-1` and confirm that the server's error has bubbled up to your error component. By default Houdini will return a 500 when it 
+encounters an error in the initial SSR response. To customize the response you can use helpers like `notFound()` let you signal a specific status from within a page. 
+See the [Handling Errors guide](~/routing/handling-errors) for the full story.
 
 ## What's Next?
 
