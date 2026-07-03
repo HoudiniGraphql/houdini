@@ -26,6 +26,10 @@ import { Container, Display, Sprite, Panel } from '~/components'
 import type { PageProps } from './$types'
 
 export default function Page({ Info }: PageProps) {
+    if (!Info.species) {
+      throw new Error("not found");
+    }
+
     return (
         <Container>
             <Panel side="left">
@@ -47,11 +51,15 @@ export default function Page({ Info }: PageProps) {
 }
 ```
 
-You're already starting to see some of the very exciting things Houdini offers. Just like you might define data requirements for a route in other frameworks, you can use `+page.gql` to define the query for your route.
+You're already starting to see some of the very exciting things Houdini offers. But even in just this one little example there are a few things worth calling out. The first thing to notice is that your project's directory structure defines your application's routes. Because you defined this `+page.tsx` file in `src/routes/` it corresponds to the `/` view of your application. As you'll see in a few minutes, if you want to define the view of say `/hello` you would have a `+page.tsx` defined at `src/routes/hello/+page.tsx`. 
 
-The data for the query is passed as a prop that matches the query's name (in this case `Info`). We used it to render some basic information about Bulbasaur using components that were provided in the project's `components` directory.
+The second thing to notice is that Houdini isn't quite like the other GraphQL clients you might have used. Firing a query does not require you to use a hook. Instead, you define your route's data dependencies right next to the route, in a simliarly named `+page.gql` file.  The data for the query is passed as a prop that matches the query's name (in this case `Info`). We used it to render some basic information about Bulbasaur using components that were provided in the project's `components` directory.
 
 You might have noticed the `~/components` import. Houdini configures a `~` path alias that points to your project's `src/` directory, so `~/components` is equivalent to `src/components`. You can use it anywhere in your project to avoid long relative import paths.
+
+:::typescript
+And the last thing that might have stuck out to you in this example is that magical `./$types` type import. You might be wondering where this file exists, how is typescript resolving it, etc. And the answer is that Houdini leverages a feature in TypeScript known as "type roots". When Houdini has finished processing your application, it generates types for you that perfectly match your queries and makes it available to you through this magic import. There are a few different types exported from here but for now just know that `PageProps` defines (as you could have probably guessed) the props for your page.
+:::
 
 <AsideAccordion variant="graphql" title="Queries">
 
@@ -181,9 +189,13 @@ For completeness, let's quickly add some buttons to navigate between the differe
 import { Link } from '$houdini'
 ```
 
-Then copy and paste this block as the last child of the `Container` component:
+Then copy and paste this block as the last child of the `Container` component. You will also have to add an import for `Link` from `$houdini`.
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { Link } from "$houdini";
+
+// ... 
+
 <Panel side="right">
     <nav>
         <Link
@@ -199,19 +211,113 @@ Then copy and paste this block as the last child of the `Container` component:
 </Panel>
 ```
 
+Clicking the next and previous buttons should move you along the list of pokemon. 
+
+:::typescript
+Before we go too far, it's worth calling out yet another example
+of Houdini's obsession with type safety. That `Link` component that you imported has been generated to match your specific routes. Houdini knows that 
+the route parameter corresponds to the `$id` variable in your graphql query and since its an `Int!` in your document, that `Link` requires you to pass a 
+`number` for its params. Look at what happens if you pass `"1"` instead.
+
+:::
+
 ## Loading State
 
-By default a route doesn't render until all of its data has resolved, which means the user stares at the previous page (or a blank screen on first load) while the request is in flight. Houdini can do better: with the `@loading` directive it renders the page right away and streams each value in as it arrives, so the Pokédex shell appears immediately and fills in as the data lands.
+By default a route doesn't render until all of its data has resolved, which means the user stares at the previous page (or a blank screen on first load) while the request is in flight. 
+Houdini can do better. With the `@loading` directive houdini will render the page right away and stream your query data as it arrives. This means the Pokédex shell appears immediately 
+and fills in as the data lands.
 
-You opt in by tagging fields with `@loading`. Only tagged fields are part of the loading shape, so mark every field your component reads while the query is pending. When the directive is present, Houdini wraps the route in a Suspense boundary and streams the response: the layout and shell flush first, then the marked fields arrive as pending placeholders.
+It can be kind of tricky to see when you're running against the local API so before we go about defining the loading state for our app, pass a `delay: 500` argument to the `species` field.
+This will introduce an artificial delay in the API response so you get a chance to actually see the loading state.
 
-{/* TODO(example): add `@loading` to the relevant fields in `+page.gql` */}
 
-In the component, reach for `isPending` from `$houdini` to tell a placeholder apart from a resolved value and render a skeleton in its place. It's a type guard, so TypeScript narrows the field to its real type on the loaded branch.
+```graphql
+query Info($id: Int! = 1) {
+    species(id: $id, delay: 500) {
+        pokedexNumber
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
+}
+```
 
-{/* TODO(example): import `isPending` and guard each tagged field in `+page.tsx` */}
+Now, to opt-into the loading state behavior, you start to tag fields with `@loading`. You could tag individual fields if you wanted to tightly control the exact shape that's generated for you, but 
+most of the time you are perfectly fine to just put a single `@loading` on the definition:
 
-In the next chapter we'll push these directives down into component fragments so each component owns its own loading shape and the route doesn't have to know about it. The [Loading States guide](~/loading-data/loading-states) covers the rest: placeholder counts for lists, cascading the directive across a whole subtree, and composing loading shapes through fragments.
+```graphql 
+query Info($id: Int! = 1) @loading {
+    species(id: $id, delay: 500) {
+        pokedexNumber
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
+}
+```
+
+With that in place, we can use `isPending` from `$houdini` to identify if we are rendering a loading state or not:
+
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { isPending } from '$houdini'
+import { Shimmer } from '~/components'
+
+
+// ...
+
+
+export default function Page({ Info, Info$handle }: PageProps) {
+	const species = Info.species;
+
+	const isLoading = isPending(species);
+
+	return (
+		<Container>
+			<Panel side="left">
+				<Display id="species-name">
+          {isLoading ? (
+            <>
+              <Shimmer width="55%" height="30px" />
+              <Shimmer width="64px" height="20px" />
+            </>
+          ) : (
+            <>
+              species?.name
+              <span>no.{species?.pokedexNumber}</span>
+            </>
+          )}
+				</Display>
+				<Sprite id="species-sprite" species={species ?? null} />
+				<Display id="species-flavor_text">
+					{isLoading ? (
+						<div
+							style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+						>
+							<Shimmer height="0.8em" />
+							<Shimmer width="92%" height="0.8em" />
+							<Shimmer width="60%" height="0.8em" />
+						</div>
+					) : (
+						species?.flavor_text
+					)}
+				</Display>
+			</Panel>
+		</Container>
+	);
+}
+```
+
+If you refresh your browser with that in place, you should see a loading state while the query resolves. It's worth keeping in mind that this directive
+evokes a lot of machinery. Behind the scenes, Houdini see you have a query with a loading state and wraps the pages that use the query in a suspense boundary
+with the component as the fallback. When the time comes, Houdini generates a structure for you to build your UI off of, including lists with rows that match your 
+document. `isPending` can be used at any depth and will walk down until it encounters a leaf field of a loading state. If your document is particularly large you
+might want to pass a field directly. 
+
 
 ## Error Handling
 

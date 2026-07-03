@@ -197,7 +197,7 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache, data_cache } = useRouterContext()
+	const { component_cache, data_cache, artifact_cache, ssr_signals } = useRouterContext()
 	const PageComponent = component_cache.get(targetPage.id)!
 	const [session] = useSession()
 
@@ -239,6 +239,85 @@ export function Router({
 			window.history.pushState({}, '', currentURL)
 		}
 	}, [currentURL])
+
+	// (dev only) hot-swap regenerated query artifacts. The router loads artifacts through
+	// dynamic import and keeps them — and the DocumentStores built from them — in caches
+	// keyed by document name, so vite's module-level HMR can never reach them: after
+	// codegen rewrites an artifact, the caches keep serving the old document and the page
+	// renders stale data. The compiler emits a custom event listing the changed artifact
+	// modules (see flushClientUpdates in houdini's vite plugin); re-import each one fresh,
+	// swap it into the artifact cache, evict the stale store, and reload the current
+	// page's data. useQueryResult keeps the committed store on screen while the
+	// replacement loads (the same keep-last-store path as an abandoned navigation), so
+	// the swap doesn't flash a loading state.
+	const [, forceRender] = React.useReducer((n: number) => n + 1, 0)
+	// the listener is registered once but must act on the latest render's page/variables
+	// (and loadData's closure over the current session)
+	const hmr = React.useRef({ page: targetPage, variables, loadData })
+	hmr.current = { page: targetPage, variables, loadData }
+	React.useEffect(() => {
+		// dev only: vite statically replaces both tokens in production builds
+		// (env.DEV → false, hot → undefined), so the whole listener is dead-code
+		// eliminated. The casts erase to the literal `import.meta.env.DEV` /
+		// `import.meta.hot` tokens — don't alias import.meta or add optional
+		// chaining, or the replacement (and vite's hot-context injection) stops
+		// matching.
+		if (!(import.meta as unknown as { env: { DEV?: boolean } }).env.DEV) {
+			return
+		}
+		const hot = (import.meta as { hot?: any }).hot
+		if (!hot) {
+			return
+		}
+		const onArtifactUpdate = async ({
+			artifacts,
+		}: {
+			artifacts: Array<{ name: string; url: string }>
+		}) => {
+			let stale = false
+			for (const { name, url } of artifacts) {
+				// only documents this client has loaded can be stale
+				if (!artifact_cache.has(name)) {
+					continue
+				}
+				// bust the browser's module cache — re-importing the bare url would just
+				// return the module we already have
+				let artifact: QueryArtifact | undefined
+				try {
+					const bust = `${url.includes('?') ? '&' : '?'}t=${Date.now()}`
+					artifact = (await import(/* @vite-ignore */ `${url}${bust}`))?.default
+				} catch {
+					// the module failed to load (e.g. the document was deleted) — leave the
+					// caches alone rather than evicting a store we can't replace
+					continue
+				}
+				if (!artifact) {
+					continue
+				}
+				artifact_cache.set(name, artifact)
+				// evict the store built from the old artifact so the reload below creates a
+				// replacement. deliberately no cleanup(): mounted components keep rendering
+				// the old store until the new one lands (see SuspenseCache's delete() note)
+				data_cache.delete(name)
+				ssr_signals.delete(name)
+				stale = true
+			}
+			if (!stale) {
+				return
+			}
+			const { page, variables, loadData } = hmr.current
+			// the reload honors each query's cache policy: an edit that doesn't change
+			// what the document asks for (or asks for data the cache already holds)
+			// resolves instantly from cache; anything the old selection didn't cover
+			// misses and goes to the network
+			loadData(page, variables)
+			// re-render so useQueryResult sees the eviction and subscribes to the
+			// replacement — deleting a cache entry doesn't notify anyone on its own
+			forceRender()
+		}
+		hot.on('houdini:artifact-update', onArtifactUpdate)
+		return () => hot.off?.('houdini:artifact-update', onArtifactUpdate)
+	}, [])
 
 	// when we first mount we should start listening to the back button
 	React.useEffect(() => {

@@ -103,6 +103,15 @@ export function useDocumentHandle<
 					...args?.variables,
 				},
 				session,
+				// handle-driven sends (pagination, manual refetch) must not republish the
+				// document's @loading state — the skeleton is for router-driven loads. The
+				// page keeps its current data while the request is in flight; callers track
+				// progress through loadNextPending/loadPreviousPending instead. (matches
+				// useQueryHandle/useFragmentHandle and the svelte pagination stores)
+				stuff: {
+					silenceLoading: true,
+					...(args as { stuff?: App.Stuff } | undefined)?.stuff,
+				},
 			})
 		}
 
@@ -141,6 +150,7 @@ export function useDocumentHandle<
 							applyUpdates: updates,
 						},
 						session,
+						stuff: { silenceLoading: true, ...args?.stuff },
 					})
 				},
 				getSession: async () => session,
@@ -172,6 +182,7 @@ export function useDocumentHandle<
 							applyUpdates: updates,
 							...args?.cacheParams,
 						},
+						stuff: { silenceLoading: true, ...args?.stuff },
 					})
 				},
 				getSession: async () => session,
