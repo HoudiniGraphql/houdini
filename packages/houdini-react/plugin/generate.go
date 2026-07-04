@@ -660,6 +660,13 @@ export const on_render =
 		// keeps the bare react-streaming import out of the isomorphic runtime, which trips a
 		// "loaded in browser" poison-pill assertion under browser-like test environments.
 		const streamHolder = {}
+		// One set of router caches for the whole request, shared by both render passes.
+		// When the first pass rejects and we retry, every query that settled during it —
+		// including the one whose errors caused the rejection — already has its observer
+		// in data_cache, so the retry renders from those instead of re-fetching (the
+		// results would be unused anyway: the error boundary starts errored). Sends still
+		// in flight from the first pass are deduped through ssr_signals the same way.
+		const caches = router_cache()
 		const render = () => renderToStream(
 			React.createElement(StatusContext.Provider, { value: statusRef },
 				React.createElement(App, {
@@ -680,7 +687,7 @@ export const on_render =
 							streamHolder.injectToStream?.(chunk)
 						} catch (_) {}
 					},
-					...router_cache()
+					...caches
 				})
 			),
 			{ webStream: production, userAgent: 'Vite' }
