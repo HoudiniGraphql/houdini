@@ -160,7 +160,7 @@ See [`useRoute`](~/api-reference/useRoute) for the full API.
 
 ## Loading states
 
-Navigations run as a React transition, so the current page stays on screen while the next route loads—a navigation that resolves quickly swaps straight to the new page with no intermediate flash.
+Navigations run as a React transition, so the current page stays on screen while the next route loads; a navigation that resolves quickly swaps straight to the new page with no intermediate flash.
 
 If a navigation stays pending longer than a configurable threshold, Houdini shows the destination route's [`@loading` state](~/loading-data/loading-states) (its skeleton) instead of holding the old page indefinitely. Two [config](~/core/config) options control the timing:
 
@@ -177,7 +177,7 @@ export default {
 }
 ```
 
-Queries whose variables don't change across a navigation aren't re-fetched, so persistent chrome—for example a layout query that doesn't depend on the route—keeps its data and never flashes. Only the parts of the page whose data actually changed show their loading state.
+Queries whose variables don't change across a navigation aren't re-fetched, so persistent chrome (for example a layout query that doesn't depend on the route) keeps its data and never flashes. Only the parts of the page whose data actually changed show their loading state.
 
 A route without an `@loading` state has nothing to show in its place, so a slow navigation to it simply keeps the previous page on screen until the new one is ready.
 
