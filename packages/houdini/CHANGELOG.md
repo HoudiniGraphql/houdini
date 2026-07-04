@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.3
+
+### Patch Changes
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Navigations now hold the previous page and only show the destination's `@loading` state when the navigation is slow, configurable via `router.loadingDelay` and `router.minDuration`. As part of this, a navigation that stays on the same route no longer remounts the page component, so component state persists when only params or search values change.
+
 ## 2.0.2
 
 ### Patch Changes

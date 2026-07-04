@@ -1,5 +1,19 @@
 # houdini-react
 
+## 2.1.0
+
+### Minor Changes
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Navigations now hold the previous page and only show the destination's `@loading` state when the navigation is slow, configurable via `router.loadingDelay` and `router.minDuration`. As part of this, a navigation that stays on the same route no longer remounts the page component, so component state persists when only params or search values change.
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `useNavigation()` for tracking the router's in-flight navigation: progress bars, per-link spinners, or disabling controls while a navigation settles.
+
+### Patch Changes
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Loading frames now receive real `$handle` props, so a component that reads its handle during a loading state no longer crashes.
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - A direct load whose render throws now renders `+error.tsx` with the correct HTTP status instead of a raw stack trace, and a thrown `redirect()` responds with a real `Location` header.
+
 ## 2.0.2
 
 ### Patch Changes
