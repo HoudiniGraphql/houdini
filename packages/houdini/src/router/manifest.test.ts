@@ -375,7 +375,7 @@ test('local schema', async () => {
 
 	// create the mock filesystem
 	await fs.mock({
-		[config.projectRoot]: {
+		[config.root_dir]: {
 			'src/server': {
 				'+schema.js': `
 					export default 'foo'
@@ -596,7 +596,7 @@ test('local schema', async () => {
 		        }
 		    },
 		    "artifacts": [],
-		    "local_schema": false,
+		    "local_schema": true,
 		    "local_yoga": false
 		}
 	`)
@@ -607,7 +607,7 @@ test('local yoga', async () => {
 
 	// create the mock filesystem
 	await fs.mock({
-		[config.projectRoot]: {
+		[config.root_dir]: {
 			'src/server': {
 				'+yoga.js': `
 					export default 'foo'
@@ -828,8 +828,8 @@ test('local yoga', async () => {
 		        }
 		    },
 		    "artifacts": [],
-		    "local_schema": false,
-		    "local_yoga": false
+		    "local_schema": true,
+		    "local_yoga": true
 		}
 	`)
 })
@@ -1102,8 +1102,8 @@ test('extract route params', async () => {
 		        }
 		    },
 		    "artifacts": [],
-		    "local_schema": false,
-		    "local_yoga": false
+		    "local_schema": true,
+		    "local_yoga": true
 		}
 	`)
 })
