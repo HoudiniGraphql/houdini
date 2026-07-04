@@ -1,0 +1,5 @@
+query ErrorRecoveryQuery($id: ID!) {
+	user(id: $id, snapshot: "error-recovery") {
+		name
+	}
+}

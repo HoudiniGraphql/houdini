@@ -43,6 +43,66 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 		return (filepath.split('/').pop() ?? '').startsWith('+')
 	}
 
+	// Push regenerated modules to the connected client. The js-update messages let vite
+	// swap any module that something accepts (e.g. a component importing a fragment
+	// artifact). Query artifacts need more: the router loads them via dynamic import and
+	// holds them (and the DocumentStores built from them) in caches keyed by document
+	// name, so no module update can reach them — without the custom event the client
+	// keeps rendering the old document from its cache. The router's listener re-imports
+	// the fresh artifact and refreshes its caches (see the artifact-update listener in
+	// houdini-react's Router).
+	function flushClientUpdates(server: HmrContext['server'], updated_modules: string[]) {
+		const seenUrls = new Set<string>()
+		const artifactDir = `${generatedDir}/artifacts/`
+		// document name -> module url; keyed so multiple module-graph nodes for the same
+		// artifact don't produce duplicate refreshes
+		const changed_artifacts = new Map<string, string>()
+		const updates = updated_modules.flatMap((module_path) => {
+			// GenerateDocuments returns '$houdini/...' import aliases; resolve them
+			// to absolute paths so Vite's module graph lookups work.
+			const resolvedPath = module_path.startsWith('$houdini/')
+				? module_path.replace('$houdini', generatedDir)
+				: module_path
+			const mods = [...(server.moduleGraph.getModulesByFile(resolvedPath) ?? [])]
+			return mods.flatMap((mod) => {
+				if (seenUrls.has(mod.url)) return []
+				seenUrls.add(mod.url)
+				server.moduleGraph.invalidateModule(mod)
+				if (resolvedPath.startsWith(artifactDir)) {
+					const filename = path.basename(resolvedPath)
+					const dot = filename.lastIndexOf('.')
+					const name = dot === -1 ? filename : filename.slice(0, dot)
+					if (!changed_artifacts.has(name)) {
+						changed_artifacts.set(name, mod.url)
+					}
+				}
+				return [
+					{
+						type: 'js-update' as const,
+						path: mod.url,
+						acceptedPath: mod.url,
+						timestamp: Date.now(),
+					},
+				]
+			})
+		})
+		if (updates.length > 0) {
+			server.ws.send({ type: 'update', updates })
+		}
+		if (changed_artifacts.size > 0) {
+			server.ws.send({
+				type: 'custom',
+				event: 'houdini:artifact-update',
+				data: {
+					artifacts: [...changed_artifacts.entries()].map(([name, url]) => ({
+						name,
+						url,
+					})),
+				},
+			})
+		}
+	}
+
 	return {
 		name: 'houdini',
 
@@ -162,6 +222,18 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			// js-update messages for whichever artifact modules changed.
 			debounceHmr.queueUpdate(opts as unknown as HmrContext, preReadContent, batchCallback)
 
+			// .gql documents are Houdini's domain: the pipeline above handles all of
+			// their effects and pushes targeted updates once codegen finishes. Strip the
+			// watcher's asset module nodes from the raw file event so downstream plugins
+			// don't react to it — tailwind's content scanner registers every scanned file
+			// as an asset module and answers a change with a full-reload, which races the
+			// pipeline (the browser reloads before the new artifacts exist and renders
+			// the old document). Real js modules (e.g. `?raw` imports of the file) are
+			// kept so vite's default HMR still serves them.
+			if (opts.file.endsWith('.gql') || opts.file.endsWith('.graphql')) {
+				return opts.modules.filter((mod) => mod.type === 'js')
+			}
+
 			async function batchCallback(
 				files: Record<string, string>,
 				deletedFiles: string[],
@@ -252,32 +324,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 									...Object.values(results.GenerateDocuments || {}).flat(),
 									...Object.values(results.GenerateRuntime || {}).flat(),
 								] as Array<string>
-								const seenUrls = new Set<string>()
-								const updates = updated_modules.flatMap((module_path) => {
-									const resolvedPath = module_path.startsWith('$houdini/')
-										? module_path.replace('$houdini', generatedDir)
-										: module_path
-									const mods = [
-										...(server.moduleGraph.getModulesByFile(resolvedPath) ??
-											[]),
-									]
-									return mods.flatMap((mod) => {
-										if (seenUrls.has(mod.url)) return []
-										seenUrls.add(mod.url)
-										server.moduleGraph.invalidateModule(mod)
-										return [
-											{
-												type: 'js-update' as const,
-												path: mod.url,
-												acceptedPath: mod.url,
-												timestamp: Date.now(),
-											},
-										]
-									})
-								})
-								if (updates.length > 0) {
-									server.ws.send({ type: 'update', updates })
-								}
+								flushClientUpdates(server, updated_modules)
 							} catch (err) {
 								console.error('[houdini] pipeline error after deletion:', err)
 							}
@@ -446,32 +493,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						...Object.values(results.GenerateDocuments || {}).flat(),
 						...Object.values(results.GenerateRuntime || {}).flat(),
 					] as Array<string>
-
-					const seenUrls = new Set<string>()
-					const updates = updated_modules.flatMap((module_path) => {
-						// GenerateDocuments returns '$houdini/...' import aliases; resolve them
-						// to absolute paths so Vite's module graph lookups work.
-						const resolvedPath = module_path.startsWith('$houdini/')
-							? module_path.replace('$houdini', generatedDir)
-							: module_path
-						const mods = [...(server.moduleGraph.getModulesByFile(resolvedPath) ?? [])]
-						return mods.flatMap((mod) => {
-							if (seenUrls.has(mod.url)) return []
-							seenUrls.add(mod.url)
-							server.moduleGraph.invalidateModule(mod)
-							return [
-								{
-									type: 'js-update' as const,
-									path: mod.url,
-									acceptedPath: mod.url,
-									timestamp: Date.now(),
-								},
-							]
-						})
-					})
-					if (updates.length > 0) {
-						server.ws.send({ type: 'update', updates })
-					}
+					flushClientUpdates(server, updated_modules)
 				})
 			}
 		},

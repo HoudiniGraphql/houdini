@@ -124,7 +124,7 @@ For routes where you want fetching tied to navigation, use the generated `load_<
 
 ```typescript title="src/routes/myRoute/+page.ts&typescriptToggle=true"
 import { load_MyProfileInfo } from '$houdini'
-import type { PageLoad } from './$houdini'
+import type { PageLoad } from './$types'
 
 export const load: PageLoad = async (event) => {
 	return {
@@ -135,7 +135,7 @@ export const load: PageLoad = async (event) => {
 
 ```svelte title="src/routes/myRoute/+page.svelte&typescriptToggle=true"
 <script lang="ts">
-	import type { PageData } from './$houdini'
+	import type { PageData } from './$types'
 
 	let { data }: { data: PageData } = $props()
 	let { MyProfileInfo } = $derived(data)
@@ -148,7 +148,7 @@ For multiple queries in parallel, use `loadAll`:
 
 ```typescript title="src/routes/myRoute/+page.ts&typescriptToggle=true"
 import { loadAll, load_QueryA, load_QueryB } from '$houdini'
-import type { PageLoad } from './$houdini'
+import type { PageLoad } from './$types'
 
 export const load: PageLoad = async (event) => {
 	return {

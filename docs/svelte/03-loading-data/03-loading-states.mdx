@@ -38,7 +38,8 @@ query SpeciesInfo($id: Int = 1) {
 
 ```svelte title="src/routes/[[id]]/+page.svelte&typescriptToggle=true"
 <script lang="ts">
-    import type { PageData } from './$houdini'
+    import type { PageData } from './$types'
+
     // prettier-ignore
     import {
         Container,

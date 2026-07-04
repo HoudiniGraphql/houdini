@@ -16,6 +16,7 @@ export {
 	useCache,
 	useSession,
 	useRoute,
+	useNavigation,
 	notFound,
 	unauthorized,
 	forbidden,

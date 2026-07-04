@@ -225,58 +225,99 @@ func (p *HoudiniReact) GenerateErrorWrappers(ctx context.Context) ([]string, err
 
 // ---- fallback generation ----
 
-func generateFallbackFile(componentRel string, loadingQueries, requiredQueries []string) string {
+func generateFallbackFile(componentRel string, loadingQueries []string) string {
 	var b strings.Builder
 
-	b.WriteString("import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString("import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString("import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'\n")
 	b.WriteString(fmt.Sprintf("import Component from '%s'\n", componentRel))
-	b.WriteString("import { Suspense } from 'react'\n\n")
+	b.WriteString("import React, { Suspense } from 'react'\n\n")
+
+	// Frame is the loading state: the view rendered with loading-marker data for each
+	// @loading query. It serves as the Suspense fallback below and is also rendered
+	// directly by the page entry while a delayed navigation shows the loading state.
+	// The view receives the same props as the resolved unit — including the $handle for
+	// each query, built from a detached observer over a loading-state store value — so a
+	// component that reads its handle during render doesn't crash in the loading frame.
+	// The loading read is memoized per artifact: cache.read({ loading: true }) is a pure
+	// function of the selection (it synthesizes markers, never stored data), so the frame
+	// hands the view stable identities across its re-renders instead of re-running the
+	// synthesis and busting downstream memo/effect dependencies. If loading states ever
+	// merge real cached data, both the memo and the unsubscribed read must become a
+	// subscribed store read.
+	b.WriteString("export const Frame = () => {\n")
+	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
+	b.WriteString("\tconst cache = useCache()\n")
+	b.WriteString("\tconst client = useClient()\n")
+	for _, q := range loadingQueries {
+		b.WriteString(fmt.Sprintf("\tconst %s_artifact = artifact_cache.get(%q)\n", q, q))
+		b.WriteString(fmt.Sprintf("\tconst %s_loading = React.useMemo(() => ({\n", q))
+		b.WriteString(fmt.Sprintf("\t\tdata: cache.read({ selection: %s_artifact.selection, loading: true }).data,\n", q))
+		b.WriteString("\t\terrors: null,\n")
+		b.WriteString("\t\tfetching: true,\n")
+		b.WriteString("\t\tpartial: false,\n")
+		b.WriteString("\t\tstale: false,\n")
+		b.WriteString("\t\tsource: null,\n")
+		b.WriteString("\t\tvariables: null,\n")
+		b.WriteString(fmt.Sprintf("\t}), [cache, %s_artifact])\n", q))
+		b.WriteString(fmt.Sprintf("\tconst %s_observer = React.useMemo(() => client.observe({ artifact: %s_artifact, cache }), [client, %s_artifact, cache])\n", q, q, q))
+		b.WriteString(fmt.Sprintf("\tconst %s_handle = useDocumentHandle({\n", q))
+		b.WriteString(fmt.Sprintf("\t\tartifact: %s_artifact,\n", q))
+		b.WriteString(fmt.Sprintf("\t\tobserver: %s_observer,\n", q))
+		b.WriteString(fmt.Sprintf("\t\tstoreValue: %s_loading,\n", q))
+		b.WriteString("\t})\n")
+	}
+	b.WriteString("\tconst props = {\n")
+	for _, q := range loadingQueries {
+		b.WriteString(fmt.Sprintf("\t\t%s: %s_loading.data,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t\t%s$handle: %s_handle,\n", q, q))
+	}
+	b.WriteString("\t}\n")
+	b.WriteString("\treturn <Component {...props} />\n")
+	b.WriteString("}\n\n")
 
 	b.WriteString("export default ({ children }) => {\n")
 	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
+	// reading the artifacts here suspends the wrapper (not the fallback) until they're
+	// cached, so by the time the boundary mounts, Frame can always render synchronously
 	for _, q := range loadingQueries {
-		b.WriteString(fmt.Sprintf("\tconst %s_artifact = artifact_cache.get(%q)\n", q, q))
+		b.WriteString(fmt.Sprintf("\tartifact_cache.get(%q)\n", q))
 	}
 	b.WriteString("\n\treturn (\n")
-	b.WriteString("\t\t<Suspense fallback={\n")
-
-	// required_queries object
-	var reqParts []string
-	for _, q := range requiredQueries {
-		reqParts = append(reqParts, fmt.Sprintf("%s: %s$data", q, q))
-	}
-	reqStr := "{}"
-	if len(reqParts) > 0 {
-		reqStr = "{ " + strings.Join(reqParts, ", ") + " }"
-	}
-
-	// loading_queries object
-	var loadParts []string
-	for _, q := range loadingQueries {
-		loadParts = append(loadParts, fmt.Sprintf("%s: %s_artifact", q, q))
-	}
-	loadStr := "{}"
-	if len(loadParts) > 0 {
-		loadStr = "{ " + strings.Join(loadParts, ", ") + " }"
-	}
-
-	b.WriteString(fmt.Sprintf("\t\t\t<Fallback required_queries={%s} loading_queries={%s} />\n", reqStr, loadStr))
-	b.WriteString("\t\t}>\n")
+	b.WriteString("\t\t<Suspense fallback={<Frame />}>\n")
 	b.WriteString("\t\t\t{children}\n")
 	b.WriteString("\t\t</Suspense>\n")
 	b.WriteString("\t)\n")
-	b.WriteString("}\n\n")
-
-	b.WriteString("const Fallback = ({ required_queries, loading_queries }) => {\n")
-	b.WriteString("\tconst cache = useCache()\n")
-	b.WriteString("\tlet props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({\n")
-	b.WriteString("\t\t...prev,\n")
-	b.WriteString("\t\t[name]: cache.read({ selection: artifact.selection, loading: true }).data\n")
-	b.WriteString("\t}), required_queries)\n")
-	b.WriteString("\treturn <Component {...props} />\n")
 	b.WriteString("}\n")
 
 	return b.String()
+}
+
+// loadingQueryIndex maps every query document name to whether it is @loading (names are
+// unique project-wide).
+func loadingQueryIndex(manifest ProjectManifest) map[string]bool {
+	index := map[string]bool{}
+	for _, q := range manifest.PageQueries {
+		index[q.Name] = q.Loading
+	}
+	for _, q := range manifest.LayoutQueries {
+		index[q.Name] = q.Loading
+	}
+	return index
+}
+
+// pageLoadingQueries returns the page's @loading query names (its own or inherited layout
+// queries), in the order the page consumes them. GenerateFallbacks uses the list to build
+// the page's loading frame and generatePageEntry uses it to decide whether the entry has a
+// frame to render — the two must agree, which is why they share this.
+func pageLoadingQueries(index map[string]bool, page PageManifest) []string {
+	var loadingQueries []string
+	for _, name := range page.Queries {
+		if index[name] {
+			loadingQueries = append(loadingQueries, name)
+		}
+	}
+	return loadingQueries
 }
 
 // GenerateFallbacks generates Suspense fallback components for routes with @loading queries.
@@ -293,15 +334,21 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 	pluginDir := projectConfig.PluginDirectory(p.Name())
 	var changed []string
 
-	// Page fallbacks — one per page that has a @loading page query
+	loadingByName := loadingQueryIndex(manifest)
+
+	// Page fallbacks — one per page that consumes any @loading query, its own or an
+	// inherited layout query. The fallback renders the page with every query it
+	// receives, so it must include inherited layout @loading queries too (matching the
+	// resolved page unit and PageProps); otherwise those props are undefined during the
+	// loading frame and the page crashes.
 	for id, page := range manifest.Pages {
-		pq, ok := manifest.PageQueries[id]
-		if !ok || !pq.Loading {
+		loadingQueries := pageLoadingQueries(loadingByName, page)
+		if len(loadingQueries) == 0 {
 			continue
 		}
 		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.Path))
 		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "page"), compAbs))
-		content := generateFallbackFile(compRel, []string{pq.Name}, nil)
+		content := generateFallbackFile(compRel, loadingQueries)
 		path := filepath.Join(fallbacksDir(pluginDir, "page"), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
@@ -318,7 +365,7 @@ func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) 
 		}
 		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, layout.Path))
 		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "layout"), compAbs))
-		content := generateFallbackFile(compRel, []string{lq.Name}, nil)
+		content := generateFallbackFile(compRel, []string{lq.Name})
 		path := filepath.Join(fallbacksDir(pluginDir, "layout"), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
@@ -368,6 +415,11 @@ func (p *HoudiniReact) GeneratePageEntries(ctx context.Context) ([]string, error
 func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, pluginDir string, cfs []componentField) string {
 	var imports []string
 
+	// whether the page has a loading frame (any @loading query, its own or an inherited
+	// layout query) — shared with GenerateFallbacks, which generates the fallback unit
+	// under the same condition
+	hasFrame := len(pageLoadingQueries(loadingQueryIndex(manifest), page)) > 0
+
 	// Import each layout unit
 	for _, layoutID := range page.Layouts {
 		imports = append(imports, fmt.Sprintf("import Layout_%s from '../layouts/%s.jsx'", layoutID, layoutID))
@@ -387,9 +439,9 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
 	}
 
-	// Import page fallback if page has a loading query
-	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
-		imports = append(imports, fmt.Sprintf("import PageFallback_%s from '../fallbacks/page/%s.jsx'", id, id))
+	// Import the page fallback (boundary + loading frame) if the page has one
+	if hasFrame {
+		imports = append(imports, fmt.Sprintf("import PageFallback_%s, { Frame as Frame_%s } from '../fallbacks/page/%s.jsx'", id, id, id))
 	}
 
 	// Import layout fallbacks for layouts with loading queries
@@ -427,12 +479,22 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	// level and the layouts above it render normally.
 	wrappers = append(wrappers, "NotFoundGate")
 
-	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
+	if hasFrame {
 		wrappers = append(wrappers, "PageFallback_"+id)
 	}
 
+	// The page slot: while the router wants to show the loading state (a navigation
+	// pending longer than loadingDelay), render the loading frame directly instead of
+	// the page — plain conditional rendering, nothing suspends. Pages without a frame
+	// ignore showLoading entirely: the transition just keeps the previous page on
+	// screen until this one is ready.
+	leaf := fmt.Sprintf("<Page_%s />", id)
+	if hasFrame {
+		leaf = fmt.Sprintf("{showLoading ? <Frame_%s /> : <Page_%s />}", id, id)
+	}
+
 	// Render the nested JSX with correct per-depth indentation (base = 2 tabs).
-	nestedContent := renderWrappedJSX(wrappers, "Page_"+id, 2)
+	nestedContent := renderWrappedJSX(wrappers, leaf, 2)
 
 	var b strings.Builder
 	b.WriteString(strings.Join(imports, "\n"))
@@ -440,7 +502,7 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		b.WriteString("\n\n")
 		b.WriteString(strings.Join(segmentSetters, "\n"))
 	}
-	b.WriteString("\n\nexport default ({ url }) => {\n")
+	b.WriteString("\n\nexport default ({ showLoading }) => {\n")
 	b.WriteString("\treturn (\n")
 	b.WriteString(nestedContent)
 	b.WriteString("\n\t)\n}\n")
@@ -449,14 +511,14 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 }
 
 // renderWrappedJSX renders a sequence of JSX wrappers (outermost first) around a leaf
-// component, incrementing indentation by one tab per nesting level.
+// expression (rendered verbatim), incrementing indentation by one tab per nesting level.
 func renderWrappedJSX(wrappers []string, leaf string, baseDepth int) string {
 	var lines []string
 
 	for i, w := range wrappers {
-		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s key={url}>", w))
+		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s>", w))
 	}
-	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+fmt.Sprintf("<%s />", leaf))
+	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+leaf)
 	for i := len(wrappers) - 1; i >= 0; i-- {
 		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("</%s>", wrappers[i]))
 	}
@@ -583,9 +645,10 @@ export const on_render =
 		// during this render write to (and read from) the same cache we serialize.
 		client.setCache(cache)
 
-		// Mutable ref so that a synchronous RoutingError or redirect() inside
-		// HoudiniErrorBoundary can set the correct HTTP status/location before streaming.
-		const statusRef = { status: is404 ? 404 : 200, location: undefined }
+		// Mutable ref threaded through StatusContext. It carries the response status and,
+		// when the first render pass throws, the failure the error boundary renders on the
+		// second pass (see the retry around renderToStream below).
+		const statusRef = { status: is404 ? 404 : 200, errors: undefined }
 
 		// renderToStream only hands back injectToStream as a return value, i.e. after <App> has
 		// already been constructed — too late to pass it down as a prop for the first render.
@@ -597,11 +660,14 @@ export const on_render =
 		// keeps the bare react-streaming import out of the isomorphic runtime, which trips a
 		// "loaded in browser" poison-pill assertion under browser-like test environments.
 		const streamHolder = {}
-		const {
-			readable,
-			injectToStream,
-			pipe: pipeTo,
-		} = await renderToStream(
+		// One set of router caches for the whole request, shared by both render passes.
+		// When the first pass rejects and we retry, every query that settled during it —
+		// including the one whose errors caused the rejection — already has its observer
+		// in data_cache, so the retry renders from those instead of re-fetching (the
+		// results would be unused anyway: the error boundary starts errored). Sends still
+		// in flight from the first pass are deduped through ssr_signals the same way.
+		const caches = router_cache()
+		const render = () => renderToStream(
 			React.createElement(StatusContext.Provider, { value: statusRef },
 				React.createElement(App, {
 					initialURL: url,
@@ -612,12 +678,71 @@ export const on_render =
 					assetPrefix: assetPrefix,
 					manifest: manifest,
 					cssLinks: cssLinks || [],
-					injectToStream: (chunk) => streamHolder.injectToStream?.(chunk),
-					...router_cache()
+					// best-effort: a dangling query from an earlier render pass can resolve
+					// after the stream has ended, and react-streaming throws on late
+					// injections (inside a floating promise, which would take the whole
+					// process down). The client refetches anything a dropped chunk carried.
+					injectToStream: (chunk) => {
+						try {
+							streamHolder.injectToStream?.(chunk)
+						} catch (_) {}
+					},
+					...caches
 				})
 			),
 			{ webStream: production, userAgent: 'Vite' }
 		)
+
+		// respond without a rendered body — the redirect and render-failure paths
+		const respondEmpty = (status, location) => {
+			if (pipe && typeof pipe.setHeader === 'function') {
+				for (const [key, value] of Object.entries(headers ?? {})) {
+					pipe.setHeader(key, value)
+				}
+				if (location) {
+					pipe.setHeader('Location', location)
+				}
+				pipe.statusCode = status
+				pipe.end()
+				return true
+			}
+			return new Response(null, {
+				status,
+				headers: location ? { ...headers, Location: location } : headers,
+			})
+		}
+
+		let stream
+		try {
+			stream = await render()
+		} catch (error) {
+			// Error boundaries don't run during SSR, so a component that throws on the
+			// first pass — notFound(), redirect(), or a query resolving with GraphQL
+			// errors — rejects the stream instead of rendering +error.tsx. A redirect
+			// needs no body: answer with the Location directly. Anything else is recorded
+			// on statusRef and rendered once more: HoudiniErrorBoundary starts in its
+			// error state when the context carries an error status, so the second pass
+			// streams the error view with the right status instead of a raw stack trace.
+			// Name checks instead of instanceof so a duplicated runtime module (e.g. two
+			// import specifiers resolving separately in dev) can't break the detection.
+			if (error?.name === 'RedirectError' && error.location) {
+				return respondEmpty(error.status, error.location)
+			}
+			if (error?.name === 'RoutingError') {
+				statusRef.status = error.status
+			} else {
+				statusRef.status = 500
+				// the thrown errors are handed to +error.tsx as-is, in production too:
+				// deciding what an error view exposes is the app's call, not the router's
+				statusRef.errors = error?.name === 'GraphQLErrors' ? error.graphqlErrors : [error]
+			}
+			// if the second pass throws too (the throw came from a layout, which renders
+			// above the error boundary, or the route has no +error.tsx at all) the
+			// rejection propagates as if there were no retry: the adapter answers with
+			// the error's status and message, exactly like before
+			stream = await render()
+		}
+		const { readable, injectToStream, pipe: pipeTo } = stream
 		streamHolder.injectToStream = injectToStream
 
 		// The page bootstrap below is intentionally not async. On a streaming page (e.g. an
@@ -648,10 +773,10 @@ export const on_render =
 					pipe.setHeader(key, value)
 				}
 			}
+			// the second render pass can carry an error status (404/500)
+			pipe.statusCode = statusRef.status
 			pipeTo(pipe)
 			return true
-		} else if (statusRef.location) {
-			return new Response(null, { status: statusRef.status, headers: { ...headers, Location: statusRef.location } })
 		} else {
 			return new Response(readable, { status: statusRef.status, headers })
 		}

@@ -1,0 +1,9 @@
+query DelayedLoadingPaginationQuery($delay: Int) @loading {
+	usersConnection(first: 2, snapshot: "delayed-loading-pagination", delay: $delay) @paginate {
+		edges {
+			node {
+				name
+			}
+		}
+	}
+}
