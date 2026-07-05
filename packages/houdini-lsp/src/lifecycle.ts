@@ -2,15 +2,40 @@
 // reconciliation, and shutdown (so editor reloads don't leak Go processes).
 
 import { codegen_setup, get_config, init_db } from 'houdini/lib'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import * as nodePath from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { validate } from './diagnostics.js'
 import type { ServerState } from './state.js'
 
+// houdini/lib is not a semver-stable surface — this server runs in lockstep with
+// the houdini release it shipped alongside. warn loudly when the project's houdini
+// has drifted to a different minor.
+function warn_on_version_mismatch(state: ServerState, root_dir: string) {
+	try {
+		const project = createRequire(
+			pathToFileURL(nodePath.join(root_dir, 'package.json')).toString()
+		)
+		const houdini = project('houdini/package.json').version as string
+		const own = JSON.parse(
+			readFileSync(new URL('../package.json', import.meta.url), 'utf-8')
+		).version as string
+		const [hMajor, hMinor] = houdini.split('.')
+		const [oMajor, oMinor] = own.split('.')
+		if (hMajor !== oMajor || hMinor !== oMinor) {
+			state.connection.console.error(
+				`[houdini-lsp] version mismatch: houdini-lsp@${own} is running against houdini@${houdini}. Keep them on the same minor (update whichever is behind) to avoid subtle breakage.`
+			)
+		}
+	} catch {}
+}
+
 export async function setup_compiler(state: ServerState) {
 	const config = await get_config({ force_reload: true })
 	state.root_dir = config.root_dir
+	warn_on_version_mismatch(state, config.root_dir)
 
 	const lspDb = nodePath.join(
 		config.root_dir,

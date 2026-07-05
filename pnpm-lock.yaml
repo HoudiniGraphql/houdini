@@ -686,13 +686,6 @@ importers:
         version: link:../_scripts
 
   packages/houdini-vscode:
-    dependencies:
-      houdini-lsp:
-        specifier: workspace:^
-        version: link:../houdini-lsp
-      vscode-languageclient:
-        specifier: ^9.0.1
-        version: 9.0.1
     devDependencies:
       '@types/node':
         specifier: ^25.9.1
@@ -700,9 +693,15 @@ importers:
       '@types/vscode':
         specifier: ^1.85.0
         version: 1.125.0
+      houdini-lsp:
+        specifier: workspace:^
+        version: link:../houdini-lsp
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
+      vscode-languageclient:
+        specifier: ^9.0.1
+        version: 9.0.1
 
 packages:
 

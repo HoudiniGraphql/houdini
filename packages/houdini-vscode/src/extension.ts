@@ -16,9 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const serverPath = findLspBinary(workspaceRoot, context.extensionPath)
 	if (!serverPath) {
-		vscode.window.showWarningMessage(
-			'Houdini GraphQL: houdini-lsp not found. Add houdini-lsp to your devDependencies.'
-		)
+		offerInstall(workspaceRoot)
 		return
 	}
 
@@ -57,6 +55,45 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
 	return client?.stop()
+}
+
+// the server ships with the project (so it always matches the project's houdini
+// version) — when it's missing, offer to install it with the project's package manager
+async function offerInstall(workspaceRoot: string) {
+	const choice = await vscode.window.showWarningMessage(
+		'Houdini GraphQL: houdini-lsp not found in this project. The language server ships with your project so it always matches your Houdini version.',
+		'Add houdini-lsp'
+	)
+	if (choice !== 'Add houdini-lsp') return
+
+	// detect the package manager from the nearest lockfile
+	const commands: Array<[string, string]> = [
+		['pnpm-lock.yaml', 'pnpm add -D houdini-lsp'],
+		['bun.lockb', 'bun add -d houdini-lsp'],
+		['bun.lock', 'bun add -d houdini-lsp'],
+		['yarn.lock', 'yarn add -D houdini-lsp'],
+		['package-lock.json', 'npm install --save-dev houdini-lsp'],
+	]
+	let command = 'npm install --save-dev houdini-lsp'
+	let dir = workspaceRoot
+	search: while (true) {
+		for (const [lockfile, cmd] of commands) {
+			if (fs.existsSync(path.join(dir, lockfile))) {
+				command = cmd
+				break search
+			}
+		}
+		const parent = path.dirname(dir)
+		if (parent === dir) break
+		dir = parent
+	}
+
+	const terminal = vscode.window.createTerminal({ name: 'houdini', cwd: workspaceRoot })
+	terminal.show()
+	terminal.sendText(command)
+	vscode.window.showInformationMessage(
+		'Houdini GraphQL: reload the window once the install finishes.'
+	)
 }
 
 function findLspBinary(workspaceRoot: string, extensionPath: string): string | null {

@@ -2,7 +2,7 @@
     "name": "houdini-graphql",
     "displayName": "Houdini GraphQL",
     "description": "GraphQL intelligence for Houdini projects",
-    "version": "2.0.0-next.33",
+    "version": "0.1.0",
     "publisher": "houdini-graphql",
     "license": "MIT",
     "repository": {
@@ -12,8 +12,14 @@
     "engines": {
         "vscode": "^1.85.0"
     },
-    "categories": ["Programming Languages", "Linters"],
-    "keywords": ["graphql", "houdini"],
+    "categories": [
+        "Programming Languages",
+        "Linters"
+    ],
+    "keywords": [
+        "graphql",
+        "houdini"
+    ],
     "activationEvents": [
         "workspaceContains:**/houdini.config.js",
         "workspaceContains:**/houdini.config.ts"
@@ -22,8 +28,15 @@
         "languages": [
             {
                 "id": "graphql",
-                "aliases": ["GraphQL", "graphql"],
-                "extensions": [".gql", ".graphql", ".graphqls"],
+                "aliases": [
+                    "GraphQL",
+                    "graphql"
+                ],
+                "extensions": [
+                    ".gql",
+                    ".graphql",
+                    ".graphqls"
+                ],
                 "configuration": "./language-configuration.json"
             }
         ],
@@ -53,18 +66,17 @@
     "scripts": {
         "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
-        "build:build": "pnpm build: && pnpm build"
+        "build:build": "pnpm build: && pnpm build",
+        "package": "pnpm build && vsce package --no-dependencies",
+        "publish:marketplace": "pnpm build && vsce publish --no-dependencies",
+        "publish:openvsx": "pnpm build && ovsx publish --no-dependencies"
     },
     "devDependencies": {
         "@types/node": "^25.9.1",
         "@types/vscode": "^1.85.0",
-        "tsup": "^8.5.1"
-    },
-    "dependencies": {
+        "tsup": "^8.5.1",
         "houdini-lsp": "workspace:^",
         "vscode-languageclient": "^9.0.1"
     },
-    "files": [
-        "build"
-    ]
+    "private": true
 }
