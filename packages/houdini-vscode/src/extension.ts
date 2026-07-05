@@ -15,11 +15,22 @@ export function activate(context: vscode.ExtensionContext) {
 	if (!workspaceRoot) return
 
 	const serverPath = findLspBinary(workspaceRoot, context.extensionPath)
-	if (!serverPath) {
-		offerInstall(workspaceRoot)
+	if (serverPath) {
+		startClient(serverPath, context)
 		return
 	}
 
+	// no server in the project yet: offer the install, and start automatically the
+	// moment the binary appears — whether it came from our button or their terminal
+	offerInstall(workspaceRoot)
+	watchForServer(workspaceRoot, context)
+}
+
+export function deactivate(): Thenable<void> | undefined {
+	return client?.stop()
+}
+
+function startClient(serverPath: string, context: vscode.ExtensionContext) {
 	const serverOptions: ServerOptions = {
 		command: serverPath,
 		transport: TransportKind.stdio,
@@ -53,8 +64,30 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(client)
 }
 
-export function deactivate(): Thenable<void> | undefined {
-	return client?.stop()
+// start the client as soon as houdini-lsp shows up in the project — a filesystem
+// watcher for the common case, plus a slow poll for installs that land outside the
+// workspace root (hoisted monorepos) where the watcher can't see
+function watchForServer(workspaceRoot: string, context: vscode.ExtensionContext) {
+	let started = false
+
+	const watcher = vscode.workspace.createFileSystemWatcher('**/node_modules/.bin/houdini-lsp*')
+	context.subscriptions.push(watcher)
+	const poll = setInterval(tryStart, 3000)
+	context.subscriptions.push({ dispose: () => clearInterval(poll) })
+
+	function tryStart() {
+		if (started) return
+		const serverPath = findLspBinary(workspaceRoot, context.extensionPath)
+		if (!serverPath) return
+		started = true
+		watcher.dispose()
+		clearInterval(poll)
+		vscode.window.setStatusBarMessage('Houdini GraphQL: language server started', 5000)
+		startClient(serverPath, context)
+	}
+
+	watcher.onDidCreate(tryStart)
+	watcher.onDidChange(tryStart)
 }
 
 // the server ships with the project (so it always matches the project's houdini
@@ -92,7 +125,7 @@ async function offerInstall(workspaceRoot: string) {
 	terminal.show()
 	terminal.sendText(command)
 	vscode.window.showInformationMessage(
-		'Houdini GraphQL: reload the window once the install finishes.'
+		'Houdini GraphQL: the language server will start automatically once the install finishes.'
 	)
 }
 
