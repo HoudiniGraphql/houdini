@@ -50,11 +50,13 @@ function parseTypeStr(typeStr: string, namedTypes: Map<string, GraphQLNamedType>
 	if (typeStr.startsWith('[')) {
 		return new GraphQLList(parseTypeStr(typeStr.slice(1, -1), namedTypes))
 	}
-	return (
-		BUILTIN_SCALARS[typeStr] ??
-		namedTypes.get(typeStr) ??
-		new GraphQLScalarType({ name: typeStr })
-	)
+	const known = BUILTIN_SCALARS[typeStr] ?? namedTypes.get(typeStr)
+	if (known) return known
+	// unknown reference — memoize the placeholder so every reference shares one
+	// instance (two instances with the same name make the schema invalid)
+	const placeholder = new GraphQLScalarType({ name: typeStr })
+	namedTypes.set(typeStr, placeholder)
+	return placeholder
 }
 
 function buildType(
@@ -95,9 +97,12 @@ type DirectiveArgRow = {
 // ── main export ───────────────────────────────────────────────────────────────
 
 export function schema_from_db(db: Db): GraphQLSchema {
-	// Load everything up-front to avoid N+1 queries inside thunks
+	// Load everything up-front to avoid N+1 queries inside thunks. Introspection
+	// machinery (__-prefixed names) is stored in the same tables but reserved by
+	// graphql-js — including it makes the schema fail validation.
 	const typeRows = db.all<TypeRow>(
-		`SELECT name, kind, description, operation FROM types WHERE built_in = 0`
+		`SELECT name, kind, description, operation FROM types
+		 WHERE built_in = 0 AND name NOT LIKE '\\_\\_%' ESCAPE '\\'`
 	)
 
 	const enumValRows = db.all<{ parent: string; value: string; description: string | null }>(
@@ -105,9 +110,14 @@ export function schema_from_db(db: Db): GraphQLSchema {
 	)
 	const enumValsByParent = groupBy(enumValRows, (r) => r.parent)
 
+	// component fields are stored internal (they never reach the API) but users
+	// query them like any other field, so they belong in editor completions
 	const fieldRows = db.all<FieldRow>(
 		`SELECT id, parent, name, type, type_modifiers, description, default_value
-		 FROM type_fields WHERE internal = 0 OR internal IS NULL`
+		 FROM type_fields
+		 WHERE ((internal = 0 OR internal IS NULL)
+		    OR id IN (SELECT type_field FROM component_fields))
+		   AND name NOT LIKE '\\_\\_%' ESCAPE '\\'`
 	)
 	const fieldsByParent = groupBy(fieldRows, (r) => r.parent)
 
@@ -210,12 +220,15 @@ export function schema_from_db(db: Db): GraphQLSchema {
 	}
 
 	// ── directives ────────────────────────────────────────────────────────
+	// include invisible directives too: `visible` only governs whether the definition
+	// is printed into the generated schema file — @list is invisible but user-written.
+	// __-prefixed names (the runtime scalar marker) are reserved by graphql-js.
 	const directiveRows = db.all<{
 		name: string
 		repeatable: number
 		description: string | null
-		visible: number
-	}>(`SELECT name, repeatable, description, visible FROM directives WHERE visible = 1`)
+	}>(`SELECT name, repeatable, description FROM directives
+	    WHERE name NOT LIKE '\\_\\_%' ESCAPE '\\'`)
 
 	const directiveArgRows = db.all<DirectiveArgRow>(
 		`SELECT parent, name, type, type_modifiers, default_value FROM directive_arguments`
@@ -227,19 +240,19 @@ export function schema_from_db(db: Db): GraphQLSchema {
 	)
 	const locationsByDirective = groupBy(directiveLocRows, (r) => r.directive, (r) => r.location)
 
-	const directives = directiveRows.map(
-		(d) =>
-			new GraphQLDirective({
-				name: d.name,
-				description: d.description ?? undefined,
-				isRepeatable: d.repeatable === 1,
-				locations: (locationsByDirective.get(d.name) ?? []) as DirectiveLocation[],
-				args: buildArgMap(
-					directiveArgsByParent.get(d.name) ?? [],
-					namedTypes
-				),
-			})
-	)
+	const directives = directiveRows.map((d) => {
+		// generated delete directives (<Type>_delete) are stored with no locations;
+		// they decorate mutation fields, and a directive needs at least one location
+		// for the schema to be valid
+		const locations = locationsByDirective.get(d.name) ?? []
+		return new GraphQLDirective({
+			name: d.name,
+			description: d.description ?? undefined,
+			isRepeatable: d.repeatable === 1,
+			locations: (locations.length ? locations : ['FIELD']) as DirectiveLocation[],
+			args: buildArgMap(directiveArgsByParent.get(d.name) ?? [], namedTypes),
+		})
+	})
 
 	// ── assemble schema ───────────────────────────────────────────────────
 	const queryRow = typeRows.find((t) => t.operation === 'query')

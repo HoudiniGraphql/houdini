@@ -1,0 +1,80 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "GraphQL",
+    "scopeName": "source.graphql",
+    "patterns": [{ "include": "#graphql" }],
+    "repository": {
+        "graphql": {
+            "patterns": [
+                { "include": "#comment" },
+                { "include": "#block-string" },
+                { "include": "#string" },
+                { "include": "#keywords" },
+                { "include": "#constants" },
+                { "include": "#variable" },
+                { "include": "#directive" },
+                { "include": "#number" },
+                { "include": "#spread" },
+                { "include": "#argument-name" },
+                { "include": "#type-name" },
+                { "include": "#field-name" }
+            ]
+        },
+        "comment": {
+            "name": "comment.line.number-sign.graphql",
+            "match": "#.*$"
+        },
+        "block-string": {
+            "name": "string.quoted.triple.graphql",
+            "begin": "\"\"\"",
+            "end": "\"\"\""
+        },
+        "string": {
+            "name": "string.quoted.double.graphql",
+            "begin": "\"",
+            "end": "\"|$",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.graphql",
+                    "match": "\\\\(u[0-9A-Fa-f]{4}|[\"\\\\/bfnrt])"
+                }
+            ]
+        },
+        "keywords": {
+            "name": "keyword.control.graphql",
+            "match": "\\b(query|mutation|subscription|fragment|on|type|interface|union|enum|input|scalar|schema|extend|implements|directive|repeatable)\\b"
+        },
+        "constants": {
+            "name": "constant.language.graphql",
+            "match": "\\b(true|false|null)\\b"
+        },
+        "variable": {
+            "name": "variable.other.graphql",
+            "match": "\\$[_A-Za-z][_0-9A-Za-z]*"
+        },
+        "directive": {
+            "name": "entity.name.function.directive.graphql",
+            "match": "@[_A-Za-z][_0-9A-Za-z]*"
+        },
+        "number": {
+            "name": "constant.numeric.graphql",
+            "match": "-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?"
+        },
+        "spread": {
+            "name": "keyword.operator.spread.graphql",
+            "match": "\\.\\.\\."
+        },
+        "argument-name": {
+            "name": "variable.parameter.graphql",
+            "match": "\\b[_a-z][_0-9A-Za-z]*(?=\\s*:)"
+        },
+        "type-name": {
+            "name": "support.type.graphql",
+            "match": "\\b[A-Z][_0-9A-Za-z]*\\b"
+        },
+        "field-name": {
+            "name": "variable.graphql",
+            "match": "\\b[_a-z][_0-9A-Za-z]*\\b"
+        }
+    }
+}

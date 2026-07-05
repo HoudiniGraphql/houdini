@@ -27,6 +27,15 @@ export function activate(context: vscode.ExtensionContext) {
 		transport: TransportKind.stdio,
 	}
 
+	// keep the server's database in sync with changes that never pass through the
+	// editor (git checkouts, codegen runs, config edits)
+	const watchers = [
+		vscode.workspace.createFileSystemWatcher('**/houdini.config.{js,ts,mjs,cjs}'),
+		vscode.workspace.createFileSystemWatcher('**/*.{gql,graphql}'),
+		vscode.workspace.createFileSystemWatcher('**/*.{ts,tsx,js,jsx,svelte}'),
+	]
+	context.subscriptions.push(...watchers)
+
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [
 			{ scheme: 'file', language: 'graphql' },
@@ -36,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 			{ scheme: 'file', language: 'javascriptreact' },
 			{ scheme: 'file', language: 'svelte' },
 		],
+		synchronize: { fileEvents: watchers },
 		workspaceFolder: vscode.workspace.workspaceFolders?.[0],
 		outputChannelName: 'Houdini GraphQL',
 	}

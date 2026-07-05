@@ -18,6 +18,37 @@
         "workspaceContains:**/houdini.config.js",
         "workspaceContains:**/houdini.config.ts"
     ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "graphql",
+                "aliases": ["GraphQL", "graphql"],
+                "extensions": [".gql", ".graphql", ".graphqls"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "graphql",
+                "scopeName": "source.graphql",
+                "path": "./syntaxes/graphql.tmLanguage.json"
+            },
+            {
+                "injectTo": [
+                    "source.ts",
+                    "source.tsx",
+                    "source.js",
+                    "source.jsx",
+                    "source.svelte"
+                ],
+                "scopeName": "inline.graphql.houdini",
+                "path": "./syntaxes/graphql.injection.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.graphql": "graphql"
+                }
+            }
+        ]
+    },
     "main": "./build/extension.js",
     "scripts": {
         "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build",
