@@ -124,8 +124,14 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
 			projectConfig := plugins.ProjectConfig{
-				ProjectRoot:         "/project",
-				SchemaPath:          "schema.graphql",
+				ProjectRoot: "/project",
+				SchemaPath:  "schema.graphql",
+				// the extraction walk rediscovers the fixture files written during
+				// setup — without include patterns it sees nothing and would treat
+				// every inserted row as stale. the schema file isn't an executable
+				// document, so keep it out of the walk.
+				Include:             []string{"**/*"},
+				Exclude:             []string{"schema.graphql"},
 				DefaultKeys:         []string{"id"},
 				TypeConfig:          make(map[string]plugins.TypeConfig),
 				DefaultCachePolicy:  "CacheOrNetwork",
@@ -231,10 +237,15 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			}
 			defer insertRaw.Finalize()
 			for i, doc := range test.Input {
-				fp := fmt.Sprintf("file-%v", i)
+				fp := fmt.Sprintf("file-%v.gql", i)
 				if i < len(test.Filepaths) {
 					fp = test.Filepaths[i]
 				}
+				// write the document to the filesystem so the extraction walk
+				// rediscovers it — identical content dedupes against the row
+				// inserted below; without the file, the walk considers the row
+				// stale (its file no longer produces it) and deletes it
+				afero.WriteFile(core.Fs, filepath.Join("/project", fp), []byte(doc), 0644)
 				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc, "filepath": fp}); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}

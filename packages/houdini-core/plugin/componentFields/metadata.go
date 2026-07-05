@@ -348,6 +348,23 @@ func WriteMetadata[PluginConfig any](
 	}
 	defer insertComponentField.Finalize()
 
+	// the internal fields below reference the Component type — make sure it exists
+	// so the type_fields foreign key holds
+	insertComponentType, err := conn.Prepare(`
+		INSERT INTO types (name, kind, internal, built_in) VALUES ('Component', 'SCALAR', true, true)
+		ON CONFLICT (name) DO NOTHING
+	`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	err = db.ExecStatement(insertComponentType, nil)
+	insertComponentType.Finalize()
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
 	insertInternalField, err := conn.Prepare(`
 		INSERT INTO type_fields (id, parent, name, type, internal, document) VALUES ($id, $parent, $name, $type, true, $document)
 	`)

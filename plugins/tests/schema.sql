@@ -233,6 +233,10 @@ CREATE TABLE IF NOT EXISTS documents (
 		internal boolean default false,
 		visible boolean default true,
 		processed boolean default false,
+		-- created by the pipeline rather than written by the user (component field
+		-- fragments, list operations, pagination/refetch queries, argument variants).
+		-- distinct from internal, which controls network-document stripping.
+		generated boolean default false,
     FOREIGN KEY (type_condition) REFERENCES types(name) ON DELETE CASCADE,
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );

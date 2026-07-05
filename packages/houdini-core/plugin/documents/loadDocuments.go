@@ -196,6 +196,10 @@ func LoadPendingQuery(
 		return pluginErr
 	}
 
+	// fragments the pipeline synthesizes below (component fields) rather than the
+	// user writing them — marked generated when inserted
+	generatedFragments := map[string]bool{}
+
 	// process operations.
 	for _, operation := range parsed.Operations {
 		// all operations must have a name
@@ -369,9 +373,11 @@ func LoadPendingQuery(
 			}
 
 			// add a fragment definition to the document
+			fragmentName := graphql.ComponentFieldFragmentName(fragmentType, field)
+			generatedFragments[fragmentName] = true
 			parsed.Fragments = append(parsed.Fragments, &ast.FragmentDefinition{
 				TypeCondition: inlineFragment.TypeCondition,
-				Name:          graphql.ComponentFieldFragmentName(fragmentType, field),
+				Name:          fragmentName,
 				Directives:    inlineFragment.Directives,
 				SelectionSet:  inlineFragment.SelectionSet,
 			})
@@ -388,6 +394,7 @@ func LoadPendingQuery(
 				"name":         operation.Name,
 				"raw_document": query.ID,
 				"kind":         string(operation.Operation),
+				"generated":    false,
 			},
 		); err != nil {
 			return &plugins.Error{
@@ -691,6 +698,7 @@ func LoadPendingQuery(
 				"raw_document":   query.ID,
 				"kind":           "fragment",
 				"type_condition": fragment.TypeCondition,
+				"generated":      generatedFragments[fragment.Name],
 			},
 		); err != nil {
 			return &plugins.Error{

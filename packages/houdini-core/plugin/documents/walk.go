@@ -72,7 +72,9 @@ func Walk[PluginConfig any](
 	// resolves against the project root on any afero backend (including MemMapFs in tests).
 	rootedFs := afero.NewBasePathFs(fs, config.ProjectRoot)
 
-	// and extract the documents that the walker finds
+	// and extract the documents that the walker finds. a full walk sees every
+	// included file, so any leftover row is stale regardless of which file it
+	// came from
 	return extractDocuments(ctx, db, rootedFs, func(filePathsCh chan string) error {
 		return walker.Walk(ctx, fs, config.ProjectRoot, func(fp string) error {
 			// in case the context is canceled, stop early.
@@ -83,7 +85,7 @@ func Walk[PluginConfig any](
 				return ctx.Err()
 			}
 		})
-	})
+	}, func(string) bool { return true })
 }
 
 func ExtractFromFilepaths[PluginConfig any](
@@ -115,6 +117,10 @@ func ExtractFromFilepaths[PluginConfig any](
 	root := config.ProjectRoot
 	rootedFs := afero.NewBasePathFs(fs, root)
 
+	// only rows belonging to the walked files can be considered stale — every
+	// other file's rows simply weren't rediscovered because we didn't look
+	included := map[string]bool{}
+
 	// and extract the documents that the walker finds
 	return extractDocuments(ctx, db, rootedFs, func(filePathsCh chan string) error {
 		for _, fp := range files {
@@ -126,16 +132,16 @@ func ExtractFromFilepaths[PluginConfig any](
 				continue
 			}
 			rel = filepath.ToSlash(rel)
+			included[rel] = true
 			select {
 			case filePathsCh <- rel:
-				return nil
 			case <-ctx.Done():
 				return ctx.Err()
 			}
 		}
 
 		return nil
-	})
+	}, func(fp string) bool { return included[fp] })
 }
 
 func extractDocuments[PluginConfig any](
@@ -143,6 +149,9 @@ func extractDocuments[PluginConfig any](
 	db plugins.DatabasePool[PluginConfig],
 	fs afero.Fs,
 	walk func(chan string) error,
+	// whether a leftover row for this filepath is stale (its file was walked but
+	// the document wasn't rediscovered) — deleted files and changed contents
+	stale func(string) bool,
 ) error {
 	// channels for file paths and discovered documents
 	filePathsCh := make(chan string, 100000)
@@ -234,6 +243,17 @@ func extractDocuments[PluginConfig any](
 		}
 		defer deleteRawDocument.Finalize()
 
+		// foreign keys aren't enforced on this connection, so dependent documents
+		// have to be removed explicitly alongside their raw document
+		deleteDocuments, err := conn.Prepare(`
+      DELETE FROM documents WHERE raw_document = $id
+    `)
+		if err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
+			return nil
+		}
+		defer deleteDocuments.Finalize()
+
 		rawDocumentSearch, err := conn.Prepare(
 			`SELECT id, content, filepath, offset_line, offset_column from raw_documents`,
 		)
@@ -315,6 +335,26 @@ func extractDocuments[PluginConfig any](
 					errs.Append(
 						plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)),
 					)
+					return nil
+				}
+			}
+		}
+
+		// anything left in the mapping is a raw document whose file no longer
+		// produces it — the file was deleted or its contents changed. remove the
+		// stale rows (and their documents) so they stop participating in
+		// validation and generation.
+		for path, docs := range unknown {
+			if !stale(path) {
+				continue
+			}
+			for _, id := range docs {
+				if err := db.ExecStatement(deleteDocuments, map[string]any{"id": id}); err != nil {
+					errs.Append(plugins.WrapError(fmt.Errorf("failed to delete stale documents: %v", err)))
+					return nil
+				}
+				if err := db.ExecStatement(deleteRawDocument, map[string]any{"id": id}); err != nil {
+					errs.Append(plugins.WrapError(fmt.Errorf("failed to delete stale raw document: %v", err)))
 					return nil
 				}
 			}

@@ -334,6 +334,9 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 	// Single connection ensures SAVEPOINTs and PRAGMA defer_foreign_keys are
 	// visible to all subsequent queries on the same connection.
 	db.SetMaxOpenConns(1)
+	// enforcement is per-connection and off by default; without it the deferral
+	// set at each transaction start has nothing to defer
+	db.Exec("PRAGMA foreign_keys = ON")
 	return DatabasePool[PC]{db: db}, nil
 }
 
