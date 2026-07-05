@@ -65,14 +65,16 @@ function startClient(serverPath: string, context: vscode.ExtensionContext) {
 }
 
 // start the client as soon as houdini-lsp shows up in the project — a filesystem
-// watcher for the common case, plus a slow poll for installs that land outside the
-// workspace root (hoisted monorepos) where the watcher can't see
+// watcher for the common case, plus a poll for installs that land outside the
+// workspace root (hoisted monorepos) where the watcher can't see. the poll is
+// unbounded on purpose — the install takes as long as the network says it does,
+// and the user may not run it until much later
 function watchForServer(workspaceRoot: string, context: vscode.ExtensionContext) {
 	let started = false
 
 	const watcher = vscode.workspace.createFileSystemWatcher('**/node_modules/.bin/houdini-lsp*')
 	context.subscriptions.push(watcher)
-	const poll = setInterval(tryStart, 3000)
+	const poll = setInterval(tryStart, 1000)
 	context.subscriptions.push({ dispose: () => clearInterval(poll) })
 
 	function tryStart() {
