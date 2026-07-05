@@ -1,0 +1,32 @@
+[
+    {
+        "content": "\n\tquery OnALine {\n\t\tuser\n\t}\n",
+        "row": 6,
+        "column": 24,
+        "prop": ""
+    },
+    {
+        "content": "query Single { field }",
+        "row": 12,
+        "column": 24,
+        "prop": ""
+    },
+    {
+        "content": "query InsideString { locked }",
+        "row": 15,
+        "column": 25,
+        "prop": ""
+    },
+    {
+        "content": "query Escaped { field(arg: \"`tick`\") }",
+        "row": 17,
+        "column": 25,
+        "prop": ""
+    },
+    {
+        "content": "\n\t\tfragment CorpusAvatar on User {\n\t\t\tname\n\t\t}\n\t",
+        "row": 20,
+        "column": 16,
+        "prop": "user"
+    }
+]
