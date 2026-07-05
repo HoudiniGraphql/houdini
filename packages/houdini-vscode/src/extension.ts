@@ -74,7 +74,7 @@ function watchForServer(workspaceRoot: string, context: vscode.ExtensionContext)
 
 	const watcher = vscode.workspace.createFileSystemWatcher('**/node_modules/.bin/houdini-lsp*')
 	context.subscriptions.push(watcher)
-	const poll = setInterval(tryStart, 1000)
+	const poll = setInterval(tryStart, 500)
 	context.subscriptions.push({ dispose: () => clearInterval(poll) })
 
 	function tryStart() {
