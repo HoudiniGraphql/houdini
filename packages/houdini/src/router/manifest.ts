@@ -13,6 +13,7 @@ import {
 	read_pageView,
 	read_pageQuery,
 	page_id,
+	local_server_dir,
 } from './conventions.js'
 import { parse_page_pattern } from './match.js'
 
@@ -66,12 +67,12 @@ export async function load_manifest(args: {
 	// a directory (+schema/index.js)
 	// a javascript file
 	// a file that transpiles into javascript
-	// in order to address this, we're going to just look inside of the api directory for
+	// in order to address this, we're going to just look inside of the server directory for
 	// something named schema (regardless of directory or file)
 	try {
-		await fs.stat(args.config.localApiDir)
+		await fs.stat(local_server_dir(args.config))
 		// look at the contents of the directory
-		for (const child of await fs.readdir(args.config.localApiDir, {
+		for (const child of await fs.readdir(local_server_dir(args.config), {
 			withFileTypes: true,
 		})) {
 			const name = child.isDirectory() ? child.name : path.parse(child.name).name

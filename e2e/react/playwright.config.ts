@@ -18,6 +18,16 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 		},
 		{
+			// the Vite dev server, so tests can exercise the dev request/response bridge (the
+			// hand-rolled middleware that translates between node and fetch primitives) rather
+			// than only the production whatwg-node adapter. Header/cookie bridging bugs live
+			// exclusively on this path — see src/routes/oauth/test.ts.
+			command: 'PORT=3009 pnpm dev',
+			port: 3009,
+			timeout: 120 * 1000,
+			reuseExistingServer: !process.env.CI,
+		},
+		{
 			// the third-party OIDC provider mock the first-class OAuth e2e drives against
 			command: 'node oauth-mock.mjs',
 			port: 8081,

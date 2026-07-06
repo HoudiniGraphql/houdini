@@ -2024,6 +2024,28 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@paginate with edges hidden behind a fragment spread",
+				Pass: true,
+				Input: []string{
+					`
+					fragment UserPaginatedThroughSpread on User {
+						friendsConnection(first: 10) @paginate {
+							...ConnectionInfo
+						}
+					}
+				`,
+					`
+					fragment ConnectionInfo on UserConnection {
+						edges {
+							node {
+								id
+							}
+						}
+					}
+				`,
+				},
+			},
+			{
 				Name: "cursor pagination requires first",
 				Pass: false,
 				Input: []string{

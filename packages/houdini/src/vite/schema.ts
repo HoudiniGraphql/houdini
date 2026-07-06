@@ -166,7 +166,7 @@ export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 
 			const config = await get_config()
 			const local_schema_path = await resolve_local_schema(
-				path.join(config.root_dir, 'src', 'api', '+schema')
+				path.join(config.root_dir, 'src', 'server', '+schema')
 			)
 			if (!local_schema_path) return
 
@@ -225,7 +225,7 @@ async function write_local_schema(
 	schema_path: string
 ) {
 	const local_schema_path = await resolve_local_schema(
-		path.join(root_dir, 'src', 'api', '+schema')
+		path.join(root_dir, 'src', 'server', '+schema')
 	)
 	if (!local_schema_path) return
 

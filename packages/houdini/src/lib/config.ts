@@ -365,10 +365,6 @@ export class Config {
 		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 	}
 
-	get localApiDir() {
-		return path.join(this.root_dir, 'src', 'api')
-	}
-
 	async api_url() {
 		const watchSchema = this.config_file.watchSchema
 		// `false`/`null` disables schema polling + introspection entirely

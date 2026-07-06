@@ -493,7 +493,10 @@ export async function codegen_setup(
 				stdio: pluginUsesStdio
 					? ['pipe', 'pipe', 'inherit']
 					: ['inherit', 'inherit', 'inherit'],
-				detached: process.platform !== 'win32',
+				// stdio plugins can't be detached: WebContainers doesn't plumb the pipe
+				// to a detached child's fd 0, so the plugin gets EBADF reading stdin.
+				// They're torn down by closing stdin, so they don't need a process group.
+				detached: process.platform !== 'win32' && !pluginUsesStdio,
 			})
 
 			if (pluginUsesStdio) {
@@ -797,8 +800,13 @@ export async function codegen_setup(
 							try {
 								// Check if process still exists (signal 0 doesn't kill, just checks)
 								process.kill(plugin.process.pid, 0)
-								// Process exists, kill the process group
-								process.kill(-plugin.process.pid, 'SIGINT')
+								// stdio plugins (port 0) aren't detached, so they aren't group
+								// leaders — signal the pid directly. websocket plugins own their
+								// process group, so kill the whole group.
+								process.kill(
+									plugin.port === 0 ? plugin.process.pid : -plugin.process.pid,
+									'SIGINT'
+								)
 							} catch {
 								// Process already exited from WebSocket close - nothing to do
 							}
