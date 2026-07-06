@@ -5,7 +5,7 @@ const fragment = graphql(`
   fragment FragmentCursorBackwardsFragment on User {
     usersConnectionSnapshot(
       snapshot: "pagination-fragment-cursor-backwards"
-      last: 2
+      last: 3
     ) @paginate {
       edges {
         node {

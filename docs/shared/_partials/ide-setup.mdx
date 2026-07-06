@@ -1,0 +1,53 @@
+The [Houdini GraphQL extension](https://marketplace.visualstudio.com/items?itemName=houdini-graphql.houdini-graphql) for VS Code gives your editor the same understanding of your project that the compiler has:
+
+- Diagnostics as you type, powered by the actual compiler pipeline: every rule that `generate` enforces shows up live, including Houdini-specific checks like `@paginate` constraints and per-spread `@with` arguments.
+- Completions for schema fields, directives, your project's fragments (including generated list operations like `All_Users_insert`), fragment arguments inside `@with(...)`, and list filters inside `@when(...)`. Required arguments sort first.
+- Hover documentation from your schema and go-to-definition for fragment spreads.
+- Full support for inline documents: everything works inside `graphql(` ... `)` calls in your components, not just `.gql` files.
+- Syntax highlighting for `.gql` files and inline documents.
+
+The extension activates in any workspace that contains a `houdini.config.js` or `houdini.config.ts` and needs no configuration.
+
+### The language server
+
+Editor features are powered by `houdini-lsp`, a language server that ships with your project so it always matches your Houdini version. Projects created with `create-houdini` already include it. For existing projects, add it to your dev dependencies (the extension will also offer to do this for you):
+
+```bash
+npm install --save-dev houdini-lsp
+```
+
+### Coming from the GraphQL extension?
+
+Houdini projects don't need a `.graphqlrc` file: without one, the official [GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql) extension stays idle and the Houdini extension takes over, with full knowledge of Houdini's directives and generated documents. If you previously added a `.graphqlrc.yaml` for Houdini, delete it; keeping it around wakes the official extension and both will report diagnostics for the same files.
+
+### Neovim
+
+`houdini-lsp` speaks the standard language server protocol over stdio, so any LSP client can use it. With Neovim 0.11+:
+
+```lua
+vim.lsp.config('houdini', {
+	cmd = { 'node_modules/.bin/houdini-lsp', '--stdio' },
+	root_markers = { 'houdini.config.js', 'houdini.config.ts' },
+	filetypes = { 'graphql', 'typescript', 'typescriptreact', 'javascript', 'javascriptreact', 'svelte' },
+})
+vim.lsp.enable('houdini')
+```
+
+Syntax highlighting comes from tree-sitter's GraphQL parser (`:TSInstall graphql`).
+
+### Other editors
+
+Any editor with a language server client can run `houdini-lsp` the same way. For editors without one (like the JetBrains [GraphQL plugin](https://plugins.jetbrains.com/plugin/8097-graphql)), pointing the standard GraphQL tooling at Houdini's generated definitions still works:
+
+```yaml title=".graphqlrc.yaml"
+projects:
+  default:
+    schema:
+      - ./schema.graphql
+      - ./.houdini/graphql/schema.graphql
+    documents:
+      - '**/*.gql'
+      - ./.houdini/graphql/documents.gql
+```
+
+Add your component files (for example `'**/*.svelte'` or `'**/*.tsx'`) to the `documents` list so inline queries are picked up. The two `.houdini/graphql` entries matter: Houdini generates schema definitions for its directives and the generated document definitions into that directory, and without them these tools flag Houdini's built-ins as unknown.
