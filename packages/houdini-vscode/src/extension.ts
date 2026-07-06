@@ -36,15 +36,9 @@ function startClient(serverPath: string, context: vscode.ExtensionContext) {
 		transport: TransportKind.stdio,
 	}
 
-	// keep the server's database in sync with changes that never pass through the
-	// editor (git checkouts, codegen runs, config edits)
-	const watchers = [
-		vscode.workspace.createFileSystemWatcher('**/houdini.config.{js,ts,mjs,cjs}'),
-		vscode.workspace.createFileSystemWatcher('**/*.{gql,graphql}'),
-		vscode.workspace.createFileSystemWatcher('**/*.{ts,tsx,js,jsx,svelte}'),
-	]
-	context.subscriptions.push(...watchers)
-
+	// file watching is registered dynamically by the server (it needs the events to
+	// keep its database in sync with git checkouts, codegen runs, and config edits),
+	// so no client-side watchers here: the same mechanism serves every editor
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [
 			{ scheme: 'file', language: 'graphql' },
@@ -54,7 +48,6 @@ function startClient(serverPath: string, context: vscode.ExtensionContext) {
 			{ scheme: 'file', language: 'javascriptreact' },
 			{ scheme: 'file', language: 'svelte' },
 		],
-		synchronize: { fileEvents: watchers },
 		workspaceFolder: vscode.workspace.workspaceFolders?.[0],
 		outputChannelName: 'Houdini GraphQL',
 	}

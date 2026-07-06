@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import * as nodePath from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { DidChangeWatchedFilesNotification } from 'vscode-languageserver/node.js'
 
 import { validate } from './diagnostics.js'
 import type { ServerState } from './state.js'
@@ -84,6 +85,25 @@ async function restart_compiler(state: ServerState) {
 
 export function register_lifecycle(state: ServerState) {
 	const { connection } = state
+
+	// ask capable clients to watch the files the database depends on — this is how
+	// every editor (Neovim, Helix, VS Code, ...) delivers didChangeWatchedFiles;
+	// clients without dynamic registration simply never send the events and
+	// reconcile through saves instead
+	connection.onInitialized(async () => {
+		if (!state.watch_registration_supported) return
+		try {
+			await connection.client.register(DidChangeWatchedFilesNotification.type, {
+				watchers: [
+					{ globPattern: '**/houdini.config.{js,ts,mjs,cjs}' },
+					{ globPattern: '**/*.{gql,graphql}' },
+					{ globPattern: '**/*.{ts,tsx,js,jsx,svelte}' },
+				],
+			})
+		} catch (err) {
+			connection.console.error(`[houdini-lsp] failed to register file watchers: ${err}`)
+		}
+	})
 
 	// the database otherwise only learns about changes through the editor: a git
 	// checkout, a codegen run, or a config edit would leave it stale until some save

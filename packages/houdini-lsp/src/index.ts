@@ -36,6 +36,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
 		process.chdir(fileURLToPath(rootUri))
 	}
 
+	state.watch_registration_supported =
+		params.capabilities.workspace?.didChangeWatchedFiles?.dynamicRegistration === true
+
 	state.ready = setup_compiler(state).catch((err: Error) => {
 		connection.console.error(`[houdini-lsp] failed to initialize: ${err.message}`)
 	})

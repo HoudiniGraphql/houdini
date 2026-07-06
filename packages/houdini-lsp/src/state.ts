@@ -38,6 +38,9 @@ export type ServerState = {
 	// the live-path diagnostics currently published per uri — full pipeline runs
 	// merge with these instead of wiping them
 	live_diagnostics: Map<string, Diagnostic[]>
+	// whether the client supports dynamic didChangeWatchedFiles registration
+	// (captured at initialize; registration happens after initialized)
+	watch_registration_supported: boolean
 }
 
 export function create_state(
@@ -57,6 +60,7 @@ export function create_state(
 		live_timers: new Map(),
 		pipeline_diagnostic_uris: new Set(),
 		live_diagnostics: new Map(),
+		watch_registration_supported: false,
 	}
 }
 

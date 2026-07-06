@@ -31,11 +31,19 @@ proc.stdout.on('data', (chunk) => {
 	}
 })
 
+const registrations = []
+
 function handle(msg) {
 	if (msg.id !== undefined && pending.has(msg.id)) {
 		const { resolve } = pending.get(msg.id)
 		pending.delete(msg.id)
 		resolve(msg)
+	} else if (msg.id !== undefined && msg.method) {
+		// server → client request: record registrations, acknowledge everything
+		if (msg.method === 'client/registerCapability') {
+			registrations.push(...(msg.params.registrations ?? []))
+		}
+		send({ jsonrpc: '2.0', id: msg.id, result: null })
 	} else if (msg.method === 'window/logMessage') {
 		logs.push(msg.params.message)
 		console.log(`  [server] ${msg.params.message}`)
@@ -97,13 +105,23 @@ try {
 	await request('initialize', {
 		processId: process.pid,
 		rootUri: pathToFileURL(ROOT).toString(),
-		capabilities: {},
+		capabilities: {
+			workspace: { didChangeWatchedFiles: { dynamicRegistration: true } },
+		},
 	})
 	notify('initialized', {})
 
 	console.log('waiting for pipeline...')
 	await waitFor(() => logs.some((l) => l.includes('[houdini-lsp] ready')), 120_000, 'ready')
 	check('server ready', true)
+
+	// the server registers its own file watchers with capable clients — this is
+	// what delivers didChangeWatchedFiles in editors without extension-side watchers
+	check(
+		'server registers file watchers dynamically',
+		registrations.some((r) => r.method === 'workspace/didChangeWatchedFiles'),
+		registrations
+	)
 
 	// ── A: inline .tsx document — live validation of the real file is clean ──
 	const tsxPath = 'src/routes/list-id/+page.tsx'

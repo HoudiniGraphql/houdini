@@ -78,5 +78,18 @@
         "houdini-lsp": "workspace:^",
         "vscode-languageclient": "^9.0.1"
     },
-    "private": true
+    "private": true,
+    "extensionKind": [
+        "workspace"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false,
+            "description": "Houdini runs the houdini-lsp language server installed in your project, which executes project code."
+        },
+        "virtualWorkspaces": {
+            "supported": false,
+            "description": "The Houdini language server needs a real filesystem and process execution."
+        }
+    }
 }
