@@ -388,10 +388,10 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 					(!rawTxn
 						? `no transaction cookie on the request (was the flow started at /login?)`
 						: !txn
-						? `transaction cookie failed verification (expired, or sessionKeys changed mid-flight)`
-						: !state
-						? `no state parameter on the callback`
-						: `state does not match the transaction nonce`)
+							? `transaction cookie failed verification (expired, or sessionKeys changed mid-flight)`
+							: !state
+								? `no state parameter on the callback`
+								: `state does not match the transaction nonce`)
 			)
 			return new Response('Forbidden', {
 				status: 403,
@@ -410,7 +410,10 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 		// single-use: burn the nonce on every outcome. Append AFTER applySessionToken's Set-Cookie
 		// (.set) so the session cookie isn't clobbered.
 		const result = applied ? response : new Response('Forbidden', { status: 403 })
-		result.headers.append('Set-Cookie', clearRedirectTxnCookie(!insecure_loopback(args.request)))
+		result.headers.append(
+			'Set-Cookie',
+			clearRedirectTxnCookie(!insecure_loopback(args.request))
+		)
 		return result
 	}
 

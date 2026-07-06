@@ -116,7 +116,10 @@ export async function get_config({
 		// load the server-only config (src/server/+config) — secrets like sessionKeys that must never
 		// reach the client. Kept separate from config_file (which the client bundles) so it can't
 		// leak; every server/build consumer reads config.server_config explicitly.
-		const server_config = await read_server_config(local_server_dir(_config, root_dir), root_dir)
+		const server_config = await read_server_config(
+			local_server_dir(_config, root_dir),
+			root_dir
+		)
 
 		const partialConfig: Partial<Config> = {
 			root_dir,

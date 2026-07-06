@@ -1041,9 +1041,9 @@ describe('first-class OAuth', () => {
 		expect(u.searchParams.get('nonce')).toBeTruthy()
 		expect(u.searchParams.get('redirect_uri')).toContain('/_auth')
 		// http://localhost gets the relaxed (un-prefixed, non-Secure) txn cookie
-			const txnCookie = res!.headers.get('set-cookie') ?? ''
-			expect(txnCookie).toMatch(/^houdini-txn=/)
-			expect(txnCookie).not.toContain('Secure')
+		const txnCookie = res!.headers.get('set-cookie') ?? ''
+		expect(txnCookie).toMatch(/^houdini-txn=/)
+		expect(txnCookie).not.toContain('Secure')
 	})
 
 	test('an unknown provider is rejected (400)', async () => {
