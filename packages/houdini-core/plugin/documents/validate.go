@@ -973,8 +973,10 @@ func ValidateMissingRequiredArgument(
 		rd.filepath,
 		json_group_array(
 			json_object(
-				'line', COALESCE(rd.offset_line, 0) + COALESCE(sr.row, 0),
-				'column', COALESCE(rd.offset_column, 0) + COALESCE(sr.column, 0)
+				-- selection_refs positions are stored file-relative (offsets are
+				-- added at load time)
+				'line', COALESCE(sr.row, 0),
+				'column', COALESCE(sr.column, 0)
 			)
 		) AS locations
 	FROM selections s

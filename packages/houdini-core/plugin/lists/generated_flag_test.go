@@ -46,6 +46,21 @@ func TestGeneratedFlagOnListDocuments(t *testing.T) {
 			}
 
 			require.Equal(t, test.Extra["generated"], got)
+
+			// long-lived databases (language server, dev-server HMR) re-validate
+			// with the previous run's generated documents present — BeforeValidate
+			// must remove them so rules never see pipeline products (eg a @plural
+			// spread copied to a list operation's root would otherwise flag)
+			require.Nil(
+				t,
+				core.BeforeValidate(context.Background()),
+				"cleanup before revalidation failed",
+			)
+			require.Nil(
+				t,
+				core.Validate(context.Background()),
+				"revalidation after generation must stay clean",
+			)
 		},
 		Tests: []tests.Test[config.PluginConfig]{
 			{
@@ -68,6 +83,35 @@ func TestGeneratedFlagOnListDocuments(t *testing.T) {
 						"All_Users_toggle": true,
 						"All_Users_update": true,
 						"All_Users_upsert": true,
+					},
+				},
+			},
+			{
+				Name: "plural spreads inside generated operations do not flag on revalidation",
+				Pass: true,
+				Input: []string{
+					`
+						fragment PluralRow on User @plural {
+							firstName
+						}
+					`,
+					`
+						query PluralUsers {
+							users @list(name: "Plural_Users") {
+								...PluralRow
+							}
+						}
+					`,
+				},
+				Extra: map[string]any{
+					"generated": map[string]bool{
+						"PluralRow":           false,
+						"PluralUsers":         false,
+						"Plural_Users_insert": true,
+						"Plural_Users_remove": true,
+						"Plural_Users_toggle": true,
+						"Plural_Users_update": true,
+						"Plural_Users_upsert": true,
 					},
 				},
 			},
