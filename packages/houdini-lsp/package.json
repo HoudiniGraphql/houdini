@@ -30,7 +30,8 @@
         "tsup": "^8.5.1"
     },
     "peerDependencies": {
-        "houdini": "workspace:^"
+        "houdini": "workspace:^",
+        "graphql": ">=16"
     },
     "dependencies": {
         "graphql-language-service": "^5.5.1",

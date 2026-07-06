@@ -552,6 +552,9 @@ importers:
 
   packages/houdini-lsp:
     dependencies:
+      graphql:
+        specifier: 16.14.1
+        version: 16.14.1
       graphql-language-service:
         specifier: ^5.5.1
         version: 5.5.2(graphql@16.14.1)

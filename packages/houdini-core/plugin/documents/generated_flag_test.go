@@ -79,8 +79,19 @@ func TestLoadDocuments_generatedFlag(t *testing.T) {
 	}
 
 	require.Equal(t, map[string]bool{
-		"UserList":                   false,
-		"UserRow":                    false,
+		"UserList":                      false,
+		"UserRow":                       false,
 		"__componentField__User_Avatar": true,
 	}, got)
+
+	// BeforeValidate clears generated documents so validation never sees pipeline
+	// products, but inline component-field fragments are created at load time and
+	// never recreated by AfterValidate — they must survive the cleanup
+	require.Nil(t, core.BeforeValidate(context.Background()))
+	survivor, err := conn.Prepare(`SELECT 1 FROM documents WHERE name = '__componentField__User_Avatar'`)
+	require.Nil(t, err)
+	defer survivor.Finalize()
+	found, err := survivor.Step()
+	require.Nil(t, err)
+	require.True(t, found, "component-field fragment must survive BeforeValidate")
 }

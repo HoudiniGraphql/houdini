@@ -69,6 +69,12 @@ function watchForServer(workspaceRoot: string, context: vscode.ExtensionContext)
 	context.subscriptions.push(watcher)
 	const poll = setInterval(tryStart, 500)
 	context.subscriptions.push({ dispose: () => clearInterval(poll) })
+	// the poll only exists for installs that land outside the workspace root
+	// (hoisted monorepos) where the watcher can't see — stop it after 15 minutes
+	// so a session that never installs isn't stat-ing the disk forever. the
+	// watcher stays armed for in-workspace installs at any time.
+	const pollDeadline = setTimeout(() => clearInterval(poll), 15 * 60 * 1000)
+	context.subscriptions.push({ dispose: () => clearTimeout(pollDeadline) })
 
 	function tryStart() {
 		if (started) return

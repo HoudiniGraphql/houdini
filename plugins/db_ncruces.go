@@ -326,7 +326,11 @@ func (db *DatabasePool[PC]) SetPluginConfig(config PC) {
 func NewPool[PC any]() (DatabasePool[PC], error) {
 	// wasip1 has no file-locking support; nolock=1 tells SQLite to skip locking.
 	// Node.js skips WAL mode in stdio transport, so no shared-memory file is needed.
-	uri := fmt.Sprintf("file:%s?nolock=1", databasePath)
+	// foreign_keys is a per-connection pragma set through the driver's _pragma DSN
+	// parameter so it applies to every connection the pool opens, not just the
+	// first — without it the deferral set at each transaction start has nothing
+	// to defer.
+	uri := fmt.Sprintf("file:%s?nolock=1&_pragma=foreign_keys(1)", databasePath)
 	db, err := sql.Open("sqlite3", uri)
 	if err != nil {
 		return DatabasePool[PC]{}, err
@@ -334,9 +338,6 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 	// Single connection ensures SAVEPOINTs and PRAGMA defer_foreign_keys are
 	// visible to all subsequent queries on the same connection.
 	db.SetMaxOpenConns(1)
-	// enforcement is per-connection and off by default; without it the deferral
-	// set at each transaction start has nothing to defer
-	db.Exec("PRAGMA foreign_keys = ON")
 	return DatabasePool[PC]{db: db}, nil
 }
 

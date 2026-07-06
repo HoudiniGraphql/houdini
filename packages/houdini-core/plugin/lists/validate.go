@@ -1119,13 +1119,19 @@ func validatePaginateArgs(
 			SELECT
 				s.alias AS alias,
 				d.name AS name,
-				rd.filepath AS filepath,
-				-- selection_refs positions are stored file-relative (offsets are added
-				-- at load time). bare columns so row/column/filepath come from the
-				-- same ref: this selection can be shared across documents in
-				-- different files.
-				COALESCE(refs.row, 0) AS row,
-				COALESCE(refs.column, 0) AS column,
+				-- a selection can be shared across documents in different files, and
+				-- bare columns under GROUP BY offer no same-row guarantee alongside
+				-- multiple aggregates — anchor filepath/row/column on one ref (lowest
+				-- id) so they always describe the same location. positions are stored
+				-- file-relative (offsets are added at load time).
+				(SELECT rd1.filepath FROM selection_refs r1
+					JOIN documents d1 ON d1.id = r1.document
+					JOIN raw_documents rd1 ON rd1.id = d1.raw_document
+					WHERE r1.child_id = s.id ORDER BY r1.id LIMIT 1) AS filepath,
+				(SELECT COALESCE(r1.row, 0) FROM selection_refs r1
+					WHERE r1.child_id = s.id ORDER BY r1.id LIMIT 1) AS row,
+				(SELECT COALESCE(r1.column, 0) FROM selection_refs r1
+					WHERE r1.child_id = s.id ORDER BY r1.id LIMIT 1) AS column,
 				GROUP_CONCAT(
 					DISTINCT CASE
 						WHEN sa_values.kind != 'Variable' THEN sa.name

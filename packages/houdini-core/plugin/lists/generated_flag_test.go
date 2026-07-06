@@ -8,6 +8,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -46,6 +47,20 @@ func TestGeneratedFlagOnListDocuments(t *testing.T) {
 			}
 
 			require.Equal(t, test.Extra["generated"], got)
+
+			// a task-scoped cleanup for an unrelated task must not touch these
+			// documents — only the task's own generated documents get regenerated
+			// afterwards, so a project-wide delete here would strip every other
+			// file's list operations until the next full run
+			scoped := plugins.ContextWithTaskID(context.Background(), "unrelated-task")
+			require.Nil(t, core.BeforeValidate(scoped))
+			count, err := conn.Prepare(`SELECT COUNT(*) AS n FROM documents WHERE generated = true`)
+			require.Nil(t, err)
+			_, err = count.Step()
+			require.Nil(t, err)
+			remaining := count.GetInt64("n")
+			require.Nil(t, count.Finalize())
+			require.Greater(t, remaining, int64(0), "unrelated-task cleanup must not delete generated documents")
 
 			// long-lived databases (language server, dev-server HMR) re-validate
 			// with the previous run's generated documents present — BeforeValidate
