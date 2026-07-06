@@ -18,7 +18,7 @@ import (
 // drifted and inline-document positions in the editor are wrong.
 func TestExtractParityGolden(t *testing.T) {
 	ch := make(chan documents.DiscoveredDocument, 100)
-	err := documents.ProcessFile(afero.NewOsFs(), "testdata/extract-parity/corpus.tsx", ch)
+	err := documents.ProcessFile(afero.NewOsFs(), "testdata/extract-parity/corpus.txt", ch)
 	require.Nil(t, err)
 	close(ch)
 

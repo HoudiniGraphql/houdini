@@ -1120,6 +1120,8 @@ func validatePaginateArgs(
 				s.alias AS alias,
 				d.name AS name,
 				rd.filepath AS filepath,
+				MIN(COALESCE(rd.offset_line, 0) + COALESCE(refs.row, 0)) AS row,
+				MIN(COALESCE(rd.offset_column, 0) + COALESCE(refs.column, 0)) AS column,
 				GROUP_CONCAT(
 					DISTINCT CASE
 						WHEN sa_values.kind != 'Variable' THEN sa.name

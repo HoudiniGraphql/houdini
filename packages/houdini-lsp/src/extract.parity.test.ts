@@ -13,10 +13,10 @@ const FIXTURES = fileURLToPath(
 )
 
 test('extract_blocks matches the Go extractor on the shared corpus', () => {
-	const text = readFileSync(`${FIXTURES}corpus.tsx`, 'utf-8')
+	const text = readFileSync(`${FIXTURES}corpus.txt`, 'utf-8')
 	const expected = JSON.parse(readFileSync(`${FIXTURES}expected.json`, 'utf-8'))
 
-	const got = extract_blocks(text, 'file:///corpus.tsx').map((block) => ({
+	const got = extract_blocks(text, 'file:///corpus.txt').map((block) => ({
 		content: block.content,
 		row: block.offsetLine,
 		column: block.offsetColumn,
