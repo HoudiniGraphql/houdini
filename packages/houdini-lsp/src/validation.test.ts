@@ -56,7 +56,9 @@ describe('@with argument validation', () => {
 	})
 
 	test('declared arguments stay clean', () => {
-		expect(diags(`query Q { user(id: "1") { ...UserAvatar @with(size: 10, param: true) } }`)).toEqual([])
+		expect(
+			diags(`query Q { user(id: "1") { ...UserAvatar @with(size: 10, param: true) } }`)
+		).toEqual([])
 	})
 
 	test('a fragment that declares no arguments is flagged', () => {
@@ -83,7 +85,9 @@ describe('@with argument validation', () => {
 	})
 
 	test('correctly typed literals and variables stay clean', () => {
-		expect(diags(`query Q { user(id: "1") { ...UserAvatar @with(size: 3, param: false) } }`)).toEqual([])
+		expect(
+			diags(`query Q { user(id: "1") { ...UserAvatar @with(size: 3, param: false) } }`)
+		).toEqual([])
 		expect(diags(`query Q { user(id: "1") { ...UserAvatar @with(param: $flag) } }`)).toEqual([])
 	})
 
@@ -98,20 +102,28 @@ describe('@with argument validation', () => {
 
 describe('@when filter validation', () => {
 	test('unknown filter is flagged against the list field arguments', () => {
-		const result = diags(`mutation M { addUser(name: "x") { ...All_Users_insert @when(bogus: true) } }`)
+		const result = diags(
+			`mutation M { addUser(name: "x") { ...All_Users_insert @when(bogus: true) } }`
+		)
 		expect(result).toHaveLength(1)
 		expect(result[0].message).toContain('(limit)')
 	})
 
 	test('filter values are type-checked', () => {
-		const result = diags(`mutation M { addUser(name: "x") { ...All_Users_insert @when(limit: "lots") } }`)
+		const result = diags(
+			`mutation M { addUser(name: "x") { ...All_Users_insert @when(limit: "lots") } }`
+		)
 		expect(result).toHaveLength(1)
 		expect(result[0].message).toContain('expected Int')
 	})
 
 	test('valid filters and unknown lists stay clean', () => {
-		expect(diags(`mutation M { addUser(name: "x") { ...All_Users_insert @when(limit: 1) } }`)).toEqual([])
-		expect(diags(`mutation M { addUser(name: "x") { ...Other_insert @when(x: 1) } }`)).toEqual([])
+		expect(
+			diags(`mutation M { addUser(name: "x") { ...All_Users_insert @when(limit: 1) } }`)
+		).toEqual([])
+		expect(diags(`mutation M { addUser(name: "x") { ...Other_insert @when(x: 1) } }`)).toEqual(
+			[]
+		)
 	})
 })
 

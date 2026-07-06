@@ -20,9 +20,8 @@ function warn_on_version_mismatch(state: ServerState, root_dir: string) {
 			pathToFileURL(nodePath.join(root_dir, 'package.json')).toString()
 		)
 		const houdini = project('houdini/package.json').version as string
-		const own = JSON.parse(
-			readFileSync(new URL('../package.json', import.meta.url), 'utf-8')
-		).version as string
+		const own = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+			.version as string
 		const [hMajor, hMinor] = houdini.split('.')
 		const [oMajor, oMinor] = own.split('.')
 		if (hMajor !== oMajor || hMinor !== oMinor) {
@@ -142,9 +141,7 @@ export function register_lifecycle(state: ServerState) {
 					await validate(state)
 				}
 			} catch (err) {
-				connection.console.error(
-					`[houdini-lsp] watched-file reconciliation failed: ${err}`
-				)
+				connection.console.error(`[houdini-lsp] watched-file reconciliation failed: ${err}`)
 			}
 		}, 500)
 	})

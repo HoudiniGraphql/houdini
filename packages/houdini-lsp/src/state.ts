@@ -8,11 +8,7 @@ import type { Connection, Diagnostic } from 'vscode-languageserver/node.js'
 import type { TextDocuments } from 'vscode-languageserver/node.js'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
-import {
-	all_fragment_arguments,
-	all_list_field_arguments,
-	project_fragments,
-} from './db_query.js'
+import { all_fragment_arguments, all_list_field_arguments, project_fragments } from './db_query.js'
 import { schema_from_db } from './schema_from_db.js'
 import type { HoudiniArgKnowledge } from './validation.js'
 

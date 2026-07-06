@@ -36,7 +36,9 @@ if (existsSync(DB_PATH)) {
 		db = candidate
 	} else {
 		candidate.close()
-		console.warn('[houdini-lsp] e2e database is from an older schema — run `pnpm generate` in e2e/react')
+		console.warn(
+			'[houdini-lsp] e2e database is from an older schema — run `pnpm generate` in e2e/react'
+		)
 	}
 } else {
 	console.warn('[houdini-lsp] no e2e database — run `pnpm generate` in e2e/react')

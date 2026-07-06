@@ -93,7 +93,7 @@ describe('project_fragments', () => {
 })
 
 describe('@with / @arguments completions', () => {
-	test('completes the fragment\'s declared arguments, required first', () => {
+	test("completes the fragment's declared arguments, required first", () => {
 		const items = houdiniCompletions({ kind: 'with', fragmentName: 'UserRow' }, db)
 		// clients order by sortText — required (non-null) args sort ahead
 		const ordered = [...items].sort((a, b) => a.sortText!.localeCompare(b.sortText!))
@@ -117,7 +117,7 @@ describe('@with / @arguments completions', () => {
 })
 
 describe('@when completions', () => {
-	test('list operation spreads complete the list field\'s arguments', () => {
+	test("list operation spreads complete the list field's arguments", () => {
 		expect(list_exists(db, 'All_Users')).toBe(true)
 		const items = houdiniCompletions({ kind: 'when', fragmentName: 'All_Users_insert' }, db)
 		expect(items.map((i) => [i.label, i.sortText])).toEqual([

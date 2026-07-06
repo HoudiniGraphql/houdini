@@ -131,9 +131,17 @@ export function schema_from_db(db: Db): GraphQLSchema {
 		`SELECT type, member FROM possible_types`
 	)
 	// membersByType: interface/union → its members
-	const membersByType = groupBy(possibleTypeRows, (r) => r.type, (r) => r.member)
+	const membersByType = groupBy(
+		possibleTypeRows,
+		(r) => r.type,
+		(r) => r.member
+	)
 	// interfacesByObject: object type → interfaces it implements
-	const interfacesByObject = groupBy(possibleTypeRows, (r) => r.member, (r) => r.type)
+	const interfacesByObject = groupBy(
+		possibleTypeRows,
+		(r) => r.member,
+		(r) => r.type
+	)
 
 	// ── build named type stubs ────────────────────────────────────────────
 	const namedTypes = new Map<string, GraphQLNamedType>()
@@ -146,7 +154,8 @@ export function schema_from_db(db: Db): GraphQLSchema {
 					new GraphQLObjectType({
 						name: row.name,
 						description: row.description ?? undefined,
-						fields: () => buildObjectFields(row.name, namedTypes, fieldsByParent, argsByField),
+						fields: () =>
+							buildObjectFields(row.name, namedTypes, fieldsByParent, argsByField),
 						interfaces: () =>
 							(interfacesByObject.get(row.name) ?? [])
 								.map((n) => namedTypes.get(n))
@@ -161,7 +170,8 @@ export function schema_from_db(db: Db): GraphQLSchema {
 					new GraphQLInterfaceType({
 						name: row.name,
 						description: row.description ?? undefined,
-						fields: () => buildObjectFields(row.name, namedTypes, fieldsByParent, argsByField),
+						fields: () =>
+							buildObjectFields(row.name, namedTypes, fieldsByParent, argsByField),
 					})
 				)
 				break
@@ -238,7 +248,11 @@ export function schema_from_db(db: Db): GraphQLSchema {
 	const directiveLocRows = db.all<{ directive: string; location: string }>(
 		`SELECT directive, location FROM directive_locations`
 	)
-	const locationsByDirective = groupBy(directiveLocRows, (r) => r.directive, (r) => r.location)
+	const locationsByDirective = groupBy(
+		directiveLocRows,
+		(r) => r.directive,
+		(r) => r.location
+	)
 
 	const directives = directiveRows.map((d) => {
 		// generated delete directives (<Type>_delete) are stored with no locations;
@@ -261,9 +275,7 @@ export function schema_from_db(db: Db): GraphQLSchema {
 
 	return new GraphQLSchema({
 		query: queryRow ? (namedTypes.get(queryRow.name) as GraphQLObjectType) : undefined,
-		mutation: mutationRow
-			? (namedTypes.get(mutationRow.name) as GraphQLObjectType)
-			: undefined,
+		mutation: mutationRow ? (namedTypes.get(mutationRow.name) as GraphQLObjectType) : undefined,
 		subscription: subscriptionRow
 			? (namedTypes.get(subscriptionRow.name) as GraphQLObjectType)
 			: undefined,
@@ -308,7 +320,12 @@ function buildInputFields(
 }
 
 function buildArgMap(
-	rows: Array<{ name: string; type: string; type_modifiers: string | null; default_value: string | null }>,
+	rows: Array<{
+		name: string
+		type: string
+		type_modifiers: string | null
+		default_value: string | null
+	}>,
 	namedTypes: Map<string, GraphQLNamedType>
 ): Record<string, GraphQLArgumentConfig> {
 	return Object.fromEntries(

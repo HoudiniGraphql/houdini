@@ -132,12 +132,7 @@ async function live_validate(state: ServerState, uri: string) {
 	}
 }
 
-async function live_validate_pass(
-	state: ServerState,
-	uri: string,
-	version: number,
-	text: string
-) {
+async function live_validate_pass(state: ServerState, uri: string, version: number, text: string) {
 	const { connection, schema } = state
 	if (!schema) return
 	// never let a validation failure (eg an invalid reconstructed schema) take the
@@ -265,7 +260,11 @@ async function run_overlay(
 			db.reload()
 			db.run(DEPENDENCY_EXPANSION, { $task_id: task_id })
 			db.flush()
-			await compiler.run_pipeline({ task_id, after: 'AfterExtract', through: 'AfterValidate' })
+			await compiler.run_pipeline({
+				task_id,
+				after: 'AfterExtract',
+				through: 'AfterValidate',
+			})
 		} catch (err) {
 			pipelineError = err
 		} finally {

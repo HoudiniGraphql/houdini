@@ -148,8 +148,7 @@ export function block_at(blocks: Block[], position: Position): Block | null {
 				: lines[lines.length - 1].length
 
 		if (position.line < block.offsetLine || position.line > endLine) continue
-		if (position.line === block.offsetLine && position.character < block.offsetColumn)
-			continue
+		if (position.line === block.offsetLine && position.character < block.offsetColumn) continue
 		if (position.line === endLine && position.character > endChar) continue
 		return block
 	}
@@ -200,6 +199,7 @@ export function to_local(block: Block, position: Position): Position {
 export function to_host(block: Block, position: Position): Position {
 	return {
 		line: block.offsetLine + position.line,
-		character: position.line === 0 ? block.offsetColumn + position.character : position.character,
+		character:
+			position.line === 0 ? block.offsetColumn + position.character : position.character,
 	}
 }

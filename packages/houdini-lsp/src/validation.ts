@@ -38,18 +38,16 @@ export type ArgSpec = { name: string; type: string }
 // the ArgSpecs a fragment definition declares via @arguments — each argument is an
 // object spec whose `type` field holds the SDL type string: @arguments(size: { type: "Int" })
 export function fragment_arg_specs(def: FragmentDefinitionNode): ArgSpec[] {
-	return (def.directives?.find((d) => d.name.value === 'arguments')?.arguments ?? []).map(
-		(a) => {
-			let type = ''
-			if (a.value.kind === Kind.OBJECT) {
-				const typeField = a.value.fields.find((f) => f.name.value === 'type')
-				if (typeField?.value.kind === Kind.STRING) {
-					type = typeField.value.value
-				}
+	return (def.directives?.find((d) => d.name.value === 'arguments')?.arguments ?? []).map((a) => {
+		let type = ''
+		if (a.value.kind === Kind.OBJECT) {
+			const typeField = a.value.fields.find((f) => f.name.value === 'type')
+			if (typeField?.value.kind === Kind.STRING) {
+				type = typeField.value.value
 			}
-			return { name: a.name.value, type }
 		}
-	)
+		return { name: a.name.value, type }
+	})
 }
 
 // Per-spread argument knowledge sourced from the compiler database: what each
@@ -176,7 +174,12 @@ export function validate_block(
 				line: err.locations[0].line - 1,
 				character: err.locations[0].column - 1,
 			})
-			return [diagnostic(err.message, start, { line: start.line, character: start.character + 1 })]
+			return [
+				diagnostic(err.message, start, {
+					line: start.line,
+					character: start.character + 1,
+				}),
+			]
 		}
 		return []
 	}
@@ -190,7 +193,9 @@ export function validate_block(
 	)
 
 	const diagnostics: Diagnostic[] = []
-	for (const error of validate(schema, ast, [HoudiniDirectiveArgsRule(houdini, localFragments)])) {
+	for (const error of validate(schema, ast, [
+		HoudiniDirectiveArgsRule(houdini, localFragments),
+	])) {
 		const loc = error.nodes?.find((n) => n.loc?.source.name === BLOCK_SOURCE)?.loc
 		if (!loc) continue
 

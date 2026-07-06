@@ -27,7 +27,9 @@ export type ProjectFragment = {
 
 // Arguments declared by a fragment via @arguments — used for @with completions.
 export function fragment_arguments(db: Db, fragmentName: string): FragmentArg[] {
-	return db.all<{ arg_name: string; type_raw: string | null }>(`
+	return db
+		.all<{ arg_name: string; type_raw: string | null }>(
+			`
 		SELECT dda.name AS arg_name, type_av.raw AS type_raw
 		FROM document_directives dd
 		JOIN documents doc ON doc.id = dd.document
@@ -36,10 +38,13 @@ export function fragment_arguments(db: Db, fragmentName: string): FragmentArg[] 
 		LEFT JOIN argument_value_children avc ON avc.parent = av.id AND avc.name = 'type'
 		LEFT JOIN argument_values type_av ON type_av.id = avc.value
 		WHERE doc.name = ? AND dd.directive = 'arguments'
-	`, [fragmentName]).map((r) => ({
-		name: r.arg_name,
-		type: r.type_raw?.replace(/^"|"$/g, '') ?? 'String',
-	}))
+	`,
+			[fragmentName]
+		)
+		.map((r) => ({
+			name: r.arg_name,
+			type: r.type_raw?.replace(/^"|"$/g, '') ?? 'String',
+		}))
 }
 
 // Fields on a fragment's type condition — used for @when/@when_not completions.

@@ -41,10 +41,7 @@ export function houdiniDirectiveContext(state: ContextToken['state']): HoudiniCt
 function findEnclosingFragmentName(state: ContextToken['state'] | null): string | null {
 	let s = state
 	while (s) {
-		if (
-			(s.kind === Kind.FRAGMENT_SPREAD || s.kind === Kind.FRAGMENT_DEFINITION) &&
-			s.name
-		) {
+		if ((s.kind === Kind.FRAGMENT_SPREAD || s.kind === Kind.FRAGMENT_DEFINITION) && s.name) {
 			return s.name
 		}
 		s = s.prevState ?? null
@@ -140,7 +137,6 @@ export function definition_position(loc: DefinitionLocation, name: string): Posi
 	const lines = before.split('\n')
 	return {
 		line: loc.line + lines.length - 1,
-		character:
-			lines.length === 1 ? loc.column + match.index : lines[lines.length - 1].length,
+		character: lines.length === 1 ? loc.column + match.index : lines[lines.length - 1].length,
 	}
 }

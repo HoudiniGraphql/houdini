@@ -32,10 +32,7 @@ import { block_at, extract_blocks, to_local, type Block, type Position } from '.
 import type { ServerState } from './state.js'
 
 // find the graphql block containing a host-file position and translate into it
-function locate(
-	doc: TextDocument,
-	position: Position
-): { block: Block; local: Position } | null {
+function locate(doc: TextDocument, position: Position): { block: Block; local: Position } | null {
 	const block = block_at(extract_blocks(doc.getText(), doc.uri), position)
 	if (!block) return null
 	return { block, local: to_local(block, position) }

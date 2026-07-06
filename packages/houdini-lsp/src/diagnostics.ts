@@ -197,7 +197,10 @@ export async function validate(state: ServerState, savedUri?: string) {
 	}
 
 	for (const [uri, diagnostics] of byUri) {
-		connection.sendDiagnostics({ uri, diagnostics: merged_diagnostics(state, uri, diagnostics) })
+		connection.sendDiagnostics({
+			uri,
+			diagnostics: merged_diagnostics(state, uri, diagnostics),
+		})
 		state.pipeline_diagnostic_uris.add(uri)
 	}
 }

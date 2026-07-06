@@ -375,8 +375,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			    AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
 			`)
 
-					// clean up dangling selections with no refs in either direction
-					ctx.db.run(`
+						// clean up dangling selections with no refs in either direction
+						ctx.db.run(`
 			      WITH orphan_selections AS (
 			        SELECT s.id FROM selections s
 			        LEFT JOIN selection_refs rp ON rp.parent_id = s.id
