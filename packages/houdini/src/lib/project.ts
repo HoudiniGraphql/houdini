@@ -116,7 +116,7 @@ export async function get_config({
 		// load the server-only config (src/server/+config) — secrets like sessionKeys that must never
 		// reach the client. Kept separate from config_file (which the client bundles) so it can't
 		// leak; every server/build consumer reads config.server_config explicitly.
-		const server_config = await read_server_config(local_server_dir(_config, root_dir))
+		const server_config = await read_server_config(local_server_dir(_config, root_dir), root_dir)
 
 		const partialConfig: Partial<Config> = {
 			root_dir,
@@ -209,11 +209,9 @@ function parse_env_file(contents: string): Record<string, string> {
 	return out
 }
 
-// load_vite_env reproduces Vite's loadEnv for the VITE_ prefix so that `houdini generate` (plain
-// node, no Vite) sees the same import.meta.env a Vite run would: the project's .env files plus the
-// prefixed shell env, shell winning. Restricted to the prefix so secrets never reach the client.
-export async function load_vite_env(configPath: string): Promise<Record<string, string>> {
-	const root = path.dirname(configPath)
+// collect_env_files reads the project's .env files in Vite's precedence order and returns the
+// merged key/value set (no prefix filtering — callers decide what to expose where).
+async function collect_env_files(root: string): Promise<Record<string, string>> {
 	const mode = process.env.NODE_ENV || 'development'
 	const collected: Record<string, string> = {}
 	// Vite precedence: .env < .env.local < .env.[mode] < .env.[mode].local
@@ -223,6 +221,14 @@ export async function load_vite_env(configPath: string): Promise<Record<string, 
 			Object.assign(collected, parse_env_file(contents))
 		}
 	}
+	return collected
+}
+
+// load_vite_env reproduces Vite's loadEnv for the VITE_ prefix so that `houdini generate` (plain
+// node, no Vite) sees the same import.meta.env a Vite run would: the project's .env files plus the
+// prefixed shell env, shell winning. Restricted to the prefix so secrets never reach the client.
+export async function load_vite_env(configPath: string): Promise<Record<string, string>> {
+	const collected = await collect_env_files(path.dirname(configPath))
 	// shell env wins over .env files
 	for (const [key, value] of Object.entries(process.env)) {
 		if (value !== undefined && key.startsWith(ENV_PREFIX)) {
@@ -236,6 +242,19 @@ export async function load_vite_env(configPath: string): Promise<Record<string, 
 		}
 	}
 	return exposed
+}
+
+// load_env_files populates process.env from the project's .env files WITHOUT the VITE_ prefix
+// restriction — the shell still wins (existing keys are never overwritten). This only runs for
+// the server-only config (src/server/+config), which never reaches a client bundle, so it's the
+// natural home for secrets: the same public/private split as SvelteKit's $env/static/private.
+// Client-visible env stays VITE_-prefixed through load_vite_env above.
+export async function load_env_files(rootDir: string): Promise<void> {
+	for (const [key, value] of Object.entries(await collect_env_files(rootDir))) {
+		if (process.env[key] === undefined) {
+			process.env[key] = value
+		}
+	}
 }
 
 export async function read_config_file(configPath: string): Promise<ConfigFile> {
@@ -297,7 +316,7 @@ export async function read_config_file(configPath: string): Promise<ConfigFile> 
 // read_server_config loads the server-only config overlay (src/server/+config). Returns {} when the
 // file is absent. It holds secrets (sessionKeys, later oauth) and lives in src/server, which is
 // compiled server-side only — so it never reaches the client bundle.
-async function read_server_config(serverDir: string): Promise<ServerConfigFile> {
+async function read_server_config(serverDir: string, rootDir: string): Promise<ServerConfigFile> {
 	let configPath = ''
 	try {
 		for (const child of await fs.readdir(serverDir)) {
@@ -312,6 +331,10 @@ async function read_server_config(serverDir: string): Promise<ServerConfigFile> 
 	if (!configPath) {
 		return {}
 	}
+
+	// the server config is the one place secrets belong, so give it the full .env set (via
+	// process.env) before importing — the values a Vite run withholds from import.meta.env
+	await load_env_files(rootDir)
 
 	let imported: any
 	try {
