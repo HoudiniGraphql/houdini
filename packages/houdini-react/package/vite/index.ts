@@ -395,21 +395,22 @@ mount_static_app(App, manifest)
 				)) as { createServerAdapter: any }
 
 				const requestHeaders = new Headers()
-				for (const header of Object.entries(req.headers ?? {})) {
-					requestHeaders.set(header[0], header[1] as string)
+				for (const [name, value] of Object.entries(req.headers ?? {})) {
+					// node hands repeated request headers over as arrays
+					requestHeaders.set(name, Array.isArray(value) ? value.join(', ') : value ?? '')
 				}
 
 				const port = server.config.server.port ?? 5173
-				const request = new Request(
-					`http://localhost:${port}` + req.url,
-					req.method === 'POST'
-						? {
-								method: req.method,
-								headers: requestHeaders,
-								body: await getBody(req),
-						  }
-						: undefined
-				)
+				// every method carries the headers - the auth endpoints read cookies off GET
+				// requests (the OAuth callback's txn cookie, session reads), so dropping them
+				// on non-POSTs silently breaks any cookie-gated GET. Same for bodies: anything
+				// that can carry one gets it, not just POST
+				const hasBody = req.method !== 'GET' && req.method !== 'HEAD'
+				const request = new Request(`http://localhost:${port}` + req.url, {
+					method: req.method,
+					headers: requestHeaders,
+					...(hasBody ? { body: await getBody(req) } : {}),
+				})
 
 				// Run the request URL through Vite's transformIndexHtml pipeline so
 				// that all plugin-injected preamble scripts (e.g. react-refresh
@@ -464,20 +465,23 @@ mount_static_app(App, manifest)
 						if (res.closed) {
 							return
 						}
-						for (const header of result.headers ?? []) {
-							res.setHeader(header[0], header[1])
+						// copy headers individually - Set-Cookie has to come from getSetCookie()
+						// because Headers iteration joins duplicates with ', ', and a merged
+						// cookie header corrupts the attributes (the browser reads a burned
+						// cookie's trailing Max-Age=0 as belonging to the session cookie and
+						// deletes it on arrival)
+						for (const [key, value] of result.headers ?? []) {
+							if (key.toLowerCase() !== 'set-cookie') {
+								res.setHeader(key, value)
+							}
+						}
+						const setCookies = result.headers?.getSetCookie() ?? []
+						if (setCookies.length > 0) {
+							res.setHeader('Set-Cookie', setCookies)
 						}
 						if (result.status >= 300 && result.status < 400) {
-							res.writeHead(result.status, {
-								Location: result.headers.get('Location') ?? '',
-								...[...result.headers].reduce(
-									(headers, [key, value]) => ({
-										...headers,
-										[key]: value,
-									}),
-									{}
-								),
-							})
+							// headers (including Location) are already set above
+							res.writeHead(result.status)
 						} else {
 							res.write(await result.text())
 						}

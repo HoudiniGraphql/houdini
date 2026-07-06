@@ -719,7 +719,22 @@ describe('no-JS form submission (real Yoga)', () => {
 			expect(loc.searchParams.get('return')).toContain('/_auth')
 			// redirectTo is NOT forwarded — it's kept in the signed cookie, off the open wire
 			expect(loc.searchParams.get('redirectTo')).toBeNull()
-			expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
+			// http://localhost gets the relaxed (un-prefixed, non-Secure) txn cookie
+			const txnCookie = res!.headers.get('set-cookie') ?? ''
+			expect(txnCookie).toMatch(/^houdini-txn=/)
+			expect(txnCookie).not.toContain('Secure')
+		})
+
+		test('/login over https keeps the hardened __Host-/Secure txn cookie', async () => {
+			const handler = serverWith(undefined, { redirect: { url: WORKER } })
+			const res = await handler(
+				new Request('https://app.example/_auth/login?redirectTo=/home', { method: 'GET' })
+			)
+			expect(res!.status).toBe(302)
+			// only plain-http LOOPBACK relaxes the cookie - a real origin keeps the prefix
+			const txnCookie = res!.headers.get('set-cookie') ?? ''
+			expect(txnCookie).toMatch(/^__Host-houdini-txn=/)
+			expect(txnCookie).toContain('Secure')
 		})
 
 		test('the callback rejects when the nonce does not match the txn cookie (browser binding)', async () => {
@@ -784,7 +799,7 @@ describe('no-JS form submission (real Yoga)', () => {
 			)
 			expect((session as any).token).toBe('tok-oauth')
 			// the txn cookie is burned (single-use)
-			expect(setCookies.some((c) => c.startsWith('__Host-houdini-txn=;'))).toBe(true)
+			expect(setCookies.some((c) => c.startsWith('houdini-txn=;'))).toBe(true)
 		})
 
 		test('/login with no redirectTo defaults to the current page (same-origin Referer)', async () => {
@@ -1025,7 +1040,10 @@ describe('first-class OAuth', () => {
 		expect(u.searchParams.get('state')).toBeTruthy()
 		expect(u.searchParams.get('nonce')).toBeTruthy()
 		expect(u.searchParams.get('redirect_uri')).toContain('/_auth')
-		expect(res!.headers.get('set-cookie') ?? '').toContain('__Host-houdini-txn=')
+		// http://localhost gets the relaxed (un-prefixed, non-Secure) txn cookie
+			const txnCookie = res!.headers.get('set-cookie') ?? ''
+			expect(txnCookie).toMatch(/^houdini-txn=/)
+			expect(txnCookie).not.toContain('Secure')
 	})
 
 	test('an unknown provider is rejected (400)', async () => {
@@ -1065,7 +1083,7 @@ describe('first-class OAuth', () => {
 			TOKEN_KEY,
 		])
 		expect(session).toMatchObject({ userId: 'u1' })
-		expect(setCookies.some((c) => c.startsWith('__Host-houdini-txn=;'))).toBe(true)
+		expect(setCookies.some((c) => c.startsWith('houdini-txn=;'))).toBe(true)
 	})
 
 	test('a signed id_token with the wrong nonce is rejected (403)', async () => {

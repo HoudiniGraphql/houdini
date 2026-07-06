@@ -505,7 +505,7 @@ export function _serverHandler<ComponentType = unknown>({
 			const value = valueAtPath(result.data, sessionWrite.sessionPath.split('.'))
 			const req = { request, config: config_file, session_keys }
 			if (value == null) {
-				clear_session(formResponse)
+				clear_session(formResponse, request)
 			} else if (sessionWrite.merge) {
 				const existing = await get_session(request.headers, session_keys)
 				await set_session(req, formResponse, { ...existing, ...(value as App.Session) })

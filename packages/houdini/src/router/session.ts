@@ -16,15 +16,45 @@ import {
 import { parse } from './cookies.js'
 import { decode, encode, verify } from './jwt.js'
 
+// insecure_loopback identifies a plain-http request to a loopback host — the local dev case.
+// Cookie attributes are relaxed ONLY there: `Secure` (and the `__Host-` prefix that requires it)
+// is refused by several clients over http://localhost (Safari and curl outright, and storage/send
+// behavior varies elsewhere), and loopback is the one place where dropping the transport
+// requirement doesn't weaken anything real. A non-loopback http request keeps the hardened
+// attributes — behind a TLS-terminating proxy the browser-facing scheme is https, so hardened
+// cookies work there and must not be silently downgraded.
+export function insecure_loopback(request: { url?: string }): boolean {
+	try {
+		const { protocol, hostname } = new URL(request.url ?? '')
+		return (
+			protocol === 'http:' &&
+			(hostname === 'localhost' ||
+				hostname.endsWith('.localhost') ||
+				hostname === '127.0.0.1' ||
+				hostname === '[::1]' ||
+				hostname === '::1')
+		)
+	} catch {
+		return false
+	}
+}
+
 // the redirect-login transaction cookie: __Host- (host-locked, Secure, Path=/), HttpOnly, and
 // SameSite=Lax so it rides the top-level GET navigation back from the trusted integration but not
-// embedded cross-site requests. Max-Age mirrors the signed txn TTL.
+// embedded cross-site requests. Max-Age mirrors the signed txn TTL. Over http://localhost the
+// __Host- prefix (which requires Secure) falls back to a plain name — the signed JWT inside is
+// what actually gates validity, so the prefix is defense-in-depth we only get on https.
 const REDIRECT_TXN_COOKIE = '__Host-houdini-txn'
-function redirectTxnCookie(value: string): string {
-	return `${REDIRECT_TXN_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${REDIRECT_TXN_TTL_SECONDS}`
+const REDIRECT_TXN_COOKIE_INSECURE = 'houdini-txn'
+function redirectTxnCookie(value: string, secure: boolean): string {
+	return secure
+		? `${REDIRECT_TXN_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${REDIRECT_TXN_TTL_SECONDS}`
+		: `${REDIRECT_TXN_COOKIE_INSECURE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${REDIRECT_TXN_TTL_SECONDS}`
 }
-function clearRedirectTxnCookie(): string {
-	return `${REDIRECT_TXN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+function clearRedirectTxnCookie(secure: boolean): string {
+	return secure
+		? `${REDIRECT_TXN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+		: `${REDIRECT_TXN_COOKIE_INSECURE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
 }
 
 // isAllowedOrigin is the shared, fail-closed CSRF check for every state-changing same-origin sink
@@ -98,7 +128,7 @@ export async function applySessionToken(
 		return false
 	}
 	if ('clear' in verified) {
-		clear_session(response)
+		clear_session(response, args.request)
 	} else if (verified.merge) {
 		await set_session(args, response, { ...presenter, ...verified.session })
 	} else {
@@ -193,7 +223,10 @@ async function login_endpoint(args: ServerHandlerArgs): Promise<Response | undef
 			status: 302,
 			headers: { Location: target.toString() },
 		})
-		response.headers.append('Set-Cookie', redirectTxnCookie(txn))
+		response.headers.append(
+			'Set-Cookie',
+			redirectTxnCookie(txn, !insecure_loopback(args.request))
+		)
 		return response
 	}
 
@@ -240,7 +273,7 @@ async function oauth_start(
 		status: 302,
 		headers: { Location: authorizeUrl.toString() },
 	})
-	response.headers.append('Set-Cookie', redirectTxnCookie(txn))
+	response.headers.append('Set-Cookie', redirectTxnCookie(txn, !insecure_loopback(args.request)))
 	return response
 }
 
@@ -257,7 +290,7 @@ async function oauth_callback(
 	const deny = () =>
 		new Response('Forbidden', {
 			status: 403,
-			headers: { 'Set-Cookie': clearRedirectTxnCookie() },
+			headers: { 'Set-Cookie': clearRedirectTxnCookie(!insecure_loopback(args.request)) },
 		})
 
 	const provider = args.server_config!.auth!.providers![txn.provider!]
@@ -285,7 +318,11 @@ async function oauth_callback(
 			// resolveEndpoint honors it), but oauth4webapi omits it from this options type, so cast.
 			[oauth.allowInsecureRequests]: Boolean(provider.allowInsecureRequests),
 		} as oauth.ProcessAuthorizationCodeResponseOptions)
-	} catch {
+	} catch (e) {
+		// the response stays an opaque 403 (nothing here is the user's fault to see) but the
+		// server log needs the real reason - a swallowed exchange failure (bad client secret,
+		// provider outage, clock skew) is otherwise undiagnosable
+		console.error(`[houdini] oauth token exchange with "${txn.provider}" failed:`, e)
 		return deny()
 	}
 
@@ -306,7 +343,7 @@ async function oauth_callback(
 
 	const response = new Response('ok', { status: 302, headers: { Location: txn.redirectTo } })
 	await set_session(args, response, (session ?? {}) as App.Session)
-	response.headers.append('Set-Cookie', clearRedirectTxnCookie())
+	response.headers.append('Set-Cookie', clearRedirectTxnCookie(!insecure_loopback(args.request)))
 	return response
 }
 
@@ -334,12 +371,31 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 		// constant anonymous `sid` couldn't prevent. redirectTo comes from the signed cookie (set at
 		// /login), never the query string, so there's no open-redirect sink.
 		const cookies = parse(args.request.headers.get('cookie') ?? '')
-		const txn = await verifyRedirectTxn(cookies[REDIRECT_TXN_COOKIE], args.session_keys)
+		// the unprefixed fallback name is ONLY honored on loopback. Accepting it on a real
+		// origin would undo the __Host- prefix's guarantee: a subdomain or plain-http sibling
+		// could plant an attacker's (validly signed) txn cookie and fix the victim's login
+		// onto the attacker's account
+		const rawTxn =
+			cookies[REDIRECT_TXN_COOKIE] ??
+			(insecure_loopback(args.request) ? cookies[REDIRECT_TXN_COOKIE_INSECURE] : undefined)
+		const txn = await verifyRedirectTxn(rawTxn, args.session_keys)
 		const state = searchParams.get('state')
 		if (!txn || !state || !timingSafeEqual(txn.nonce, state)) {
+			// opaque 403 for the browser, but log which gate failed - a missing cookie (blocked
+			// Secure cookie, cross-site navigation) reads identically to a nonce mismatch otherwise
+			console.error(
+				`[houdini] redirect-login callback rejected: ` +
+					(!rawTxn
+						? `no transaction cookie on the request (was the flow started at /login?)`
+						: !txn
+						? `transaction cookie failed verification (expired, or sessionKeys changed mid-flight)`
+						: !state
+						? `no state parameter on the callback`
+						: `state does not match the transaction nonce`)
+			)
 			return new Response('Forbidden', {
 				status: 403,
-				headers: { 'Set-Cookie': clearRedirectTxnCookie() },
+				headers: { 'Set-Cookie': clearRedirectTxnCookie(!insecure_loopback(args.request)) },
 			})
 		}
 
@@ -354,7 +410,7 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 		// single-use: burn the nonce on every outcome. Append AFTER applySessionToken's Set-Cookie
 		// (.set) so the session cookie isn't clobbered.
 		const result = applied ? response : new Response('Forbidden', { status: 403 })
-		result.headers.append('Set-Cookie', clearRedirectTxnCookie())
+		result.headers.append('Set-Cookie', clearRedirectTxnCookie(!insecure_loopback(args.request)))
 		return result
 	}
 
@@ -377,7 +433,7 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 				status: 303,
 				headers: { Location: safeRelative(formData.get('redirectTo')) },
 			})
-			clear_session(response)
+			clear_session(response, args.request)
 			return response
 		}
 
@@ -405,7 +461,7 @@ async function auth_endpoint(args: ServerHandlerArgs): Promise<Response | undefi
 		// updateSession mutates the session across calls, which a session-bound token can't
 		// track. `session: null` logs out (delete the cookie); a partial object merges.
 		if (body.session === null) {
-			clear_session(response)
+			clear_session(response, args.request)
 			return response
 		}
 		const existing = await get_session(args.request.headers, args.session_keys)
@@ -435,10 +491,11 @@ export const session_cookie_name = '__houdini__'
 // clear_session deletes the session cookie (logout) by writing an immediately-expiring
 // Set-Cookie. Unlike set_session({}), this removes the cookie rather than re-signing an empty
 // payload.
-export function clear_session(response: Response) {
+export function clear_session(response: Response, request?: { url?: string }) {
+	const secure = request && insecure_loopback(request) ? '' : 'Secure; '
 	response.headers.set(
 		'Set-Cookie',
-		`${session_cookie_name}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+		`${session_cookie_name}=; Path=/; HttpOnly; ${secure}SameSite=Lax; Max-Age=0`
 	)
 }
 
@@ -479,10 +536,12 @@ export async function set_session(req: ServerHandlerArgs, response: Response, va
 		req.session_keys[0]
 	)
 
-	// set the cookie with a header
+	// set the cookie with a header (Secure is dropped over plain-http loopback — several
+	// clients refuse Secure cookies there, and local dev is the only place that's insecure)
+	const secure = insecure_loopback(req.request) ? '' : 'Secure; '
 	response.headers.set(
 		'Set-Cookie',
-		`${session_cookie_name}=${serialized}; Path=/; HttpOnly; Secure; SameSite=Lax; Expires=${expires.toUTCString()} `
+		`${session_cookie_name}=${serialized}; Path=/; HttpOnly; ${secure}SameSite=Lax; Expires=${expires.toUTCString()} `
 	)
 }
 
