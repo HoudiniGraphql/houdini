@@ -8,10 +8,6 @@ import * as path from './path.js'
 import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
 
-declare namespace App {
-	type Session = {}
-}
-
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
