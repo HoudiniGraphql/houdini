@@ -235,6 +235,24 @@ try {
 	if (compDef.result?.uri)
 		console.log(`  definition → ${compDef.result.uri.replace(ROOT, '')}:${compDef.result.range.start.line}`)
 
+	// aliased selections parse through a different rule (AliasedField) — the field
+	// must still resolve. unsaved didOpen content is enough; the lookup is schema+db
+	const aliasPath = 'src/routes/alias-scratch.gql'
+	open(
+		aliasPath,
+		'query AliasScratch {\n\tusersList(snapshot: "alias", limit: 1) {\n\t\tpic: Avatar\n\t}\n}\n',
+		'graphql'
+	)
+	const aliasDef = await request('textDocument/definition', {
+		textDocument: { uri: uri(aliasPath) },
+		position: { line: 2, character: 9 },
+	})
+	check(
+		'definition on an aliased component field resolves to the component',
+		typeof aliasDef.result?.uri === 'string' && aliasDef.result.uri.endsWith('UserAvatar.tsx'),
+		aliasDef.result
+	)
+
 	// ── F: live diagnostics — typo in a .gql without saving (pipeline overlay) ──
 	const gqlPath = 'src/routes/hello-world/+page.gql'
 	const overlayStart = Date.now()

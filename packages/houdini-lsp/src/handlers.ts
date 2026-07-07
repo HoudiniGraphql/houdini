@@ -9,6 +9,7 @@ import {
 	getTokenAtPosition,
 	getTypeInfo,
 	Position as GQLPosition,
+	RuleKinds,
 	type ContextToken,
 } from 'graphql-language-service'
 import { pathToFileURL } from 'node:url'
@@ -145,8 +146,14 @@ export function register_handlers(state: ServerState) {
 			}
 
 			// a field can be a component field — its definition is the component itself,
-			// and the component field's raw document lives in the component's file
-			if (s.kind === Kind.FIELD && s.name && state.schema) {
+			// and the component field's raw document lives in the component's file.
+			// AliasedField is the online parser's rule for `alias: field`; its name is
+			// the real field name, which is what the lookup needs
+			if (
+				(s.kind === RuleKinds.FIELD || s.kind === RuleKinds.ALIASED_FIELD) &&
+				s.name &&
+				state.schema
+			) {
 				const parentType = getTypeInfo(state.schema, token.state).parentType
 				if (!parentType) return null
 				const loc = component_field_definition_location(
