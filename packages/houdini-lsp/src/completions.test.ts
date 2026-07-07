@@ -8,6 +8,7 @@ vi.unmock('node:sqlite')
 import { create_schema } from '../../houdini/src/lib/database'
 import { openDb, type Db } from '../../houdini/src/lib/db'
 import {
+	component_field_position,
 	definition_position,
 	houdiniCompletions,
 	houdiniDirectiveContext,
@@ -15,6 +16,7 @@ import {
 	required_first,
 } from './completions'
 import {
+	component_field_definition_location,
 	fragment_arguments,
 	fragment_definition_location,
 	list_exists,
@@ -72,6 +74,17 @@ beforeAll(async () => {
 		('type', 3, 4, 0, 0, 1)`)
 	db.run(`INSERT INTO document_directive_arguments (parent, name, value) VALUES
 		(1, 'size', 1), (1, 'param', 3)`)
+
+	// an inline component field (a GraphQL<\`...\`> prop): its raw document is the
+	// component's own file and carries no \`fragment <name>\` keyword, only the directive
+	db.run(`INSERT INTO raw_documents (id, filepath, content, offset_line, offset_column) VALUES
+		(2, 'src/UserAvatar.tsx', '{
+        ... on User @componentField(field: "Avatar"){
+            avatarURL
+        }
+    }', 4, 16)`)
+	db.run(`INSERT INTO component_fields (document, type, prop, field, inline, type_field, fragment)
+		VALUES (2, 'User', 'user', 'Avatar', true, 'User.Avatar', '__componentField__User_Avatar')`)
 
 	// the All_Users list, declared on Query.users
 	db.run(`INSERT INTO selections (id, field_name, kind, type) VALUES
@@ -166,6 +179,25 @@ describe('go-to-definition', () => {
 				{ filepath: 'x', line: 3, column: 7, content: '{ inline { spread } }' },
 				'Nope'
 			)
+		).toEqual({ line: 3, character: 7 })
+	})
+
+	test("component fields resolve to the component's file", () => {
+		const loc = component_field_definition_location(db, 'User', 'Avatar')
+		expect(loc?.filepath).toBe('src/UserAvatar.tsx')
+		// content starts at (4, 16); @componentField sits on the next line after
+		// `        ... on User ` (20 characters)
+		expect(component_field_position(loc!)).toEqual({ line: 5, character: 20 })
+	})
+
+	test('unknown component fields return no location', () => {
+		expect(component_field_definition_location(db, 'User', 'name')).toBe(null)
+		expect(component_field_definition_location(db, 'Ghost', 'Avatar')).toBe(null)
+	})
+
+	test('component field position falls back to the document offset without the directive', () => {
+		expect(
+			component_field_position({ filepath: 'x', line: 3, column: 7, content: '{ name }' })
 		).toEqual({ line: 3, character: 7 })
 	})
 })

@@ -2,11 +2,12 @@
 // positions are translated into the containing graphql document before the
 // language services run, and results are translated back.
 
-import { Kind } from 'graphql'
+import { getNamedType, Kind } from 'graphql'
 import {
 	getAutocompleteSuggestions,
 	getHoverInformation,
 	getTokenAtPosition,
+	getTypeInfo,
 	Position as GQLPosition,
 	type ContextToken,
 } from 'graphql-language-service'
@@ -21,13 +22,14 @@ import type {
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import {
+	component_field_position,
 	definition_position,
 	houdiniCompletions,
 	houdiniDirectiveContext,
 	in_arguments,
 	required_first,
 } from './completions.js'
-import { fragment_definition_location } from './db_query.js'
+import { component_field_definition_location, fragment_definition_location } from './db_query.js'
 import { block_at, extract_blocks, to_local, type Block, type Position } from './extract.js'
 import type { ServerState } from './state.js'
 
@@ -129,13 +131,31 @@ export function register_handlers(state: ServerState) {
 			1
 		)
 
-		// Walk up to find a FragmentSpread node
+		// Walk up to the nearest FragmentSpread or Field node
 		let s = token.state
 		while (s) {
 			if (s.kind === Kind.FRAGMENT_SPREAD && s.name) {
 				const loc = fragment_definition_location(db, s.name)
 				if (!loc) return null
 				const position = definition_position(loc, s.name)
+				return {
+					uri: pathToFileURL(loc.filepath).toString(),
+					range: { start: position, end: position },
+				}
+			}
+
+			// a field can be a component field — its definition is the component itself,
+			// and the component field's raw document lives in the component's file
+			if (s.kind === Kind.FIELD && s.name && state.schema) {
+				const parentType = getTypeInfo(state.schema, token.state).parentType
+				if (!parentType) return null
+				const loc = component_field_definition_location(
+					db,
+					getNamedType(parentType).name,
+					s.name
+				)
+				if (!loc) return null
+				const position = component_field_position(loc)
 				return {
 					uri: pathToFileURL(loc.filepath).toString(),
 					range: { start: position, end: position },

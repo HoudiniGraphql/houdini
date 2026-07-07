@@ -217,6 +217,24 @@ try {
 	)
 	if (def.result?.uri) console.log(`  definition → ${def.result.uri.replace(ROOT, '')}:${def.result.range.start.line}`)
 
+	// ── E2: go-to-definition on a component field lands in the component's file ──
+	const infoPath = 'src/routes/component_fields/simple/UserInfo.tsx'
+	const infoText = readFileSync(`${ROOT}/${infoPath}`, 'utf8')
+	const infoLines = infoText.split('\n')
+	open(infoPath, infoText, 'typescriptreact')
+	const avatarLine = infoLines.findIndex((l) => l.trim() === 'Avatar')
+	const compDef = await request('textDocument/definition', {
+		textDocument: { uri: uri(infoPath) },
+		position: { line: avatarLine, character: infoLines[avatarLine].indexOf('Avatar') + 3 },
+	})
+	check(
+		'definition on a component field resolves to the component',
+		typeof compDef.result?.uri === 'string' && compDef.result.uri.endsWith('UserAvatar.tsx'),
+		compDef.result
+	)
+	if (compDef.result?.uri)
+		console.log(`  definition → ${compDef.result.uri.replace(ROOT, '')}:${compDef.result.range.start.line}`)
+
 	// ── F: live diagnostics — typo in a .gql without saving (pipeline overlay) ──
 	const gqlPath = 'src/routes/hello-world/+page.gql'
 	const overlayStart = Date.now()

@@ -126,6 +126,17 @@ export function required_first(items: CompletionItem[]): CompletionItem[] {
 
 // ── definition ────────────────────────────────────────────────────────────────
 
+// translate a character offset inside the raw document into file coordinates,
+// through the document's (0-based) file offset
+function offset_position(loc: DefinitionLocation, index: number): Position {
+	const before = loc.content.slice(0, index)
+	const lines = before.split('\n')
+	return {
+		line: loc.line + lines.length - 1,
+		character: lines.length === 1 ? loc.column + index : lines[lines.length - 1].length,
+	}
+}
+
 // find the `fragment <name>` keyword inside the raw document and translate it
 // through the document's (0-based) offset into file coordinates
 export function definition_position(loc: DefinitionLocation, name: string): Position {
@@ -133,10 +144,16 @@ export function definition_position(loc: DefinitionLocation, name: string): Posi
 	if (!match) {
 		return { line: loc.line, character: loc.column }
 	}
-	const before = loc.content.slice(0, match.index)
-	const lines = before.split('\n')
-	return {
-		line: loc.line + lines.length - 1,
-		character: lines.length === 1 ? loc.column + match.index : lines[lines.length - 1].length,
+	return offset_position(loc, match.index)
+}
+
+// component fields land on the @componentField directive — an inline component
+// field (a GraphQL<`...`> prop) has no `fragment <name>` keyword to anchor to,
+// but both forms carry the directive
+export function component_field_position(loc: DefinitionLocation): Position {
+	const match = /@componentField\b/.exec(loc.content)
+	if (!match) {
+		return { line: loc.line, character: loc.column }
 	}
+	return offset_position(loc, match.index)
 }

@@ -82,6 +82,26 @@ export function fragment_definition_location(
 	)
 }
 
+// Source location of the component that provides a component field — used for
+// go-to-definition on the field itself. A component field's raw document IS the
+// component's file, so the location points straight at it.
+export function component_field_definition_location(
+	db: Db,
+	parentType: string,
+	fieldName: string
+): DefinitionLocation | null {
+	return (
+		db.get<DefinitionLocation>(
+			`SELECT rd.filepath, rd.offset_line AS line, rd.offset_column AS column, rd.content
+			 FROM component_fields cf
+			 JOIN raw_documents rd ON rd.id = cf.document
+			 WHERE cf.type = ? AND cf.field = ?
+			 LIMIT 1`,
+			[parentType, fieldName]
+		) ?? null
+	)
+}
+
 // Every fragment a document can spread: user-written fragments (generated = 0)
 // plus the pipeline's list operation fragments, which are generated but part of
 // the user-facing API.
