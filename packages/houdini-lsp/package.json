@@ -18,7 +18,7 @@
         "access": "public"
     },
     "scripts": {
-        "build": "tsup src/index.ts --format esm --no-dts --clean --out-dir build --external houdini --external graphql",
+        "build": "tsup src/index.ts --format esm --no-dts --clean --out-dir build --external houdini --external graphql --sourcemap",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build",
         "integration": "pnpm build && node scripts/integration.mjs"

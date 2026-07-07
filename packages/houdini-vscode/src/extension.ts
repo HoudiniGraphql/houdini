@@ -31,9 +31,16 @@ export function deactivate(): Thenable<void> | undefined {
 }
 
 function startClient(serverPath: string, context: vscode.ExtensionContext) {
+	// the extension development host's launch config sets HOUDINI_LSP_INSPECT so a node attach
+	// config can debug the server; the bin script runs under `env node`, so NODE_OPTIONS
+	// reaches it
+	const inspect = process.env.HOUDINI_LSP_INSPECT
 	const serverOptions: ServerOptions = {
 		command: serverPath,
 		transport: TransportKind.stdio,
+		...(inspect
+			? { options: { env: { ...process.env, NODE_OPTIONS: `--inspect=${inspect}` } } }
+			: {}),
 	}
 
 	// file watching is registered dynamically by the server (it needs the events to

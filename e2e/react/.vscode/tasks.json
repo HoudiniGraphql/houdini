@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build lsp + extension",
+			"type": "shell",
+			"command": "pnpm --filter houdini-lsp build && pnpm --filter houdini-graphql build",
+			"options": { "cwd": "${workspaceFolder}/../.." },
+			"problemMatcher": []
+		}
+	]
+}

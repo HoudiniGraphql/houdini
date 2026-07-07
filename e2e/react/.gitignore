@@ -18,6 +18,9 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+# the committed LSP-debugging configs — open this folder and press F5
+!.vscode/launch.json
+!.vscode/tasks.json
 .idea
 .DS_Store
 *.suo

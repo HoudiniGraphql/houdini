@@ -64,7 +64,7 @@
     },
     "main": "./build/extension.js",
     "scripts": {
-        "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build",
+        "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build --sourcemap",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build",
         "package": "pnpm build && vsce package --no-dependencies",
