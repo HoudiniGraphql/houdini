@@ -198,8 +198,7 @@ CREATE TABLE IF NOT EXISTS document_variable_directives (
 	directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-	FOREIGN KEY (parent) REFERENCES document_variables(id) ON DELETE CASCADE,
-	FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
+	FOREIGN KEY (parent) REFERENCES document_variables(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS document_variable_directive_arguments (
@@ -243,7 +242,14 @@ CREATE TABLE IF NOT EXISTS documents (
 		internal boolean default false,
 		visible boolean default true,
 		processed boolean default false,
-    FOREIGN KEY (type_condition) REFERENCES types(name) ON DELETE CASCADE,
+		-- created by the pipeline rather than written by the user (component field
+		-- fragments, list operations, pagination/refetch queries, argument variants).
+		-- distinct from internal, which controls network-document stripping.
+		generated boolean default false,
+    -- type_condition is user input and intentionally not a foreign key into
+    -- types(name): a fragment on an unknown type must survive extraction so
+    -- validation can report it (and a schema change that removes a type must
+    -- not cascade-delete the user's documents)
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );
 
@@ -257,14 +263,19 @@ CREATE TABLE IF NOT EXISTS selections (
 		fragment_args JSON -- used to store the arguments that are used when fragment variables are expanded
 );
 
+-- directive columns on the user-reference tables (selection_directives,
+-- document_directives, document_variable_directives) are intentionally NOT
+-- foreign keys into directives(name): documents are extracted before list
+-- delete directives (User_delete, ...) are registered by the generation phase,
+-- and unknown names must survive extraction so validateDirectives can report
+-- them as validation errors instead of an opaque constraint failure.
 CREATE TABLE IF NOT EXISTS selection_directives (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-    FOREIGN KEY (selection_id) REFERENCES selections(id) ON DELETE CASCADE,
-    FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
+    FOREIGN KEY (selection_id) REFERENCES selections(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS selection_directive_arguments (
@@ -285,8 +296,7 @@ CREATE TABLE IF NOT EXISTS document_directives (
 	directive TEXT NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
-	FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
-	FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
+	FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS document_directive_arguments (

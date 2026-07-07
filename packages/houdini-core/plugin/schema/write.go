@@ -514,7 +514,8 @@ func WriteInternalSchema[PluginConfig any](
 		return err
 	}
 
-	// @list(name: String!) on FIELD_DEFINITION
+	// @list(name: String!) on FIELD — applied to fields in executable documents,
+	// not to schema definitions
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.ListDirective,
 		"description": "@list is used to mark a field for the runtime as a place to add or remove entities in mutations",
@@ -525,7 +526,7 @@ func WriteInternalSchema[PluginConfig any](
 	}
 	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": graphql.ListDirective,
-		"location":  "FIELD_DEFINITION",
+		"location":  "FIELD",
 	})
 	if err != nil {
 		return err

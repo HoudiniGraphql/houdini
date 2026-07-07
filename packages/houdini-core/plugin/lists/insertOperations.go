@@ -148,10 +148,10 @@ func InsertOperationDocuments(
 
 	insertDocument, err := conn.Prepare(
 		`
-			INSERT INTO documents 
-				(name, raw_document, kind, type_condition, internal, visible)
-			VALUES 
-				($name, $raw_document, $kind, $type_condition, true, false)
+			INSERT INTO documents
+				(name, raw_document, kind, type_condition, internal, visible, generated)
+			VALUES
+				($name, $raw_document, $kind, $type_condition, true, false, true)
 		`,
 	)
 	if err != nil {

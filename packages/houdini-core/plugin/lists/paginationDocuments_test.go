@@ -100,6 +100,98 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "adds pagination fields when edges are hidden behind a fragment spread",
+				Pass: true,
+				Input: []string{
+					`
+						query AllUsers {
+							userConnection(first: 10) @paginate {
+								...ConnectionInfo
+							}
+						}
+					`,
+					`
+						fragment ConnectionInfo on UserConnection {
+							edges {
+								node {
+									firstName
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after, last: $last, before: $before) @paginate {
+								...ConnectionInfo
+								edges {
+									node {
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
+				},
+			},
+			{
+				Name: "adds pagination fields when the connection only selects a component field",
+				Pass: true,
+				Input: []string{
+					`
+						fragment ConnectionTable on UserConnection @componentField(field: "Table", prop: "connection") {
+							edges {
+								node {
+									firstName
+								}
+							}
+						}
+					`,
+					`
+						query AllUsers {
+							userConnection(first: 10) @paginate {
+								Table
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after, last: $last, before: $before) @paginate {
+								...ConnectionTable
+								edges {
+									node {
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
+				},
+			},
+			{
 				Name: "adds partial cursor args to forward connection",
 				Pass: true,
 				Input: []string{

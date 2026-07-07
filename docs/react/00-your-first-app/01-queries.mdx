@@ -323,7 +323,7 @@ allows you to define a `+error.tsx` file in your route tree. This file defines a
 not only receives the same query references as props but it also receives an `errors` prop containing the thrown error:
 
 ```tsx 
-import { Container, Display, FavoritesContainer, Panel } from "~/components";
+import { Container, Display, Panel } from "~/components";
 import { ErrorProps } from "./$types";
 
 export default function ErrorView({ errors }: ErrorProps) {
@@ -332,9 +332,6 @@ export default function ErrorView({ errors }: ErrorProps) {
 
 	return (
 		<>
-			<FavoritesContainer>
-				<p>No Favorites Selected</p>
-			</FavoritesContainer>
 			<Container>
 				<Panel side="left">
 					<Display

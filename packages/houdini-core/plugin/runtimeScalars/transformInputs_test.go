@@ -52,6 +52,10 @@ func TestRuntimeScalars(t *testing.T) {
 	typeCaches, err := documents.LoadTypeCache(context.Background(), db)
 	require.Nil(t, err)
 
+	// documents reference their raw document by foreign key, so the fixture row
+	// has to exist just like it would after a real extraction
+	require.Nil(t, tests.InsertRawDocument(conn, 1, "user-info.gql", query))
+
 	// load the query into the database as a pending query
 	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID:    1,

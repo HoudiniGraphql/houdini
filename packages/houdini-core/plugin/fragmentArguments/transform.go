@@ -1495,10 +1495,10 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertFragment, err := conn.Prepare(`
-    INSERT INTO documents 
-			(name, type_condition, raw_document, kind, internal, visible) 
-		VALUES  
-			($name, $type_condition, $raw_document, 'fragment', true, false)
+    INSERT INTO documents
+			(name, type_condition, raw_document, kind, internal, visible, generated)
+		VALUES
+			($name, $type_condition, $raw_document, 'fragment', true, false, true)
   `)
 	if err != nil {
 		return nil, err

@@ -36,6 +36,13 @@ func TestComponentFields(t *testing.T) {
 	}
 	defer db.Close()
 	plugin := &plugin.HoudiniCore{}
+	plugin.SetFilesystem(afero.NewMemMapFs())
+	// the project config has to be set before the plugin copies the pool in
+	// SetDatabase
+	db.SetProjectConfig(plugins.ProjectConfig{
+		ProjectRoot: "/project",
+		SchemaPath:  "schema.graphql",
+	})
 	plugin.SetDatabase(db)
 
 	conn, err := db.Take(context.Background())
@@ -46,12 +53,35 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 	defer db.Put(conn)
 
+	// the type_fields rows written below reference the parent type by foreign
+	// key, so the graphql schema has to be in the database too
+	afero.WriteFile(
+		plugin.Fs,
+		filepath.Join("/project", "schema.graphql"),
+		[]byte(`
+			type User {
+				avatar: String
+			}
+
+			type Query {
+				user: User
+			}
+		`),
+		0644,
+	)
+	err = plugin.Schema(context.Background())
+	require.Nil(t, err)
+
 	statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
 	require.Nil(t, err)
 	defer finalize()
 
 	typeCaches, err := documents.LoadTypeCache(context.Background(), db)
 	require.Nil(t, err)
+
+	// documents reference their raw document by foreign key, so the fixture row
+	// has to exist just like it would after a real extraction
+	require.Nil(t, tests.InsertRawDocument(conn, 1, "avatar.tsx", query))
 
 	// load the query into the database as a pending query
 	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
@@ -207,6 +237,9 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
+				// documents reference their raw document by foreign key, so the
+				// fixture rows have to exist just like after a real extraction
+				require.Nil(t, tests.InsertRawDocument(conn, i, fmt.Sprintf("file-%v", i), doc))
 				err = documents.LoadPendingQuery(ctx, db, conn, documents.PendingQuery{
 					ID:       i,
 					Query:    doc,

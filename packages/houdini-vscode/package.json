@@ -1,0 +1,95 @@
+{
+    "name": "houdini-graphql",
+    "displayName": "Houdini GraphQL",
+    "description": "GraphQL intelligence for Houdini projects",
+    "version": "0.1.0",
+    "publisher": "houdini-graphql",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Linters"
+    ],
+    "keywords": [
+        "graphql",
+        "houdini"
+    ],
+    "activationEvents": [
+        "workspaceContains:**/houdini.config.js",
+        "workspaceContains:**/houdini.config.ts"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "graphql",
+                "aliases": [
+                    "GraphQL",
+                    "graphql"
+                ],
+                "extensions": [
+                    ".gql",
+                    ".graphql",
+                    ".graphqls"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "graphql",
+                "scopeName": "source.graphql",
+                "path": "./syntaxes/graphql.tmLanguage.json"
+            },
+            {
+                "injectTo": [
+                    "source.ts",
+                    "source.tsx",
+                    "source.js",
+                    "source.jsx",
+                    "source.svelte"
+                ],
+                "scopeName": "inline.graphql.houdini",
+                "path": "./syntaxes/graphql.injection.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.graphql": "graphql"
+                }
+            }
+        ]
+    },
+    "main": "./build/extension.js",
+    "scripts": {
+        "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build --sourcemap",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build",
+        "package": "pnpm build && vsce package --no-dependencies",
+        "publish:marketplace": "pnpm build && vsce publish --no-dependencies",
+        "publish:openvsx": "pnpm build && ovsx publish --no-dependencies"
+    },
+    "devDependencies": {
+        "@types/node": "^25.9.1",
+        "@types/vscode": "^1.85.0",
+        "tsup": "^8.5.1",
+        "houdini-lsp": "workspace:^",
+        "vscode-languageclient": "^9.0.1"
+    },
+    "private": true,
+    "extensionKind": [
+        "workspace"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false,
+            "description": "Houdini runs the houdini-lsp language server installed in your project, which executes project code."
+        },
+        "virtualWorkspaces": {
+            "supported": false,
+            "description": "The Houdini language server needs a real filesystem and process execution."
+        }
+    }
+}

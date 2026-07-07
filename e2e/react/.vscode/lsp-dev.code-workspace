@@ -1,0 +1,7 @@
+{
+	// Opened by the "Run Extension" launch config. VS Code refuses to open a FOLDER that's
+	// already open in another window (you'd get an empty dev host when e2e/react is your
+	// workspace), but a workspace file has its own window identity — so the dev host can show
+	// the same project you're debugging from.
+	"folders": [{ "path": ".." }]
+}

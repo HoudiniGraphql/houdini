@@ -20,6 +20,16 @@ const config: ConfigFile = {
 		},
 	},
 
+	// a query variable resolved from the session at request time instead of being passed by the
+	// caller — the session-query-refetch e2e derives its usersList snapshot from the session, so
+	// a session update must refire any query that used it
+	runtimeScalars: {
+		UsersSnapshotFromSession: {
+			type: 'String',
+			resolve: ({ session }) => session?.snapshot ?? 'session-query-refetch-initial',
+		},
+	},
+
 	types: {
 		RentedBook: {
 			keys: ['userId', 'bookId'],

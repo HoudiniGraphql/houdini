@@ -1,11 +1,21 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@2.0.0/schema.json",
-	"changelog": ["@changesets/changelog-github", { "repo": "HoudiniGraphQL/houdini" }],
+	"changelog": [
+		"@changesets/changelog-github",
+		{
+			"repo": "HoudiniGraphQL/houdini"
+		}
+	],
 	"commit": false,
 	"fixed": [],
 	"linked": [],
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "minor",
-	"ignore": ["e2e-api", "e2e-react", "e2e-kit"]
+	"ignore": [
+		"e2e-api",
+		"e2e-react",
+		"e2e-kit",
+		"houdini-graphql"
+	]
 }

@@ -60,7 +60,7 @@ export type TestEnum2$options = ValuesOf<typeof TestEnum2>
 				},
 				Extra: map[string]any{
 					"schemaExact": `"""@list is used to mark a field for the runtime as a place to add or remove entities in mutations"""
-directive @list(connection: Boolean, name: String!) on FIELD_DEFINITION
+directive @list(connection: Boolean, name: String!) on FIELD
 
 """@paginate is used to to mark a field for pagination."""
 directive @paginate(mode: PaginateMode, name: String!) on FIELD

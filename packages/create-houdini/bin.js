@@ -33,6 +33,7 @@ function resolveVersion(pkg) {
 const houdiniVersion = resolveVersion('houdini')
 const houdiniReactVersion = resolveVersion('houdini-react')
 const houdiniAdapterVersion = resolveVersion('houdini-adapter-auto')
+const houdiniLspVersion = resolveVersion('houdini-lsp')
 
 // prepare options
 const templatesDir = sourcePath(`./templates`)
@@ -222,6 +223,7 @@ copy(
 		HOUDINI_VERSION: houdiniVersion,
 		HOUDINI_REACT_VERSION: houdiniReactVersion,
 		HOUDINI_ADAPTER_VERSION: houdiniAdapterVersion,
+		HOUDINI_LSP_VERSION: houdiniLspVersion,
 		["'CLIENT_CONFIG'"]: clientConfig,
 		["'CONFIG_FILE'"]: configFile,
 	},

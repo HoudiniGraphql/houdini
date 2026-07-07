@@ -300,22 +300,24 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							console.log(
 								`🎩 Detected ${deletedFiles.length} deleted ${deletedFiles.length === 1 ? 'file' : 'files'}, re-running compiler`
 							)
-							ctx.db.run(`
-								UPDATE selections AS s
-								SET field_name = s.fragment_ref
-								WHERE s.fragment_ref IS NOT NULL
-								  AND s.kind = 'fragment'
-								  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
-							`)
-							ctx.db.run(`
-								WITH orphan_selections AS (
-								  SELECT s.id FROM selections s
-								  LEFT JOIN selection_refs rp ON rp.parent_id = s.id
-								  LEFT JOIN selection_refs rc ON rc.child_id = s.id
-								  WHERE rp.id IS NULL AND rc.id IS NULL
-								)
-								DELETE FROM selections WHERE id IN (SELECT id FROM orphan_selections)
-							`)
+							ctx.db.transaction(() => {
+								ctx.db.run(`
+									UPDATE selections AS s
+									SET field_name = s.fragment_ref
+									WHERE s.fragment_ref IS NOT NULL
+									  AND s.kind = 'fragment'
+									  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
+								`)
+								ctx.db.run(`
+									WITH orphan_selections AS (
+									  SELECT s.id FROM selections s
+									  LEFT JOIN selection_refs rp ON rp.parent_id = s.id
+									  LEFT JOIN selection_refs rc ON rc.child_id = s.id
+									  WHERE rp.id IS NULL AND rc.id IS NULL
+									)
+									DELETE FROM selections WHERE id IN (SELECT id FROM orphan_selections)
+								`)
+							})
 							try {
 								const results = await run_pipeline(compiler.trigger_hook, {
 									after: 'AfterExtract',
@@ -361,10 +363,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					)
 
 					// blow away raw documents for the changed files
-					ctx.db.run(`DELETE from raw_documents WHERE ${eqClause}`, relativePaths)
+					ctx.db.transaction(() => {
+						ctx.db.run(`DELETE from raw_documents WHERE ${eqClause}`, relativePaths)
 
-					// patch up fragment spreads that may have lost their expanded documents
-					ctx.db.run(`
+						// patch up fragment spreads that may have lost their expanded documents
+						ctx.db.run(`
 			  UPDATE selections AS s
 			  SET field_name = s.fragment_ref
 			  WHERE s.fragment_ref IS NOT NULL
@@ -372,8 +375,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			    AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
 			`)
 
-					// clean up dangling selections with no refs in either direction
-					ctx.db.run(`
+						// clean up dangling selections with no refs in either direction
+						ctx.db.run(`
 			      WITH orphan_selections AS (
 			        SELECT s.id FROM selections s
 			        LEFT JOIN selection_refs rp ON rp.parent_id = s.id
@@ -382,6 +385,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			      )
 			      DELETE FROM selections WHERE id IN (SELECT id FROM orphan_selections)
 			  `)
+					})
 
 					// trigger_hook flushes before Go runs and reloads after
 					try {

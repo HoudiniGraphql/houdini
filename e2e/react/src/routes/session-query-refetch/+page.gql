@@ -1,0 +1,6 @@
+query SessionQueryRefetch($snapshot: UsersSnapshotFromSession = "session-query-refetch-initial") {
+	usersList(snapshot: $snapshot, limit: 2) {
+		id
+		name
+	}
+}

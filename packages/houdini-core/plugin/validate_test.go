@@ -269,6 +269,12 @@ func TestValidate_Houdini(t *testing.T) {
 				   field
 			   }`,
 				},
+				// the fragment has to survive extraction so the user sees the
+				// validation message, not an internal failure (a type_condition
+				// constraint violation, for example)
+				ExpectedErrors: []string{
+					"references an unknown type",
+				},
 			},
 			{
 				Name: "Fragment defined on a scalar type",
@@ -1778,6 +1784,12 @@ func TestValidate_Houdini(t *testing.T) {
 					}
 				`,
 				},
+				// delete directives aren't registered until the generation phase, so
+				// the reference can't be a foreign key — the document has to survive
+				// extraction for validation to name the unknown directive
+				ExpectedErrors: []string{
+					"Unknown directive",
+				},
 			},
 			{
 				Name: "unused fragment arguments",
@@ -2017,6 +2029,28 @@ func TestValidate_Houdini(t *testing.T) {
 								node {
 									id
 								}
+							}
+						}
+					}
+				`,
+				},
+			},
+			{
+				Name: "@paginate with edges hidden behind a fragment spread",
+				Pass: true,
+				Input: []string{
+					`
+					fragment UserPaginatedThroughSpread on User {
+						friendsConnection(first: 10) @paginate {
+							...ConnectionInfo
+						}
+					}
+				`,
+					`
+					fragment ConnectionInfo on UserConnection {
+						edges {
+							node {
+								id
 							}
 						}
 					}
@@ -2851,6 +2885,82 @@ func TestValidate_Houdini(t *testing.T) {
 					`query Whoami @session(path: "user") {
 						user(name: "x") { id }
 					}`,
+				},
+			},
+		},
+	})
+}
+
+// list delete directives (User_delete, ...) are registered by the generation
+// phase, after user documents are extracted and validated. a document that uses
+// one has to make it through the full pipeline — a constraint (or any other
+// internal detail) that kills the document at extraction time surfaces as a
+// missing store in generated code, with no error anywhere.
+func TestValidate_DeleteDirectiveDocumentsSurvive(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			type Query {
+				users: [User!]!
+			}
+
+			type Mutation {
+				deleteUser(id: ID!): DeleteUserOutput!
+			}
+
+			type User {
+				id: ID!
+				name: String
+			}
+
+			type DeleteUserOutput {
+				userID: ID!
+			}
+		`,
+		VerifyTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			// every user-written document must still be in the database once the
+			// pipeline finishes
+			db := p.Database()
+			conn, err := db.Take(context.Background())
+			require.Nil(t, err)
+			defer db.Put(conn)
+
+			search, err := conn.Prepare(`SELECT name FROM documents`)
+			require.Nil(t, err)
+			defer search.Finalize()
+
+			names := []string{}
+			for {
+				hasData, err := search.Step()
+				require.Nil(t, err)
+				if !hasData {
+					break
+				}
+				names = append(names, search.ColumnText(0))
+			}
+
+			survivors, _ := test.Extra["survivors"].([]string)
+			for _, doc := range survivors {
+				require.Contains(t, names, doc)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "documents using delete directives survive the pipeline",
+				Pass: true,
+				Input: []string{
+					`query AllUsers {
+						users @list(name: "All_Users") {
+							id
+						}
+					}`,
+					`mutation DeleteUser {
+						deleteUser(id: "1") {
+							userID @User_delete
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"survivors": []string{"AllUsers", "DeleteUser"},
 				},
 			},
 		},

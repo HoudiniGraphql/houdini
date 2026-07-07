@@ -9,6 +9,14 @@ export interface Db {
 	readonly filepath: string
 	exec(sql: string): void
 	run(sql: string, params?: Params): void
+	// Run a synchronous sequence of statements in one transaction with foreign key
+	// checks deferred to COMMIT. defer_foreign_keys auto-resets at the end of every
+	// transaction, so multi-statement mutations that pass through temporarily
+	// inconsistent states (delete a parent, then patch up children) must use this —
+	// in autocommit each statement is its own transaction and enforcement is
+	// effectively immediate. The callback must not await: on a shared connection,
+	// statements from interleaved async work would join the open transaction.
+	transaction<T>(fn: () => T): T
 	get<T extends Record<string, any> = Record<string, any>>(
 		sql: string,
 		params?: Params
@@ -43,6 +51,21 @@ class SqlJsDb implements Db {
 	run(sql: string, params?: Params): void {
 		this._db.run(sql, params as any)
 		this._lastRowsModified = this._db.getRowsModified()
+	}
+
+	transaction<T>(fn: () => T): T {
+		this._db.run('BEGIN')
+		this._db.run('PRAGMA defer_foreign_keys = ON')
+		try {
+			const result = fn()
+			this._db.run('COMMIT')
+			return result
+		} catch (err) {
+			try {
+				this._db.run('ROLLBACK')
+			} catch {}
+			throw err
+		}
 	}
 
 	get<T extends Record<string, any>>(sql: string, params?: Params): T | undefined {
@@ -114,6 +137,21 @@ class NativeDb implements Db {
 					? stmt.run(...params)
 					: stmt.run(this._norm(params))
 		this._lastChanges = result?.changes ?? 0
+	}
+
+	transaction<T>(fn: () => T): T {
+		this._conn.exec('BEGIN')
+		this._conn.exec('PRAGMA defer_foreign_keys = ON')
+		try {
+			const result = fn()
+			this._conn.exec('COMMIT')
+			return result
+		} catch (err) {
+			try {
+				this._conn.exec('ROLLBACK')
+			} catch {}
+			throw err
+		}
 	}
 
 	get<T extends Record<string, any>>(sql: string, params?: Params): T | undefined {

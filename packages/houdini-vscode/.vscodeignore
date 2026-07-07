@@ -1,0 +1,7 @@
+**
+!build/**
+!syntaxes/**
+!language-configuration.json
+!README.md
+!LICENSE
+!package.json

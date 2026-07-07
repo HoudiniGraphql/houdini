@@ -203,24 +203,6 @@ variable and hooks types in your routes:
 
 ### Setup your IDE
 
-We recommend the following extensions for your editor to take full advantage of GraphQL:
-
-- [IntelliJ - GraphQL](https://plugins.jetbrains.com/plugin/8097-graphql)
-- [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
-- [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)
-
-To take the full advantage of these extensions, you should add a file in the root like:
-
-```yaml title=".graphqlrc.yaml"
-projects:
-  default:
-    schema:
-      - ./schema.graphql
-      - ./.houdini/graphql/schema.graphql
-    documents:
-      - '**/*.gql'
-      - '**/*.svelte'
-      - ./.houdini/graphql/documents.gql
-```
+Install the [Houdini GraphQL extension](https://marketplace.visualstudio.com/items?itemName=houdini-graphql.houdini-graphql) for VS Code to get live diagnostics, completions, hover documentation, and go-to-definition, powered by the same compiler that builds your app. See [IDE Setup](~/setup/ide-setup) for details and other editors.
 
 If you want to add another suggestion, please open a PR or contact us.

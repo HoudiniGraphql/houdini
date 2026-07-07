@@ -64,7 +64,7 @@ import type { Config } from './config.js'
 import { create_schema, schema_version, write_config } from './database.js'
 import { type Db, openDb } from './db.js'
 import type { HookError } from './error.js'
-import { format_hook_error } from './error.js'
+import { PluginHookError, format_hook_error } from './error.js'
 import * as fs from './fs.js'
 import { Logger } from './logger.js'
 import type { ProjectManifest } from './types.js'
@@ -100,8 +100,10 @@ export type Adapter = ((args: {
 	}) => Promise<void> | void
 }
 
-export async function connect_db(config: Config): Promise<[Db, string]> {
-	const filepath = conventions.db_path(config)
+// db_file defaults to the shared project database; callers that need to run alongside
+// another orchestrator (eg the language server next to a dev server) can pass their own
+export async function connect_db(config: Config, db_file?: string): Promise<[Db, string]> {
+	const filepath = db_file ?? conventions.db_path(config)
 	let db = await openDb(filepath)
 
 	// if a database persisted from an older compiler (eg. via --preserve-database
@@ -131,8 +133,12 @@ export async function connect_db(config: Config): Promise<[Db, string]> {
 	return [db, filepath]
 }
 
-export async function init_db(config: Config, preserve: boolean): Promise<[Db, string]> {
-	const db_file = conventions.db_path(config)
+export async function init_db(
+	config: Config,
+	preserve: boolean,
+	db_file?: string
+): Promise<[Db, string]> {
+	db_file ??= conventions.db_path(config)
 
 	// we need to create a fresh database for orchestration
 	if (!preserve) {
@@ -146,7 +152,7 @@ export async function init_db(config: Config, preserve: boolean): Promise<[Db, s
 			await fs.remove(`${db_file}-wal`)
 		} catch (_e) {}
 	}
-	return connect_db(config)
+	return connect_db(config, db_file)
 }
 
 export type CompilerProxy = {
@@ -387,7 +393,7 @@ export async function codegen_setup(
 							// format_hook_error already pretty-printed this above; flag the
 							// rejection so the HMR pipeline doesn't also dump a raw stack trace.
 							pending.reject(
-								Object.assign(new Error(`Failed to call ${name}`), {
+								Object.assign(new PluginHookError(name, pending.hook, errors), {
 									alreadyLogged: true,
 								})
 							)
@@ -487,7 +493,10 @@ export async function codegen_setup(
 				stdio: pluginUsesStdio
 					? ['pipe', 'pipe', 'inherit']
 					: ['inherit', 'inherit', 'inherit'],
-				detached: process.platform !== 'win32',
+				// stdio plugins can't be detached: WebContainers doesn't plumb the pipe
+				// to a detached child's fd 0, so the plugin gets EBADF reading stdin.
+				// They're torn down by closing stdin, so they don't need a process group.
+				detached: process.platform !== 'win32' && !pluginUsesStdio,
 			})
 
 			if (pluginUsesStdio) {
@@ -566,7 +575,7 @@ export async function codegen_setup(
 								// format_hook_error already pretty-printed this above; flag the
 								// rejection so the HMR pipeline doesn't also dump a raw stack trace.
 								pending.reject(
-									Object.assign(new Error(`Failed to call ${name}`), {
+									Object.assign(new PluginHookError(name, pending.hook, errors), {
 										alreadyLogged: true,
 									})
 								)
@@ -791,8 +800,13 @@ export async function codegen_setup(
 							try {
 								// Check if process still exists (signal 0 doesn't kill, just checks)
 								process.kill(plugin.process.pid, 0)
-								// Process exists, kill the process group
-								process.kill(-plugin.process.pid, 'SIGINT')
+								// stdio plugins (port 0) aren't detached, so they aren't group
+								// leaders — signal the pid directly. websocket plugins own their
+								// process group, so kill the whole group.
+								process.kill(
+									plugin.port === 0 ? plugin.process.pid : -plugin.process.pid,
+									'SIGINT'
+								)
 							} catch {
 								// Process already exited from WebSocket close - nothing to do
 							}

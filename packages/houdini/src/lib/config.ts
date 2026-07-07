@@ -8,10 +8,6 @@ import * as path from './path.js'
 import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
 
-declare namespace App {
-	type Session = {}
-}
-
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
@@ -363,10 +359,6 @@ export class Config {
 
 	schema_path() {
 		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
-	}
-
-	get localApiDir() {
-		return path.join(this.root_dir, 'src', 'api')
 	}
 
 	async api_url() {

@@ -37,6 +37,24 @@ func WriteDatabaseSchema(conn plugins.Conn) error {
 	return nil
 }
 
+// InsertRawDocument inserts a raw_documents row with the given id so fixtures
+// that call LoadPendingQuery directly satisfy the documents.raw_document
+// foreign key, exactly like the extraction step does in production.
+func InsertRawDocument(conn plugins.Conn, id int, filepath string, content string) error {
+	stmt, err := conn.Prepare(
+		`INSERT INTO raw_documents (id, filepath, content) VALUES ($id, $filepath, $content)`,
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Finalize()
+	stmt.SetInt64("$id", int64(id))
+	stmt.SetText("$filepath", filepath)
+	stmt.SetText("$content", content)
+	_, err = stmt.Step()
+	return err
+}
+
 // schema is the canonical orchestration database schema, generated from
 // `create_schema` in packages/houdini/src/lib/database.ts via `pnpm sync-schema`.
 // Do not edit schema.sql by hand.

@@ -195,14 +195,14 @@ func PreparePaginationDocuments(
 
 	// once we have a row, we'll need to insert variables and arguments into the document (and maybe extra documents)
 	insertDocument, err := conn.Prepare(`
-		INSERT INTO documents (name, kind, raw_document, internal, visible) VALUES ($name, 'query', $raw_document, false, false)
+		INSERT INTO documents (name, kind, raw_document, internal, visible, generated) VALUES ($name, 'query', $raw_document, false, false, true)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertDocument.Finalize()
 	insertFragment, err := conn.Prepare(`
-		INSERT INTO documents (name, kind, raw_document, type_condition, internal, visible) VALUES ($name, 'fragment', $raw_document, $type_condition, true, false)
+		INSERT INTO documents (name, kind, raw_document, type_condition, internal, visible, generated) VALUES ($name, 'fragment', $raw_document, $type_condition, true, false, true)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
