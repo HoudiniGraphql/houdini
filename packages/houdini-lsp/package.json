@@ -1,6 +1,6 @@
 {
     "name": "houdini-lsp",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "description": "Language server for Houdini GraphQL",
     "keywords": [
         "houdini",
