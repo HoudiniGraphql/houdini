@@ -10,7 +10,9 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}/../../packages/houdini-vscode",
-				"${workspaceFolder}"
+				// a workspace FILE for this same project — passing the folder itself does
+				// nothing when it's already open in the window you're debugging from
+				"${workspaceFolder}/.vscode/lsp-dev.code-workspace"
 			],
 			"outFiles": ["${workspaceFolder}/../../packages/houdini-vscode/build/**/*.js"],
 			"env": {
