@@ -74,8 +74,16 @@ func LoadDocuments(
 					unwrapped := errors.New(pluginErr.Error())
 					commit(&unwrapped)
 				} else {
-					var nilErr error
-					commit(&nilErr)
+					// a failed COMMIT (a deferred constraint violation, for example) rolls
+					// the whole document back — swallowing it here would silently drop the
+					// document from the pipeline
+					var commitErr error
+					commit(&commitErr)
+					if commitErr != nil {
+						errs.Append(plugins.WrapError(fmt.Errorf(
+							"failed to commit document %q: %w", query.Filepath, commitErr,
+						)))
+					}
 				}
 			}
 

@@ -342,7 +342,9 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 }
 
 func NewTestPool[PC any]() (DatabasePool[PC], error) {
-	db, err := sql.Open("sqlite3", "file:shared?mode=memory&cache=shared")
+	// enforce foreign keys just like the production pool — tests must run under
+	// the same constraint semantics or FK-violating bugs only surface in e2e apps
+	db, err := sql.Open("sqlite3", "file:shared?mode=memory&cache=shared&_pragma=foreign_keys(1)")
 	if err != nil {
 		return DatabasePool[PC]{}, err
 	}

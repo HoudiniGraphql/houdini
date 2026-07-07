@@ -134,6 +134,10 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 func NewTestPool[PC any]() (DatabasePool[PC], error) {
 	pool, err := sqlitex.NewPool("file:shared?mode=memory&cache=shared", sqlitex.PoolOptions{
 		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite | sqlite.OpenMemory | sqlite.OpenURI,
+		// tests must run under the same constraint semantics as production —
+		// without foreign_keys enforcement a pipeline bug that violates FK
+		// integrity passes every table test and only surfaces in e2e apps
+		PrepareConn: prepareConn,
 	})
 	if err != nil {
 		return DatabasePool[PC]{}, err

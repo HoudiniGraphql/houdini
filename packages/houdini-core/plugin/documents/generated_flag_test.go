@@ -36,6 +36,11 @@ func TestLoadDocuments_generatedFlag(t *testing.T) {
 	typeCache, err := documents.LoadTypeCache(context.Background(), db)
 	require.Nil(t, err)
 
+	// documents reference their raw document by foreign key, so the fixture rows
+	// have to exist just like they would after a real extraction
+	require.Nil(t, tests.InsertRawDocument(conn, 1, "user-list.gql", ""))
+	require.Nil(t, tests.InsertRawDocument(conn, 2, "avatar.tsx", ""))
+
 	// a user-written query and fragment
 	require.Nil(t, documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID: 1,

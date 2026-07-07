@@ -157,8 +157,10 @@ func WriteMetadata[PluginConfig any](
 	defer func() {
 		if errs.Len() > 0 {
 			commit(errs)
-		} else {
-			commit(nil)
+		} else if err := commit(nil); err != nil {
+			// a failed COMMIT (a deferred constraint violation, for example) rolls
+			// everything back — swallowing it here would silently drop the metadata
+			errs.Append(plugins.WrapError(err))
 		}
 	}()
 

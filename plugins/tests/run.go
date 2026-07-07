@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -48,6 +49,24 @@ type Test[PluginConfig any] struct {
 	Expected      []ExpectedDocument
 	Extra         map[string]any
 	ProjectConfig func(config *plugins.ProjectConfig)
+	// substrings that must appear in the pipeline's error output. use on failing
+	// tests to assert the user sees the intended validation message rather than
+	// an opaque internal failure (a constraint violation, for example). asserted
+	// against errors from every stage: the harness's own extract/validate setup
+	// and the stages run by the default PerformTest.
+	ExpectedErrors []string
+
+	// accumulates each stage's error text during the run so ExpectedErrors can
+	// be asserted regardless of which stage reported the failure
+	errorLog *strings.Builder
+}
+
+// logError records a stage error so ExpectedErrors can be asserted against it
+func (test *Test[PluginConfig]) logError(err error) {
+	if test.errorLog != nil && err != nil {
+		test.errorLog.WriteString(err.Error())
+		test.errorLog.WriteString("\n")
+	}
 }
 
 func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
@@ -73,6 +92,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 				if plugin.Name() != "houdini-core" {
 					err := after.AfterExtract(context.Background())
 					if err != nil {
+						test.logError(err)
 						require.False(t, test.Pass, err.Error())
 						return
 					}
@@ -83,6 +103,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			if validate, ok := any(plugin).(plugins.Validate); ok {
 				err := validate.Validate(context.Background())
 				if err != nil {
+					test.logError(err)
 					require.False(t, test.Pass, err.Error())
 					return
 				}
@@ -92,6 +113,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			if after, ok := any(plugin).(plugins.AfterValidate); ok {
 				err := after.AfterValidate(context.Background())
 				if err != nil {
+					test.logError(err)
 					require.False(t, test.Pass, err)
 					return
 				}
@@ -101,6 +123,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			if generate, ok := any(plugin).(plugins.GenerateDocuments); ok {
 				_, err := generate.GenerateDocuments(context.Background())
 				if err != nil {
+					test.logError(err)
 					require.False(t, test.Pass, err.Error())
 					return
 				}
@@ -110,6 +133,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			if runtime, ok := any(plugin).(plugins.GenerateRuntime); ok {
 				_, err := runtime.GenerateRuntime(context.Background())
 				if err != nil {
+					test.logError(err)
 					require.False(t, test.Pass, err.Error())
 					return
 				}
@@ -123,6 +147,8 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
+			test.errorLog = &strings.Builder{}
+
 			projectConfig := plugins.ProjectConfig{
 				ProjectRoot: "/project",
 				SchemaPath:  "schema.graphql",
@@ -338,16 +364,22 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 
 			// parse the raw documents into the documents table
 			err = core.AfterExtract(context.Background())
-			if err != nil && (table.SetupAlwaysPasses || test.Pass) {
-				require.NoError(t, err)
+			if err != nil {
+				test.logError(err)
+				if table.SetupAlwaysPasses || test.Pass {
+					require.NoError(t, err)
+				}
 			}
 
 			// run the core plugin's validation step to populate discovered_lists table
 			// This is essential for pagination detection and other list operations
 			err = core.Validate(context.Background())
-			if err != nil && test.Pass {
-				// Only fail if the test was supposed to pass
-				require.NoError(t, err)
+			if err != nil {
+				test.logError(err)
+				if test.Pass {
+					// Only fail if the test was supposed to pass
+					require.NoError(t, err)
+				}
 			}
 
 			// and now we need to instantiate the specific plugin we're using
@@ -374,6 +406,18 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			}
 
 			table.PerformTest(t, plugin, test)
+
+			// a failing test isn't done when something errored — the error has to
+			// be the one the user is meant to see, not an opaque internal failure
+			for _, want := range test.ExpectedErrors {
+				require.Contains(
+					t,
+					test.errorLog.String(),
+					want,
+					"expected the pipeline's errors to include %q",
+					want,
+				)
+			}
 		})
 	}
 }
