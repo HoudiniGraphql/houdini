@@ -53,9 +53,7 @@ describe('resolvePublicPath (public file manifest confinement)', () => {
 	const PUBLIC = new Set(['/robots.txt', '/.well-known/apple-app-site-association'])
 
 	test('serves a file named in the manifest', () => {
-		expect(resolvePublicPath('/robots.txt', BUILD, PUBLIC)).toBe(
-			path.join(BUILD, 'robots.txt')
-		)
+		expect(resolvePublicPath('/robots.txt', BUILD, PUBLIC)).toBe(path.join(BUILD, 'robots.txt'))
 	})
 
 	test('serves extensionless manifest entries', () => {

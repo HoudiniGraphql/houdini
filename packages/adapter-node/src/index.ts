@@ -32,8 +32,7 @@ function list_public_files(rootDir: string): string[] {
 			.map((entry) =>
 				// parentPath is absolute; reduce to a /-separated url path relative to public/
 				(
-					'/' +
-					nodePath.relative(publicDir, nodePath.join(entry.parentPath, entry.name))
+					'/' + nodePath.relative(publicDir, nodePath.join(entry.parentPath, entry.name))
 				).replaceAll(nodePath.sep, '/')
 			)
 	} catch {
