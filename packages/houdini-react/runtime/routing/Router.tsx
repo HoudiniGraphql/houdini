@@ -4,8 +4,7 @@ import type { Cache } from 'houdini/runtime/cache'
 import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
-import { deepEquals } from 'houdini/runtime'
-import type { LRUCache } from 'houdini/runtime'
+import { deepEquals, LRUCache } from 'houdini/runtime'
 import { marshalSelection, marshalInputs, getAuthUrl, HOUDINI_SESSION_EVENT } from 'houdini/runtime'
 import type { HoudiniSessionEventDetail } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
@@ -557,11 +556,12 @@ function usePageData({
 		artifact: QueryArtifact
 		variables: GraphQLVariables
 	}): Promise<void> {
-		// TODO: better tracking - only register the variables that were used
-		// track the new variables
-		for (const artifact of Object.keys(page.documents)) {
-			last_variables.set(artifact, variables)
-		}
+		// record the variables this document is being sent with. only the loaded document:
+		// a preload loads the *destination's* queries while another page is still rendered,
+		// so writing the whole page's documents here (the old behavior) would tag the
+		// current page's documents with the destination's variables — and never tag the
+		// preloaded document at all
+		last_variables.set(id, variables)
 
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
@@ -1433,7 +1433,10 @@ export function router_cache({
 			store.cleanup().catch(() => {})
 		}),
 		ssr_signals: suspense_cache(),
-		last_variables: suspense_cache(),
+		// a plain LRU, NOT a suspense cache: readers look up documents that may have no
+		// entry yet (useQueryResult reads it during render and in its commit effect, where
+		// a suspense cache's thrown promise would land in the nearest error boundary)
+		last_variables: new LRUCache(),
 	}
 
 	// we need to fill each query with an externally resolvable promise
