@@ -8,7 +8,8 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest, type RouterPageManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { lookup } from 'mrmime'
+import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
@@ -364,12 +365,19 @@ mount_static_app(App, manifest)
 
 				// Let Vite handle anything that isn't a page navigation — module scripts,
 				// assets, Vite internals, and virtual modules all need to pass through.
+				// The letters-only extension test covers source modules with no registered
+				// mimetype (.tsx, .scss); the mime lookup covers assets it misses (.woff2,
+				// .mp4) without also swallowing routes that merely contain a dot (/v1.2);
+				// the public-directory check covers extensionless files (.well-known/...)
+				// that neither test can identify.
 				const url = req.url.split('?')[0]
 				if (
 					url.startsWith('/@') ||
 					url.startsWith('/virtual:') ||
 					url.startsWith('/node_modules/') ||
-					/\.[a-z]+$/i.test(url)
+					/\.[a-z]+$/i.test(url) ||
+					lookup(url) !== undefined ||
+					is_public_file(url, server.config.publicDir)
 				) {
 					next()
 					return
@@ -493,6 +501,21 @@ mount_static_app(App, manifest)
 				}
 			})
 		},
+	}
+}
+
+// a request that maps to a real file in vite's public directory belongs to its static
+// middleware, even with no extension to identify it by. only files count — '/' maps to the
+// directory itself and must still reach the router. anything that doesn't cleanly resolve
+// (bad percent-encoding, missing file) falls through to the router.
+function is_public_file(url: string, publicDir: string | false): boolean {
+	if (!publicDir) {
+		return false
+	}
+	try {
+		return statSync(path.join(publicDir, decodeURIComponent(url))).isFile()
+	} catch {
+		return false
 	}
 }
 

@@ -26,6 +26,7 @@
     "devDependencies": {
         "@types/node": "^25.9.1",
         "houdini": "workspace:^",
+        "mrmime": "^2.0.1",
         "scripts": "workspace:^",
         "tsup": "^8.5.1"
     },
