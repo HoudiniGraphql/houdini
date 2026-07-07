@@ -1005,6 +1005,13 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	// search (the component's nullable, non-route query variables). Consumed via
 	// useRoute<PageRoute>(). Both are derived from the query inputs so they carry the exact
 	// scalar types (including unmarshaled custom scalars like Date).
+	//
+	// A query with no variables has `$input = null | undefined` (that shape makes the
+	// variables argument optional elsewhere), and intersecting null with another query's
+	// input collapses the whole combination to never — so coalesce each input to {} first.
+	if len(allQueries) > 0 || len(errorQueries) > 0 {
+		b.WriteString("\ntype _Input<T> = T extends null | undefined ? {} : T\n")
+	}
 	b.WriteString(formatRouteType("PageRoute", pageQueries, routeKeys, paramsType))
 	b.WriteString(formatRouteType("LayoutRoute", layoutQueries, routeKeys, paramsType))
 	b.WriteString(formatRouteType("ErrorRoute", errorQueries, routeKeys, paramsType))
@@ -1040,9 +1047,10 @@ func formatRouteKeyUnion(params map[string]*ParamTypeInfo) string {
 }
 
 // formatRouteType emits a PageRoute/LayoutRoute/ErrorRoute type: params are the route-key
-// subset of the component's query inputs and search is everything else (the nullable,
-// non-route variables). With no queries there's no input to derive from, so params falls
-// back to the path-segment names typed as string and search is empty.
+// subset of the component's query inputs (plus any route key no query declares, typed as
+// string from the path segment) and search is everything else (the nullable, non-route
+// variables). With no queries there's no input to derive from, so params falls back to
+// the path-segment names typed as string and search is empty.
 func formatRouteType(name string, queries []string, routeKeys, paramsType string) string {
 	var params, search string
 	if len(queries) == 0 {
@@ -1051,13 +1059,16 @@ func formatRouteType(name string, queries []string, routeKeys, paramsType string
 	} else {
 		inputs := make([]string, 0, len(queries))
 		for _, q := range queries {
-			inputs = append(inputs, q+"$input")
+			inputs = append(inputs, fmt.Sprintf("_Input<%s$input>", q))
 		}
 		combined := strings.Join(inputs, " & ")
 		if len(inputs) > 1 {
 			combined = "(" + combined + ")"
 		}
 		params = fmt.Sprintf("Pick<%s, Extract<keyof %s, %s>>", combined, combined, routeKeys)
+		if paramsType != "{}" {
+			params += fmt.Sprintf(" & Omit<%s, keyof %s>", paramsType, combined)
+		}
 		search = fmt.Sprintf("Omit<%s, %s>", combined, routeKeys)
 	}
 	return fmt.Sprintf("\nexport type %s = {\n\tparams: %s,\n\tsearch: %s,\n}\n", name, params, search)

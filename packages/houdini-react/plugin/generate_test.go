@@ -1005,9 +1005,11 @@ export type ErrorProps = {
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
-	search: Omit<LayoutQuery$input, never>,
+	params: Pick<_Input<LayoutQuery$input>, Extract<keyof _Input<LayoutQuery$input>, never>>,
+	search: Omit<_Input<LayoutQuery$input>, never>,
 }
 
 export type LayoutRoute = {
@@ -1016,8 +1018,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
-	search: Omit<LayoutQuery$input, never>,
+	params: Pick<_Input<LayoutQuery$input>, Extract<keyof _Input<LayoutQuery$input>, never>>,
+	search: Omit<_Input<LayoutQuery$input>, never>,
 }
 `,
 						"src/routes/(subRoute)/$types.d.ts": `import { DocumentHandle } from '../../../../plugins/houdini-react/runtime'
@@ -1050,9 +1052,11 @@ export type ErrorProps = {
 	RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<(LayoutQuery$input & RootQuery$input & FinalQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input & FinalQuery$input), never>>,
-	search: Omit<(LayoutQuery$input & RootQuery$input & FinalQuery$input), never>,
+	params: Pick<(_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), Extract<keyof (_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), never>>,
+	search: Omit<(_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), never>,
 }
 
 export type LayoutRoute = {
@@ -1061,8 +1065,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<(LayoutQuery$input & RootQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input), never>>,
-	search: Omit<(LayoutQuery$input & RootQuery$input), never>,
+	params: Pick<(_Input<LayoutQuery$input> & _Input<RootQuery$input>), Extract<keyof (_Input<LayoutQuery$input> & _Input<RootQuery$input>), never>>,
+	search: Omit<(_Input<LayoutQuery$input> & _Input<RootQuery$input>), never>,
 }
 `,
 					},
@@ -1105,9 +1109,11 @@ export type ErrorProps = {
 	MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
-	search: Omit<MyQuery$input, 'id'>,
+	params: Pick<_Input<MyQuery$input>, Extract<keyof _Input<MyQuery$input>, 'id'>> & Omit<{ id: string }, keyof _Input<MyQuery$input>>,
+	search: Omit<_Input<MyQuery$input>, 'id'>,
 }
 
 export type LayoutRoute = {
@@ -1116,8 +1122,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
-	search: Omit<MyQuery$input, 'id'>,
+	params: Pick<_Input<MyQuery$input>, Extract<keyof _Input<MyQuery$input>, 'id'>> & Omit<{ id: string }, keyof _Input<MyQuery$input>>,
+	search: Omit<_Input<MyQuery$input>, 'id'>,
 }
 `,
 					},
