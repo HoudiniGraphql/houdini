@@ -6,6 +6,8 @@ declare global {
 		interface Session {
 			user?: { id: string; username: string }
 			theme?: string
+			// the users snapshot the session-query-refetch e2e resolves through a runtime scalar
+			snapshot?: string
 			// established by the first-class OAuth flow (onSignIn in src/server/+config)
 			userId?: string
 			email?: string

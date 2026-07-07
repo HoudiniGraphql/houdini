@@ -197,9 +197,9 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache, data_cache, artifact_cache, ssr_signals } = useRouterContext()
+	const { component_cache, data_cache, artifact_cache, ssr_signals, latestSession } =
+		useRouterContext()
 	const PageComponent = component_cache.get(targetPage.id)!
-	const [session] = useSession()
 
 	// decide whether the entry should render its @loading frame instead of the page.
 	// values come from the router config (bundled client-side; they're UI timing, not
@@ -354,7 +354,7 @@ export function Router({
 		lastRevalidatedURL.current = currentURL
 		for (const name of Object.keys(targetPage.documents)) {
 			if (data_cache.has(name)) {
-				data_cache.get(name).send({ variables, session })
+				data_cache.get(name).send({ variables, session: latestSession.current })
 			}
 		}
 	}, [currentURL])
@@ -544,10 +544,8 @@ function usePageData({
 		artifact_cache,
 		ssr_signals,
 		last_variables,
+		latestSession,
 	} = useRouterContext()
-
-	// grab the current session value
-	const [session] = useSession()
 
 	// the function to load a query using the cache references
 	function load_query({
@@ -655,7 +653,10 @@ function usePageData({
 			observer
 				.send({
 					variables: variables,
-					session,
+					// read the ref, not the render-scoped session: this send can run during a
+					// render whose committed session predates a just-written one, and it must
+					// not repopulate the invalidated caches with stale-session results
+					session: latestSession.current,
 				})
 				.then(async () => {
 					// a stale-generation result: release the signal so nothing hangs, but
@@ -947,6 +948,15 @@ export function RouterContextProvider({
 	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
+	// the React state above lags behind session writes: a setSession scheduled inside a
+	// transition hasn't committed when another lane renders (e.g. the urgent isPending
+	// flip of a navigation started in the same transition), so a render-phase load_query
+	// in that window would send with the previous session and repopulate the caches the
+	// session change just invalidated — the new-session render then finds everything
+	// "cached" and never refetches. Every session write updates this ref synchronously,
+	// and query sends read it instead of the render-scoped state.
+	const latestSession = React.useRef<App.Session>(ssrSession)
+
 	// if we detect an event that contains a new session value. The detail carries the subtree
 	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
 	// it wholesale; a legacy plain-session detail is treated as a replace.
@@ -966,7 +976,8 @@ export function RouterContextProvider({
 			// old session
 			invalidate_session_caches({ data_cache, ssr_signals, last_variables })
 
-			setSession((prev) => (merge ? { ...prev, ...next } : next))
+			latestSession.current = merge ? { ...latestSession.current, ...next } : next
+			setSession(latestSession.current)
 		},
 		[data_cache, ssr_signals, last_variables]
 	)
@@ -991,9 +1002,19 @@ export function RouterContextProvider({
 				ssr_signals,
 				last_variables,
 				session,
-				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
-				replaceSession: (next) => setSession(next),
-				clearSession: () => setSession({}),
+				latestSession,
+				setSession: (newSession) => {
+					latestSession.current = { ...latestSession.current, ...newSession }
+					setSession(latestSession.current)
+				},
+				replaceSession: (next) => {
+					latestSession.current = next
+					setSession(next)
+				},
+				clearSession: () => {
+					latestSession.current = {}
+					setSession({})
+				},
 				formResult,
 				formToken,
 			}}
@@ -1026,6 +1047,12 @@ export type RouterContext = {
 
 	// The current session
 	session: App.Session
+
+	// the most recent session value, written synchronously by every session setter. The
+	// `session` state above only updates when React commits, which can lag the write by a
+	// render (e.g. a setSession inside a transition) — anything that fires a request during
+	// render (load_query) must read this instead so it can't send a stale session.
+	latestSession: { current: App.Session }
 
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
