@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.3
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compiler database integrity and diagnostics
+
 ## 2.0.2
 
 ### Patch Changes

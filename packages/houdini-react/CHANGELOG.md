@@ -1,5 +1,13 @@
 # houdini-react
 
+## 2.1.1
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix a crash when clicking a link whose `preload` had already loaded the destination's queries.
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix active queries not refetching with the new session value when a session update happens alongside a navigation in the same transition.
+
 ## 2.1.0
 
 ### Minor Changes

@@ -1,5 +1,17 @@
 # houdini
 
+## 2.0.4
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `App.Session` augmentations not applying to session-typed fields in `ConfigFile` (a local type alias was shadowing the global interface).
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compiler database integrity and diagnostics
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix local schema watching to look for `src/server/+schema`; the watcher was still checking the old `src/api` location, so local schemas were never serialized at startup and schema edits didn't trigger codegen.
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Don't detach stdio-transport plugin processes; detached children can't read their stdin pipe in WebContainers, which broke codegen there.
+
 ## 2.0.3
 
 ### Patch Changes
