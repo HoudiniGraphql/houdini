@@ -507,13 +507,18 @@ mount_static_app(App, manifest)
 // a request that maps to a real file in vite's public directory belongs to its static
 // middleware, even with no extension to identify it by. only files count — '/' maps to the
 // directory itself and must still reach the router. anything that doesn't cleanly resolve
-// (bad percent-encoding, missing file) falls through to the router.
+// (bad percent-encoding, missing file, a path that escapes the public directory) falls
+// through to the router.
 function is_public_file(url: string, publicDir: string | false): boolean {
 	if (!publicDir) {
 		return false
 	}
 	try {
-		return statSync(path.join(publicDir, decodeURIComponent(url))).isFile()
+		const resolved = path.resolve(publicDir, `.${decodeURIComponent(url)}`)
+		if (!resolved.startsWith(publicDir + path.sep)) {
+			return false
+		}
+		return statSync(resolved).isFile()
 	} catch {
 		return false
 	}
