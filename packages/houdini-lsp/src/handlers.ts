@@ -60,7 +60,25 @@ export function register_handlers(state: ServerState) {
 		// offset 1 = the token ending at the cursor. without it, a cursor at the end of
 		// a line (the normal typing position) matches no token and the state collapses
 		// to Document, which turns every completion into top-level keywords
-		const token: ContextToken = getTokenAtPosition(block.content, cursor, 1)
+		let token: ContextToken = getTokenAtPosition(block.content, cursor, 1)
+
+		// that token is only meaningful when the cursor is actually touching one. on a
+		// blank line (whitespace-only before the cursor) it hands back the PREVIOUS
+		// line's trailing state — a completed fragment spread, for example, which has
+		// nothing to suggest. pop to the enclosing selection set so a blank line offers
+		// the selection's fields; with no enclosing selection set (a top-level blank
+		// line) the original token already carries the right document state.
+		const lineBefore = block.content.split('\n')[local.line]?.slice(0, local.character) ?? ''
+		if (lineBefore.trim() === '') {
+			let s: ContextToken['state'] | null = token.state
+			while (s && s.kind !== RuleKinds.SELECTION_SET) {
+				s = s.prevState ?? null
+			}
+			if (s) {
+				token = { ...token, string: '', state: s }
+			}
+		}
+
 		const ctx = houdiniDirectiveContext(token.state)
 
 		if (ctx) {
