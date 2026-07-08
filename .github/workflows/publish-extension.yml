@@ -44,16 +44,16 @@ jobs:
 
             - name: Package
               working-directory: packages/houdini-vscode
-              run: pnpm dlx @vscode/vsce package --no-dependencies ${{ inputs.prerelease && '--pre-release' || '' }}
+              run: pnpm exec vsce package --no-dependencies ${{ inputs.prerelease && '--pre-release' || '' }}
 
             - name: Publish to the VS Code Marketplace
               working-directory: packages/houdini-vscode
-              run: pnpm dlx @vscode/vsce publish --no-dependencies --packagePath *.vsix
+              run: pnpm exec vsce publish --no-dependencies --packagePath *.vsix ${{ inputs.prerelease && '--pre-release' || '' }}
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
             - name: Publish to Open VSX
               working-directory: packages/houdini-vscode
-              run: pnpm dlx ovsx publish *.vsix
+              run: pnpm exec ovsx publish *.vsix ${{ inputs.prerelease && '--pre-release' || '' }}
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
