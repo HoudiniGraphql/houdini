@@ -125,6 +125,8 @@ if (PLATFORM_OVERRIDE === 'wasm') {
 }
 
 // --- Native binary path ---
+const attempted = [];
+
 function getBinaryPath() {
 	if (MANUAL_BINARY_PATH && fs.existsSync(MANUAL_BINARY_PATH)) {
 		return MANUAL_BINARY_PATH;
@@ -138,36 +140,82 @@ function getBinaryPath() {
 			process.stderr.write(`[my-package] Unknown platform "${PLATFORM_OVERRIDE}". Valid values: ${Object.keys(BINARY_DISTRIBUTION_PACKAGES).join(', ')}, wasm\n`);
 			process.exit(1);
 		}
-		return path.join(__dirname, binaryName);
+		return path.join(__dirname, '..', binaryName);
 	}
 
+	// module resolution from the shim's own location: real installs, and any
+	// environment that provides NODE_PATH (pnpm scripts do)
 	try {
 		const platformPackagePath = require.resolve(`${platformSpecificPackageName}/package.json`);
 		return path.join(path.dirname(platformPackagePath), 'bin', binaryName);
 	} catch {
-		const siblingPath = path.join(__dirname, '..', platformSpecificPackageName, 'bin', binaryName);
-		if (fs.existsSync(siblingPath)) return siblingPath;
-
-		const pnpmMatch = __dirname.match(/(.+\/node_modules\/)\.pnpm\/[^/]+\/node_modules\//);
-		if (pnpmMatch) {
-			const pnpmDir = path.join(pnpmMatch[1], '.pnpm');
-			try {
-				const packageJSON = require(path.join(__dirname, '..', 'package.json'));
-				const entry = `${platformSpecificPackageName}@${packageJSON.version}`;
-				const found = fs.readdirSync(pnpmDir).find(e => e === entry);
-				if (found) {
-					const p = path.join(pnpmDir, found, 'node_modules', platformSpecificPackageName, 'bin', binaryName);
-					if (fs.existsSync(p)) return p;
-				}
-			} catch {}
-		}
-
-		return path.join(__dirname, binaryName);
+		attempted.push(`require.resolve('${platformSpecificPackageName}') from ${__dirname}`);
 	}
+
+	// module resolution from the invoking project: a linked development setup puts
+	// the platform package in the project's node_modules, which the walk from the
+	// shim's realpath (inside the linked repo) never visits
+	try {
+		const platformPackagePath = require.resolve(`${platformSpecificPackageName}/package.json`, {
+			paths: [process.cwd()],
+		});
+		return path.join(path.dirname(platformPackagePath), 'bin', binaryName);
+	} catch {
+		attempted.push(`require.resolve('${platformSpecificPackageName}') from ${process.cwd()}`);
+	}
+
+	// flat node_modules: the platform package next to this one
+	const siblingPath = path.join(__dirname, '..', platformSpecificPackageName, 'bin', binaryName);
+	if (fs.existsSync(siblingPath)) return siblingPath;
+	attempted.push(siblingPath);
+
+	// monorepo build layout: the shim lives at <pkg>/build/my-package/bin and the
+	// platform package at <pkg>/build/<platform package>
+	const buildSiblingPath = path.join(__dirname, '..', '..', platformSpecificPackageName, 'bin', binaryName);
+	if (fs.existsSync(buildSiblingPath)) return buildSiblingPath;
+	attempted.push(buildSiblingPath);
+
+	const pnpmMatch = __dirname.match(/(.+\/node_modules\/)\.pnpm\/[^/]+\/node_modules\//);
+	if (pnpmMatch) {
+		const pnpmDir = path.join(pnpmMatch[1], '.pnpm');
+		try {
+			const packageJSON = require(path.join(__dirname, '..', 'package.json'));
+			const entry = `${platformSpecificPackageName}@${packageJSON.version}`;
+			const found = fs.readdirSync(pnpmDir).find(e => e === entry);
+			if (found) {
+				const p = path.join(pnpmDir, found, 'node_modules', platformSpecificPackageName, 'bin', binaryName);
+				if (fs.existsSync(p)) return p;
+			}
+			attempted.push(path.join(pnpmDir, entry, 'node_modules', platformSpecificPackageName, 'bin', binaryName));
+		} catch {}
+	}
+
+	// the binary postInstall downloads into the package root when no platform
+	// package could be installed (the shim lives in bin/, one level down)
+	return path.join(__dirname, '..', binaryName);
+}
+
+// Refuse to exec ourselves: when every resolution attempt fails, the final
+// candidate (the postInstall download location) can be this very script — exec'ing
+// it recurses forever, forking a new node per iteration until the machine chokes.
+// A missing binary must be a loud error, never a spawn loop.
+const binaryPath = getBinaryPath();
+let realBinaryPath = null;
+try {
+	realBinaryPath = fs.realpathSync(binaryPath);
+} catch {}
+if (!realBinaryPath || realBinaryPath === fs.realpathSync(__filename)) {
+	attempted.push(binaryPath);
+	process.stderr.write(
+		`[my-package] Could not locate the my-package binary for ${process.platform}-${process.arch}. Tried:\n` +
+			attempted.map((p) => `  - ${p}\n`).join('') +
+			`Install the platform package for your system or point MY_PACKAGE_BINARY_PATH at the binary.\n`
+	);
+	process.exit(1);
 }
 
 try {
-	execFileSync(getBinaryPath(), process.argv.slice(2), { stdio: 'inherit' });
+	execFileSync(binaryPath, process.argv.slice(2), { stdio: 'inherit' });
 } catch (error) {
 	process.exit(error.status || 1);
 }
