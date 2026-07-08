@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.4
+
+### Patch Changes
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin processes leaking when the orchestrator dies or fails setup before connecting: plugins now exit if no connection arrives within two minutes, and a failed startup kills the plugins it already spawned.
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin binary resolution failing in linked or monorepo setups, which caused `houdini generate` to hang. The plugin launcher now resolves its native binary from the invoking project and refuses to re-execute itself when the binary can't be found, reporting a clear error instead.
+
 ## 2.0.3
 
 ### Patch Changes
