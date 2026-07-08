@@ -56,6 +56,27 @@ func (p *HoudiniCore) BeforeValidate(ctx context.Context) error {
 		return plugins.WrapError(err)
 	}
 
+	// the fragment-argument transform rewrites user spreads to point at its variant
+	// documents (UserInfo_<hash>) and records the original name in fragment_ref.
+	// the variants were just deleted, so restore any spread whose target is gone —
+	// otherwise validation reports the user's own spread as an unknown fragment
+	// (same protocol as reset_file_documents in houdini-lsp and the HMR handler)
+	restoreSpreads, err := conn.Prepare(`
+		UPDATE selections AS s
+		SET field_name = s.fragment_ref
+		WHERE s.fragment_ref IS NOT NULL
+		  AND s.kind = 'fragment'
+		  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
+	`)
+	if err != nil {
+		return plugins.WrapError(err)
+	}
+	defer restoreSpreads.Finalize()
+
+	if err := p.DB.ExecStatement(restoreSpreads, nil); err != nil {
+		return plugins.WrapError(err)
+	}
+
 	// deleting the documents cascades their selection_refs; sweep selections that
 	// no longer participate in any document so they don't accumulate across runs
 	deleteOrphans, err := conn.Prepare(`
