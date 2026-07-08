@@ -101,6 +101,10 @@ function merged_diagnostics(state: ServerState, uri: string, pipeline: Diagnosti
 }
 
 // Run the pipeline through validation, rebuild the schema, publish diagnostics.
+// The whole reset → clear → run → publish sequence runs inside pipeline_lock (the
+// same discipline as run_overlay in overlay.ts): letting two validates interleave
+// would race one run's publishes against the other's clears. The lock is a plain
+// promise chain, so nothing in here may call pipeline_lock again.
 export async function validate(state: ServerState, savedUri?: string) {
 	const { connection, db, compiler } = state
 	if (!compiler || !db) return
@@ -109,100 +113,104 @@ export async function validate(state: ServerState, savedUri?: string) {
 		// the pipeline result supersedes the live squiggles for the saved file
 		state.live_diagnostics.delete(savedUri)
 		connection.sendDiagnostics({ uri: savedUri, diagnostics: [] })
+	}
 
-		try {
-			db.transaction(() => reset_file_documents(state, fileURLToPath(savedUri)))
-			db.flush()
-		} catch (err) {
-			connection.console.error(`[houdini-lsp] failed to reset saved file: ${err}`)
+	await compiler.pipeline_lock(async () => {
+		if (savedUri) {
+			try {
+				db.transaction(() => reset_file_documents(state, fileURLToPath(savedUri)))
+				db.flush()
+			} catch (err) {
+				connection.console.error(`[houdini-lsp] failed to reset saved file: ${err}`)
+			}
 		}
-	}
 
-	// clear the previous run's diagnostics down to whatever the live path still shows
-	for (const uri of state.pipeline_diagnostic_uris) {
-		connection.sendDiagnostics({
-			uri,
-			diagnostics: state.live_diagnostics.get(uri) ?? [],
-		})
-	}
-	state.pipeline_diagnostic_uris = new Set()
+		// clear the previous run's diagnostics down to whatever the live path still shows
+		for (const uri of state.pipeline_diagnostic_uris) {
+			connection.sendDiagnostics({
+				uri,
+				diagnostics: state.live_diagnostics.get(uri) ?? [],
+			})
+		}
+		state.pipeline_diagnostic_uris = new Set()
 
-	let pipelineError: unknown = null
-	try {
-		await compiler.pipeline_lock(() => compiler.run_pipeline({ through: 'AfterValidate' }))
-	} catch (err) {
-		pipelineError = err
-	}
+		let pipelineError: unknown = null
+		try {
+			await compiler.run_pipeline({ through: 'AfterValidate' })
+		} catch (err) {
+			pipelineError = err
+		}
 
-	// the schema steps run before validation, so the schema tables are populated
-	// even when validation fails — always rebuild
-	try {
-		rebuild_schema(state)
-	} catch (err) {
-		connection.console.error(`[houdini-lsp] failed to rebuild schema: ${err}`)
-	}
+		// the schema steps run before validation, so the schema tables are populated
+		// even when validation fails — always rebuild
+		try {
+			rebuild_schema(state)
+		} catch (err) {
+			connection.console.error(`[houdini-lsp] failed to rebuild schema: ${err}`)
+		}
 
-	if (!pipelineError) return
-	if (!(pipelineError instanceof PluginHookError)) {
-		connection.console.error(`[houdini-lsp] pipeline error: ${pipelineError}`)
-		return
-	}
+		if (!pipelineError) return
+		if (!(pipelineError instanceof PluginHookError)) {
+			connection.console.error(`[houdini-lsp] pipeline error: ${pipelineError}`)
+			return
+		}
 
-	const byUri = new Map<string, Diagnostic[]>()
-	// cache per-file extraction — error-dense files report many locations
-	const blocks_by_uri = new Map<string, { text: string | undefined; blocks: Block[] }>()
+		const byUri = new Map<string, Diagnostic[]>()
+		// cache per-file extraction — error-dense files report many locations
+		const blocks_by_uri = new Map<string, { text: string | undefined; blocks: Block[] }>()
 
-	for (const hookError of hook_errors(pipelineError)) {
-		if (hookError.locations.length === 0) {
-			if (!savedUri) {
-				// nowhere to anchor it — at least surface it in the output channel
-				connection.console.error(`[houdini-lsp] ${hookError.message}`)
+		for (const hookError of hook_errors(pipelineError)) {
+			if (hookError.locations.length === 0) {
+				if (!savedUri) {
+					// nowhere to anchor it — at least surface it in the output channel
+					connection.console.error(`[houdini-lsp] ${hookError.message}`)
+					continue
+				}
+				const list = byUri.get(savedUri) ?? []
+				list.push({
+					severity: DiagnosticSeverity.Error,
+					range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } },
+					message: hookError.message,
+					source: 'houdini',
+				})
+				byUri.set(savedUri, list)
 				continue
 			}
-			const list = byUri.get(savedUri) ?? []
-			list.push({
-				severity: DiagnosticSeverity.Error,
-				range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } },
-				message: hookError.message,
-				source: 'houdini',
-			})
-			byUri.set(savedUri, list)
-			continue
-		}
 
-		for (const loc of hookError.locations) {
-			const fileUri = nodePath.isAbsolute(loc.filepath)
-				? pathToFileURL(loc.filepath).toString()
-				: pathToFileURL(nodePath.resolve(loc.filepath)).toString()
+			for (const loc of hookError.locations) {
+				const fileUri = nodePath.isAbsolute(loc.filepath)
+					? pathToFileURL(loc.filepath).toString()
+					: pathToFileURL(nodePath.resolve(loc.filepath)).toString()
 
-			const line = Math.max(0, (loc.line ?? 1) - 1)
-			const col = Math.max(0, loc.column ?? 0)
+				const line = Math.max(0, (loc.line ?? 1) - 1)
+				const col = Math.max(0, loc.column ?? 0)
 
-			let cached = blocks_by_uri.get(fileUri)
-			if (!cached) {
-				const text = file_text(state, fileUri)
-				cached = { text, blocks: text ? extract_blocks(text, fileUri) : [] }
-				blocks_by_uri.set(fileUri, cached)
+				let cached = blocks_by_uri.get(fileUri)
+				if (!cached) {
+					const text = file_text(state, fileUri)
+					cached = { text, blocks: text ? extract_blocks(text, fileUri) : [] }
+					blocks_by_uri.set(fileUri, cached)
+				}
+
+				const list = byUri.get(fileUri) ?? []
+				list.push({
+					severity: DiagnosticSeverity.Error,
+					range: pipeline_range(cached.text, cached.blocks, line, col),
+					message: hookError.message,
+					source: 'houdini',
+				})
+				byUri.set(fileUri, list)
 			}
-
-			const list = byUri.get(fileUri) ?? []
-			list.push({
-				severity: DiagnosticSeverity.Error,
-				range: pipeline_range(cached.text, cached.blocks, line, col),
-				message: hookError.message,
-				source: 'houdini',
-			})
-			byUri.set(fileUri, list)
 		}
-	}
 
-	for (const [uri, diagnostics] of byUri) {
-		connection.sendDiagnostics({
-			uri,
-			diagnostics: merged_diagnostics(state, uri, diagnostics),
-		})
-		state.pipeline_diagnostic_uris.add(uri)
-	}
+		for (const [uri, diagnostics] of byUri) {
+			connection.sendDiagnostics({
+				uri,
+				diagnostics: merged_diagnostics(state, uri, diagnostics),
+			})
+			state.pipeline_diagnostic_uris.add(uri)
+		}
+	})
 }
 
 // validate on save — the pipeline result supersedes any pending live validation
