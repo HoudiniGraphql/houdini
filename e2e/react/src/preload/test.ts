@@ -39,3 +39,32 @@ test('preloaded navigation between pages with different variables', async ({ pag
 	await expect(page.locator('#result')).toHaveText(dataUsers[1].avatarURL)
 	expect(errors).toEqual([])
 })
+
+test('clicking a link while its preload is still in flight', async ({ page }) => {
+	const errors: string[] = []
+	page.on('pageerror', (error) => errors.push(error.message))
+
+	await goto(page, routes.handle_1)
+	await expect(page.locator('#result')).toHaveText(dataUsers[0].avatarURL)
+
+	// hold every api response so the preload the hover fires cannot land before the click:
+	// the navigation has to adopt the in-flight preload instead of a finished one
+	let release!: () => void
+	const gate = new Promise<void>((resolve) => (release = resolve))
+	await page.route('**/_api', async (route) => {
+		await gate
+		await route.continue()
+	})
+
+	const link = page.getByRole('link', { name: 'handle_2', exact: true })
+	await link.hover()
+	// past the 20ms hover timer: the preload request is now in flight, and gated
+	await page.waitForTimeout(100)
+	await link.click()
+
+	// the navigation is committed and waiting on the preloaded query — let it land
+	release()
+
+	await expect(page.locator('#result')).toHaveText(dataUsers[1].avatarURL)
+	expect(errors).toEqual([])
+})
