@@ -4,6 +4,7 @@
     "description": "GraphQL intelligence for Houdini projects",
     "version": "0.1.0",
     "publisher": "houdini-graphql",
+    "icon": "icon.png",
     "license": "MIT",
     "repository": {
         "type": "git",
