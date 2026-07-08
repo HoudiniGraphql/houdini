@@ -47,8 +47,9 @@ export default defineAddon({
 	nextSteps: () => ['Check the Houdini tutorial at https://houdinigraphql.com/intro'],
 
 	run: ({ directory, sv, options, language }) => {
-		sv.dependency('houdini', '2.0.0-next.27')
-		sv.dependency('houdini-svelte', '3.0.0-next.14')
+		sv.dependency('houdini', '2.0.5')
+		sv.dependency('houdini-svelte', '3.0.2')
+		sv.devDependency('houdini-lsp', '2.0.5')
 
 		sv.file(
 			'houdini.config.js',
