@@ -1,6 +1,6 @@
 // The fast half of live validation. The real authority is the compiler pipeline,
 // which the server runs against a buffer overlay on every (debounced) change — see
-// overlay_validate in index.ts. This module only covers what the pipeline can't do
+// live_validate in overlay.ts. This module only covers what the pipeline can't do
 // well from the editor's point of view:
 //   - syntax errors, reported instantly without a pipeline round trip
 //   - @with / @when argument checks, which the pipeline attributes to the fragment's

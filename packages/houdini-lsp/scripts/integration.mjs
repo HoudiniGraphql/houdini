@@ -115,6 +115,17 @@ try {
 	await waitFor(() => logs.some((l) => l.includes('[houdini-lsp] ready')), 120_000, 'ready')
 	check('server ready', true)
 
+	// the startup validation runs against whatever lsp.db the last session left
+	// behind — a clean project must produce no diagnostics before any buffer opens
+	// (regression: BeforeValidate deleting argument variants without restoring the
+	// rewritten spreads flagged the user's own documents on every second launch)
+	const staleAtStartup = [...diagnostics.entries()].filter(([, d]) => d.length > 0)
+	check(
+		'startup publishes no diagnostics for a clean project',
+		staleAtStartup.length === 0,
+		staleAtStartup.map(([u, d]) => `${u.split('/').slice(-2).join('/')}: ${d[0]?.message.slice(0, 60)}`)
+	)
+
 	// the server registers its own file watchers with capable clients — this is
 	// what delivers didChangeWatchedFiles in editors without extension-side watchers
 	check(
@@ -174,6 +185,24 @@ try {
 			sortOf('delay').startsWith('1') &&
 			sortOf('enumValue').startsWith('1'),
 		argItems.map((i) => ({ l: i.label, s: i.sortText }))
+	)
+
+	// ── B3: field completions on an auto-indented blank line after a fragment
+	// spread (the previous line's trailing FragmentSpread state must not leak —
+	// it has nothing to suggest and the editor falls back to word completions) ──
+	const blankDoc =
+		'query BlankLineLSP {\n\tusersList(snapshot: "blank-line-lsp") {\n\t\tname\n\t\t...UserInfo\n\t\t\n\t}\n}\n'
+	const blankPath = 'src/routes/blank-scratch.gql'
+	open(blankPath, blankDoc, 'graphql')
+	const blankComp = await request('textDocument/completion', {
+		textDocument: { uri: uri(blankPath) },
+		position: { line: 4, character: 2 },
+	})
+	const blankLabels = (blankComp.result ?? []).map((i) => i.label)
+	check(
+		'field completions on a blank line after a fragment spread',
+		blankLabels.includes('id') && blankLabels.includes('avatarURL'),
+		blankLabels.slice(0, 15)
 	)
 
 	// ── C: fragment spread completions include generated list operations ──
@@ -501,6 +530,51 @@ try {
 		check('pipeline diagnostics clear after fixed save', true)
 	} catch (err) {
 		check('pipeline diagnostics clear after fixed save', false, diagnostics.get(uri(gqlPath)))
+	}
+
+	// ── J2: overlapping saves converge on the last state ──
+	// two saves fired back-to-back without waiting: the second validate queues
+	// behind the first on pipeline_lock, so the settled diagnostics must reflect
+	// the second save only — a stale first-run publish can never land after it
+	try {
+		writeFileSync(helloOnDisk, 'query HelloWorld {\n\thellox_one\n}\n')
+		notify('textDocument/didSave', { textDocument: { uri: uri(gqlPath) } })
+		writeFileSync(helloOnDisk, 'query HelloWorld {\n\thellox_two\n}\n')
+		notify('textDocument/didSave', { textDocument: { uri: uri(gqlPath) } })
+
+		await waitFor(
+			() => (diagnostics.get(uri(gqlPath)) ?? []).some((d) => d.message.includes('hellox_two')),
+			60_000,
+			'second overlapping save diagnostic'
+		)
+		// give a straggling first-run publish time to land, then make sure it didn't
+		await sleep(2000)
+		const settled = diagnostics.get(uri(gqlPath)) ?? []
+		check(
+			"overlapping saves settle on the last save's diagnostics",
+			settled.some((d) => d.message.includes('hellox_two')) &&
+				!settled.some((d) => d.message.includes('hellox_one')),
+			settled.map((d) => d.message)
+		)
+	} catch (err) {
+		check("overlapping saves settle on the last save's diagnostics", false, err.message)
+	} finally {
+		writeFileSync(helloOnDisk, original)
+	}
+	notify('textDocument/didSave', { textDocument: { uri: uri(gqlPath) } })
+	try {
+		await waitFor(
+			() => (diagnostics.get(uri(gqlPath)) ?? []).length === 0,
+			60_000,
+			'diagnostics cleared after restoring overlapping saves'
+		)
+		check('diagnostics clear after overlapping saves are restored', true)
+	} catch {
+		check(
+			'diagnostics clear after overlapping saves are restored',
+			false,
+			diagnostics.get(uri(gqlPath))
+		)
 	}
 
 	// ── K: watched-file changes reconcile without any editor interaction ──

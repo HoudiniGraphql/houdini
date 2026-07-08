@@ -3,7 +3,8 @@
     "displayName": "Houdini GraphQL",
     "description": "GraphQL intelligence for Houdini projects",
     "version": "0.1.0",
-    "publisher": "houdini-graphql",
+    "publisher": "houdinigraphql",
+    "icon": "icon.png",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -74,8 +75,10 @@
     "devDependencies": {
         "@types/node": "^25.9.1",
         "@types/vscode": "^1.85.0",
-        "tsup": "^8.5.1",
+        "@vscode/vsce": "^3.9.2",
         "houdini-lsp": "workspace:^",
+        "ovsx": "^1.0.2",
+        "tsup": "^8.5.1",
         "vscode-languageclient": "^9.0.1"
     },
     "private": true,

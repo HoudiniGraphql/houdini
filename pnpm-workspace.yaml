@@ -4,8 +4,10 @@ packages:
   - 'example'
 
 allowBuilds:
+  '@vscode/vsce-sign': true
   core-js: false
   esbuild: true
+  keytar: true
   puppeteer: false
   sharp: false
   svelte-preprocess: true

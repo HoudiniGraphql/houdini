@@ -11,7 +11,7 @@ import type { RouteHrefs, ExternalHref, ParamsForRoute, SearchForRoute } from '.
 import { buildHref, type RouteHrefInfo } from './resolve-href.js'
 
 // re-exported for custom link wrappers that constrain their own `to` prop
-export type { RouteHrefs }
+export type { RouteHrefs, ExternalHref }
 
 export type LinkProps<H extends RouteHrefs | ExternalHref = RouteHrefs | ExternalHref> = Omit<
 	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
