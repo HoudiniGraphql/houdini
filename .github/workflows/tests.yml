@@ -56,16 +56,16 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: pnpm/action-setup@v4.1.0
             - name: Get pnpm store directory
               id: pnpm-cache
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run format
             - name: Commit formatting fixes (same-repo PR)
@@ -91,7 +91,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -102,9 +102,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -122,7 +122,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -133,9 +133,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -166,7 +166,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -177,9 +177,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -198,7 +198,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -209,9 +209,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -232,7 +232,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -243,9 +243,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -257,8 +257,8 @@ jobs:
             - uses: actions/cache@v3
               id: playwright-cache
               with:
-                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
-                path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+                  path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
             - if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
             - if: matrix.framework == 'e2e-kit'
@@ -280,7 +280,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -291,9 +291,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
@@ -313,7 +313,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -324,16 +324,16 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - name: Generate (${{ matrix.protocol }})
               run: pnpm --filter e2e-kit generate
               env:
-                HOUDINI_PLUGIN_TRANSPORT: ${{ matrix.protocol }}
+                  HOUDINI_PLUGIN_TRANSPORT: ${{ matrix.protocol }}
 
     linter:
         name: Linter & Type Check
@@ -349,7 +349,7 @@ jobs:
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
-                node-version: 24.9.0
+                  node-version: 24.9.0
             - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
@@ -360,9 +360,9 @@ jobs:
               run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
             - run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
