@@ -1,5 +1,11 @@
 # houdini-lsp
 
+## 2.0.5
+
+### Patch Changes
+
+- [`fc96e7c`](https://github.com/HoudiniGraphql/houdini/commit/fc96e7caecb867beebe12b6d328d4c60fe1472c1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - release to osvx
+
 ## 2.0.4
 
 ### Patch Changes
