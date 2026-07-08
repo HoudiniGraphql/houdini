@@ -80,12 +80,9 @@ func (p *HoudiniCore) BeforeValidate(ctx context.Context) error {
 	// deleting the documents cascades their selection_refs; sweep selections that
 	// no longer participate in any document so they don't accumulate across runs
 	deleteOrphans, err := conn.Prepare(`
-		DELETE FROM selections WHERE id IN (
-			SELECT s.id FROM selections s
-			LEFT JOIN selection_refs rp ON rp.parent_id = s.id
-			LEFT JOIN selection_refs rc ON rc.child_id = s.id
-			WHERE rp.id IS NULL AND rc.id IS NULL
-		)
+		DELETE FROM selections
+		WHERE NOT EXISTS (SELECT 1 FROM selection_refs WHERE parent_id = selections.id)
+		  AND NOT EXISTS (SELECT 1 FROM selection_refs WHERE child_id = selections.id)
 	`)
 	if err != nil {
 		return plugins.WrapError(err)
