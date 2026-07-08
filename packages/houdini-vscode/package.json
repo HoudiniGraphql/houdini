@@ -3,7 +3,7 @@
     "displayName": "Houdini GraphQL",
     "description": "GraphQL intelligence for Houdini projects",
     "version": "0.1.0",
-    "publisher": "houdini-graphql",
+    "publisher": "houdinigraphql",
     "icon": "icon.png",
     "license": "MIT",
     "repository": {
