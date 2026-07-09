@@ -5,7 +5,7 @@ description: Fetch a query and suspend until data is available.
 
 In most cases query data arrives as a prop from the route file rather than from a hook directly. `useQuery` exists for cases where you need to issue a query imperatively from inside a component.
 
-Fetches a query and returns the data. Suspends until the result is available.
+Fetches a query and returns the data. Suspends until the result is available. During server-side rendering the query resolves on the server and streams with the page; hydration serves it from the embedded cache snapshot without a client refetch.
 
 ```tsx
 import { graphql, useQuery } from '$houdini'

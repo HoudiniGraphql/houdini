@@ -575,6 +575,10 @@ export async function write_config(
 	db.run('DELETE FROM watch_schema_config')
 	db.run('DELETE FROM scalar_config')
 	db.run('DELETE FROM type_configs')
+	// runtime_scalar_definitions.name is a UNIQUE primary key, so re-seeding on a
+	// persisted db without clearing first throws on the duplicate insert — which
+	// aborts the seed loop and silently drops any newly-added runtime scalars.
+	db.run('DELETE FROM runtime_scalar_definitions')
 
 	// write the config to the database
 	db.run(
