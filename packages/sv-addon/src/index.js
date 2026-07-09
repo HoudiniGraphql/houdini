@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from 'sv'
-import { transforms, dedent, svelteConfig } from './sv-utils.js'
+import { dedent, svelteConfig, transforms } from './sv-utils.js'
 
 const options = defineAddonOptions()
 	.add('is_remote_endpoint', {
@@ -47,17 +47,17 @@ export default defineAddon({
 	nextSteps: () => ['Check the Houdini tutorial at https://houdinigraphql.com/intro'],
 
 	run: ({ cwd, directory, sv, options, language }) => {
-		sv.dependency('houdini', '2.0.5')
-		sv.dependency('houdini-svelte', '3.0.2')
-		sv.devDependency('houdini-lsp', '2.0.5')
+		sv.dependency('houdini', '^2.0.5')
+		sv.dependency('houdini-svelte', '^3.0.2')
+		sv.devDependency('houdini-lsp', '^2.0.5')
 
 		// Houdini config file
 		sv.file(
 			'houdini.config.js',
-			transforms.script(({ ast, comments, content, js }) => {
+			transforms.script(({ ast, content, js }) => {
 				// Don't overwrite if a config is already present
 				if (content) {
-					console.warn("houdini.config.js already exists, skipping config changes")
+					console.warn('houdini.config.js already exists, skipping config changes')
 					return false
 				}
 
@@ -89,10 +89,9 @@ export default defineAddon({
 		// Houdini client in src/client.{js,ts}
 		sv.file(
 			`${directory.src}/client.${language}`,
-			transforms.text(({ content, text}) => {
+			transforms.text(({ content }) => {
 				// Don't overwrite if a client is already present
-				if (content) return false;
-
+				if (content) return false
 
 				return dedent(`import { HoudiniClient } from '$houdini';
 
@@ -106,28 +105,28 @@ export default defineAddon({
 					    //         }
 					    //     }
 					    // }
-					})`);
+					})`)
 			})
 		)
 
 		// Add alias to svelte config
-		svelteConfig.edit({ sv, cwd }, ({ ast, property, override, js }) => {
-      override({
-        alias: {
-          $houdini: '.houdini/'
-        }
-      })
-    })
+		svelteConfig.edit({ sv, cwd }, ({ override }) => {
+			override({
+				alias: {
+					$houdini: '.houdini/',
+				},
+			})
+		})
 
-    sv.file(
-      ".gitignore",
-      transforms.text(({ content }) => {
-        if (content) {
-          return content + "\n.houdini/\n";
-        } else {
-          return ".houdini/"
-        }
-      })
+		sv.file(
+			'.gitignore',
+			transforms.text(({ content }) => {
+				if (content) {
+					return `${content}\n.houdini/\n`
+				} else {
+					return '.houdini/'
+				}
+			})
 		)
 
 		// Add houdini plugin to vite
@@ -144,37 +143,5 @@ export default defineAddon({
 				})
 			})
 		)
-
-		// sv.file(
-		// 	`${directory.lib}/@houdinigraphql/sv/content.txt`,
-		// 	transforms.text(() => {
-		// 		return `This is a text file made by the Community Addon Template demo for the add-on: '@houdinigraphql/sv'!`
-		// 	})
-		// )
-		//
-		// sv.file(
-		// 	`${directory.lib}/@houdinigraphql/sv/HelloComponent.svelte`,
-		// 	transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
-		// 		js.imports.addDefault(ast.instance.content, {
-		// 			as: 'content',
-		// 			from: './content.txt?raw',
-		// 		})
-		//
-		// 		svelte.addFragment(ast, '<p>{content}</p>')
-		// 		svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`)
-		// 	})
-		// )
-		//
-		// sv.file(
-		// 	directory.kitRoutes + '/+page.svelte',
-		// 	transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
-		// 		js.imports.addDefault(ast.instance.content, {
-		// 			as: 'HelloComponent',
-		// 			from: `$lib/@houdinigraphql/sv/HelloComponent.svelte`,
-		// 		})
-		//
-		// 		svelte.addFragment(ast, '<HelloComponent />')
-		// 	})
-		// )
 	},
 })
