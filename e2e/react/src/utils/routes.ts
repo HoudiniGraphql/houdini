@@ -8,6 +8,8 @@ export const routes = {
 	use_query_abandon: '/use-query-abandon',
 	use_query_strictmode: '/use-query-strictmode',
 	use_query_ssr: '/use-query-ssr',
+	use_query_session: '/use-query-session',
+	use_query_error: '/use-query-error',
 	scalars: '/scalars',
 	componentFields_simple: '/component_fields/simple',
 	componentFields_arguments: '/component_fields/arguments',

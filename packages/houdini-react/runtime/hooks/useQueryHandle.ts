@@ -1,17 +1,15 @@
-import { createLRUCache } from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	CachePolicies,
 	QueryArtifact,
 	GraphQLVariables,
-	LRUCache,
 } from 'houdini/runtime'
-import type { Cache } from 'houdini/runtime/cache'
 import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
-import { useRouterContext } from '../routing/index.js'
-import { isObserverRetained, releaseObserver, retainObserver } from './observerRefs.js'
+import { GraphQLErrors, useRouterContext } from '../routing/index.js'
+import { releaseObserver, retainObserver } from './observerRefs.js'
+import { promiseCacheFor, type QuerySuspenseUnit } from './suspenseCache.js'
 import type { DocumentHandle } from './useDocumentHandle.js'
 import { useDocumentHandle } from './useDocumentHandle.js'
 import { useIsMountedRef } from './useIsMounted.js'
@@ -26,42 +24,9 @@ import { useIsMountedRef } from './useIsMounted.js'
 // - If we have a cached promise that's been resolved, we should return that value
 //
 // When the Component unmounts, we need to remove the entry from the cache (so we can load again)
-
-// suspense state is scoped to the Cache instance: the browser has exactly one so the
-// scoping is invisible there, but on the server the cache is created per request — and
-// suspense units carry resolved query data, which can be session-dependent. a module-wide
-// cache would let one request's render serve another user's data.
-const promiseCaches = new WeakMap<Cache, LRUCache<QuerySuspenseUnit>>()
-
-function promiseCacheFor(cache: Cache): LRUCache<QuerySuspenseUnit> {
-	let result = promiseCaches.get(cache)
-	if (!result) {
-		result = createLRUCache<QuerySuspenseUnit>(1000, (unit) => {
-			// a unit leaving the cache whose store no committed component ever picked up is
-			// an abandoned suspense (suspended, then unmounted before commit) or an errored
-			// fetch — dispose the store so its cache subscription doesn't outlive it.
-			// retained stores are governed by their holders instead.
-			if (!isObserverRetained(unit.observer)) {
-				unit.observer.cleanup()
-			}
-		})
-		promiseCaches.set(cache, result)
-	}
-	return result
-}
-type QuerySuspenseUnit<
-	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends GraphQLVariables = GraphQLVariables,
-> = {
-	resolve: () => void
-	resolved?: DocumentHandle<QueryArtifact, _Data, _Input>
-	then: (val: any) => any
-	// the store that started the fetch. suspending discards the component instance that
-	// created it, so the retry render has to pick this store back up — the cache
-	// subscription created by the fetch belongs to it, and a fresh store would never
-	// hear about later cache updates (a mutation write, a list operation)
-	observer: DocumentStore<GraphQLObject, GraphQLVariables>
-}
+//
+// The suspense state itself lives in suspenseCache.ts, scoped per Cache instance (i.e.
+// per request on the server) and invalidated on session changes.
 
 export function useQueryHandle<
 	_Artifact extends QueryArtifact,
@@ -84,6 +49,14 @@ export function useQueryHandle<
 
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
+
+	// a failed fetch: surface the error to the nearest boundary, and drop the unit so a
+	// later mount (e.g. navigating back after the error boundary took over) retries
+	// instead of re-throwing the stale error forever
+	if (suspenseValue?.rejected) {
+		promiseCache.delete(identifier)
+		throw suspenseValue.rejected
+	}
 
 	const isMountedRef = useIsMountedRef()
 
@@ -173,18 +146,18 @@ export function useQueryHandle<
 		// we are going to cache the promise and then throw it
 		// when it resolves the cached value will be updated
 		// and it will be picked up in the next render
+		// note: the thenable only ever resolves — failures park on suspenseUnit.rejected
+		// and resolve, so the retry render throws them (see the rejected check above)
 		let resolve: () => void = () => {}
-		let reject: (reason?: any) => void = () => {}
-		const loadPromise = new Promise<void>((res, rej) => {
+		const loadPromise = new Promise<void>((res) => {
 			resolve = res
-			reject = rej
 		})
 
 		const suspenseUnit: QuerySuspenseUnit<_Data, _Input> = {
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
-			observer: observer as DocumentStore<GraphQLObject, GraphQLVariables>,
+			observer: observer as unknown as DocumentStore<GraphQLObject, GraphQLVariables>,
 			// @ts-expect-error
 			variables,
 		}
@@ -203,6 +176,18 @@ export function useQueryHandle<
 				},
 			})
 			.then((value) => {
+				// a graphql error must reach the error boundary, not resolve the suspense
+				// with null data (the component would crash reading its fields). same error
+				// shape route queries throw, so +error boundaries see the graphql errors.
+				// park it on the unit and resolve — the retry render throws it (see the
+				// rejected check above; rejecting the thenable would make react retry into
+				// a brand new fetch, an error loop)
+				if (value.errors && value.errors.length > 0) {
+					suspenseUnit.rejected = new GraphQLErrors(value.errors)
+					suspenseUnit.resolve()
+					return
+				}
+
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,
@@ -240,8 +225,10 @@ export function useQueryHandle<
 				suspenseUnit.resolve()
 			})
 			.catch((err) => {
-				promiseCache.delete(identifier)
-				reject(err)
+				// same protocol as graphql errors: park and resolve so the retry render
+				// throws to the boundary instead of starting a fresh fetch
+				suspenseUnit.rejected = err
+				suspenseUnit.resolve()
 			})
 		suspenseTracker.current = true
 		throw suspenseUnit

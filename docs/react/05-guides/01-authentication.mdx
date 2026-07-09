@@ -51,6 +51,8 @@ const [ session, updateSession ] = useSession()
 
 Calling `updateSession(values)` merges the values into the client-side session and persists them in the cookie so they survive the next load. Calling `updateSession(null)` logs the user out: it empties the client-side session and deletes the cookie.
 
+Either call invalidates every cached query result: active queries (route queries and `useQuery` alike) refetch with the new session, and the normalized cache is marked stale so results whose variables didn't change still revalidate against the network.
+
 <Notice variant="warning">
   **The cookie is the source of truth, not `useSession()`.** The `httpOnly` cookie is signed by the server, and the server gets its verified contents as `ctx.session`. What `useSession()` returns is in-memory UI state that mirrors the cookie, which is great for rendering but is not where an authorization decision belongs. We authorize against `ctx.session`, on the server. Always.
 </Notice>
