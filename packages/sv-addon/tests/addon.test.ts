@@ -55,12 +55,12 @@ test.concurrent.for(testCases)('@houdinigraphql/sv $kind.type $variant', async (
 
 	// Check houdini client file (could be .ts or .js)
 	// houdini client could be js or ts
-	const viteConfig = ['src/client.ts', 'src/client.js']
+	const houdiniClient = ['src/client.ts', 'src/client.js']
 		.map((name) => path.resolve(cwd, name))
 		.find((file) => fs.existsSync(file))!
 
 	if (testCase.kind.type === 'node') {
-		expect(fs.readFileSync(viteConfig, 'utf8')).toContain('export default new HoudiniClient')
+		expect(fs.readFileSync(houdiniClient, 'utf8')).toContain('export default new HoudiniClient')
 	}
 
 	// Check svelte config
@@ -74,7 +74,9 @@ test.concurrent.for(testCases)('@houdinigraphql/sv $kind.type $variant', async (
 	expect(content).toContain('.houdini')
 
 	// Check vite config is correct
-	const viteConfigPath = path.resolve(cwd, 'vite.config.ts')
+	const viteConfigPath = ['vite.config.ts', 'vite.config.js']
+		.map((name) => path.resolve(cwd, name))
+		.find((file) => fs.existsSync(file))!
 	const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf8')
 
 	// Ensure import is added
