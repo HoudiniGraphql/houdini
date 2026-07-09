@@ -37,6 +37,7 @@ test.concurrent.for(testCases)(
   async (testCase, { page, ...ctx }) => {
     const cwd = ctx.cwd(testCase);
 
+    // Check houdini config
     const configPath = path.resolve(cwd, 'houdini.config.js')
     const configContent = fs.readFileSync(configPath, 'utf8');
 
@@ -47,6 +48,12 @@ test.concurrent.for(testCases)(
       expect(configContent).toContain('schemaPath')
       expect(configContent).toContain('./schema.graphql')
     }
+
+    // Check vite config
+    // checkViteConfig(cwd);
+
+    // Check gitignore
+    checkGitignore(cwd);
 
     // const msg = "Community Addon Template demo for the add-on: '@houdinigraphql/sv'!";
     //
@@ -77,3 +84,22 @@ test.concurrent.for(testCases)(
     // }
   }
 );
+
+/** @param {string} rootCwd */
+const checkViteConfig = (rootCwd) => {
+  const configPath = path.resolve(rootCwd, 'vite.config.ts')
+  const configContent = fs.readFileSync(configPath, 'utf8');
+
+  // Ensure import is added
+  expect(configContent).toMatch(/import houdini from ['"]houdini\/vite['"]/)
+
+  // Check that `houdini()` is added before `sveltekit()` in the array
+  expect(configContent).toContain("plugins: [houdini(), sveltekit()]")
+}
+
+/** @param {string} rootCwd */
+const checkGitignore = (rootCwd) => {
+  const ignorePath = path.resolve(rootCwd, '.gitignore');
+  const content = fs.readFileSync(ignorePath, 'utf8');
+  expect(content).toContain(".houdini")
+}

@@ -724,8 +724,8 @@ importers:
         specifier: ^1.60.0
         version: 1.60.0
       '@sveltejs/sv-utils':
-        specifier: ^0.2.2
-        version: 0.2.2
+        specifier: ^0.3.0
+        version: 0.3.1
       '@types/node':
         specifier: ^25.5.2
         version: 25.9.2
@@ -2763,6 +2763,9 @@ packages:
 
   '@sveltejs/sv-utils@0.2.2':
     resolution: {integrity: sha512-2rmR7HKhqcMR6vz9eoYPPMgVaKLME2+tZGFsxy1QV44HkVrLttXzUrE8GXBHDsd2uMOr945cBnQLs7+DYPNopA==}
+
+  '@sveltejs/sv-utils@0.3.1':
+    resolution: {integrity: sha512-12RIq2LEeJA8v8m7vBXO8q5QyMTVjSqzJ9ZTE+baENQY4GR7jVIRFraBoUKshN6BeCkF0cCWzb2Kngono2M5CQ==}
 
   '@sveltejs/vite-plugin-svelte@7.1.2':
     resolution: {integrity: sha512-DrUBA2UXRfDmUX/ZTiEopd3X40yavsJF1FX2RygcuIScHL7o5YX1fMvoYnDhjeJQC4weCOklirpNWlcb2NiSeA==}
@@ -8088,6 +8091,8 @@ snapshots:
   '@sveltejs/load-config@0.1.1': {}
 
   '@sveltejs/sv-utils@0.2.2': {}
+
+  '@sveltejs/sv-utils@0.3.1': {}
 
   '@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.2(@typescript-eslint/types@8.60.1))(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(yaml@2.9.0))':
     dependencies:
