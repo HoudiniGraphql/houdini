@@ -23,6 +23,7 @@ import {
 import { escapeScriptTag } from '../escape.js'
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
+import { invalidateSuspenseCache } from '../hooks/suspenseCache.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
@@ -931,6 +932,7 @@ export function RouterContextProvider({
 	session: ssrSession = {},
 	formResult = null,
 	formToken = null,
+	injectToStream,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -943,6 +945,7 @@ export function RouterContextProvider({
 	session?: App.Session
 	formResult?: FormResult | null
 	formToken?: string | null
+	injectToStream?: (chunk: string) => void
 }) {
 	// the session is top level state
 	// on the server, we can just use
@@ -974,12 +977,12 @@ export function RouterContextProvider({
 			// navigation no longer clears the data cache, so without this an event-driven
 			// session change (updateLocalSession) would keep serving results fetched under the
 			// old session
-			invalidate_session_caches({ data_cache, ssr_signals, last_variables })
+			invalidate_session_caches({ cache, data_cache, ssr_signals, last_variables })
 
 			latestSession.current = merge ? { ...latestSession.current, ...next } : next
 			setSession(latestSession.current)
 		},
-		[data_cache, ssr_signals, last_variables]
+		[cache, data_cache, ssr_signals, last_variables]
 	)
 
 	React.useEffect(() => {
@@ -1017,6 +1020,7 @@ export function RouterContextProvider({
 				},
 				formResult,
 				formToken,
+				injectToStream,
 			}}
 		>
 			{children}
@@ -1071,6 +1075,11 @@ export type RouterContext = {
 	// the session-bound CSRF token forms render in their hidden field (always present from a
 	// server render; null only when there is no server, e.g. a static export).
 	formToken: string | null
+
+	// present only during a server render: appends a chunk to the response stream. queries
+	// that resolve after the shell flushes use this to ship their cache snapshot to the
+	// browser (route queries via load_query, component-level useQuery via useQueryHandle).
+	injectToStream?: (chunk: string) => void
 }
 
 // FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
@@ -1128,6 +1137,7 @@ export function updateLocalSession(session: App.Session, merge = false) {
 // suspends into its loading state and refetches). One helper shared by both session-change
 // paths (updateSession and the HOUDINI_SESSION_EVENT listener) so they can't drift.
 function invalidate_session_caches(caches: {
+	cache: Cache
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
@@ -1135,6 +1145,14 @@ function invalidate_session_caches(caches: {
 	caches.data_cache.clear()
 	caches.ssr_signals.clear()
 	caches.last_variables.clear()
+	// useQuery's suspense state is keyed off the Cache instance and holds resolved query
+	// data too — sweep it as well so session-dependent useQuery components refetch
+	invalidateSuspenseCache(caches.cache)
+	// the normalized cache still holds values fetched under the old session. mark it all
+	// stale (not clear — the data can render while revalidating) so a refetch whose
+	// variables didn't change with the session still continues to the network instead of
+	// being served the old session's value from cache.
+	caches.cache.markTypeStale()
 }
 
 export function useSession(): [

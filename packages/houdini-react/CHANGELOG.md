@@ -1,5 +1,27 @@
 # houdini-react
 
+## 2.2.0
+
+### Minor Changes
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - useQuery now renders on the server and ships a number of reliability fixes: components stay reactive to cache updates and session changes, and query errors surface at the nearest error boundary.
+
+## 2.1.2
+
+### Patch Changes
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Export the `ExternalHref` type alongside `RouteHrefs` so custom link wrappers can type non-route hrefs.
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin binary resolution failing in linked or monorepo setups, which caused `houdini generate` to hang. The plugin launcher now resolves its native binary from the invoking project and refuses to re-execute itself when the binary can't be found, reporting a clear error instead.
+
+## 2.1.1
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix a crash when clicking a link whose `preload` had already loaded the destination's queries.
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix active queries not refetching with the new session value when a session update happens alongside a navigation in the same transition.
+
 ## 2.1.0
 
 ### Minor Changes

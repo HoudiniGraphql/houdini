@@ -3,8 +3,10 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -35,6 +37,7 @@ var (
 	connWriteMu     sync.Map // *websocket.Conn -> *sync.Mutex, serializes writes per connection
 	shutdownChannel = make(chan struct{})
 	shutdownOnce    = sync.Once{}
+	everConnected   = atomic.Bool{}
 )
 
 func writeJSON(conn *websocket.Conn, v any) error {
@@ -81,6 +84,7 @@ func registerWSHandler(hookName string, handler HookHandler) {
 
 func HandleWebSocketConnection(conn *websocket.Conn) {
 	// Register this connection
+	everConnected.Store(true)
 	connMutex.Lock()
 	activeConns[conn] = true
 	connMutex.Unlock()
@@ -158,6 +162,27 @@ func sendErrorResponse(conn *websocket.Conn, id string, err error) {
 func WaitForShutdown() {
 	<-shutdownChannel
 	os.Exit(0)
+}
+
+// ArmConnectionDeadline exits the process if no orchestrator ever connects. The
+// count-to-zero shutdown above only protects a plugin whose connection was
+// established: an orchestrator that dies (or errors out of setup) between
+// spawning the plugin and dialing its websocket would otherwise leak the
+// process forever, waiting for a connection that never comes.
+func ArmConnectionDeadline(d time.Duration) {
+	armConnectionDeadline(d, func(code int) {
+		log.Printf("no orchestrator connected within %s — exiting", d)
+		os.Exit(code)
+	})
+}
+
+// exit is injected so tests can observe the decision without the process dying
+func armConnectionDeadline(d time.Duration, exit func(int)) *time.Timer {
+	return time.AfterFunc(d, func() {
+		if !everConnected.Load() {
+			exit(1)
+		}
+	})
 }
 
 // GetActiveConnectionCount returns the number of active WebSocket connections

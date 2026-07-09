@@ -873,10 +873,16 @@ func DiscoverListsThenValidate(
 		return
 	}
 
-	// we need to store the set of discovered lists into the database for 2 reasons:
-	// - we'll consider them when validating directive and fragment spreads
-	// - we'll use them to insert the operation schema items
-	insertDiscoveredLists, err := conn.Prepare(`
+	// the connection goes back to the pool right after this closure so the remaining
+	// work can run concurrently. statements have to be finalized before db.Put (a
+	// Finalize that runs after would mutate the connection's statement cache while
+	// another goroutine has it checked out), so the closure scopes their defers to
+	// run first.
+	err = func() error {
+		// we need to store the set of discovered lists into the database for 2 reasons:
+		// - we'll consider them when validating directive and fragment spreads
+		// - we'll use them to insert the operation schema items
+		insertDiscoveredLists, err := conn.Prepare(`
 		INSERT INTO discovered_lists
       (
         name,
@@ -908,65 +914,49 @@ func DiscoverListsThenValidate(
         $target_type
       )
 	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		db.Put(conn)
-		return
-	}
-	// NOTE: these statements are finalized explicitly before db.Put(conn) below rather
-	// than via defer. The connection is returned to the pool partway through this
-	// function so the remaining work can run concurrently; finalizing in a deferred
-	// call (which runs after Put) would mutate the connection's statement cache while
-	// another goroutine has checked it back out, which is a data race.
+		if err != nil {
+			return err
+		}
+		defer insertDiscoveredLists.Finalize()
 
-	// if a connection's edges { node } selection is hidden behind a component field or
-	// fragment spread we'll need to insert internal selections for the rest of the
-	// pipeline to use
-	insertSelection, err := conn.Prepare(`
+		// if a connection's edges { node } selection is hidden behind a component field or
+		// fragment spread we'll need to insert internal selections for the rest of the
+		// pipeline to use
+		insertSelection, err := conn.Prepare(`
 		INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, 'field', $type)
 	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		insertDiscoveredLists.Finalize()
-		db.Put(conn)
-		return
-	}
-	insertSelectionRef, err := conn.Prepare(`
+		if err != nil {
+			return err
+		}
+		defer insertSelection.Finalize()
+
+		insertSelectionRef, err := conn.Prepare(`
 		INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal) VALUES ($parent_id, $child_id, $document, 0, 0, 0, true)
 	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		insertDiscoveredLists.Finalize()
-		insertSelection.Finalize()
-		db.Put(conn)
-		return
-	}
-	finalizeStatements := func() {
-		insertDiscoveredLists.Finalize()
-		insertSelection.Finalize()
-		insertSelectionRef.Finalize()
-	}
-
-	// loop over every name we found and insert the discovered list into the database
-	for _, list := range lists {
-		// if we saw the name more than once, we need to report an error
-		if len(list.Locations) > 1 {
-			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("encountered duplicate list name %s", list.ListName),
-				Locations: list.Locations,
-				Kind:      plugins.ErrorKindValidation,
-			})
-			continue
+		if err != nil {
+			return err
 		}
+		defer insertSelectionRef.Finalize()
 
-		// the discovery walk above only sees selections written directly in the document.
-		// a connection without a literal edges { node } selection can still be valid -
-		// the selection might be hidden behind a component field or fragment spread that
-		// won't be flattened until after validation. as long as the schema conforms to
-		// the connection spec, insert internal edges { node } selections for the rest of
-		// the pipeline to hang pagination fields on (cursor, pageInfo, key fields)
-		if list.NodeType == "" && list.Connection && list.SchemaNodeType != "" {
-			insertErr := func() error {
+		// loop over every name we found and insert the discovered list into the database
+		for _, list := range lists {
+			// if we saw the name more than once, we need to report an error
+			if len(list.Locations) > 1 {
+				errs.Append(&plugins.Error{
+					Message:   fmt.Sprintf("encountered duplicate list name %s", list.ListName),
+					Locations: list.Locations,
+					Kind:      plugins.ErrorKindValidation,
+				})
+				continue
+			}
+
+			// the discovery walk above only sees selections written directly in the document.
+			// a connection without a literal edges { node } selection can still be valid -
+			// the selection might be hidden behind a component field or fragment spread that
+			// won't be flattened until after validation. as long as the schema conforms to
+			// the connection spec, insert internal edges { node } selections for the rest of
+			// the pipeline to hang pagination fields on (cursor, pageInfo, key fields)
+			if list.NodeType == "" && list.Connection && list.SchemaNodeType != "" {
 				// the edges field sits under the field marked with the directive
 				err := db.ExecStatement(insertSelection, map[string]any{
 					"field_name": "edges",
@@ -1025,64 +1015,57 @@ func DiscoverListsThenValidate(
 				}
 
 				list.SelectionID = int(nodeID)
-				return nil
-			}()
-			if insertErr != nil {
-				errs.Append(plugins.WrapError(insertErr))
-				finalizeStatements()
-				db.Put(conn)
-				return
+				list.NodeType = list.SchemaNodeType
+				list.EdgeType = list.SchemaEdgeType
 			}
 
-			list.NodeType = list.SchemaNodeType
-			list.EdgeType = list.SchemaEdgeType
-		}
+			// if we still don't know the node type then the field genuinely doesn't conform
+			// to the connection spec
+			if list.NodeType == "" || list.SelectionID == 0 {
+				errs.Append(&plugins.Error{
+					Message:   invalidConnectionErr,
+					Locations: list.Locations,
+					Kind:      plugins.ErrorKindValidation,
+				})
+				continue
+			}
 
-		// if we still don't know the node type then the field genuinely doesn't conform
-		// to the connection spec
-		if list.NodeType == "" || list.SelectionID == 0 {
-			errs.Append(&plugins.Error{
-				Message:   invalidConnectionErr,
-				Locations: list.Locations,
-				Kind:      plugins.ErrorKindValidation,
+			if list.TargetType == "" {
+				list.TargetType = "Query"
+			}
+
+			// Use the node selection ID from the query result
+			nodeSelectionID := list.SelectionID
+
+			err = db.ExecStatement(insertDiscoveredLists, map[string]any{
+				"name":            list.ListName,
+				"node_type":       list.NodeType,
+				"connection_type": list.ConnectionType,
+				"edge_type":       list.EdgeType,
+				"node":            nodeSelectionID,
+				"document":        list.Document,
+				"connection":      list.Connection,
+				"list_field":      list.ListField,
+				"page_size":       list.PageSize,
+				"mode":            list.Mode,
+				"embedded":        list.Emebedded,
+				"target_type":     list.TargetType,
 			})
-			continue
+			if err != nil {
+				return err
+			}
 		}
 
-		if list.TargetType == "" {
-			list.TargetType = "Query"
-		}
-
-		// Use the node selection ID from the query result
-		nodeSelectionID := list.SelectionID
-
-		err = db.ExecStatement(insertDiscoveredLists, map[string]any{
-			"name":            list.ListName,
-			"node_type":       list.NodeType,
-			"connection_type": list.ConnectionType,
-			"edge_type":       list.EdgeType,
-			"node":            nodeSelectionID,
-			"document":        list.Document,
-			"connection":      list.Connection,
-			"list_field":      list.ListField,
-			"page_size":       list.PageSize,
-			"mode":            list.Mode,
-			"embedded":        list.Emebedded,
-			"target_type":     list.TargetType,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			finalizeStatements()
-			db.Put(conn)
-			return
-		}
-	}
-
-	// there's still more to do but we'll parallelize the next steps so we're done
-	// with the connection. finalize the statements before returning the connection to
-	// the pool so another goroutine can't check it out while Finalize mutates it.
-	finalizeStatements()
+		return nil
+	}()
+	// there's still more to do but we'll parallelize the next steps so we're done with
+	// the connection. the closure's defers have already finalized the statements, so
+	// the connection can safely be handed to another goroutine.
 	db.Put(conn)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
 
 	// now that we have recorded the discovered lists we can build up the full set of directives and fragments
 	// that we need to validate

@@ -35,9 +35,13 @@ function list_public_files(rootDir: string): string[] {
 					'/' + nodePath.relative(publicDir, nodePath.join(entry.parentPath, entry.name))
 				).replaceAll(nodePath.sep, '/')
 			)
-	} catch {
-		// no public directory
-		return []
+	} catch (error) {
+		// only a missing public directory means "no public files" — anything else
+		// (permissions, I/O) would silently ship a server that 404s every public file
+		if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+			return []
+		}
+		throw error
 	}
 }
 

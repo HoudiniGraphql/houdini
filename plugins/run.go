@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	
 )
 
 var (
@@ -198,6 +197,11 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// the orchestrator reads the row above and dials /ws — normally within
+	// seconds. if it never does (it crashed or errored out of setup after
+	// spawning us), exit instead of waiting forever
+	ArmConnectionDeadline(2 * time.Minute)
 
 	// wait for shutdown signal or server error (blocking select)
 	for {
