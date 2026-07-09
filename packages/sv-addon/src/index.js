@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from 'sv'
-import { dedent, svelteConfig, transforms } from './sv-utils.js'
+import { color, dedent, svelteConfig, transforms } from './sv-utils.js'
 
 const options = defineAddonOptions()
 	.add('is_remote_endpoint', {
@@ -44,7 +44,11 @@ export default defineAddon({
 		if (!isKit) unsupported('Requires SvelteKit')
 	},
 
-	nextSteps: () => ['Check the Houdini tutorial at https://houdinigraphql.com/intro'],
+  nextSteps: () => [
+    `Make sure the Houdini packages are installed: ${color.command('npm i')}`,
+    `Optionally, pull your remote schema with ${color.command('npx houdini pull-schema')}`,
+    `Check the docs at ${color.website('https://houdinigraphql.com/svelte/v3')}`
+  ],
 
 	run: ({ cwd, directory, sv, options, language }) => {
 		sv.dependency('houdini', '^2.0.5')
