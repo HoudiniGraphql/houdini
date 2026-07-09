@@ -319,6 +319,7 @@ export type CacheMessage<_Data = any> =
 	  }
 	| {
 			kind: 'refetch'
+			session?: App.Session | null
 	  }
 
 export type SubscriptionSpec = Readonly<{

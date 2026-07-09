@@ -233,6 +233,30 @@ export class Cache {
 		}
 	}
 
+	// ask every active query document to refetch itself.
+	// this is used when global request context changes (for example, the
+	// SvelteKit session) and any query might resolve differently even if its
+	// cached records did not change. non-query artifacts are skipped because
+	// only queries can be refetched through this cache notification path.
+	refreshAll(session?: App.Session | null) {
+		const notified = new Set<SubscriptionSpec['onMessage']>()
+		const message: { kind: 'refetch'; session?: App.Session | null } =
+			session === undefined ? { kind: 'refetch' } : { kind: 'refetch', session }
+
+		for (const [spec] of this._internal_unstable.subscriptions.all({
+			includeMaskedParents: true,
+		})) {
+			if (spec.kind !== ArtifactKind.Query) {
+				continue
+			}
+
+			if (!notified.has(spec.onMessage)) {
+				notified.add(spec.onMessage)
+				spec.onMessage(message)
+			}
+		}
+	}
+
 	markRecordStale(id: string, options: { field?: string; when?: {} }) {
 		if (options.field) {
 			const key = computeKey({ field: options.field, args: options.when ?? {} })

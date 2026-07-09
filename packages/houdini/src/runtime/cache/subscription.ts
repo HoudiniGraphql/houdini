@@ -348,6 +348,16 @@ export class InMemorySubscriptions {
 		)
 	}
 
+	all({ includeMaskedParents = false }: { includeMaskedParents?: boolean } = {}) {
+		return [...this.subscribers.values()].flatMap((fields) =>
+			[...fields.values()].flatMap((fieldSub) =>
+				includeMaskedParents
+					? fieldSub.selections.concat(fieldSub.maskedParentSelections)
+					: fieldSub.selections
+			)
+		)
+	}
+
 	remove(
 		id: string,
 		selection: SubscriptionSelection,
