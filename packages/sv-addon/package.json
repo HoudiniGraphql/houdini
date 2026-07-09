@@ -7,7 +7,7 @@
     "scripts": {
         "demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
         "demo-add": "pnpm build && sv add file:../ --cwd demo --no-git-check --no-install",
-        "demo-add:ci": "pnpm build && sv add file:../=who:you --cwd demo --no-git-check --no-download-check --no-install",
+        "demo-add:ci": "pnpm build && sv add file:../='is_remote_endpoint:no+local_schema:../path/to/schema.graphql' --cwd demo --no-git-check --no-download-check --no-install",
         "build": "tsdown",
         "prepublishOnly": "npm run build",
         "test": "vitest run"
@@ -37,6 +37,9 @@
     "keywords": [
         "sv-add",
         "svelte",
-        "sveltekit"
+        "sveltekit",
+        "houdini",
+        "houdinigraphql",
+        "graphql"
     ]
 }
