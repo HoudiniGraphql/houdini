@@ -44,11 +44,11 @@ export default defineAddon({
 		if (!isKit) unsupported('Requires SvelteKit')
 	},
 
-  nextSteps: () => [
-    `Make sure the Houdini packages are installed: ${color.command('npm i')}`,
-    `Optionally, pull your remote schema with ${color.command('npx houdini pull-schema')}`,
-    `Check the docs at ${color.website('https://houdinigraphql.com/svelte/v3')}`
-  ],
+	nextSteps: () => [
+		`Make sure the Houdini packages are installed: ${color.command('npm i')}`,
+		`Optionally, pull your remote schema with ${color.command('npx houdini pull-schema')}`,
+		`Check the docs at ${color.website('https://houdinigraphql.com/svelte/v3')}`,
+	],
 
 	run: ({ cwd, directory, sv, options, language }) => {
 		sv.dependency('houdini', '^2.0.5')
