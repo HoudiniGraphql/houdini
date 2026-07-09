@@ -1,9 +1,4 @@
-import type {
-	GraphQLObject,
-	CachePolicies,
-	QueryArtifact,
-	GraphQLVariables,
-} from 'houdini/runtime'
+import type { GraphQLObject, CachePolicies, QueryArtifact, GraphQLVariables } from 'houdini/runtime'
 import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
