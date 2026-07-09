@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.2.0
+
+### Minor Changes
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - useQuery now renders on the server and ships a number of reliability fixes: components stay reactive to cache updates and session changes, and query errors surface at the nearest error boundary.
+
 ## 2.1.2
 
 ### Patch Changes

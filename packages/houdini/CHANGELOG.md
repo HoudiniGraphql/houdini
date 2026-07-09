@@ -1,5 +1,13 @@
 # houdini
 
+## 2.0.6
+
+### Patch Changes
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix runtime scalars being silently dropped when the config is re-seeded on a persisted database (e.g. a long-running dev server after adding a new runtime scalar).
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Hydrated cache data now registers with the stale manager, so markStale (and anything built on it, like session invalidation) reaches data that arrived via SSR hydration instead of silently skipping it.
+
 ## 2.0.5
 
 ### Patch Changes
