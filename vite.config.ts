@@ -22,6 +22,7 @@ export default defineConfig({
 			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
 			'./site/**/*.test.{ts,js}',
 		],
+		projects: ['.', 'packages/sv-addon'],
 		setupFiles: [path.resolve('./vitest.setup.ts')],
 		coverage: {
 			provider: 'v8',
