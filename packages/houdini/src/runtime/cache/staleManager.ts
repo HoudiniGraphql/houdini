@@ -17,8 +17,44 @@ export class StaleManager {
 	// nulls mean that the value is stale, and the number is the time that the value was set
 	private fieldsTime: Map<string, Map<string, number | null>> = new Map()
 
+	// snapshots that arrived via hydration and haven't been registered yet. field times
+	// are normally recorded per write, but hydration assigns whole layers at once and has
+	// to stay O(1) — so we hold onto the snapshot and only materialize its field times
+	// when a mark* actually needs them (staleness marks are rare; hydration happens on
+	// every page load). until then a hydrated field reads as "no entry", exactly how it
+	// read before any mark existed.
+	private pendingHydrated: HydratedSnapshot[] = []
+
 	constructor(cache: Cache) {
 		this.cache = cache
+	}
+
+	// note a hydrated snapshot whose fields should participate in staleness. O(1): the
+	// per-field registration is deferred to the first mark* call (see #flushHydrated)
+	registerHydration(snapshot: HydratedSnapshot) {
+		this.pendingHydrated.push(snapshot)
+	}
+
+	#flushHydrated() {
+		if (this.pendingHydrated.length === 0) {
+			return
+		}
+		const now = Date.now()
+		for (const snapshot of this.pendingHydrated) {
+			for (const source of [snapshot.fields, snapshot.links]) {
+				for (const [id, fields] of Object.entries(source ?? {})) {
+					this.#initMapId(id)
+					const map = this.fieldsTime.get(id)!
+					for (const field of Object.keys(fields)) {
+						// explicit writes (and marks) since hydration win over the snapshot
+						if (!map.has(field)) {
+							map.set(field, now)
+						}
+					}
+				}
+			}
+		}
+		this.pendingHydrated = []
 	}
 
 	#initMapId = (id: string) => {
@@ -57,6 +93,7 @@ export class StaleManager {
 	}
 
 	markAllStale(): void {
+		this.#flushHydrated()
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {
 			for (const [field] of fieldMap.entries()) {
 				this.markFieldStale(id, field)
@@ -65,6 +102,7 @@ export class StaleManager {
 	}
 
 	markRecordStale(id: string): void {
+		this.#flushHydrated()
 		const fieldsTimeOfType = this.fieldsTime.get(id)
 		if (fieldsTimeOfType) {
 			for (const [field] of fieldsTimeOfType.entries()) {
@@ -74,6 +112,7 @@ export class StaleManager {
 	}
 
 	markTypeStale(type: string): void {
+		this.#flushHydrated()
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {
 			// if starts lile `User:` (it will catch `User:1` for example)
 			if (id.startsWith(`${type}:`)) {
@@ -85,6 +124,7 @@ export class StaleManager {
 	}
 
 	markTypeFieldStale(type: string, field: string, when?: {}): void {
+		this.#flushHydrated()
 		const key = computeKey({ field, args: when })
 
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {
@@ -116,5 +156,13 @@ export class StaleManager {
 
 	reset() {
 		this.fieldsTime.clear()
+		this.pendingHydrated = []
 	}
+}
+
+// the only thing registration needs from a hydrated snapshot is which fields each
+// record carries
+type HydratedSnapshot = {
+	fields?: Record<string, Record<string, unknown>>
+	links?: Record<string, Record<string, unknown>>
 }

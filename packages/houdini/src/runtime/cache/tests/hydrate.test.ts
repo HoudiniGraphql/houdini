@@ -61,3 +61,40 @@ test('hydrated data can be marked stale', () => {
 	browser.markTypeStale()
 	expect(browser.read({ selection }).stale).toBe(true)
 })
+
+// hydrated fields register with the stale manager lazily (on the first mark). a field
+// explicitly marked before that first flush must keep its mark: the deferred
+// registration only fills in fields that have no entry yet.
+test('an explicit stale mark set after hydration survives the deferred registration', () => {
+	const server = new Cache(config)
+	server.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+	const snapshot = JSON.parse(server.serialize())
+
+	const browser = new Cache(config)
+	browser.hydrate(snapshot)
+
+	// mark one hydrated field stale directly (this is the first mark, so it also
+	// triggers the deferred registration of everything else)
+	browser.markRecordStale('User:1', {})
+	expect(browser.read({ selection }).stale).toBe(true)
+
+	// and a fresh write brings it back
+	browser.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'anne',
+			},
+		},
+	})
+	expect(browser.read({ selection }).stale).toBe(false)
+})
