@@ -1,8 +1,17 @@
 import { createLRUCache } from 'houdini/runtime'
-import type { GraphQLObject, CachePolicies, QueryArtifact, GraphQLVariables } from 'houdini/runtime'
+import type {
+	GraphQLObject,
+	CachePolicies,
+	QueryArtifact,
+	GraphQLVariables,
+	LRUCache,
+} from 'houdini/runtime'
+import type { Cache } from 'houdini/runtime/cache'
+import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
-import { useClient } from '../routing/index.js'
+import { useRouterContext } from '../routing/index.js'
+import { isObserverRetained, releaseObserver, retainObserver } from './observerRefs.js'
 import type { DocumentHandle } from './useDocumentHandle.js'
 import { useDocumentHandle } from './useDocumentHandle.js'
 import { useIsMountedRef } from './useIsMounted.js'
@@ -18,7 +27,28 @@ import { useIsMountedRef } from './useIsMounted.js'
 //
 // When the Component unmounts, we need to remove the entry from the cache (so we can load again)
 
-const promiseCache = createLRUCache<QuerySuspenseUnit>()
+// suspense state is scoped to the Cache instance: the browser has exactly one so the
+// scoping is invisible there, but on the server the cache is created per request — and
+// suspense units carry resolved query data, which can be session-dependent. a module-wide
+// cache would let one request's render serve another user's data.
+const promiseCaches = new WeakMap<Cache, LRUCache<QuerySuspenseUnit>>()
+
+function promiseCacheFor(cache: Cache): LRUCache<QuerySuspenseUnit> {
+	let result = promiseCaches.get(cache)
+	if (!result) {
+		result = createLRUCache<QuerySuspenseUnit>(1000, (unit) => {
+			// a unit leaving the cache whose store no committed component ever picked up is
+			// an abandoned suspense (suspended, then unmounted before commit) or an errored
+			// fetch — dispose the store so its cache subscription doesn't outlive it.
+			// retained stores are governed by their holders instead.
+			if (!isObserverRetained(unit.observer)) {
+				unit.observer.cleanup()
+			}
+		})
+		promiseCaches.set(cache, result)
+	}
+	return result
+}
 type QuerySuspenseUnit<
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends GraphQLVariables = GraphQLVariables,
@@ -26,6 +56,11 @@ type QuerySuspenseUnit<
 	resolve: () => void
 	resolved?: DocumentHandle<QueryArtifact, _Data, _Input>
 	then: (val: any) => any
+	// the store that started the fetch. suspending discards the component instance that
+	// created it, so the retry render has to pick this store back up — the cache
+	// subscription created by the fetch belongs to it, and a fresh store would never
+	// hear about later cache updates (a mutation write, a list operation)
+	observer: DocumentStore<GraphQLObject, GraphQLVariables>
 }
 
 export function useQueryHandle<
@@ -37,22 +72,37 @@ export function useQueryHandle<
 	variables: any = null,
 	config: UseQueryConfig = {}
 ): any {
+	// the client, the per-request cache (a singleton in the browser), and — during a
+	// server render — the stream injector all come from the router context
+	const { client, cache, injectToStream } = useRouterContext()
+
+	// suspense state lives on the per-request cache so SSR requests can't see each other's
+	const promiseCache = promiseCacheFor(cache)
+
 	// figure out the identifier so we know what to look for
 	const identifier = queryIdentifier({ artifact, variables, config })
 
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
 
-	const client = useClient()
-
 	const isMountedRef = useIsMountedRef()
 
-	// hold onto an observer we'll use
+	// hold onto an observer we'll use. if a fetch for this identifier already started, we
+	// have to reuse the store that started it: suspending threw away the component
+	// instance that created it, and the cache subscription set up by that fetch belongs
+	// to that store — a fresh one would render fine but never hear about later cache
+	// updates. the initial value has to stay null (not an empty object) until the
+	// suspense promise resolves: every "do we have data yet" check below is a truthiness
+	// check, and a truthy empty object makes a re-render that happens mid-flight (eg a
+	// parent state update) commit the component with empty data instead of re-throwing
+	// the pending promise.
 	const [observer] = React.useState(
-		client.observe<_Data, _Input>({
-			artifact,
-			initialValue: (suspenseValue?.resolved?.data ?? {}) as _Data,
-		})
+		() =>
+			(suspenseValue?.observer as DocumentStore<_Data, _Input> | undefined) ??
+			client.observe<_Data, _Input>({
+				artifact,
+				initialValue: (suspenseValue?.resolved?.data ?? null) as _Data,
+			})
 	)
 
 	// a ref flag we'll enable before throwing so that we don't update while suspend
@@ -74,8 +124,14 @@ export function useQueryHandle<
 		[observer, isMountedRef.current]
 	)
 
-	// get a safe reference to the cache
-	const storeValue = React.useSyncExternalStore(subscribe, () => box.current)
+	// get a safe reference to the cache. the server snapshot is what lets this hook render
+	// during SSR at all: without it react throws before the fetch ever starts and the whole
+	// subtree falls back to client rendering.
+	const storeValue = React.useSyncExternalStore(
+		subscribe,
+		() => box.current,
+		() => box.current
+	)
 
 	// compute the imperative handle for this artifact
 	const handle = useDocumentHandle<_Artifact, _Data, _Input>({
@@ -92,12 +148,23 @@ export function useQueryHandle<
 		}
 	}, [identifier])
 
-	// when we unmount, we need to clean up
+	// a committed component holds a reference on its store; the store tears down when
+	// the last holder unmounts (see observerRefs.ts)
 	React.useEffect(() => {
+		retainObserver(observer)
 		return () => {
-			observer.cleanup()
+			releaseObserver(observer)
 		}
 	}, [observer])
+
+	// suspenseTracker mutes store notifications while we're suspended. on the initial
+	// mount the flag dies with the discarded pre-commit instance, but when a committed
+	// instance re-suspends (its variables changed) the flag flips on its own ref and
+	// nothing else clears it — the subscription would stay muted forever. effects only
+	// run for committed (non-throwing) renders, so this is the spot to unmute.
+	React.useEffect(() => {
+		suspenseTracker.current = false
+	})
 
 	// if the promise has resolved, let's use that for our first render
 	const result = storeValue.data
@@ -117,6 +184,7 @@ export function useQueryHandle<
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
+			observer: observer as DocumentStore<GraphQLObject, GraphQLVariables>,
 			// @ts-expect-error
 			variables,
 		}
@@ -142,6 +210,32 @@ export function useQueryHandle<
 					partial: value.partial,
 					artifact,
 				} as unknown as DocumentHandle<QueryArtifact, _Data, _Input>
+
+				// on the server, ship the resolved cache snapshot to the browser the same way
+				// route queries stream theirs: hydration then serves this query straight from
+				// the cache instead of refetching over the network. (a query that resolves
+				// before the shell flushes doesn't need this — its data rides the initial
+				// cache snapshot the server embeds in the document — and the injector wrapper
+				// no-ops in that window.)
+				if (!globalThis.window) {
+					injectToStream?.(`
+						<script>
+						{
+							const __houdini__snapshot__ = ${cache.serialize()}
+							if (window.__houdini__cache__) {
+								// hydrate into a fresh layer and merge it down, rather than clobbering the
+								// shared hydration layer (which would drop everything hydrated before it)
+								const __houdini__layer__ = window.__houdini__cache__.hydrate(__houdini__snapshot__)
+								if (__houdini__layer__) {
+									window.__houdini__cache__._internal_unstable.storage.resolveLayer(__houdini__layer__.id)
+								}
+							} else {
+								(window.__houdini__pending_cache__ = window.__houdini__pending_cache__ || []).push(__houdini__snapshot__)
+							}
+						}
+						</script>
+					`)
+				}
 
 				suspenseUnit.resolve()
 			})

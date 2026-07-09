@@ -931,6 +931,7 @@ export function RouterContextProvider({
 	session: ssrSession = {},
 	formResult = null,
 	formToken = null,
+	injectToStream,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -943,6 +944,7 @@ export function RouterContextProvider({
 	session?: App.Session
 	formResult?: FormResult | null
 	formToken?: string | null
+	injectToStream?: (chunk: string) => void
 }) {
 	// the session is top level state
 	// on the server, we can just use
@@ -1017,6 +1019,7 @@ export function RouterContextProvider({
 				},
 				formResult,
 				formToken,
+				injectToStream,
 			}}
 		>
 			{children}
@@ -1071,6 +1074,11 @@ export type RouterContext = {
 	// the session-bound CSRF token forms render in their hidden field (always present from a
 	// server render; null only when there is no server, e.g. a static export).
 	formToken: string | null
+
+	// present only during a server render: appends a chunk to the response stream. queries
+	// that resolve after the shell flushes use this to ship their cache snapshot to the
+	// browser (route queries via load_query, component-level useQuery via useQueryHandle).
+	injectToStream?: (chunk: string) => void
 }
 
 // FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
