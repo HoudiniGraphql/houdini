@@ -239,7 +239,6 @@ export class Cache {
 	// cached records did not change. non-query artifacts are skipped because
 	// only queries can be refetched through this cache notification path.
 	refreshAll(session?: App.Session | null) {
-		const notified = new Set<SubscriptionSpec['onMessage']>()
 		const message: { kind: 'refetch'; session?: App.Session | null } =
 			session === undefined ? { kind: 'refetch' } : { kind: 'refetch', session }
 
@@ -250,10 +249,7 @@ export class Cache {
 				continue
 			}
 
-			if (!notified.has(spec.onMessage)) {
-				notified.add(spec.onMessage)
-				spec.onMessage(message)
-			}
+			spec.onMessage(message)
 		}
 	}
 
