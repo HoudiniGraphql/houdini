@@ -63,11 +63,6 @@ test.concurrent.for(testCases)('@houdinigraphql/sv $kind.type $variant', async (
 		expect(fs.readFileSync(houdiniClient, 'utf8')).toContain('export default new HoudiniClient')
 	}
 
-	// Check svelte config
-	const svelteConfigPath = path.resolve(cwd, 'svelte.config.js')
-	const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf8')
-	expect(svelteConfigContent).toMatch(/\$houdini: ['"]\.houdini\/['"]/)
-
 	// Check gitignore contains `.houdini`
 	const ignorePath = path.resolve(cwd, '.gitignore')
 	const content = fs.readFileSync(ignorePath, 'utf8')
@@ -83,5 +78,17 @@ test.concurrent.for(testCases)('@houdinigraphql/sv $kind.type $variant', async (
 	expect(viteConfigContent).toMatch(/import houdini from ['"]houdini\/vite['"]/)
 
 	// Check that `houdini()` is added before `sveltekit()` in the array
-	expect(viteConfigContent).toContain('plugins: [houdini(), sveltekit()]')
+  const pluginsArrayIdx = viteConfigContent.indexOf("plugins: [");
+  // We must have a plugins array in the vite config
+  expect(pluginsArrayIdx).toBeGreaterThanOrEqual(0);
+
+  const houdiniConfigIdx = viteConfigContent.indexOf('houdini(),');
+  const sveltekitConfigIdx = viteConfigContent.indexOf("sveltekit({");
+
+  // Expect the following order: pluginsArrayIdx < houdiniConfigIdx < sveltekitConfigIdx
+  expect(pluginsArrayIdx).toBeLessThan(houdiniConfigIdx);
+  expect(houdiniConfigIdx).toBeLessThan(sveltekitConfigIdx);
+
+  // Check that the $houdini alias is added.
+  expect(viteConfigContent).toMatch(/\$houdini: ['"]\.houdini\/['"]/)
 })
