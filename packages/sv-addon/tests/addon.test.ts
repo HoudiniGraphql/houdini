@@ -78,17 +78,17 @@ test.concurrent.for(testCases)('@houdinigraphql/sv $kind.type $variant', async (
 	expect(viteConfigContent).toMatch(/import houdini from ['"]houdini\/vite['"]/)
 
 	// Check that `houdini()` is added before `sveltekit()` in the array
-  const pluginsArrayIdx = viteConfigContent.indexOf("plugins: [");
-  // We must have a plugins array in the vite config
-  expect(pluginsArrayIdx).toBeGreaterThanOrEqual(0);
+	const pluginsArrayIdx = viteConfigContent.indexOf('plugins: [')
+	// We must have a plugins array in the vite config
+	expect(pluginsArrayIdx).toBeGreaterThanOrEqual(0)
 
-  const houdiniConfigIdx = viteConfigContent.indexOf('houdini(),');
-  const sveltekitConfigIdx = viteConfigContent.indexOf("sveltekit({");
+	const houdiniConfigIdx = viteConfigContent.indexOf('houdini(),')
+	const sveltekitConfigIdx = viteConfigContent.indexOf('sveltekit({')
 
-  // Expect the following order: pluginsArrayIdx < houdiniConfigIdx < sveltekitConfigIdx
-  expect(pluginsArrayIdx).toBeLessThan(houdiniConfigIdx);
-  expect(houdiniConfigIdx).toBeLessThan(sveltekitConfigIdx);
+	// Expect the following order: pluginsArrayIdx < houdiniConfigIdx < sveltekitConfigIdx
+	expect(pluginsArrayIdx).toBeLessThan(houdiniConfigIdx)
+	expect(houdiniConfigIdx).toBeLessThan(sveltekitConfigIdx)
 
-  // Check that the $houdini alias is added.
-  expect(viteConfigContent).toMatch(/\$houdini: ['"]\.houdini\/['"]/)
+	// Check that the $houdini alias is added.
+	expect(viteConfigContent).toMatch(/\$houdini: ['"]\.houdini\/['"]/)
 })
