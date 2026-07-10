@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from 'sv'
-import { color, dedent, svelteConfig, transforms } from './sv-utils.js'
+import { color, dedent, pnpm, svelteConfig, transforms } from './sv-utils.js'
 
 const options = defineAddonOptions()
 	.add('is_remote_endpoint', {
@@ -50,10 +50,18 @@ export default defineAddon({
 		`Check the docs at ${color.website('https://houdinigraphql.com/svelte/v3')}`,
 	],
 
-	run: ({ cwd, directory, sv, options, language }) => {
+	run: ({ cwd, directory, sv, options, language, packageManager, file }) => {
 		sv.dependency('houdini', '^2.0.5')
 		sv.dependency('houdini-svelte', '^3.0.2')
 		sv.devDependency('houdini-lsp', '^2.0.5')
+
+		// Allow build scripts for houdini-core and houdini-svelte
+		if (packageManager === 'pnpm') {
+			sv.file(
+				file.findUp('pnpm-workspace.yaml'),
+				pnpm.allowBuilds('houdini-core', 'houdini-svelte')
+			)
+		}
 
 		// Houdini config file
 		sv.file(
