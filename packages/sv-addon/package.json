@@ -24,13 +24,13 @@
         "access": "public"
     },
     "peerDependencies": {
-        "sv": "^0.15.4"
+        "sv": "^0.16.2"
     },
     "devDependencies": {
         "@playwright/test": "^1.60.0",
         "@sveltejs/sv-utils": "^0.3.0",
         "@types/node": "^25.5.2",
-        "sv": "^0.15.4",
+        "sv": "^0.16.2",
         "tsdown": "^0.21.7",
         "vitest": "^4.1.3"
     },
