@@ -235,11 +235,15 @@ export type GraphQLDefaultScalar = string | number | boolean
 // Extracts CacheTypeDef['componentFields'] when declared by an augmentation, otherwise never.
 type CacheComponentFields = CacheTypeDef extends { componentFields: infer CF } ? CF : never
 
+// Extracts CacheTypeDef['scalars'] when declared by an augmentation (the generated runtime
+// registers the project's scalar output types), otherwise a permissive default.
+type CacheScalars = CacheTypeDef extends { scalars: infer S } ? S : GraphQLDefaultScalar | Date
+
 // GraphQLValue covers raw wire types, project scalar outputs (CacheTypeDef['scalars']),
 // and any injected framework value such as component fields (registered via CacheTypeDef augmentation).
 export type GraphQLValue =
 	| GraphQLDefaultScalar
-	| CacheTypeDef['scalars']
+	| CacheScalars
 	| CacheComponentFields
 	| symbol
 	| null
@@ -570,12 +574,12 @@ export const CachePolicy = {
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
 
-// CacheTypeDef is an interface so frameworks can augment it.
-// - scalars: custom scalar output types for this project
+// CacheTypeDef is an interface so the generated runtime and frameworks can augment it.
+// - scalars: declared by the generated runtime with the project's scalar output types
+//   (it can't be declared here — a merged redeclaration would have to match exactly)
 // - componentFields: optional; frameworks augment this to register injectable component types
 export interface CacheTypeDef {
 	types: {}
 	lists: {}
 	queries: []
-	scalars: boolean | number | string | Date
 }

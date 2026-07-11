@@ -8,6 +8,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -388,6 +389,12 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 						queries: [[any, TestQuery$result, TestQuery$input], [any, TestQueryNoArgs$result, TestQueryNoArgs$input]];
 						scalars: number | boolean | string;
 				};
+
+				declare module 'houdini/runtime' {
+					interface CacheTypeDef {
+						scalars: number | boolean | string
+					}
+				}
 			`)
 
 			contents, err := afero.ReadFile(
@@ -396,6 +403,73 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 			)
 			require.NoError(t, err)
 			require.Equal(t, expected, strings.TrimSpace(string(contents)))
+		},
+	})
+}
+
+// custom scalar output types have to be registered with the houdini runtime
+// (via the CacheTypeDef augmentation) so values like URL or Temporal.Instant
+// satisfy the GraphQLObject constraint on every store (issue #1728)
+func TestGenerateImperativeCacheTypeDefsCustomScalars(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			scalar URL
+			scalar Instant
+
+			type Query {
+				user: User
+			}
+
+			type User {
+				id: ID!
+				website: URL
+				createdAt: Instant
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			contents, err := afero.ReadFile(
+				plugin.Fs,
+				filepath.Join(config.ProjectRoot, config.RuntimeDir, "runtime", "generated.ts"),
+			)
+			require.NoError(t, err)
+
+			for _, expected := range test.Extra["contains"].([]string) {
+				require.Contains(t, string(contents), expected)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "custom scalars are registered with the runtime",
+				Pass: true,
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"URL": {
+							Type: "URL",
+						},
+						"Instant": {
+							Type:   "Temporal.Instant",
+							Module: "temporal-polyfill",
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user { id website createdAt } }`},
+				Extra: map[string]any{
+					"contains": []string{
+						`import type { Temporal } from 'temporal-polyfill';`,
+						`scalars: number | boolean | string | Temporal.Instant | URL;`,
+						tests.Dedent(`
+							declare module 'houdini/runtime' {
+								interface CacheTypeDef {
+									scalars: number | boolean | string | Temporal.Instant | URL
+								}
+							}
+						`),
+					},
+				},
+			},
 		},
 	})
 }

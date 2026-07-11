@@ -1582,7 +1582,7 @@ func convertLeafType(
 	case "SCALAR":
 		typeStr = convertScalarType(kind, typeName, ctx.ProjectConfig, false)
 		if scalarCfg, ok := ctx.ProjectConfig.Scalars[typeName]; ok && scalarCfg.Module != "" {
-			ctx.ScalarImports[scalarImportStatement(scalarCfg)] = true
+			ctx.ScalarImports[ScalarImportStatement(scalarCfg)] = true
 		}
 	}
 
@@ -1595,11 +1595,11 @@ func convertLeafType(
 	return ApplyTypeModifiers(typeStr, modifiers, false)
 }
 
-// scalarImportStatement builds the TypeScript import statement for a custom scalar.
+// ScalarImportStatement builds the TypeScript import statement for a custom scalar.
 // The identifier is the root part of the type name (before any "."), so
 // { type: "Temporal.Instant", module: "temporal-polyfill" } → import type { Temporal } from 'temporal-polyfill'
 // { type: "MyDate", module: "./my-date", default: true }    → import type MyDate from './my-date'
-func scalarImportStatement(cfg plugins.ScalarConfig) string {
+func ScalarImportStatement(cfg plugins.ScalarConfig) string {
 	identifier := cfg.Type
 	if dot := strings.Index(identifier, "."); dot != -1 {
 		identifier = identifier[:dot]

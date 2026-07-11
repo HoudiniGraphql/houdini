@@ -90,6 +90,23 @@ func generateCacheTypeDefContent(
 	}
 	content.WriteString(cacheTypeDef)
 
+	// register the project's scalar output types with the houdini runtime: the
+	// published CacheTypeDef interface can't declare `scalars` itself (an interface
+	// merge would have to redeclare the exact same type), so GraphQLValue picks the
+	// union up from this augmentation. without it, custom scalars mapped to types
+	// like URL or bigint fail the GraphQLObject constraint on every store
+	scalarUnion, err := generateScalarUnion(ctx, db)
+	if err != nil {
+		return "", err
+	}
+	content.WriteString(fmt.Sprintf(`
+declare module 'houdini/runtime' {
+	interface CacheTypeDef {
+		scalars: %s
+	}
+}
+`, scalarUnion))
+
 	return content.String(), nil
 }
 
@@ -102,6 +119,24 @@ func generateImports(
 
 	// Base import for Record type
 	imports.WriteString(`import type { Record } from "./public/record";` + "\n")
+
+	// custom scalars can map to types that live in a module (e.g. Temporal.Instant);
+	// the CacheTypeDef scalars member and the houdini/runtime augmentation both
+	// reference those types so their imports have to be part of the file
+	scalarImports := map[string]bool{}
+	for _, scalarCfg := range projectConfig.Scalars {
+		if scalarCfg.Module != "" {
+			scalarImports[typescript.ScalarImportStatement(scalarCfg)] = true
+		}
+	}
+	sortedScalarImports := make([]string, 0, len(scalarImports))
+	for stmt := range scalarImports {
+		sortedScalarImports = append(sortedScalarImports, stmt)
+	}
+	sort.Strings(sortedScalarImports)
+	for _, stmt := range sortedScalarImports {
+		imports.WriteString(stmt + ";\n")
+	}
 
 	// Collect all documents with their argument info in a single query
 	documentsWithArgs, err := getDocumentsWithArguments(ctx, db)
@@ -926,14 +961,18 @@ func generateScalarUnion(
 	// our goal here is to generate a typescript-safe union of the runtime values that could be seen in a selection (the default scalars + any custom config)
 	scalarValues := []string{"number", "boolean", "string"}
 
+	// sorted so the generated file is stable across runs
+	customTypes := []string{}
 	err := db.StepQuery(ctx, `
 		SELECT DISTINCT "type" from scalar_config
 	`, nil, func(stmt plugins.Row) {
-		scalarValues = append(scalarValues, stmt.GetText("type"))
+		customTypes = append(customTypes, stmt.GetText("type"))
 	})
 	if err != nil {
 		return "", err
 	}
+	sort.Strings(customTypes)
+	scalarValues = append(scalarValues, customTypes...)
 
 	return strings.Join(scalarValues, " | "), nil
 }
