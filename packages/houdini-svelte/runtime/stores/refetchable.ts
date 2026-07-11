@@ -16,11 +16,11 @@ import { getSession } from '../session.js'
 import { FragmentStore } from './fragment.js'
 import type { StoreConfig } from './query.js'
 
-type RefetchableFragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
-	_Data,
+type RefetchableFragmentStoreConfig<
+	_Data extends GraphQLObject,
 	_Input,
-	FragmentArtifact
-> & { refetchArtifact: QueryArtifact }
+	_Artifact extends FragmentArtifact = FragmentArtifact,
+> = StoreConfig<_Data, _Input, _Artifact> & { refetchArtifact: QueryArtifact }
 
 // the value handed back to components subscribing to a refetchable fragment store
 export type RefetchableFragmentResult<_Data extends GraphQLObject, _Input> = {
@@ -42,15 +42,18 @@ export class FragmentStoreRefetchable<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables,
+	// generated stores narrow this to their document's artifact type so a store
+	// can be matched back to its data/input types (e.g. by record.read/write)
+	_Artifact extends FragmentArtifact = FragmentArtifact,
 > {
 	kind = CompiledFragmentKind
-	artifact: FragmentArtifact
+	artifact: _Artifact
 	name: string
 	// a flag the refetchableFragment() helper looks for to validate the store
 	refetchable = true
 	protected refetchArtifact: QueryArtifact
 
-	constructor(config: RefetchableFragmentStoreConfig<_Data, _Input>) {
+	constructor(config: RefetchableFragmentStoreConfig<_Data, _Input, _Artifact>) {
 		this.artifact = config.artifact
 		this.name = config.storeName
 		this.refetchArtifact = config.refetchArtifact

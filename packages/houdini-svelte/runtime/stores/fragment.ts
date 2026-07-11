@@ -21,14 +21,17 @@ export class FragmentStore<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables = GraphQLVariables,
+	// generated stores narrow this to their document's artifact type so a store
+	// can be matched back to its data/input types (e.g. by record.read/write)
+	_Artifact extends FragmentArtifact = FragmentArtifact,
 > {
-	artifact: FragmentArtifact
+	artifact: _Artifact
 	name: string
 	kind = CompiledFragmentKind
 
 	protected context: HoudiniFetchContext | null = null
 
-	constructor({ artifact, storeName }: { artifact: FragmentArtifact; storeName: string }) {
+	constructor({ artifact, storeName }: { artifact: _Artifact; storeName: string }) {
 		this.artifact = artifact
 		this.name = storeName
 	}

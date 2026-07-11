@@ -212,8 +212,10 @@ func generateQueryStore(
 		return "", err
 	}
 
+	// typeof artifact narrows the store's artifact member to this document's
+	// artifact type so cache.read/write can match the store to its result/input
 	classDeclaration := fmt.Sprintf(
-		"export class %s extends %s<%s$result, %s$input>",
+		"export class %s extends %s<%s$result, %s$input, typeof artifact>",
 		storeName,
 		storeImport.Name,
 		name,
@@ -383,7 +385,7 @@ import type { %s, %s$data, %s$input } from '$houdini/artifacts/%s.js'%s
 
 export type { %s }
 
-export class %s extends %s<%s$data, { %s: any }, %s$input> {
+export class %s extends %s<%s$data, { %s: any }, %s$input, typeof artifact> {
     constructor() {
         super({
             artifact,

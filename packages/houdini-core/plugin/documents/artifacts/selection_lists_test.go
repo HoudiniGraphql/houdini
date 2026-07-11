@@ -1385,7 +1385,15 @@ export type AnimalQuery$result = {
 export type AnimalQuery$input = null | undefined;
 
 export type AnimalQuery$unmasked = {
-	readonly animals: {} & (({
+	readonly animals: {
+		readonly pageInfo: {
+			readonly __typename: "PageInfo";
+			readonly endCursor: string | null;
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+		};
+	} & (({
 		readonly edges: ({
 			readonly __typename: "MonkeyEdge";
 			readonly node: {
@@ -1769,11 +1777,9 @@ export type Entities = {
 export type Entities$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "User";
 	})))[];
 };
