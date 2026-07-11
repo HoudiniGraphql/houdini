@@ -96,18 +96,26 @@ func expandMaskedSpreads(
 					continue
 				}
 				// guard against revisiting a fragment (the spec forbids cycles but
-				// we don't want a malformed document to hang the generator)
-				if seenFragments[sel.FieldName] {
+				// we don't want a malformed document to hang the generator). the one
+				// revisit allowed is an unconditional spread of a fragment that was
+				// only expanded under @include/@skip: re-walking routes its fields
+				// through the duplicate branch below, which clears their optionality.
+				// conditionality is inherited down the walk, so a nested self-spread
+				// can never upgrade the walk it's part of and each fragment expands
+				// at most twice
+				spreadConditional := conditional || spreadIsConditional(sel)
+				if expandedUnconditionally, expanded := seenFragments[sel.FieldName]; expanded &&
+					(expandedUnconditionally || spreadConditional) {
 					continue
 				}
-				seenFragments[sel.FieldName] = true
+				seenFragments[sel.FieldName] = !spreadConditional
 
 				definition, ok := collectedDocs.Selections[sel.FieldName]
 				if !ok || !satisfied(definition.TypeCondition) {
 					continue
 				}
 
-				walk(definition.Selections, true, conditional || spreadIsConditional(sel))
+				walk(definition.Selections, true, spreadConditional)
 
 			case "inline_fragment":
 				// inline fragments pulled out of an expanded definition can't be

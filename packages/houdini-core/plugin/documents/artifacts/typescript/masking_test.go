@@ -247,6 +247,41 @@ func TestTypescriptFragmentMasking(t *testing.T) {
 				},
 			},
 			{
+				Name: "unconditional spread upgrades a conditional expansion",
+				Pass: true,
+				Input: []string{
+					`query MaskQuery($show: Boolean!) {
+						user(id: "1") {
+							id
+							...MaskUserInfo @mask_disable @include(if: $show)
+							...MaskOuter @mask_disable
+						}
+					}`,
+					`fragment MaskUserInfo on User {
+						nickname
+						age
+					}`,
+					`fragment MaskOuter on User {
+						...MaskUserInfo @mask_disable
+					}`,
+				},
+				Extra: map[string]any{
+					"MaskQuery": tests.Dedent(`
+						export type MaskQuery$result = {
+							readonly user: {
+								readonly id: string;
+								readonly nickname: string | null;
+								readonly age: number | null;
+								readonly " $fragments": {
+									MaskUserInfo: {};
+									MaskOuter: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+			{
 				Name: "defaultFragmentMasking disable inlines without a directive",
 				Pass: true,
 				ProjectConfig: func(config *plugins.ProjectConfig) {
