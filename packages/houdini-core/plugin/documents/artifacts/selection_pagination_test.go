@@ -1751,7 +1751,6 @@ export type TestQuery$result = {
 		readonly edges: ({
 			readonly node: {} & (({
 				readonly firstName: string;
-				readonly id: string;
 				readonly __typename: "User";
 			}) | ({
 				readonly " $fragments"?: {};

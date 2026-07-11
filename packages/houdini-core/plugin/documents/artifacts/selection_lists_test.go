@@ -1769,11 +1769,9 @@ export type Entities = {
 export type Entities$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "User";
 	})))[];
 };

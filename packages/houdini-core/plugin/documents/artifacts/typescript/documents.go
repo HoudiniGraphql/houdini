@@ -861,6 +861,21 @@ func generateInterfaceUnionTypeWithLoading(
 	// Process all inline fragments, including nested ones
 	processInlineFragments(selection.Children)
 
+	// fields selected on the abstract field itself (e.g. `nodes { id }`) reach the
+	// arms only as the pipeline-distributed internal copies, so they stay visible.
+	// any other internal field (auto-added keys) is hidden from the generated type,
+	// matching the top-level selection generator
+	explicitAbstractFields := map[string]bool{}
+	for _, child := range selection.Children {
+		if child.Kind == "field" && !child.Internal {
+			name := child.FieldName
+			if child.Alias != nil {
+				name = *child.Alias
+			}
+			explicitAbstractFields[name] = true
+		}
+	}
+
 	// Filter concrete types to only include those that are possible for this field
 	// This ensures we only generate union members for types that can actually appear
 	var filteredTypes []string
@@ -894,6 +909,18 @@ func generateInterfaceUnionTypeWithLoading(
 		}
 		fragmentChildren, optionalFields := expandMaskedSpreads(ctx, collectedDocs, allChildren, typeName)
 		for _, fragmentChild := range fragmentChildren {
+			// internal (pipeline-added) fields are hidden from the generated type
+			// unless they distribute an explicit abstract-level selection into the
+			// arm; $unmasked includes every server-visible field
+			if fragmentChild.Internal && !unmasked {
+				name := fragmentChild.FieldName
+				if fragmentChild.Alias != nil {
+					name = *fragmentChild.Alias
+				}
+				if !explicitAbstractFields[name] {
+					continue
+				}
+			}
 			// Skip __typename fields from fragments - we'll add the discriminated version
 			if fragmentChild.Kind == "field" && fragmentChild.FieldName != "__typename" {
 				var fieldType string

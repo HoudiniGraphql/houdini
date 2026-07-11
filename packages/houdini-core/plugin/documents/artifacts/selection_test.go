@@ -907,7 +907,6 @@ export type TestQuery = {
 export type TestQuery$result = {
 	readonly friends: ({} & (({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1089,7 +1088,6 @@ export type Friends$result = {
 		readonly __typename: "Cat";
 	}) | ({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};

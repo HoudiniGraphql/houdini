@@ -476,7 +476,6 @@ func TestTypescriptMaskDisableMerging(t *testing.T) {
 										readonly label: string;
 										readonly color: string;
 									};
-									readonly id: string;
 									readonly __typename: "TextDetail";
 								}) | ({
 									readonly " $fragments"?: {};

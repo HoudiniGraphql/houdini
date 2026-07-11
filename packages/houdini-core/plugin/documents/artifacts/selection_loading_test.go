@@ -549,7 +549,6 @@ export type Query = {
 export type Query$result = {
 	readonly catOwners: ({} & (({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -739,11 +738,9 @@ export type Query = {
 export type Query$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1089,11 +1086,9 @@ export type Query = {
 export type Query$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1275,11 +1270,9 @@ export type Query = {
 export type Query$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1288,11 +1281,9 @@ export type Query$result = {
 } | {
 	readonly entities: ({} & (({
 		readonly name: LoadingType;
-		readonly id: LoadingType;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: LoadingType;
-		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1533,11 +1524,9 @@ export type Query = {
 export type Query$result = {
 	readonly entities: ({} & (({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1545,7 +1534,6 @@ export type Query$result = {
 	})))[];
 	readonly b: ({} & (({
 		readonly firstName: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1554,11 +1542,9 @@ export type Query$result = {
 } | {
 	readonly entities: ({} & (({
 		readonly name: LoadingType;
-		readonly id: LoadingType;
 		readonly __typename: "Cat";
 	}) | ({
 		readonly firstName: LoadingType;
-		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};

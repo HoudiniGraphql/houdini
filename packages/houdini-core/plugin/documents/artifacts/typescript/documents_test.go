@@ -1005,13 +1005,11 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type UnionAbstractQuery$result = {
 							readonly entities: ({} & (({
 								readonly kitty: boolean;
-								readonly id: string;
 								readonly isAnimal: boolean;
 								readonly names: (string | null)[];
 								readonly __typename: "Cat";
 							}) | ({
 								readonly firstName: string;
-								readonly id: string;
 								readonly admin: boolean | null;
 								readonly age: number | null;
 								readonly __typename: "User";
@@ -1066,7 +1064,6 @@ func TestTypescriptGeneration(t *testing.T) {
 							readonly entities: ({} & (({
 								readonly isAnimal: boolean;
 								readonly kitty: boolean;
-								readonly id: string;
 								readonly __typename: "Cat";
 							}) | ({
 								readonly " $fragments"?: {};
@@ -1248,7 +1245,6 @@ func TestTypescriptGeneration(t *testing.T) {
 
 						export type NodeQuery$result = {
 							readonly node: {} & (({
-								readonly id: string;
 								readonly " $fragments": {
 									UserFrag: {};
 								};
