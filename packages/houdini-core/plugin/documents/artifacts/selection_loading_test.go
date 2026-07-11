@@ -547,7 +547,11 @@ export type Query = {
 };
 
 export type Query$result = {
-	readonly catOwners: ({} & (({
+	readonly catOwners: ({
+		readonly cats: ({
+			readonly id: string;
+		})[];
+	} & (({
 		readonly firstName: string;
 		readonly __typename: "User";
 	}) | ({
@@ -568,7 +572,12 @@ export type Query$result = {
 export type Query$input = null | undefined;
 
 export type Query$unmasked = {
-	readonly catOwners: ({} & (({
+	readonly catOwners: ({
+		readonly cats: ({
+			readonly __typename: "Cat";
+			readonly id: string;
+		})[];
+	} & (({
 		readonly cats: ({
 			readonly __typename: "Cat";
 			readonly id: string;

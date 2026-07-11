@@ -869,18 +869,47 @@ func generateInterfaceUnionTypeWithLoading(
 	// Process all inline fragments, including nested ones
 	processInlineFragments(selection.Children)
 
-	// fields selected on the abstract field itself (e.g. `nodes { id }`) reach the
-	// arms only as the pipeline-distributed internal copies, so they stay visible.
-	// any other internal field (auto-added keys) is hidden from the generated type,
-	// matching the top-level selection generator
-	explicitAbstractFields := map[string]bool{}
-	for _, child := range selection.Children {
-		if child.Kind == "field" && !child.Internal {
-			name := child.FieldName
-			if child.Alias != nil {
-				name = *child.Alias
+	// selections made on the abstract field itself (fields like `nodes { id }`,
+	// fragment spreads on the field's own type) apply to every possible type, so
+	// they become the object intersected with the arm union. internal
+	// (pipeline-added) fields stay hidden here just like at the top level, and
+	// __typename is left to the arms' discriminated literals. a spread whose type
+	// condition is narrower than the field type only applies to some objects, so
+	// its marker is routed to the matching arms instead of the shared object.
+	// the loading variant keeps the empty object: its fields are generated from
+	// the loading-annotated arms only
+	sharedType := "{}"
+	if !isLoadingState {
+		sharedChildren := []*collected.Selection{}
+		for _, child := range selection.Children {
+			if child.Kind == "inline_fragment" || child.Internal ||
+				(child.Kind == "field" && child.FieldName == "__typename") {
+				continue
 			}
-			explicitAbstractFields[name] = true
+			if child.Kind == "fragment" {
+				if definition, ok := collectedDocs.Selections[child.FieldName]; ok {
+					condition := definition.TypeCondition
+					if condition != "" && condition != selection.FieldType &&
+						!collectedDocs.PossibleTypes[condition][selection.FieldType] {
+						fragName := child.FieldName
+						if child.FragmentRef != nil {
+							fragName = *child.FragmentRef
+						}
+						for typeName := range concreteTypesSet {
+							if condition == typeName || collectedDocs.PossibleTypes[condition][typeName] {
+								namedFragmentsByType[typeName] = append(namedFragmentsByType[typeName], fragName)
+							}
+						}
+						continue
+					}
+				}
+			}
+			sharedChildren = append(sharedChildren, child)
+		}
+		if len(sharedChildren) > 0 {
+			if generated, err := generateSelectionType(ctx, sharedChildren, readonly, indentLevel, selection.FieldType, collectedDocs, unmasked); err == nil {
+				sharedType = generated
+			}
 		}
 	}
 
@@ -917,17 +946,12 @@ func generateInterfaceUnionTypeWithLoading(
 		}
 		fragmentChildren, optionalFields := expandMaskedSpreads(ctx, collectedDocs, allChildren, typeName)
 		for _, fragmentChild := range fragmentChildren {
-			// internal (pipeline-added) fields are hidden from the generated type
-			// unless they distribute an explicit abstract-level selection into the
-			// arm; $unmasked includes every server-visible field
+			// internal (pipeline-added) fields are hidden from the generated type,
+			// matching the top-level selection generator; $unmasked includes every
+			// server-visible field. explicit abstract-level selections surface in
+			// the shared object above, not the arms
 			if fragmentChild.Internal && !unmasked {
-				name := fragmentChild.FieldName
-				if fragmentChild.Alias != nil {
-					name = *fragmentChild.Alias
-				}
-				if !explicitAbstractFields[name] {
-					continue
-				}
+				continue
 			}
 			// Skip __typename fields from fragments - we'll add the discriminated version
 			if fragmentChild.Kind == "field" && fragmentChild.FieldName != "__typename" {
@@ -1099,10 +1123,10 @@ func generateInterfaceUnionTypeWithLoading(
 
 	// Create the union type
 	if isLoadingState {
-		unionType := fmt.Sprintf("({} & (%s))", strings.Join(unionParts, " | "))
+		unionType := fmt.Sprintf("(%s & (%s))", sharedType, strings.Join(unionParts, " | "))
 		return unionType
 	} else {
-		unionType := fmt.Sprintf("{} & (%s)", strings.Join(unionParts, " | "))
+		unionType := fmt.Sprintf("%s & (%s)", sharedType, strings.Join(unionParts, " | "))
 		return unionType
 	}
 }
