@@ -3,10 +3,20 @@
 // Verified by `tsc --noEmit` — not a Playwright test.
 
 import { cache } from '$houdini'
+import type { GuardRow$artifact, GuardRow$data } from '$houdini/artifacts/GuardRow'
+import type { HelloWorld$artifact, HelloWorld$result } from '$houdini/artifacts/HelloWorld'
+import type {
+	RefetchableUserInfo$artifact,
+	RefetchableUserInfo$data,
+} from '$houdini/artifacts/RefetchableUserInfo'
+import type {
+	RouteParamsUserInfo$artifact,
+	RouteParamsUserInfo$result,
+} from '$houdini/artifacts/RouteParamsUserInfo'
 import type { MyEnum$options } from '$houdini/graphql/enums'
 import type { CacheTypeDef } from '$houdini/runtime/generated'
 import type { Record as CacheRecord } from '$houdini/runtime/public/record'
-import type { GraphQLObject } from 'houdini/runtime'
+import type { GraphQLObject, QueryArtifact } from 'houdini/runtime'
 
 export {}
 
@@ -105,3 +115,68 @@ users.when({
 
 // @ts-expect-error -- append takes Record proxies, not raw ids
 users.append('User:1')
+
+// ── cache.read / cache.write are typed per document, matched by artifact ─────
+
+declare const helloWorld: { artifact: HelloWorld$artifact }
+declare const userInfoQuery: { artifact: RouteParamsUserInfo$artifact }
+
+// read resolves the document's own result type, not a union of every query
+const helloData = cache.read({ query: helloWorld }).data
+const _helloData: Equals<typeof helloData, HelloWorld$result | null> = true
+
+const userData = cache.read({ query: userInfoQuery, variables: { id: '1' } }).data
+const _userData: Equals<typeof userData, RouteParamsUserInfo$result | null> = true
+
+// write validates data and variables against the matched document
+cache.write({ query: userInfoQuery, data: { user: { name: 'x' } }, variables: { id: '1' } })
+
+cache.write({
+	query: userInfoQuery,
+	// @ts-expect-error -- name is a String
+	data: { user: { name: 2 } },
+	variables: { id: '1' },
+})
+
+cache.write({
+	query: userInfoQuery,
+	data: { user: { name: 'x' } },
+	// @ts-expect-error -- id is an ID
+	variables: { id: false },
+})
+
+// a document the runtime doesn't know about fails closed with the error
+// sentinel instead of silently matching another document
+declare const unknownQuery: { artifact: QueryArtifact }
+const unknownData = cache.read({ query: unknownQuery }).data
+const _unknownData: Equals<
+	typeof unknownData,
+	| 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	| null
+> = true
+
+// ── record.read / record.write match fragments the same way ──────────────────
+
+declare const guardRow: { artifact: GuardRow$artifact }
+declare const refetchableUserInfo: { artifact: RefetchableUserInfo$artifact }
+
+const guardData = user.read({ fragment: guardRow }).data
+const _guardData: Equals<typeof guardData, GuardRow$data | null> = true
+
+user.write({ fragment: guardRow, data: { id: '1', name: 'x' } })
+
+user.write({
+	fragment: guardRow,
+	// @ts-expect-error -- GuardRow selects id and name
+	data: { id: '1' },
+})
+
+// fragment variables resolve per fragment too
+const refetchableData = user.read({ fragment: refetchableUserInfo, variables: { size: 2 } }).data
+const _refetchableData: Equals<typeof refetchableData, RefetchableUserInfo$data | null> = true
+
+user.read({
+	fragment: refetchableUserInfo,
+	// @ts-expect-error -- size is an Int
+	variables: { size: 'big' },
+})

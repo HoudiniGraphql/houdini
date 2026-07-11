@@ -149,14 +149,14 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 
 			expected := tests.Dedent(`
 				import type { Record } from "./public/record";
-				import type { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
-				import type { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
+				import type { TestQuery$result, TestQuery$input, TestQuery$artifact } from "../artifacts/TestQuery";
+				import type { TestQueryNoArgs$result, TestQueryNoArgs$input, TestQueryNoArgs$artifact } from "../artifacts/TestQueryNoArgs";
 				import type { MyEnum$options } from "$houdini/graphql/enums";
 				import type { NestedUserFilter } from "$houdini/graphql/inputs";
 				import type { UserFilter } from "$houdini/graphql/inputs";
-				import type { UserInfo$data } from "../artifacts/UserInfo";
+				import type { UserInfo$data, UserInfo$artifact } from "../artifacts/UserInfo";
 				import type { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
-				import type { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
+				import type { UserInfoWithArguments$data, UserInfoWithArguments$artifact } from "../artifacts/UserInfoWithArguments";
 
 				export declare type CacheTypeDef = {
 						types: {
@@ -365,7 +365,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 										args: never;
 									};
 								};
-								fragments: [[any, UserInfo$data, never], [any, UserInfoWithArguments$data, UserInfoWithArguments$input]];
+								fragments: [[UserInfo$artifact, UserInfo$data, never], [UserInfoWithArguments$artifact, UserInfoWithArguments$data, UserInfoWithArguments$input]];
 							};
 						};
 						lists: {
@@ -386,7 +386,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 								filters: never;
 							};
 						};
-						queries: [[any, TestQuery$result, TestQuery$input], [any, TestQueryNoArgs$result, TestQueryNoArgs$input]];
+						queries: [[TestQuery$artifact, TestQuery$result, TestQuery$input], [TestQueryNoArgs$artifact, TestQueryNoArgs$result, TestQueryNoArgs$input]];
 						scalars: number | boolean | string;
 				};
 

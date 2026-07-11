@@ -163,12 +163,13 @@ func generateImports(
 		return sortedDocs[i].Name < sortedDocs[j].Name
 	})
 
-	// Generate imports for queries first
+	// Generate imports for queries first. The $artifact type keys the queries list
+	// so cache.read/write can match a document handle to its result/input types
 	for _, doc := range sortedDocs {
 		if doc.Kind == "query" {
 			imports.WriteString(fmt.Sprintf(
-				`import type { %s$result, %s$input } from "../artifacts/%s";`+"\n",
-				doc.Name, doc.Name, doc.Name,
+				`import type { %s$result, %s$input, %s$artifact } from "../artifacts/%s";`+"\n",
+				doc.Name, doc.Name, doc.Name, doc.Name,
 			))
 		}
 	}
@@ -196,7 +197,8 @@ func generateImports(
 		))
 	}
 
-	// Generate imports for fragments
+	// Generate imports for fragments. The $artifact type keys each type's fragments
+	// list so record.read/write can match a fragment handle to its data/input types
 	for _, doc := range sortedDocs {
 		if doc.Kind == "fragment" {
 			// Use pre-loaded argument info
@@ -207,8 +209,8 @@ func generateImports(
 				))
 			}
 			imports.WriteString(fmt.Sprintf(
-				`import type { %s$data } from "../artifacts/%s";`+"\n",
-				doc.Name, doc.Name,
+				`import type { %s$data, %s$artifact } from "../artifacts/%s";`+"\n",
+				doc.Name, doc.Name, doc.Name,
 			))
 		}
 	}
@@ -787,11 +789,18 @@ func getFragmentsByType(
 		fragmentName := stmt.ColumnText(1)
 		hasArgs := stmt.ColumnInt(2) == 1
 
+		// each tuple is keyed by the fragment's artifact type so read/write can
+		// match a fragment handle (anything carrying the artifact) to its types
 		var fragmentTuple string
 		if hasArgs {
-			fragmentTuple = fmt.Sprintf("[any, %s$data, %s$input]", fragmentName, fragmentName)
+			fragmentTuple = fmt.Sprintf(
+				"[%s$artifact, %s$data, %s$input]",
+				fragmentName,
+				fragmentName,
+				fragmentName,
+			)
 		} else {
-			fragmentTuple = fmt.Sprintf("[any, %s$data, never]", fragmentName)
+			fragmentTuple = fmt.Sprintf("[%s$artifact, %s$data, never]", fragmentName, fragmentName)
 		}
 
 		fragmentsByType[typeName] = append(fragmentsByType[typeName], fragmentTuple)
@@ -999,9 +1008,13 @@ func generateQueriesSection(
 	// Sort for consistent output
 	sort.Strings(queryNames)
 
-	// Generate tuples
+	// Generate tuples, each keyed by the query's artifact type so read/write can
+	// match a document handle (anything carrying the artifact) to its types
 	for _, name := range queryNames {
-		queryTuples = append(queryTuples, fmt.Sprintf("[any, %s$result, %s$input]", name, name))
+		queryTuples = append(
+			queryTuples,
+			fmt.Sprintf("[%s$artifact, %s$result, %s$input]", name, name, name),
+		)
 	}
 
 	if len(queryTuples) == 0 {
