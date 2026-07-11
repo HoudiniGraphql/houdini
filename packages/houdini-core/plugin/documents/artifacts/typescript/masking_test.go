@@ -286,6 +286,176 @@ func TestTypescriptFragmentMasking(t *testing.T) {
 	})
 }
 
+// when several unmasked fragments select the same field with different
+// sub-selections the generated type has to describe the union of every
+// occurrence's children, not just the first one (issue #1727)
+func TestTypescriptMaskDisableMerging(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			type Query {
+				item: Item!
+			}
+
+			type Item {
+				id: ID!
+				meta: Meta!
+				details: Detail
+			}
+
+			type Meta {
+				label: String!
+				color: String!
+			}
+
+			union Detail = TextDetail | ImageDetail
+
+			type TextDetail {
+				id: ID!
+				text: String!
+				meta: Meta!
+			}
+
+			type ImageDetail {
+				id: ID!
+				url: String!
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			for docName, expected := range test.Extra {
+				typeDefs, err := afero.ReadFile(plugin.Fs, config.ArtifactTypePath(docName))
+				require.NoError(t, err)
+				require.Contains(t, string(typeDefs), expected)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "overlapping object sub-selections are merged",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...ItemLabel @mask_disable
+							...ItemColor @mask_disable
+						}
+					}`,
+					`fragment ItemLabel on Item {
+						meta {
+							label
+						}
+					}`,
+					`fragment ItemColor on Item {
+						meta {
+							color
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						export type MergeQuery$result = {
+							readonly item: {
+								readonly meta: {
+									readonly label: string;
+									readonly color: string;
+								};
+								readonly " $fragments": {
+									ItemLabel: {};
+									ItemColor: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+			{
+				Name: "a narrow union selection does not erase inline fragments",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...DetailType @mask_disable
+							...DetailContent @mask_disable
+						}
+					}`,
+					`fragment DetailType on Item {
+						details {
+							__typename
+						}
+					}`,
+					`fragment DetailContent on Item {
+						details {
+							__typename
+							... on TextDetail {
+								text
+							}
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						readonly text: string;
+					`),
+				},
+			},
+			{
+				Name: "overlapping fields inside a union arm are merged",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...TextLabel @mask_disable
+							...TextColor @mask_disable
+						}
+					}`,
+					`fragment TextLabel on Item {
+						details {
+							... on TextDetail {
+								meta {
+									label
+								}
+							}
+						}
+					}`,
+					`fragment TextColor on Item {
+						details {
+							... on TextDetail {
+								meta {
+									color
+								}
+							}
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						export type MergeQuery$result = {
+							readonly item: {
+								readonly details: {} & (({
+									readonly meta: {
+										readonly label: string;
+										readonly color: string;
+									};
+									readonly id: string;
+									readonly __typename: "TextDetail";
+								}) | ({
+									readonly " $fragments"?: {};
+									readonly __typename: "non-exhaustive; don't match this";
+								})) | null;
+								readonly " $fragments": {
+									TextLabel: {};
+									TextColor: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+		},
+	})
+}
+
 // @includeListID stamps an opaque __id onto the list value so the client can
 // pass it back via @listID; the generated type must reflect that intersection
 func TestTypescriptIncludeListID(t *testing.T) {

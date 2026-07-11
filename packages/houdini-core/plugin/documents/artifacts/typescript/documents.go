@@ -68,6 +68,9 @@ func expandMaskedSpreads(
 	result := make([]*collected.Selection, 0, len(selections))
 	optionalFields := map[*collected.Selection]bool{}
 	seenFields := map[string]*collected.Selection{}
+	fieldIndex := map[string]int{}
+	mergedFields := map[string]bool{}
+	seenSpreads := map[string]bool{}
 	seenFragments := map[string]bool{}
 
 	// satisfied returns true when every object of parentType matches the condition
@@ -81,8 +84,13 @@ func expandMaskedSpreads(
 		for _, sel := range sels {
 			switch sel.Kind {
 			case "fragment":
-				// always keep the spread for the " $fragments" marker
-				result = append(result, sel)
+				// keep the spread for the " $fragments" marker, once per fragment
+				// (merged duplicate fields can carry the same spread through
+				// several paths and the marker object can't repeat a key)
+				if !seenSpreads[sel.FieldName] {
+					seenSpreads[sel.FieldName] = true
+					result = append(result, sel)
+				}
 
 				if !spreadDisablesMasking(ctx.ProjectConfig, sel) {
 					continue
@@ -119,6 +127,26 @@ func expandMaskedSpreads(
 					name = *sel.Alias
 				}
 				if kept, ok := seenFields[name]; ok {
+					// a duplicate occurrence still contributes its sub-selection:
+					// two unmasked fragments can select the same field with
+					// different children and the type has to describe the union of
+					// both. the kept node is shared with the collected documents
+					// so it's cloned the first time it grows
+					if len(sel.Children) > 0 {
+						if !mergedFields[name] {
+							clone := kept.Clone(false)
+							clone.Children = slices.Clone(kept.Children)
+							if optionalFields[kept] {
+								delete(optionalFields, kept)
+								optionalFields[clone] = true
+							}
+							result[fieldIndex[name]] = clone
+							seenFields[name] = clone
+							mergedFields[name] = true
+							kept = clone
+						}
+						kept.Children = append(kept.Children, sel.Children...)
+					}
 					// an occurrence that is always present wins over a conditional one
 					if !conditional {
 						delete(optionalFields, kept)
@@ -126,6 +154,7 @@ func expandMaskedSpreads(
 					continue
 				}
 				seenFields[name] = sel
+				fieldIndex[name] = len(result)
 				if conditional {
 					optionalFields[sel] = true
 				}
@@ -848,109 +877,105 @@ func generateInterfaceUnionTypeWithLoading(
 	for _, typeName := range filteredTypes {
 		// Build the type literal for this possible type
 		var fields []string
-		fieldSet := make(map[string]bool) // Track fields to avoid duplicates
 
-		// Process all fragments that apply to this type
+		// expand every fragment that applies to this type in a single pass so a
+		// field selected by more than one fragment keeps the union of its
+		// sub-selections instead of only the first occurrence (duplicates are
+		// merged inside expandMaskedSpreads)
+		allChildren := []*collected.Selection{}
 		for _, fragment := range fragmentsByType[typeName] {
-			// inline the fields of any fragment spread that disables masking
-			fragmentChildren, optionalFields := expandMaskedSpreads(ctx, collectedDocs, fragment.Children, typeName)
-			// Include fields from this inline fragment
-			for _, fragmentChild := range fragmentChildren {
-				if fragmentChild.Kind == "field" && fragmentChild.FieldName != "__typename" {
-					// Skip __typename fields from fragments - we'll add the discriminated version
-					// Also skip if we've already added this field
-					if fieldSet[fragmentChild.FieldName] {
-						continue
-					}
-					fieldSet[fragmentChild.FieldName] = true
+			allChildren = append(allChildren, fragment.Children...)
+		}
+		fragmentChildren, optionalFields := expandMaskedSpreads(ctx, collectedDocs, allChildren, typeName)
+		for _, fragmentChild := range fragmentChildren {
+			// Skip __typename fields from fragments - we'll add the discriminated version
+			if fragmentChild.Kind == "field" && fragmentChild.FieldName != "__typename" {
+				var fieldType string
 
-					var fieldType string
-
-					if isLoadingState {
-						// In loading state, all fields become LoadingType
-						fieldType = "LoadingType"
-					} else {
-						// Check if this field has children (nested object type)
-						if len(fragmentChild.Children) > 0 {
-							// Check if this field has inline fragments (interface/union type)
-							hasInlineFragments := false
-							for _, child := range fragmentChild.Children {
-								if child.Kind == "inline_fragment" {
-									hasInlineFragments = true
-									break
-								}
+				if isLoadingState {
+					// In loading state, all fields become LoadingType
+					fieldType = "LoadingType"
+				} else {
+					// Check if this field has children (nested object type)
+					if len(fragmentChild.Children) > 0 {
+						// Check if this field has inline fragments (interface/union type)
+						hasInlineFragments := false
+						for _, child := range fragmentChild.Children {
+							if child.Kind == "inline_fragment" {
+								hasInlineFragments = true
+								break
 							}
+						}
 
-							if hasInlineFragments {
-								// Interface/Union type - generate union with discriminators
-								unionType := generateInterfaceUnionType(
+						if hasInlineFragments {
+							// Interface/Union type - generate union with discriminators
+							unionType := generateInterfaceUnionType(
+								ctx,
+								fragmentChild,
+								readonly,
+								collectedDocs,
+								unmasked,
+								indentLevel+1,
+							)
+
+							// Apply type modifiers (lists, nullability) to the union type
+							modifiers := ""
+							if fragmentChild.TypeModifiers != nil {
+								modifiers = *fragmentChild.TypeModifiers
+							}
+							fieldType = ApplyTypeModifiers(
+								unionType,
+								modifiers,
+								false,
+							) // Output type
+						} else {
+							// Regular nested object type
+							childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, indentLevel+1, fragmentChild.FieldType, collectedDocs, unmasked)
+							if childErr != nil {
+								// Fallback to simple type conversion on error
+								fieldType = convertLeafType(
 									ctx,
-									fragmentChild,
-									readonly,
+									fragmentChild.FieldType,
+									fragmentChild.TypeModifiers,
 									collectedDocs,
-									unmasked,
-									indentLevel+1,
 								)
-
-								// Apply type modifiers (lists, nullability) to the union type
+							} else {
+								// Apply type modifiers (lists, nullability) using the proper function
 								modifiers := ""
 								if fragmentChild.TypeModifiers != nil {
 									modifiers = *fragmentChild.TypeModifiers
 								}
-								fieldType = ApplyTypeModifiers(
-									unionType,
-									modifiers,
-									false,
-								) // Output type
-							} else {
-								// Regular nested object type
-								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, indentLevel+1, fragmentChild.FieldType, collectedDocs, unmasked)
-								if childErr != nil {
-									// Fallback to simple type conversion on error
-									fieldType = convertLeafType(
-										ctx,
-										fragmentChild.FieldType,
-										fragmentChild.TypeModifiers,
-										collectedDocs,
-									)
-								} else {
-									// Apply type modifiers (lists, nullability) using the proper function
-									modifiers := ""
-									if fragmentChild.TypeModifiers != nil {
-										modifiers = *fragmentChild.TypeModifiers
-									}
-									fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
-								}
+								fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
 							}
-						} else {
-							fieldType = convertLeafType(
-								ctx,
-								fragmentChild.FieldType,
-								fragmentChild.TypeModifiers,
-								collectedDocs,
-							)
 						}
+					} else {
+						fieldType = convertLeafType(
+							ctx,
+							fragmentChild.FieldType,
+							fragmentChild.TypeModifiers,
+							collectedDocs,
+						)
 					}
-
-					// fields inlined through a conditionally included spread might be
-					// missing from the response so they are typed as optional
-					optional := ""
-					if optionalFields[fragmentChild] {
-						optional = "?"
-					}
-
-					fields = append(
-						fields,
-						fmt.Sprintf(
-							"%s%s%s%s: %s;",
-							fieldIndent,
-							readonlyPrefix,
-							fragmentChild.FieldName,
-							optional,
-							fieldType,
-						),
-					)
 				}
+
+				// fields inlined through a conditionally included spread might be
+				// missing from the response so they are typed as optional
+				optional := ""
+				if optionalFields[fragmentChild] {
+					optional = "?"
+				}
+
+				fields = append(
+					fields,
+					fmt.Sprintf(
+						"%s%s%s%s: %s;",
+						fieldIndent,
+						readonlyPrefix,
+						fragmentChild.FieldName,
+						optional,
+						fieldType,
+					),
+				)
 			}
 		}
 
