@@ -130,9 +130,12 @@ func expandMaskedSpreads(
 					// a duplicate occurrence still contributes its sub-selection:
 					// two unmasked fragments can select the same field with
 					// different children and the type has to describe the union of
-					// both. the kept node is shared with the collected documents
-					// so it's cloned the first time it grows
-					if len(sel.Children) > 0 {
+					// both. an explicit occurrence also makes a field the pipeline
+					// auto-added (internal, hidden from the type) part of the type.
+					// the kept node is shared with the collected documents so it's
+					// cloned the first time it changes
+					makesVisible := kept.Internal && !sel.Internal
+					if len(sel.Children) > 0 || makesVisible {
 						if !mergedFields[name] {
 							clone := kept.Clone(false)
 							clone.Children = slices.Clone(kept.Children)
@@ -146,6 +149,9 @@ func expandMaskedSpreads(
 							kept = clone
 						}
 						kept.Children = append(kept.Children, sel.Children...)
+						if makesVisible {
+							kept.Internal = false
+						}
 					}
 					// an occurrence that is always present wins over a conditional one
 					if !conditional {

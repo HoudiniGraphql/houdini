@@ -400,6 +400,45 @@ func TestTypescriptMaskDisableMerging(t *testing.T) {
 				},
 			},
 			{
+				Name: "diamond spreads emit a single fragment marker",
+				Pass: true,
+				Input: []string{
+					`fragment DiamondA on Item {
+						...DiamondB @mask_disable
+						...DiamondC @mask_disable
+						meta {
+							label
+						}
+					}`,
+					`fragment DiamondB on Item {
+						...DiamondC @mask_disable
+						id
+					}`,
+					`fragment DiamondC on Item {
+						details {
+							__typename
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"DiamondA": tests.Dedent(`
+						export type DiamondA$data = {
+							readonly details: {
+								readonly __typename: string;
+							} | null;
+							readonly id: string;
+							readonly meta: {
+								readonly label: string;
+							};
+							readonly " $fragments": {
+								DiamondB: {};
+								DiamondC: {};
+							};
+						};
+					`),
+				},
+			},
+			{
 				Name: "overlapping fields inside a union arm are merged",
 				Pass: true,
 				Input: []string{
