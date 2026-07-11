@@ -1,5 +1,21 @@
 # houdini
 
+## 2.0.7
+
+### Patch Changes
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated `$result` types including pipeline-added key fields (e.g. `id`) in interface/union arms the document never selected; fields selected on the abstract type itself still appear in every arm.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix custom scalars mapped to non-default TypeScript types (e.g. `URL`, `bigint`) failing the `GraphQLObject` constraint on stores; the generated runtime now registers the project's scalar types with `houdini/runtime`.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `cache.read`/`cache.write` and record-level `read`/`write` resolving their types to a union of every document; documents are now matched by their artifact so `data` and `variables` are typed per document.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types dropping fields when multiple `@mask_disable` fragments select the same field with different sub-selections; the sub-selections are now merged instead of keeping only the first occurrence. Diamond-shaped `@mask_disable` spreads also no longer produce duplicate keys in the ` $fragments` marker.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types dropping selections made directly on an interface field when the selection also contains inline fragments; fields like `nodes { id }` and fragment spreads on the interface now appear on the object intersected with the discriminated union.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types keeping fields optional when a fragment is spread with `@include`/`@skip` in one place and unconditionally in another; the unconditional spread now makes the fields required.
+
 ## 2.0.6
 
 ### Patch Changes
