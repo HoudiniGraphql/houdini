@@ -178,6 +178,7 @@ export const typeDefs = /* GraphQL */ `
 		city(id: ID!, delay: Int): City
 		userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 		userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
+		sessionTheme: String
 		rentedBooks: [RentedBook!]!
 		animals: AnimalConnection!
 		monkeys: MonkeyConnection!
@@ -501,6 +502,18 @@ export const resolvers = {
 				totalCount: allData.length,
 				nodes: allData.splice(args.offset || 0, args.limit),
 			}
+		},
+		sessionTheme: (_, args, ctx) => {
+			// prefer the per-request header (the client pipeline forwards the CURRENT client
+			// session there, so it can't lag a just-written session) and fall back to the
+			// signed-cookie session, which is all the server-side SSR proxy carries
+			let header = null
+			ctx.request.headers.forEach((value, key) => {
+				if (key === 'x-session-theme' && value) {
+					header = value
+				}
+			})
+			return header ?? ctx.session?.theme ?? null
 		},
 		session: (_, args, info) => {
 			let token = null

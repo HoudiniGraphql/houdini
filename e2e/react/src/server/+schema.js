@@ -168,6 +168,7 @@ export const typeDefs = /* GraphQL */ `
 		city(id: ID!, delay: Int): City
 		userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 		userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
+		sessionTheme: String
 		rentedBooks: [RentedBook!]!
 		animals: AnimalConnection!
 		monkeys: MonkeyConnection!

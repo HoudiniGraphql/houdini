@@ -8,10 +8,6 @@ import * as path from './path.js'
 import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
 
-declare namespace App {
-	type Session = {}
-}
-
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
@@ -39,6 +35,24 @@ export type ConfigFile = {
 	 * An object describing custom scalars for your project. For more information: https://www.houdinigraphql.com/api/config#custom-scalars
 	 */
 	scalars?: ScalarMap
+
+	/**
+	 * Client-side router behavior (houdini-react).
+	 */
+	router?: {
+		/**
+		 * How long (ms) a navigation transition may stay pending before the route's
+		 * @loading state is shown. Fast navigations resolve first and never show it.
+		 * @default 200
+		 */
+		loadingDelay?: number
+		/**
+		 * Once the @loading state is shown, keep it visible at least this long (ms) so a
+		 * response that lands just after `loadingDelay` doesn't cause a skeleton flicker.
+		 * @default 400
+		 */
+		minDuration?: number
+	}
 
 	/**
 	 * A path that the generator will use to write schema.graphql and documents.gql files containing all of the internal fragment and directive definitions used in the project.
@@ -349,10 +363,6 @@ export class Config {
 
 	schema_path() {
 		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
-	}
-
-	get localApiDir() {
-		return path.join(this.root_dir, 'src', 'api')
 	}
 
 	async api_url() {

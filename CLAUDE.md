@@ -8,7 +8,7 @@
 
 **FK indices**: SQLite does not auto-create indices on FK columns. Add an explicit `CREATE INDEX IF NOT EXISTS` in `create_schema` for any FK column that appears in a `WHERE` or `JOIN`.
 
-**FK deferral**: FKs use `ON DELETE CASCADE`; deferral is achieved at the connection level via `PRAGMA defer_foreign_keys = ON` (set in `openDb` on the TS side and in the Go connection pragmas), so constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity. (The Go test pool doesn't enforce FKs at all.)
+**FK deferral**: FKs use `ON DELETE CASCADE`; deferral is achieved at the connection level via `PRAGMA defer_foreign_keys = ON` (set in `openDb` on the TS side and in the Go connection pragmas), so constraint checks happen at `COMMIT`, not per-statement. This is intentional; pipeline steps batch-insert rows that temporarily violate FK integrity within a transaction. The Go test pool enforces FKs exactly like production (`NewTestPool` runs the same connection pragmas). Deferral only reaches the end of the current transaction, so a reference whose target is created by a later pipeline step can never be an FK — those are plain TEXT columns checked by validation rules instead (e.g. `selection_directives.directive`). When a step wraps work in `db.Transaction`, always check the error from the commit closure: a deferred FK violation surfaces at COMMIT, and swallowing it silently drops every row in the transaction.
 
 ## Testing
 

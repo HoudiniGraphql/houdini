@@ -255,7 +255,19 @@ export class Cache {
 	}
 
 	hydrate(...args: Parameters<InMemoryStorage['hydrate']>) {
-		return this._internal_unstable.storage.hydrate(...args)
+		const layer = this._internal_unstable.storage.hydrate(...args)
+
+		// let the stale manager know about the snapshot: field times are normally recorded
+		// on write, and a field without one reads as "not stale" forever — so without this,
+		// hydrated data would be invisible to markStale and could never be invalidated
+		// (e.g. by a session change). registration is O(1) here; the per-field bookkeeping
+		// is deferred to the first mark (see StaleManager.registerHydration).
+		const snapshot = args[0]
+		if (snapshot) {
+			this._internal_unstable.staleManager.registerHydration(snapshot)
+		}
+
+		return layer
 	}
 
 	clearLayer(layerID: Layer['id']) {

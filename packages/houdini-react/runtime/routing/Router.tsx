@@ -4,8 +4,7 @@ import type { Cache } from 'houdini/runtime/cache'
 import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
-import { deepEquals } from 'houdini/runtime'
-import type { LRUCache } from 'houdini/runtime'
+import { deepEquals, LRUCache } from 'houdini/runtime'
 import { marshalSelection, marshalInputs, getAuthUrl, HOUDINI_SESSION_EVENT } from 'houdini/runtime'
 import type { HoudiniSessionEventDetail } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
@@ -17,17 +16,24 @@ import {
 	RouterContextObject as Context,
 	LocationContext,
 	Is404Context,
+	NavigationContext,
 	PageContext,
+	PendingURLContext,
 } from '../contexts.js'
 import { escapeScriptTag } from '../escape.js'
 import { buildHref, scalarUnmarshalers, unmarshalScalars } from '../resolve-href.js'
 import type { Goto } from '../routes.js'
+import { invalidateSuspenseCache } from '../hooks/suspenseCache.js'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
 import { GraphQLErrors, RoutingError, StatusContext } from './errors.js'
 
-type PageComponent = React.ComponentType<{ url: string; children?: React.ReactNode }>
+type PageComponent = React.ComponentType<{
+	url: string
+	showLoading?: boolean
+	children?: React.ReactNode
+}>
 
 const PreloadWhich = {
 	component: 'component',
@@ -37,6 +43,86 @@ const PreloadWhich = {
 
 type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
 type ComponentType = any
+
+// useLoadingState decides whether to show the route's @loading state during navigation.
+// `active` is the navigation transition's pending flag. The state flips on only once
+// `active` has been pending for at least `loadingDelay` ms (so fast navigations never
+// show it). Once shown it stays on until BOTH of these are true, so a response landing
+// just after the delay doesn't cause a skeleton flicker:
+//   - it has been visible for at least `minDuration` ms
+//   - the target page's data has landed (`waitForData` resolves)
+// A navigation that starts while the state is already showing re-arms the minDuration
+// clock, so the new destination's data can't flash in right as the original hold expires
+// — `target` (the destination url) is a dependency for exactly that reason: a second
+// navigation can start without `active` ever flipping (the first transition is still
+// pending), and the target change is what re-runs the effect.
+// Note that `active` flips false as soon as the loading frame commits (the frame doesn't
+// suspend, so the transition finishes with it on screen) — which is why the hide side
+// waits on the data explicitly instead of trusting `active`.
+function useLoadingState({
+	active,
+	target,
+	loadingDelay,
+	minDuration,
+	waitForData,
+}: {
+	active: boolean
+	target: string | null
+	loadingDelay: number
+	minDuration: number
+	waitForData: () => Promise<void>
+}): boolean {
+	const [show, setShow] = React.useState(false)
+	const shownAt = React.useRef<number | null>(null)
+
+	React.useEffect(() => {
+		if (active) {
+			// already showing — a new navigation is starting while the loading state is
+			// up. Keep it up, but re-arm the minimum-duration clock: measured from the
+			// first show, the hold could expire right as this navigation's data lands,
+			// flashing the freshly-loaded content in and out of the loading state.
+			if (show) {
+				shownAt.current = performance.now()
+				return
+			}
+			// wait out the delay; if we're still pending, switch the loading state on
+			const timeout = setTimeout(() => {
+				shownAt.current = performance.now()
+				setShow(true)
+			}, loadingDelay)
+			return () => clearTimeout(timeout)
+		}
+
+		// navigation finished. if we never showed the loading state, there's nothing to do
+		if (!show) {
+			return
+		}
+		// otherwise wait for the page's data, then keep the loading state up until it has
+		// been visible for at least minDuration. waiting on the data here means the page
+		// never mounts with its query still missing (which would re-suspend it into the
+		// Suspense fallback and briefly double-render the frame).
+		let cancelled = false
+		let timeout: ReturnType<typeof setTimeout> | undefined
+		waitForData().then(() => {
+			if (cancelled) {
+				return
+			}
+			const elapsed = performance.now() - (shownAt.current ?? performance.now())
+			const remaining = Math.max(0, minDuration - elapsed)
+			timeout = setTimeout(() => {
+				shownAt.current = null
+				setShow(false)
+			}, remaining)
+		})
+		return () => {
+			cancelled = true
+			clearTimeout(timeout)
+		}
+	}, [active, show, target, loadingDelay, minDuration])
+
+	return show
+}
+
 /**
  * Router is the top level entry point for the filesystem-based router.
  * It is responsible for loading various page sources (including API fetches) and
@@ -63,6 +149,20 @@ export function Router({
 	const [currentURL, setCurrentURL] = React.useState(() => {
 		return initialURL || window.location.pathname + window.location.search
 	})
+
+	// Navigation runs inside a transition so React keeps the previously-rendered route
+	// on screen while the next one loads (instead of immediately falling back to the
+	// loading state). If the transition stays pending longer than `loadingDelay`, we
+	// surface the route's @loading frame (see showLoading → the entry's page slot);
+	// fast navigations never show it, and once shown it stays up for `minDuration`.
+	const [isNavigating, startNavigation] = React.useTransition()
+
+	// pendingURL tracks the navigation target *urgently* (outside the transition), so a
+	// render that happens while the transition is still pending can tell whether it is
+	// looking at the destination (transition lane: currentURL === pendingURL) or at the
+	// still-committed previous route (urgent lane: currentURL lags behind). The loading
+	// frame is only ever shown on the destination — see the showLoading prop below.
+	const [pendingURL, setPendingURL] = React.useState<string | null>(null)
 
 	// find the matching page for the current route. find_match also hands back the parsed
 	// query string (declared search params coerced, UI-only keys raw). custom-scalar route
@@ -97,8 +197,35 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache, data_cache, ssr_signals } = useRouterContext()
+	const { component_cache, data_cache, artifact_cache, ssr_signals, latestSession } =
+		useRouterContext()
 	const PageComponent = component_cache.get(targetPage.id)!
+
+	// decide whether the entry should render its @loading frame instead of the page.
+	// values come from the router config (bundled client-side; they're UI timing, not
+	// secrets), clamped so a bad value can't schedule a negative timeout.
+	// The machine only arms when the *destination* can actually render a frame (one of
+	// its documents is @loading): a frameless destination just holds the previous page
+	// for the whole transition, and arming the invisible state anyway would keep
+	// useNavigation().pending true for up to minDuration after the content committed.
+	const routerConfig = getCurrentConfig()?.router ?? {}
+	const [pendingPage] = pendingURL !== null ? find_match(manifest, pendingURL) : [null]
+	const destinationHasFrame = pendingPage
+		? Object.values(pendingPage.documents).some((document) => document.loading)
+		: false
+	const showLoading = useLoadingState({
+		active: isNavigating && destinationHasFrame,
+		target: pendingURL,
+		loadingDelay: Math.max(0, routerConfig.loadingDelay ?? 200),
+		minDuration: Math.max(0, routerConfig.minDuration ?? 400),
+		// resolves once every query of the page being rendered has a store in data_cache
+		// (including error stores — load_query seeds those too, so an errored query
+		// releases the loading state instead of pinning it)
+		waitForData: () =>
+			Promise.all(
+				Object.keys(targetPage.documents).map((name) => data_cache.waitFor(name))
+			).then(() => {}),
+	})
 
 	// if we got this far then we're past suspense
 
@@ -113,13 +240,96 @@ export function Router({
 		}
 	}, [currentURL])
 
+	// (dev only) hot-swap regenerated query artifacts. The router loads artifacts through
+	// dynamic import and keeps them — and the DocumentStores built from them — in caches
+	// keyed by document name, so vite's module-level HMR can never reach them: after
+	// codegen rewrites an artifact, the caches keep serving the old document and the page
+	// renders stale data. The compiler emits a custom event listing the changed artifact
+	// modules (see flushClientUpdates in houdini's vite plugin); re-import each one fresh,
+	// swap it into the artifact cache, evict the stale store, and reload the current
+	// page's data. useQueryResult keeps the committed store on screen while the
+	// replacement loads (the same keep-last-store path as an abandoned navigation), so
+	// the swap doesn't flash a loading state.
+	const [, forceRender] = React.useReducer((n: number) => n + 1, 0)
+	// the listener is registered once but must act on the latest render's page/variables
+	// (and loadData's closure over the current session)
+	const hmr = React.useRef({ page: targetPage, variables, loadData })
+	hmr.current = { page: targetPage, variables, loadData }
+	React.useEffect(() => {
+		// dev only: vite statically replaces both tokens in production builds
+		// (env.DEV → false, hot → undefined), so the whole listener is dead-code
+		// eliminated. The casts erase to the literal `import.meta.env.DEV` /
+		// `import.meta.hot` tokens — don't alias import.meta or add optional
+		// chaining, or the replacement (and vite's hot-context injection) stops
+		// matching.
+		if (!(import.meta as unknown as { env: { DEV?: boolean } }).env.DEV) {
+			return
+		}
+		const hot = (import.meta as { hot?: any }).hot
+		if (!hot) {
+			return
+		}
+		const onArtifactUpdate = async ({
+			artifacts,
+		}: {
+			artifacts: Array<{ name: string; url: string }>
+		}) => {
+			let stale = false
+			for (const { name, url } of artifacts) {
+				// only documents this client has loaded can be stale
+				if (!artifact_cache.has(name)) {
+					continue
+				}
+				// bust the browser's module cache — re-importing the bare url would just
+				// return the module we already have
+				let artifact: QueryArtifact | undefined
+				try {
+					const bust = `${url.includes('?') ? '&' : '?'}t=${Date.now()}`
+					artifact = (await import(/* @vite-ignore */ `${url}${bust}`))?.default
+				} catch {
+					// the module failed to load (e.g. the document was deleted) — leave the
+					// caches alone rather than evicting a store we can't replace
+					continue
+				}
+				if (!artifact) {
+					continue
+				}
+				artifact_cache.set(name, artifact)
+				// evict the store built from the old artifact so the reload below creates a
+				// replacement. deliberately no cleanup(): mounted components keep rendering
+				// the old store until the new one lands (see SuspenseCache's delete() note)
+				data_cache.delete(name)
+				ssr_signals.delete(name)
+				stale = true
+			}
+			if (!stale) {
+				return
+			}
+			const { page, variables, loadData } = hmr.current
+			// the reload honors each query's cache policy: an edit that doesn't change
+			// what the document asks for (or asks for data the cache already holds)
+			// resolves instantly from cache; anything the old selection didn't cover
+			// misses and goes to the network
+			loadData(page, variables)
+			// re-render so useQueryResult sees the eviction and subscribes to the
+			// replacement — deleting a cache entry doesn't notify anyone on its own
+			forceRender()
+		}
+		hot.on('houdini:artifact-update', onArtifactUpdate)
+		return () => hot.off?.('houdini:artifact-update', onArtifactUpdate)
+	}, [])
+
 	// when we first mount we should start listening to the back button
 	React.useEffect(() => {
 		if (!globalThis.window) {
 			return
 		}
 		const onChange = (_evt: PopStateEvent) => {
-			setCurrentURL(window.location.pathname + window.location.search)
+			const url = window.location.pathname + window.location.search
+			setPendingURL(url)
+			startNavigation(() => {
+				setCurrentURL(url)
+			})
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {
@@ -127,34 +337,72 @@ export function Router({
 		}
 	}, [])
 
+	// On navigation (but not the initial mount), re-fire the route's already-cached
+	// queries so each one's cache policy is honored (stale-while-revalidate). The
+	// observers are kept, so a query whose variables are unchanged and whose policy
+	// allows a cache read resolves without a loading frame; queries whose variables
+	// changed (or aren't cached) are evicted + reloaded by loadData with their loading
+	// state. We reuse the variables already unmarshaled for this render rather than
+	// re-parsing the URL. This also covers back/forward (popstate), which bypasses goto.
+	// The guard compares URLs (not a boolean) so Strict Mode's double effect invocation
+	// on mount doesn't slip past it and revalidate the initial page.
+	const lastRevalidatedURL = React.useRef(currentURL)
+	React.useEffect(() => {
+		if (lastRevalidatedURL.current === currentURL) {
+			return
+		}
+		lastRevalidatedURL.current = currentURL
+		for (const name of Object.keys(targetPage.documents)) {
+			if (data_cache.has(name)) {
+				data_cache.get(name).send({ variables, session: latestSession.current })
+			}
+		}
+	}, [currentURL])
+
 	// the function to call to navigate. accepts either a ready-made url string or a
 	// typed target { to, params, search } that is assembled (and custom scalars
 	// marshaled) exactly the way <Link> builds its href. The typed surface is the
 	// shared Goto contract; the implementation takes the loose runtime shape.
-	const goto = ((
-		target:
-			| string
-			| { to: string; params?: Record<string, unknown>; search?: Record<string, unknown> }
-	) => {
-		const url =
-			typeof target === 'string'
-				? target
-				: buildHref(
-						target.to,
-						manifest.pages[manifest.pagesByUrl[target.to]],
-						getCurrentConfig()?.scalars,
-						target.params,
-						target.search
-					)
+	// Referentially stable (everything it closes over is): it ships in the memoized
+	// NavigationContext value and anchors the link listener effect, so a new identity
+	// per render would re-render every useNavigation consumer and re-attach listeners.
+	const goto = React.useCallback(
+		(
+			target:
+				| string
+				| {
+						to: string
+						params?: Record<string, unknown>
+						search?: Record<string, unknown>
+				  }
+		) => {
+			const url =
+				typeof target === 'string'
+					? target
+					: buildHref(
+							target.to,
+							manifest.pages[manifest.pagesByUrl[target.to]],
+							getCurrentConfig()?.scalars,
+							target.params,
+							target.search
+						)
 
-		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
-		data_cache.clear()
-		// clear pending signals so the next render starts fresh load_query calls
-		ssr_signals.clear()
+			// We intentionally don't blanket-clear the data cache on navigation (that would
+			// force every query back through its loading state). Observers and their data
+			// survive, and per-query revalidation is handled by the navigation effect above
+			// (which honors each query's cache policy). A real session change still clears
+			// the cache (updateSession / the session event listener).
 
-		// perform the navigation
-		setCurrentURL(url)
-	}) as Goto
+			// track the destination urgently (so in-flight renders can identify it) and
+			// perform the navigation inside a transition so React keeps the current route on
+			// screen until the next one is ready (or until showLoading swaps in the frame).
+			setPendingURL(url)
+			startNavigation(() => {
+				setCurrentURL(url)
+			})
+		},
+		[manifest]
+	) as Goto
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
@@ -189,29 +437,69 @@ export function Router({
 		},
 	})
 
-	// TODO: cleanup navigation caches
+	// The loading frame only renders on the destination of the navigation: while a
+	// transition is pending, the committed tree still has the previous currentURL
+	// (pendingURL differs), so an urgent re-render of it — e.g. the showLoading flip —
+	// keeps showing the previous page instead of swapping it for its own frame. The
+	// destination (transition lane, where currentURL === pendingURL) renders the frame,
+	// which doesn't suspend, so the transition commits as soon as the rest of the entry
+	// (component, artifacts, layout data) is renderable.
+	const showFrame = showLoading && currentURL === pendingURL
+
+	// the public pending-navigation surface (useNavigation). A navigation counts as
+	// pending until the destination shows its actual content: the transition can commit
+	// with the @loading frame on screen (isNavigating flips false then), so the loading
+	// state extends it. Memoized so consumers only re-render when it actually changes.
+	const navigating = isNavigating || showLoading
+	const navigation = React.useMemo(
+		() => ({ pending: navigating, to: navigating ? pendingURL : null, goto }),
+		[navigating, pendingURL, goto]
+	)
+
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
-		<LocationContext.Provider
-			value={{
-				pathname: currentURL,
-				goto,
-				params: variables ?? {},
-				search,
-			}}
-		>
-			<Is404Context.Provider value={is404}>
-				{is404 ? (
-					<NotFoundLayoutBoundary key={targetPage.id}>
-						<PageComponent url={currentURL} key={targetPage.id + '__404'} />
-					</NotFoundLayoutBoundary>
-				) : (
-					<PageComponent url={currentURL} key={targetPage.id} />
-				)}
-			</Is404Context.Provider>
-		</LocationContext.Provider>
+		<PendingURLContext.Provider value={pendingURL}>
+			<NavigationContext.Provider value={navigation}>
+				<LocationContext.Provider
+					value={{
+						pathname: currentURL,
+						goto,
+						params: variables ?? {},
+						search,
+					}}
+				>
+					<Is404Context.Provider value={is404}>
+						{is404 ? (
+							<NotFoundLayoutBoundary key={targetPage.id}>
+								<PageComponent
+									url={currentURL}
+									showLoading={showFrame}
+									key={targetPage.id + '__404'}
+								/>
+							</NotFoundLayoutBoundary>
+						) : (
+							<PageComponent
+								url={currentURL}
+								showLoading={showFrame}
+								key={targetPage.id}
+							/>
+						)}
+					</Is404Context.Provider>
+				</LocationContext.Provider>
+			</NavigationContext.Provider>
+		</PendingURLContext.Provider>
 	)
+}
+
+// useNavigation exposes the router's in-flight navigation. `pending` is true from the
+// moment a navigation starts until the destination renders its actual content — it stays
+// true while the destination's @loading state is showing — and `to` carries the
+// destination url while pending (null when idle). It also carries `goto` — the same
+// navigate function useRoute exposes — so navigation chrome (progress bars, nav menus,
+// per-link spinners) only needs this one hook.
+export function useNavigation(): { pending: boolean; to: string | null; goto: Goto } {
+	return useContext(NavigationContext)
 }
 
 // internal accessor for the raw location context. the public surface is useRoute, which
@@ -256,10 +544,8 @@ function usePageData({
 		artifact_cache,
 		ssr_signals,
 		last_variables,
+		latestSession,
 	} = useRouterContext()
-
-	// grab the current session value
-	const [session] = useSession()
 
 	// the function to load a query using the cache references
 	function load_query({
@@ -271,11 +557,12 @@ function usePageData({
 		artifact: QueryArtifact
 		variables: GraphQLVariables
 	}): Promise<void> {
-		// TODO: better tracking - only register the variables that were used
-		// track the new variables
-		for (const artifact of Object.keys(page.documents)) {
-			last_variables.set(artifact, variables)
-		}
+		// record the variables this document is being sent with. only the loaded document:
+		// a preload loads the *destination's* queries while another page is still rendered,
+		// so writing the whole page's documents here (the old behavior) would tag the
+		// current page's documents with the destination's variables — and never tag the
+		// preloaded document at all
+		last_variables.set(id, variables)
 
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
@@ -350,6 +637,12 @@ function usePageData({
 			`)
 		}
 
+		// remember which cache generation this send belongs to: if the cache is
+		// invalidated while the request is in flight (a session change clears it), the
+		// result was fetched under state that no longer applies and must not be
+		// re-inserted — the invalidation already triggered a fresh send
+		const generation = data_cache.generation
+
 		// store the observer immediately so useQueryResult can access it
 		// during SSR rendering before the fetch resolves
 		let resolve: () => void = () => {}
@@ -361,9 +654,20 @@ function usePageData({
 			observer
 				.send({
 					variables: variables,
-					session,
+					// read the ref, not the render-scoped session: this send can run during a
+					// render whose committed session predates a just-written one, and it must
+					// not repopulate the invalidated caches with stale-session results
+					session: latestSession.current,
 				})
 				.then(async () => {
+					// a stale-generation result: release the signal so nothing hangs, but
+					// don't put the observer (or its stream scripts) anywhere
+					if (data_cache.generation !== generation) {
+						ssr_signals.delete(id)
+						resolve()
+						return
+					}
+
 					data_cache.set(id, observer)
 
 					// if there is an error, stream it to the client (so an @loading query
@@ -488,6 +792,11 @@ function usePageData({
 				.catch((err) => {
 					ssr_signals.delete(id)
 					if (err?.name === 'AbortError') {
+						return
+					}
+					// same stale-generation rule as the success path
+					if (data_cache.generation !== generation) {
+						resolve()
 						return
 					}
 					// a thrown error (e.g. a throwOnError plugin) never lands in observer.state, so
@@ -623,6 +932,7 @@ export function RouterContextProvider({
 	session: ssrSession = {},
 	formResult = null,
 	formToken = null,
+	injectToStream,
 }: {
 	children: React.ReactNode
 	client: HoudiniClient
@@ -635,24 +945,45 @@ export function RouterContextProvider({
 	session?: App.Session
 	formResult?: FormResult | null
 	formToken?: string | null
+	injectToStream?: (chunk: string) => void
 }) {
 	// the session is top level state
 	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
+	// the React state above lags behind session writes: a setSession scheduled inside a
+	// transition hasn't committed when another lane renders (e.g. the urgent isPending
+	// flip of a navigation started in the same transition), so a render-phase load_query
+	// in that window would send with the previous session and repopulate the caches the
+	// session change just invalidated — the new-session render then finds everything
+	// "cached" and never refetches. Every session write updates this ref synchronously,
+	// and query sends read it instead of the render-scoped state.
+	const latestSession = React.useRef<App.Session>(ssrSession)
+
 	// if we detect an event that contains a new session value. The detail carries the subtree
 	// and whether to merge it into the current session (an @session(merge:) upsert) or replace
 	// it wholesale; a legacy plain-session detail is treated as a replace.
-	const handleNewSession = React.useCallback((event: Event) => {
-		const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
-		const isWrapped =
-			detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
-		const next = (
-			isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
-		) as App.Session
-		const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
-		setSession((prev) => (merge ? { ...prev, ...next } : next))
-	}, [])
+	const handleNewSession = React.useCallback(
+		(event: Event) => {
+			const detail = (event as CustomEvent<HoudiniSessionEventDetail | App.Session>).detail
+			const isWrapped =
+				detail && typeof detail === 'object' && 'session' in detail && 'merge' in detail
+			const next = (
+				isWrapped ? (detail as HoudiniSessionEventDetail).session : detail
+			) as App.Session
+			const merge = isWrapped && (detail as HoudiniSessionEventDetail).merge
+
+			// a new session invalidates every cached query result, exactly like updateSession():
+			// navigation no longer clears the data cache, so without this an event-driven
+			// session change (updateLocalSession) would keep serving results fetched under the
+			// old session
+			invalidate_session_caches({ cache, data_cache, ssr_signals, last_variables })
+
+			latestSession.current = merge ? { ...latestSession.current, ...next } : next
+			setSession(latestSession.current)
+		},
+		[cache, data_cache, ssr_signals, last_variables]
+	)
 
 	React.useEffect(() => {
 		window.addEventListener(HOUDINI_SESSION_EVENT, handleNewSession)
@@ -674,11 +1005,22 @@ export function RouterContextProvider({
 				ssr_signals,
 				last_variables,
 				session,
-				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
-				replaceSession: (next) => setSession(next),
-				clearSession: () => setSession({}),
+				latestSession,
+				setSession: (newSession) => {
+					latestSession.current = { ...latestSession.current, ...newSession }
+					setSession(latestSession.current)
+				},
+				replaceSession: (next) => {
+					latestSession.current = next
+					setSession(next)
+				},
+				clearSession: () => {
+					latestSession.current = {}
+					setSession({})
+				},
 				formResult,
 				formToken,
+				injectToStream,
 			}}
 		>
 			{children}
@@ -710,6 +1052,12 @@ export type RouterContext = {
 	// The current session
 	session: App.Session
 
+	// the most recent session value, written synchronously by every session setter. The
+	// `session` state above only updates when React commits, which can lag the write by a
+	// render (e.g. a setSession inside a transition) — anything that fires a request during
+	// render (load_query) must read this instead so it can't send a stale session.
+	latestSession: { current: App.Session }
+
 	// a function to call that sets the client-side session singletone
 	setSession: (newSession: Partial<App.Session>) => void
 
@@ -727,6 +1075,11 @@ export type RouterContext = {
 	// the session-bound CSRF token forms render in their hidden field (always present from a
 	// server render; null only when there is no server, e.g. a static export).
 	formToken: string | null
+
+	// present only during a server render: appends a chunk to the response stream. queries
+	// that resolve after the shell flushes use this to ship their cache snapshot to the
+	// browser (route queries via load_query, component-level useQuery via useQueryHandle).
+	injectToStream?: (chunk: string) => void
 }
 
 // FormResult mirrors the server's injected shape: a no-JS submission's result keyed by
@@ -778,6 +1131,30 @@ export function updateLocalSession(session: App.Session, merge = false) {
 	)
 }
 
+// invalidate_session_caches drops everything derived from the previous session: query
+// results, in-flight signal bookkeeping, and the last-sent variables (so useQueryResult's
+// keep-last-store check can't match a store fetched under the old session — the page
+// suspends into its loading state and refetches). One helper shared by both session-change
+// paths (updateSession and the HOUDINI_SESSION_EVENT listener) so they can't drift.
+function invalidate_session_caches(caches: {
+	cache: Cache
+	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
+	ssr_signals: PendingCache
+	last_variables: LRUCache<GraphQLVariables>
+}) {
+	caches.data_cache.clear()
+	caches.ssr_signals.clear()
+	caches.last_variables.clear()
+	// useQuery's suspense state is keyed off the Cache instance and holds resolved query
+	// data too — sweep it as well so session-dependent useQuery components refetch
+	invalidateSuspenseCache(caches.cache)
+	// the normalized cache still holds values fetched under the old session. mark it all
+	// stale (not clear — the data can render while revalidating) so a refetch whose
+	// variables didn't change with the session still continues to the network instead of
+	// being served the old session's value from cache.
+	caches.cache.markTypeStale()
+}
+
 export function useSession(): [
 	App.Session,
 	(newSession: Partial<App.Session> | null) => Promise<void>,
@@ -790,9 +1167,8 @@ export function useSession(): [
 	// log out — clearing the local session and deleting the cookie. It's awaitable so callers
 	// can wait for the cookie to settle before navigating.
 	const updateSession = async (newSession: Partial<App.Session> | null) => {
-		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
-		ctx.data_cache.clear()
-		ctx.ssr_signals.clear()
+		// drop everything derived from the previous session so queries refetch with the new one
+		invalidate_session_caches(ctx)
 
 		if (newSession === null) {
 			ctx.clearSession()
@@ -817,10 +1193,62 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 	name: string
 ): [_Data | null, DocumentHandle<any, _Data, _Input>] {
 	// pull the global context values
-	const { data_cache, artifact_cache } = useRouterContext()
+	const { data_cache, artifact_cache, last_variables } = useRouterContext()
+	const { pathname } = useLocationContext()
+	const pendingURL = React.useContext(PendingURLContext)
+	// the store (and the router-level variables it was sent with) from this component's
+	// last COMMIT. Written in an effect, never during render: the ref object is shared
+	// between a fiber and its work-in-progress alternate, so a render-phase write from a
+	// transition lane that never commits would leak the wrong store into the committed
+	// tree's next render.
+	const last_store = React.useRef<DocumentStore<_Data, _Input> | null>(null)
+	const last_vars = React.useRef<GraphQLVariables | null>(null)
+	const [, bumpStore] = React.useReducer((n: number) => n + 1, 0)
 
-	// load the store reference (this will suspend)
-	const store_ref = data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>
+	// Decide which store to render. data_cache.get suspends when the store is missing —
+	// the right behavior for a first render or for the navigation destination (a
+	// transition waits on it, or the page's @loading boundary catches it). But the router
+	// evicts a document mid-navigation to reload it with new variables, and a re-render
+	// of the still-visible previous page must NOT re-suspend into its own loading state —
+	// it keeps rendering the store from its last commit and the in-flight navigation
+	// swaps the tree when the replacement resolves. Two cases keep the last store:
+	//   - the render's URL lags the navigation target (pendingURL is lane-independent —
+	//     see PendingURLContext). A lagging render always prefers its committed store,
+	//     even when the cache already holds a replacement for different variables.
+	//   - the store is missing but the router's current variables for this document
+	//     still match the ones the committed store was sent with: the eviction belongs
+	//     to a navigation that was abandoned (e.g. goto back to the committed URL), so
+	//     this render should keep its data while the document reloads.
+	// The bump effect re-renders once a replacement lands, so a kept-stale commit always
+	// converges to the fresh store.
+	const missing = !data_cache.has(name)
+	const lagging = pendingURL !== null && pathname !== pendingURL
+	const matches_render =
+		last_vars.current !== null && deepEquals(last_vars.current, last_variables.get(name))
+	const store_ref =
+		last_store.current && (lagging || (missing && matches_render))
+			? last_store.current
+			: (data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>)
+
+	React.useEffect(() => {
+		last_store.current = store_ref
+		last_vars.current = (last_variables.get(name) as GraphQLVariables | null) ?? null
+	})
+
+	React.useEffect(() => {
+		if (!missing) {
+			return
+		}
+		let cancelled = false
+		data_cache.waitFor(name).then(() => {
+			if (!cancelled) {
+				bumpStore()
+			}
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [missing, name])
 
 	// get the live data from the store
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
@@ -867,9 +1295,6 @@ function useLinkBehavior({
 }
 
 function useLinkNavigation({ goto }: { goto: Goto }) {
-	// navigations need to be registered as transitions
-	const [_pending, startTransition] = React.useTransition()
-
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
 			if (!e.target) {
@@ -918,10 +1343,11 @@ function useLinkNavigation({ goto }: { goto: Goto }) {
 			e.preventDefault()
 			e.stopPropagation()
 
-			// go to the next route as a low priority update
-			startTransition(() => {
-				goto(target)
-			})
+			// goto() runs the URL update in its own transition and tracks the pending
+			// destination urgently. Don't wrap the call in another transition here: that
+			// would drag the urgent bookkeeping (pendingURL) into the transition lane,
+			// and the committed tree couldn't tell where the navigation is headed.
+			goto(target)
 		}
 
 		window.addEventListener('click', onClick)
@@ -1016,9 +1442,19 @@ export function router_cache({
 	const result: RouterCache = {
 		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
-		data_cache: suspense_cache(initialData),
+		// observers accumulate across navigations now that goto doesn't clear the cache,
+		// so the LRU capacity limit is reachable on long sessions. When it silently evicts
+		// a store, let the store's plugins release whatever they hold. Best-effort: a
+		// cleanup that rejects must not become an unhandled rejection (which kills a node
+		// process outright).
+		data_cache: suspense_cache(initialData, (store) => {
+			store.cleanup().catch(() => {})
+		}),
 		ssr_signals: suspense_cache(),
-		last_variables: suspense_cache(),
+		// a plain LRU, NOT a suspense cache: readers look up documents that may have no
+		// entry yet (useQueryResult reads it during render and in its commit effect, where
+		// a suspense cache's thrown promise would land in the nearest error boundary)
+		last_variables: new LRUCache(),
 	}
 
 	// we need to fill each query with an externally resolvable promise

@@ -323,58 +323,113 @@ func TestGenerateFallbacks(t *testing.T) {
 						"src/routes/subRoute/nested/+page.tsx": mockView([]string{"FinalQuery"}),
 					},
 					"expected": map[string]string{
-						// page fallback: FinalQuery is @loading
-						"fallbacks/page/_subRoute_nested.jsx": `import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+						// page fallback: FinalQuery is @loading, and the page inherits the
+						// root layout's @loading RootQuery (the frame renders the page with
+						// every query it receives, so inherited ones are included too)
+						"fallbacks/page/_subRoute_nested.jsx": `import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'
 import Component from '../../../../../../src/routes/subRoute/nested/+page'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
+
+export const Frame = () => {
+	const { artifact_cache } = useRouterContext()
+	const cache = useCache()
+	const client = useClient()
+	const RootQuery_artifact = artifact_cache.get("RootQuery")
+	const RootQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, RootQuery_artifact])
+	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
+	const RootQuery_handle = useDocumentHandle({
+		artifact: RootQuery_artifact,
+		observer: RootQuery_observer,
+		storeValue: RootQuery_loading,
+	})
+	const FinalQuery_artifact = artifact_cache.get("FinalQuery")
+	const FinalQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: FinalQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, FinalQuery_artifact])
+	const FinalQuery_observer = React.useMemo(() => client.observe({ artifact: FinalQuery_artifact, cache }), [client, FinalQuery_artifact, cache])
+	const FinalQuery_handle = useDocumentHandle({
+		artifact: FinalQuery_artifact,
+		observer: FinalQuery_observer,
+		storeValue: FinalQuery_loading,
+	})
+	const props = {
+		RootQuery: RootQuery_loading.data,
+		RootQuery$handle: RootQuery_handle,
+		FinalQuery: FinalQuery_loading.data,
+		FinalQuery$handle: FinalQuery_handle,
+	}
+	return <Component {...props} />
+}
 
 export default ({ children }) => {
 	const { artifact_cache } = useRouterContext()
-	const FinalQuery_artifact = artifact_cache.get("FinalQuery")
+	artifact_cache.get("RootQuery")
+	artifact_cache.get("FinalQuery")
 
 	return (
-		<Suspense fallback={
-			<Fallback required_queries={{}} loading_queries={{ FinalQuery: FinalQuery_artifact }} />
-		}>
+		<Suspense fallback={<Frame />}>
 			{children}
 		</Suspense>
 	)
-}
-
-const Fallback = ({ required_queries, loading_queries }) => {
-	const cache = useCache()
-	let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
-		...prev,
-		[name]: cache.read({ selection: artifact.selection, loading: true }).data
-	}), required_queries)
-	return <Component {...props} />
 }
 `,
 						// layout fallback: RootQuery is @loading
-						"fallbacks/layout/_.jsx": `import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+						"fallbacks/layout/_.jsx": `import { useRouterContext, useCache, useClient } from '$houdini/plugins/houdini-react/runtime/routing/Router'
+import { useDocumentHandle } from '$houdini/plugins/houdini-react/runtime/hooks/useDocumentHandle'
 import Component from '../../../../../../src/routes/+layout'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
+
+export const Frame = () => {
+	const { artifact_cache } = useRouterContext()
+	const cache = useCache()
+	const client = useClient()
+	const RootQuery_artifact = artifact_cache.get("RootQuery")
+	const RootQuery_loading = React.useMemo(() => ({
+		data: cache.read({ selection: RootQuery_artifact.selection, loading: true }).data,
+		errors: null,
+		fetching: true,
+		partial: false,
+		stale: false,
+		source: null,
+		variables: null,
+	}), [cache, RootQuery_artifact])
+	const RootQuery_observer = React.useMemo(() => client.observe({ artifact: RootQuery_artifact, cache }), [client, RootQuery_artifact, cache])
+	const RootQuery_handle = useDocumentHandle({
+		artifact: RootQuery_artifact,
+		observer: RootQuery_observer,
+		storeValue: RootQuery_loading,
+	})
+	const props = {
+		RootQuery: RootQuery_loading.data,
+		RootQuery$handle: RootQuery_handle,
+	}
+	return <Component {...props} />
+}
 
 export default ({ children }) => {
 	const { artifact_cache } = useRouterContext()
-	const RootQuery_artifact = artifact_cache.get("RootQuery")
+	artifact_cache.get("RootQuery")
 
 	return (
-		<Suspense fallback={
-			<Fallback required_queries={{}} loading_queries={{ RootQuery: RootQuery_artifact }} />
-		}>
+		<Suspense fallback={<Frame />}>
 			{children}
 		</Suspense>
 	)
-}
-
-const Fallback = ({ required_queries, loading_queries }) => {
-	const cache = useCache()
-	let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
-		...prev,
-		[name]: cache.read({ selection: artifact.selection, loading: true }).data
-	}), required_queries)
-	return <Component {...props} />
 }
 `,
 					},
@@ -444,22 +499,22 @@ import Layout__subRoute from '../layouts/_subRoute.jsx'
 import Page__subRoute_nested from '../pages/_subRoute_nested.jsx'
 import client from '$houdini/plugins/houdini-react/runtime/client'
 import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'
-import PageFallback__subRoute_nested from '../fallbacks/page/_subRoute_nested.jsx'
+import PageFallback__subRoute_nested, { Frame as Frame__subRoute_nested } from '../fallbacks/page/_subRoute_nested.jsx'
 import LayoutFallback__ from '../fallbacks/layout/_.jsx'
 
 const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
 const SegmentSetter__subRoute = ({ children }) => { setCurrentSegment('_subRoute'); return children }
 
-export default ({ url }) => {
+export default ({ showLoading }) => {
 	return (
-		<LayoutFallback__ key={url}>
-			<SegmentSetter__ key={url}>
-				<Layout__ key={url}>
-					<SegmentSetter__subRoute key={url}>
-						<Layout__subRoute key={url}>
-							<NotFoundGate key={url}>
-								<PageFallback__subRoute_nested key={url}>
-									<Page__subRoute_nested />
+		<LayoutFallback__>
+			<SegmentSetter__>
+				<Layout__>
+					<SegmentSetter__subRoute>
+						<Layout__subRoute>
+							<NotFoundGate>
+								<PageFallback__subRoute_nested>
+									{showLoading ? <Frame__subRoute_nested /> : <Page__subRoute_nested />}
 								</PageFallback__subRoute_nested>
 							</NotFoundGate>
 						</Layout__subRoute>
@@ -491,9 +546,9 @@ import client from '$houdini/plugins/houdini-react/runtime/client'
 import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'
 import '../componentFields/wrapper_UserAvatar'
 
-export default ({ url }) => {
+export default ({ showLoading }) => {
 	return (
-		<NotFoundGate key={url}>
+		<NotFoundGate>
 			<Page__ />
 		</NotFoundGate>
 	)
@@ -529,12 +584,12 @@ import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/
 
 const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
 
-export default ({ url }) => {
+export default ({ showLoading }) => {
 	return (
-		<SegmentSetter__ key={url}>
-			<Layout__ key={url}>
-				<Error__subRoute key={url}>
-					<NotFoundGate key={url}>
+		<SegmentSetter__>
+			<Layout__>
+				<Error__subRoute>
+					<NotFoundGate>
 						<Page__subRoute />
 					</NotFoundGate>
 				</Error__subRoute>
@@ -950,9 +1005,11 @@ export type ErrorProps = {
 	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
-	search: Omit<LayoutQuery$input, never>,
+	params: Pick<_Input<LayoutQuery$input>, Extract<keyof _Input<LayoutQuery$input>, never>>,
+	search: Omit<_Input<LayoutQuery$input>, never>,
 }
 
 export type LayoutRoute = {
@@ -961,8 +1018,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<LayoutQuery$input, Extract<keyof LayoutQuery$input, never>>,
-	search: Omit<LayoutQuery$input, never>,
+	params: Pick<_Input<LayoutQuery$input>, Extract<keyof _Input<LayoutQuery$input>, never>>,
+	search: Omit<_Input<LayoutQuery$input>, never>,
 }
 `,
 						"src/routes/(subRoute)/$types.d.ts": `import { DocumentHandle } from '../../../../plugins/houdini-react/runtime'
@@ -995,9 +1052,11 @@ export type ErrorProps = {
 	RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<(LayoutQuery$input & RootQuery$input & FinalQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input & FinalQuery$input), never>>,
-	search: Omit<(LayoutQuery$input & RootQuery$input & FinalQuery$input), never>,
+	params: Pick<(_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), Extract<keyof (_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), never>>,
+	search: Omit<(_Input<LayoutQuery$input> & _Input<RootQuery$input> & _Input<FinalQuery$input>), never>,
 }
 
 export type LayoutRoute = {
@@ -1006,8 +1065,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<(LayoutQuery$input & RootQuery$input), Extract<keyof (LayoutQuery$input & RootQuery$input), never>>,
-	search: Omit<(LayoutQuery$input & RootQuery$input), never>,
+	params: Pick<(_Input<LayoutQuery$input> & _Input<RootQuery$input>), Extract<keyof (_Input<LayoutQuery$input> & _Input<RootQuery$input>), never>>,
+	search: Omit<(_Input<LayoutQuery$input> & _Input<RootQuery$input>), never>,
 }
 `,
 					},
@@ -1050,9 +1109,11 @@ export type ErrorProps = {
 	MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
 }
 
+type _Input<T> = T extends null | undefined ? {} : T
+
 export type PageRoute = {
-	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
-	search: Omit<MyQuery$input, 'id'>,
+	params: Pick<_Input<MyQuery$input>, Extract<keyof _Input<MyQuery$input>, 'id'>> & Omit<{ id: string }, keyof _Input<MyQuery$input>>,
+	search: Omit<_Input<MyQuery$input>, 'id'>,
 }
 
 export type LayoutRoute = {
@@ -1061,8 +1122,8 @@ export type LayoutRoute = {
 }
 
 export type ErrorRoute = {
-	params: Pick<MyQuery$input, Extract<keyof MyQuery$input, 'id'>>,
-	search: Omit<MyQuery$input, 'id'>,
+	params: Pick<_Input<MyQuery$input>, Extract<keyof _Input<MyQuery$input>, 'id'>> & Omit<{ id: string }, keyof _Input<MyQuery$input>>,
+	search: Omit<_Input<MyQuery$input>, 'id'>,
 }
 `,
 					},

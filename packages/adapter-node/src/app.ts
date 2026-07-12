@@ -1,13 +1,20 @@
 import { createServerAdapter } from 'houdini/adapter'
+import { lookup } from 'mrmime'
 import * as fs from 'node:fs'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { resolveAssetPath } from './assets.js'
+import { resolveAssetPath, resolvePublicPath } from './assets.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+
+// the adapter replaces this identifier with the list of files copied from the project's public/
+// directory (see index.ts). they live at the root of the build output next to the server bundle,
+// so serving anything outside this manifest would risk exposing ssr/ — fail closed.
+declare const __HOUDINI_PUBLIC_FILES__: string[]
+const publicFiles = new Set<string>(__HOUDINI_PUBLIC_FILES__)
 
 // create the production server adapter
 const serverAdapter = createServerAdapter({
@@ -19,6 +26,13 @@ const serverAdapter = createServerAdapter({
 const nodeServer = createServer((req, res) => {
 	if (req.url?.startsWith('/assets')) {
 		return handleAssets(req, res)
+	}
+
+	// files from the project's public/ directory sit at the build root — serve any request
+	// that names one of them (robots.txt, .well-known/..., etc.)
+	const publicPath = resolvePublicPath(req.url, __dirname, publicFiles)
+	if (publicPath !== null) {
+		return serveFile(publicPath, res)
 	}
 
 	// if we got this far we can pass the request onto the server adapter
@@ -48,33 +62,10 @@ function handleAssets(
 		return
 	}
 
-	const extname = path.extname(filePath)
-	let contentType = 'text/html'
+	serveFile(filePath, res)
+}
 
-	// Determine the content type based on the file extension
-	switch (extname) {
-		case '.js':
-			contentType = 'application/javascript'
-			break
-		case '.css':
-			contentType = 'text/css'
-			break
-		case '.json':
-			contentType = 'application/json'
-			break
-		case '.png':
-			contentType = 'image/png'
-			break
-		case '.jpg':
-			contentType = 'image/jpg'
-			break
-		case '.ico':
-			contentType = 'image/x-icon'
-			break
-		default:
-			contentType = 'text/html'
-	}
-
+function serveFile(filePath: string, res: ServerResponse<IncomingMessage>) {
 	// Read the file from the file system
 	fs.readFile(filePath, (error, content) => {
 		if (error) {
@@ -90,9 +81,12 @@ function handleAssets(
 				res.end(`Server Error: ${error.code}`)
 			}
 		} else {
-			// If the file is found, serve it
-			res.writeHead(200, { 'Content-Type': contentType })
-			res.end(content, 'utf8')
+			// If the file is found, serve it. binary types (fonts, images) must not go through
+			// a utf8 re-encode, so hand the buffer over as-is.
+			res.writeHead(200, {
+				'Content-Type': lookup(filePath) ?? 'application/octet-stream',
+			})
+			res.end(content)
 		}
 	})
 }

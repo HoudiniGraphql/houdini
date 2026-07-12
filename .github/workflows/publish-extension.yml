@@ -1,0 +1,59 @@
+name: Publish VS Code Extension
+
+# The extension is a thin client (the language server ships with the user's
+# project via houdini-lsp on npm), so it releases on its own cadence — manually,
+# whenever the extension itself changes.
+#
+# Required secrets:
+#   VSCE_PAT — Azure DevOps PAT with Marketplace > Manage scope
+#   OVSX_PAT — open-vsx.org access token (Cursor / VSCodium / Windsurf users)
+
+on:
+    workflow_dispatch:
+        inputs:
+            prerelease:
+                description: 'Publish as a pre-release'
+                type: boolean
+                default: false
+
+env:
+    CI: true
+
+jobs:
+    publish:
+        name: Publish houdini-graphql
+        runs-on: ubuntu-22.04
+        environment: production
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+
+            - uses: pnpm/action-setup@v4.1.0
+              name: Install pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build extension
+              run: pnpm --filter houdini-graphql build
+
+            - name: Package
+              working-directory: packages/houdini-vscode
+              run: pnpm exec vsce package --no-dependencies ${{ inputs.prerelease && '--pre-release' || '' }}
+
+            - name: Publish to the VS Code Marketplace
+              working-directory: packages/houdini-vscode
+              run: pnpm exec vsce publish --no-dependencies --packagePath *.vsix ${{ inputs.prerelease && '--pre-release' || '' }}
+              env:
+                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+            - name: Publish to Open VSX
+              working-directory: packages/houdini-vscode
+              run: pnpm exec ovsx publish *.vsix ${{ inputs.prerelease && '--pre-release' || '' }}
+              env:
+                  OVSX_PAT: ${{ secrets.OVSX_PAT }}

@@ -59,10 +59,23 @@ export type HookError = {
 	locations: HookErrorLocation[]
 	kind: string
 }
-type HookErrorLocation = {
+export type HookErrorLocation = {
 	filepath: string
 	line: number
 	column: number
+}
+
+// PluginHookError carries the structured errors a plugin returned from a hook so
+// programmatic callers (eg the language server) can map them to source locations
+// instead of relying on the formatted console output.
+export class PluginHookError extends Error {
+	constructor(
+		public plugin: string,
+		public hook: string,
+		public errors: HookError[]
+	) {
+		super(`Failed to call ${plugin}`)
+	}
 }
 
 export function format_hook_error(rootDir: string, error: HookError, plugin: string, hook: string) {

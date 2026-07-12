@@ -22,7 +22,7 @@ type DocumentInsertStatements struct {
 
 func PrepareDocumentInsertStatements(conn plugins.Conn) (DocumentInsertStatements, error, func()) {
 	insertDocument, err := conn.Prepare(
-		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+		"INSERT INTO documents (name, raw_document, kind, type_condition, generated) VALUES ($name, $raw_document, $kind, $type_condition, $generated)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil

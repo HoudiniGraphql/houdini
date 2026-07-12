@@ -26,16 +26,19 @@ import type { OffsetFragmentStoreInstance } from '../../types.js'
 import { FragmentStore } from '../fragment.js'
 import type { StoreConfig } from '../query.js'
 
-type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
-	_Data,
+type FragmentStoreConfig<
+	_Data extends GraphQLObject,
 	_Input,
-	FragmentArtifact
-> & { paginationArtifact: QueryArtifact }
+	_Artifact extends FragmentArtifact = FragmentArtifact,
+> = StoreConfig<_Data, _Input, _Artifact> & { paginationArtifact: QueryArtifact }
 
 export class BasePaginatedFragmentStore<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input,
+	// generated stores narrow this to their document's artifact type so a store
+	// can be matched back to its data/input types (e.g. by record.read/write)
+	_Artifact extends FragmentArtifact = FragmentArtifact,
 > {
 	// all paginated stores need to have a flag to distinguish from other fragment stores
 	paginated = true
@@ -43,9 +46,9 @@ export class BasePaginatedFragmentStore<
 	protected paginationArtifact: QueryArtifact
 	name: string
 	kind = CompiledFragmentKind
-	artifact: FragmentArtifact
+	artifact: _Artifact
 
-	constructor(config: FragmentStoreConfig<_Data, _Input>) {
+	constructor(config: FragmentStoreConfig<_Data, _Input, _Artifact>) {
 		this.paginationArtifact = config.paginationArtifact
 		this.name = config.storeName
 		this.artifact = config.artifact
@@ -93,7 +96,8 @@ export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables,
-> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
+	_Artifact extends FragmentArtifact = FragmentArtifact,
+> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input, _Artifact> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | { [fragmentKey]: _ReferenceType } | null) {
 		const base = new FragmentStore<_Data, {}, _Input>({
@@ -286,7 +290,8 @@ export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables,
-> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
+	_Artifact extends FragmentArtifact = FragmentArtifact,
+> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input, _Artifact> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
 		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,

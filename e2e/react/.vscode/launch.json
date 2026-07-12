@@ -1,0 +1,40 @@
+{
+	// Debugging setup for the houdini LSP: open e2e/react as the workspace and press F5.
+	// The extension development host opens this same project (it has the houdini.config
+	// the extension activates on) running the extension from packages/houdini-vscode.
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}/../../packages/houdini-vscode",
+				// a workspace FILE for this same project — passing the folder itself does
+				// nothing when it's already open in the window you're debugging from
+				"${workspaceFolder}/.vscode/lsp-dev.code-workspace"
+			],
+			"outFiles": ["${workspaceFolder}/../../packages/houdini-vscode/build/**/*.js"],
+			"env": {
+				// extension.ts sees this and spawns houdini-lsp with --inspect so the
+				// "Attach to Language Server" config below can connect
+				"HOUDINI_LSP_INSPECT": "6009"
+			},
+			"preLaunchTask": "build lsp + extension"
+		},
+		{
+			"name": "Attach to Language Server",
+			"type": "node",
+			"request": "attach",
+			"port": 6009,
+			"restart": true,
+			"outFiles": ["${workspaceFolder}/../../packages/houdini-lsp/build/**/*.js"]
+		}
+	],
+	"compounds": [
+		{
+			"name": "Extension + Language Server",
+			"configurations": ["Run Extension", "Attach to Language Server"]
+		}
+	]
+}

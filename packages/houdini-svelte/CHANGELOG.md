@@ -1,5 +1,17 @@
 # houdini-svelte
 
+## 3.0.3
+
+### Patch Changes
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `cache.read`/`cache.write` and record-level `read`/`write` resolving their types to a union of every document; documents are now matched by their artifact so `data` and `variables` are typed per document.
+
+## 3.0.2
+
+### Patch Changes
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin binary resolution failing in linked or monorepo setups, which caused `houdini generate` to hang. The plugin launcher now resolves its native binary from the invoking project and refuses to re-execute itself when the binary can't be found, reporting a clear error instead.
+
 ## 3.0.1
 
 ### Patch Changes

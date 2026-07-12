@@ -18,19 +18,33 @@
 export class LRUCache<T> {
 	_capacity: number
 	_map: Map<string, T>
+	// invoked whenever a value leaves the cache (capacity eviction, delete, overwrite,
+	// clear) so owners of resources with teardown (subscriptions, stores) can dispose them
+	_onEvict?: (value: T, key: string) => void
 
-	constructor(capacity: number = 1000) {
+	constructor(capacity: number = 1000, onEvict?: (value: T, key: string) => void) {
 		this._capacity = capacity
 		this._map = new Map()
+		this._onEvict = onEvict
 	}
 
 	set(key: string, value: T): void {
+		// an overwrite with a different value evicts the old one (deleting and
+		// reinserting the same value is just the LRU touch, not an eviction)
+		const existing = this._map.get(key)
 		this._map.delete(key)
+		if (existing !== undefined && existing !== value) {
+			this._onEvict?.(existing, key)
+		}
 		this._map.set(key, value)
 		if (this._map.size > this._capacity) {
 			const firstKey = this._map.keys().next()
 			if (!firstKey.done) {
+				const evicted = this._map.get(firstKey.value)
 				this._map.delete(firstKey.value)
+				if (evicted !== undefined) {
+					this._onEvict?.(evicted, firstKey.value)
+				}
 			}
 		}
 	}
@@ -49,7 +63,11 @@ export class LRUCache<T> {
 	}
 
 	delete(key: string): void {
+		const existing = this._map.get(key)
 		this._map.delete(key)
+		if (existing !== undefined) {
+			this._onEvict?.(existing, key)
+		}
 	}
 
 	size(): number {
@@ -61,12 +79,19 @@ export class LRUCache<T> {
 	}
 
 	clear(): void {
+		const entries = [...this._map.entries()]
 		this._map.clear()
+		for (const [key, value] of entries) {
+			this._onEvict?.(value, key)
+		}
 	}
 }
 
-export function createLRUCache<T>(capacity: number = 1000): LRUCache<T> {
-	return new LRUCache<T>(capacity)
+export function createLRUCache<T>(
+	capacity: number = 1000,
+	onEvict?: (value: T, key: string) => void
+): LRUCache<T> {
+	return new LRUCache<T>(capacity, onEvict)
 }
 
 /**

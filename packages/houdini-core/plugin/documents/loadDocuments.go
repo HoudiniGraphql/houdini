@@ -74,8 +74,16 @@ func LoadDocuments(
 					unwrapped := errors.New(pluginErr.Error())
 					commit(&unwrapped)
 				} else {
-					var nilErr error
-					commit(&nilErr)
+					// a failed COMMIT (a deferred constraint violation, for example) rolls
+					// the whole document back — swallowing it here would silently drop the
+					// document from the pipeline
+					var commitErr error
+					commit(&commitErr)
+					if commitErr != nil {
+						errs.Append(plugins.WrapError(fmt.Errorf(
+							"failed to commit document %q: %w", query.Filepath, commitErr,
+						)))
+					}
 				}
 			}
 
@@ -195,6 +203,10 @@ func LoadPendingQuery(
 
 		return pluginErr
 	}
+
+	// fragments the pipeline synthesizes below (component fields) rather than the
+	// user writing them — marked generated when inserted
+	generatedFragments := map[string]bool{}
 
 	// process operations.
 	for _, operation := range parsed.Operations {
@@ -369,9 +381,11 @@ func LoadPendingQuery(
 			}
 
 			// add a fragment definition to the document
+			fragmentName := graphql.ComponentFieldFragmentName(fragmentType, field)
+			generatedFragments[fragmentName] = true
 			parsed.Fragments = append(parsed.Fragments, &ast.FragmentDefinition{
 				TypeCondition: inlineFragment.TypeCondition,
-				Name:          graphql.ComponentFieldFragmentName(fragmentType, field),
+				Name:          fragmentName,
 				Directives:    inlineFragment.Directives,
 				SelectionSet:  inlineFragment.SelectionSet,
 			})
@@ -388,6 +402,7 @@ func LoadPendingQuery(
 				"name":         operation.Name,
 				"raw_document": query.ID,
 				"kind":         string(operation.Operation),
+				"generated":    false,
 			},
 		); err != nil {
 			return &plugins.Error{
@@ -691,6 +706,7 @@ func LoadPendingQuery(
 				"raw_document":   query.ID,
 				"kind":           "fragment",
 				"type_condition": fragment.TypeCondition,
+				"generated":      generatedFragments[fragment.Name],
 			},
 		); err != nil {
 			return &plugins.Error{

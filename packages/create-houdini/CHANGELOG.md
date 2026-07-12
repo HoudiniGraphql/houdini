@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.1
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - New projects include `houdini-lsp` in their dev dependencies and recommend the Houdini GraphQL extension via `.vscode/extensions.json`, so editor support works out of the box.
+
 ## 2.0.0
 
 ### Major Changes

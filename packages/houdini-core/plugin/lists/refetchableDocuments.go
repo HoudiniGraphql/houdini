@@ -116,7 +116,7 @@ func PrepareRefetchableDocuments(
 
 	// statements for building the generated query (mirrors paginationDocuments.go)
 	insertDocument, err := conn.Prepare(`
-		INSERT INTO documents (name, kind, raw_document, internal, visible) VALUES ($name, 'query', $raw_document, false, false)
+		INSERT INTO documents (name, kind, raw_document, internal, visible, generated) VALUES ($name, 'query', $raw_document, false, false, true)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))

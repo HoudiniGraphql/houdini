@@ -326,7 +326,11 @@ func (db *DatabasePool[PC]) SetPluginConfig(config PC) {
 func NewPool[PC any]() (DatabasePool[PC], error) {
 	// wasip1 has no file-locking support; nolock=1 tells SQLite to skip locking.
 	// Node.js skips WAL mode in stdio transport, so no shared-memory file is needed.
-	uri := fmt.Sprintf("file:%s?nolock=1", databasePath)
+	// foreign_keys is a per-connection pragma set through the driver's _pragma DSN
+	// parameter so it applies to every connection the pool opens, not just the
+	// first — without it the deferral set at each transaction start has nothing
+	// to defer.
+	uri := fmt.Sprintf("file:%s?nolock=1&_pragma=foreign_keys(1)", databasePath)
 	db, err := sql.Open("sqlite3", uri)
 	if err != nil {
 		return DatabasePool[PC]{}, err
@@ -338,7 +342,9 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 }
 
 func NewTestPool[PC any]() (DatabasePool[PC], error) {
-	db, err := sql.Open("sqlite3", "file:shared?mode=memory&cache=shared")
+	// enforce foreign keys just like the production pool — tests must run under
+	// the same constraint semantics or FK-violating bugs only surface in e2e apps
+	db, err := sql.Open("sqlite3", "file:shared?mode=memory&cache=shared&_pragma=foreign_keys(1)")
 	if err != nil {
 		return DatabasePool[PC]{}, err
 	}

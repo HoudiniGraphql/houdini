@@ -247,6 +247,41 @@ func TestTypescriptFragmentMasking(t *testing.T) {
 				},
 			},
 			{
+				Name: "unconditional spread upgrades a conditional expansion",
+				Pass: true,
+				Input: []string{
+					`query MaskQuery($show: Boolean!) {
+						user(id: "1") {
+							id
+							...MaskUserInfo @mask_disable @include(if: $show)
+							...MaskOuter @mask_disable
+						}
+					}`,
+					`fragment MaskUserInfo on User {
+						nickname
+						age
+					}`,
+					`fragment MaskOuter on User {
+						...MaskUserInfo @mask_disable
+					}`,
+				},
+				Extra: map[string]any{
+					"MaskQuery": tests.Dedent(`
+						export type MaskQuery$result = {
+							readonly user: {
+								readonly id: string;
+								readonly nickname: string | null;
+								readonly age: number | null;
+								readonly " $fragments": {
+									MaskUserInfo: {};
+									MaskOuter: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+			{
 				Name: "defaultFragmentMasking disable inlines without a directive",
 				Pass: true,
 				ProjectConfig: func(config *plugins.ProjectConfig) {
@@ -276,6 +311,214 @@ func TestTypescriptFragmentMasking(t *testing.T) {
 								readonly " $fragments": {
 									MaskUserInfo: {};
 									MaskUserAge: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+		},
+	})
+}
+
+// when several unmasked fragments select the same field with different
+// sub-selections the generated type has to describe the union of every
+// occurrence's children, not just the first one (issue #1727)
+func TestTypescriptMaskDisableMerging(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			type Query {
+				item: Item!
+			}
+
+			type Item {
+				id: ID!
+				meta: Meta!
+				details: Detail
+			}
+
+			type Meta {
+				label: String!
+				color: String!
+			}
+
+			union Detail = TextDetail | ImageDetail
+
+			type TextDetail {
+				id: ID!
+				text: String!
+				meta: Meta!
+			}
+
+			type ImageDetail {
+				id: ID!
+				url: String!
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			for docName, expected := range test.Extra {
+				typeDefs, err := afero.ReadFile(plugin.Fs, config.ArtifactTypePath(docName))
+				require.NoError(t, err)
+				require.Contains(t, string(typeDefs), expected)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "overlapping object sub-selections are merged",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...ItemLabel @mask_disable
+							...ItemColor @mask_disable
+						}
+					}`,
+					`fragment ItemLabel on Item {
+						meta {
+							label
+						}
+					}`,
+					`fragment ItemColor on Item {
+						meta {
+							color
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						export type MergeQuery$result = {
+							readonly item: {
+								readonly meta: {
+									readonly label: string;
+									readonly color: string;
+								};
+								readonly " $fragments": {
+									ItemLabel: {};
+									ItemColor: {};
+								};
+							};
+						};
+					`),
+				},
+			},
+			{
+				Name: "a narrow union selection does not erase inline fragments",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...DetailType @mask_disable
+							...DetailContent @mask_disable
+						}
+					}`,
+					`fragment DetailType on Item {
+						details {
+							__typename
+						}
+					}`,
+					`fragment DetailContent on Item {
+						details {
+							__typename
+							... on TextDetail {
+								text
+							}
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						readonly text: string;
+					`),
+				},
+			},
+			{
+				Name: "diamond spreads emit a single fragment marker",
+				Pass: true,
+				Input: []string{
+					`fragment DiamondA on Item {
+						...DiamondB @mask_disable
+						...DiamondC @mask_disable
+						meta {
+							label
+						}
+					}`,
+					`fragment DiamondB on Item {
+						...DiamondC @mask_disable
+						id
+					}`,
+					`fragment DiamondC on Item {
+						details {
+							__typename
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"DiamondA": tests.Dedent(`
+						export type DiamondA$data = {
+							readonly details: {
+								readonly __typename: string;
+							} | null;
+							readonly id: string;
+							readonly meta: {
+								readonly label: string;
+							};
+							readonly " $fragments": {
+								DiamondB: {};
+								DiamondC: {};
+							};
+						};
+					`),
+				},
+			},
+			{
+				Name: "overlapping fields inside a union arm are merged",
+				Pass: true,
+				Input: []string{
+					`query MergeQuery {
+						item {
+							...TextLabel @mask_disable
+							...TextColor @mask_disable
+						}
+					}`,
+					`fragment TextLabel on Item {
+						details {
+							... on TextDetail {
+								meta {
+									label
+								}
+							}
+						}
+					}`,
+					`fragment TextColor on Item {
+						details {
+							... on TextDetail {
+								meta {
+									color
+								}
+							}
+						}
+					}`,
+				},
+				Extra: map[string]any{
+					"MergeQuery": tests.Dedent(`
+						export type MergeQuery$result = {
+							readonly item: {
+								readonly details: {} & (({
+									readonly meta: {
+										readonly label: string;
+										readonly color: string;
+									};
+									readonly __typename: "TextDetail";
+								}) | ({
+									readonly " $fragments"?: {};
+									readonly __typename: "non-exhaustive; don't match this";
+								})) | null;
+								readonly " $fragments": {
+									TextLabel: {};
+									TextColor: {};
 								};
 							};
 						};

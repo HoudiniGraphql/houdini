@@ -52,6 +52,7 @@ By default, your config file can contain the following values:
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. For an overview of your framework plugin's specific configuration, see below.
 - `supressPaginationDeduplication` (optional, default `false): Prevents the runtime from deduplicating pagination requests
 - `runtimeDir` (optional, default: `'.houdini`): The name of the directory used to output the generated Houdini runtime, relative to `projectDir`.
+- `router` (optional, `houdini-react` only): Client-side router behavior. `router.loadingDelay` (default: `200`) is how long, in milliseconds, a navigation may stay pending before the destination route's `@loading` state is shown; fast navigations resolve first and never show it. `router.minDuration` (default: `400`) is the minimum time, in milliseconds, to keep the loading state visible once shown, so a response landing just after `loadingDelay` doesn't cause a flicker. For more information see [Navigation](~/routing/navigation#loading-states).
 
 ## Custom Scalars
 

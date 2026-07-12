@@ -3543,7 +3543,6 @@ export type RefetchInline$result = {
 			readonly bestFriend: {
 				readonly id: string;
 			} | null;
-			readonly id: string;
 			readonly __typename: "User";
 		})) | null;
 	};
@@ -3557,7 +3556,6 @@ export type RefetchInline$optimistic = {
 			readonly bestFriend: {
 				readonly id: string;
 			} | null;
-			readonly id: string;
 			readonly __typename: "User";
 		})) | null;
 	};

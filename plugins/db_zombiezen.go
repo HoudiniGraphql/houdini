@@ -74,7 +74,19 @@ func (db DatabasePool[PC]) Transaction(conn Conn) func(*error) {
 			}
 		}
 	}
-	return sqlitex.Transaction(zc.c)
+	end := sqlitex.Transaction(zc.c)
+	// defer_foreign_keys resets to OFF at the end of every transaction, so it has
+	// to be re-enabled after each BEGIN — pipeline steps batch-insert rows that
+	// temporarily violate FK integrity, and the checks belong at COMMIT.
+	if err := sqlitex.ExecuteTransient(zc.c, "PRAGMA defer_foreign_keys = ON", nil); err != nil {
+		return func(errp *error) {
+			if *errp == nil {
+				*errp = err
+			}
+			end(errp)
+		}
+	}
+	return end
 }
 
 func (db *DatabasePool[PC]) SetProjectConfig(config ProjectConfig) {
@@ -91,7 +103,10 @@ var connectionPragmas = []string{
 	"PRAGMA cache_size = 10000",
 	"PRAGMA temp_store = memory",
 	"PRAGMA busy_timeout = 5000",
-	"PRAGMA foreign_key = ON",
+	"PRAGMA foreign_keys = ON",
+	// deferral is re-enabled per transaction in Transaction() — the pragma
+	// auto-resets at the end of every transaction, so setting it here only
+	// covers statements that run outside an explicit transaction
 	"PRAGMA defer_foreign_keys = ON",
 }
 
@@ -119,6 +134,10 @@ func NewPool[PC any]() (DatabasePool[PC], error) {
 func NewTestPool[PC any]() (DatabasePool[PC], error) {
 	pool, err := sqlitex.NewPool("file:shared?mode=memory&cache=shared", sqlitex.PoolOptions{
 		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite | sqlite.OpenMemory | sqlite.OpenURI,
+		// tests must run under the same constraint semantics as production —
+		// without foreign_keys enforcement a pipeline bug that violates FK
+		// integrity passes every table test and only surfaces in e2e apps
+		PrepareConn: prepareConn,
 	})
 	if err != nil {
 		return DatabasePool[PC]{}, err

@@ -972,7 +972,12 @@ func ValidateMissingRequiredArgument(
 		fad.name AS argName,
 		rd.filepath,
 		json_group_array(
-			json_object('line', rd.offset_line, 'column', rd.offset_column)
+			json_object(
+				-- selection_refs positions are stored file-relative (offsets are
+				-- added at load time)
+				'line', COALESCE(sr.row, 0),
+				'column', COALESCE(sr.column, 0)
+			)
 		) AS locations
 	FROM selections s
 	  JOIN type_fields tf ON s.type = tf.id

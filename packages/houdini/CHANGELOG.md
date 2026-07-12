@@ -1,5 +1,55 @@
 # houdini
 
+## 2.0.7
+
+### Patch Changes
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated `$result` types including pipeline-added key fields (e.g. `id`) in interface/union arms the document never selected; fields selected on the abstract type itself still appear in every arm.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix custom scalars mapped to non-default TypeScript types (e.g. `URL`, `bigint`) failing the `GraphQLObject` constraint on stores; the generated runtime now registers the project's scalar types with `houdini/runtime`.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `cache.read`/`cache.write` and record-level `read`/`write` resolving their types to a union of every document; documents are now matched by their artifact so `data` and `variables` are typed per document.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types dropping fields when multiple `@mask_disable` fragments select the same field with different sub-selections; the sub-selections are now merged instead of keeping only the first occurrence. Diamond-shaped `@mask_disable` spreads also no longer produce duplicate keys in the ` $fragments` marker.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types dropping selections made directly on an interface field when the selection also contains inline fragments; fields like `nodes { id }` and fragment spreads on the interface now appear on the object intersected with the discriminated union.
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated types keeping fields optional when a fragment is spread with `@include`/`@skip` in one place and unconditionally in another; the unconditional spread now makes the fields required.
+
+## 2.0.6
+
+### Patch Changes
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix runtime scalars being silently dropped when the config is re-seeded on a persisted database (e.g. a long-running dev server after adding a new runtime scalar).
+
+- [#1721](https://github.com/HoudiniGraphql/houdini/pull/1721) [`1e39a51`](https://github.com/HoudiniGraphql/houdini/commit/1e39a51218d33bd6a3863e59e80ff0bf029c3563) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Hydrated cache data now registers with the stale manager, so markStale (and anything built on it, like session invalidation) reaches data that arrived via SSR hydration instead of silently skipping it.
+
+## 2.0.5
+
+### Patch Changes
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin processes leaking when the orchestrator dies or fails setup before connecting: plugins now exit if no connection arrives within two minutes, and a failed startup kills the plugins it already spawned.
+
+- [#1718](https://github.com/HoudiniGraphql/houdini/pull/1718) [`318c868`](https://github.com/HoudiniGraphql/houdini/commit/318c868cdb7e41ad89556b0157f9036e406305b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin binary resolution failing in linked or monorepo setups, which caused `houdini generate` to hang. The plugin launcher now resolves its native binary from the invoking project and refuses to re-execute itself when the binary can't be found, reporting a clear error instead.
+
+## 2.0.4
+
+### Patch Changes
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `App.Session` augmentations not applying to session-typed fields in `ConfigFile` (a local type alias was shadowing the global interface).
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compiler database integrity and diagnostics
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix local schema watching to look for `src/server/+schema`; the watcher was still checking the old `src/api` location, so local schemas were never serialized at startup and schema edits didn't trigger codegen.
+
+- [#1716](https://github.com/HoudiniGraphql/houdini/pull/1716) [`ba36709`](https://github.com/HoudiniGraphql/houdini/commit/ba36709ebb7b83f5dc9080b0e213d2d17502d09d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Don't detach stdio-transport plugin processes; detached children can't read their stdin pipe in WebContainers, which broke codegen there.
+
+## 2.0.3
+
+### Patch Changes
+
+- [#1714](https://github.com/HoudiniGraphql/houdini/pull/1714) [`1dc54be`](https://github.com/HoudiniGraphql/houdini/commit/1dc54be7a8aa4c220321053e5a58ba25a59499ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Navigations now hold the previous page and only show the destination's `@loading` state when the navigation is slow, configurable via `router.loadingDelay` and `router.minDuration`. As part of this, a navigation that stays on the same route no longer remounts the page component, so component state persists when only params or search values change.
+
 ## 2.0.2
 
 ### Patch Changes

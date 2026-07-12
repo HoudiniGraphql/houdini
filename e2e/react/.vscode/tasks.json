@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build lsp + extension",
+			"type": "shell",
+			// ensureLinks last: any pnpm install resets the e2e app's plugin symlinks back to
+			// the source packages, and the LSP needs the built ones (they carry the bin field)
+			"command": "pnpm --filter houdini-lsp build && pnpm --filter houdini-graphql build && node e2e/react/ensureLinks.js",
+			"options": { "cwd": "${workspaceFolder}/../.." },
+			"problemMatcher": []
+		}
+	]
+}

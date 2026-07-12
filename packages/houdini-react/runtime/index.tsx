@@ -16,6 +16,7 @@ export {
 	useCache,
 	useSession,
 	useRoute,
+	useNavigation,
 	notFound,
 	unauthorized,
 	forbidden,
@@ -65,6 +66,7 @@ export function Router({
 			session={session}
 			formResult={formResult}
 			formToken={formToken}
+			injectToStream={injectToStream}
 		>
 			<RouterImpl
 				initialURL={initialURL}

@@ -301,7 +301,9 @@ export type TestQuery$input = {
 };
 
 export type TestQuery$unmasked = {
-	readonly node: {} & (({
+	readonly node: {
+		readonly id: string;
+	} & (({
 		readonly firstName: string;
 		readonly id: string;
 		readonly __typename: "User";
