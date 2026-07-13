@@ -1,8 +1,7 @@
 import { Command } from 'commander'
-
+import { yellow } from 'kleur/colors'
 import type { HoudiniError } from '../lib/error.js'
 import { generate } from './generate.js'
-import { init } from './init.js'
 import pullSchema from './pullSchema.js'
 
 // build up the cli
@@ -33,15 +32,11 @@ program
 // register the init command
 program
 	.command('init')
-	.arguments('[path]')
-	.usage('[path] [options]')
-	.description('initialize a new houdini project')
-	.option(
-		'-h, --headers <headers...>',
-		'header to use when pulling your schema. Should be passed as KEY=VALUE'
-	)
-	.option('-y, --yes', 'dont prompt for input. uses default values or empty strings')
-	.action(init)
+  .description('REMOVED: use the svelte cli community addon instead')
+  .action(() => {
+    console.log(`${yellow("The init command has been replaced by a community addon for the Svelte CLI.")}`);
+    console.log(`${yellow("To get started, run `npx sv add @houdinigraphql` in a SvelteKit project.")}`);
+	})
 
 // register the pull schema command
 program
