@@ -32,10 +32,14 @@ program
 // register the init command
 program
 	.command('init')
-  .description('REMOVED: use the svelte cli community addon instead')
-  .action(() => {
-    console.log(`${yellow("The init command has been replaced by a community addon for the Svelte CLI.")}`);
-    console.log(`${yellow("To get started, run `npx sv add @houdinigraphql` in a SvelteKit project.")}`);
+	.description('REMOVED: use the svelte cli community addon instead')
+	.action(() => {
+		console.log(
+			`${yellow('The init command has been replaced by a community addon for the Svelte CLI.')}`
+		)
+		console.log(
+			`${yellow('To get started, run `npx sv add @houdinigraphql` in a SvelteKit project.')}`
+		)
 	})
 
 // register the pull schema command
