@@ -60,7 +60,6 @@ import { subscription } from '$houdini/plugins'
 
 // prettier-ignore
 export default new HoudiniClient({
-  url: "...",
   plugins: [
     subscription(() => createClient({
       url: 'ws://api.url'
@@ -99,7 +98,6 @@ function createClient() {
 }
 
 export default new HoudiniClient({
-  url: "...",
   plugins: [
     subscription(createClient)
   ]
@@ -115,7 +113,6 @@ import { createClient } from 'graphql-sse'
 import { subscription } from '$houdini/plugins'
 
 export default new HoudiniClient({
-  url: "...",
   plugins: [
     subscription(() => createClient({url: '...'}))
   ]
@@ -136,7 +133,6 @@ import { subscription } from '$houdini/plugins'
 
 // prettier-ignore
 export default new HoudiniClient({
-  url: "...",
   plugins: [
     subscription(({ session }) => createClient({
       url: 'ws://api.url',

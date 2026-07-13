@@ -28,7 +28,6 @@ sending the full operation text with every request:
 
 ```typescript title="src/client.ts"
 export default new HoudiniClient({
-    url: 'http://localhost:4000',
     fetchParams({ hash, variables }){
         return {
             body: JSON.stringify({
@@ -53,7 +52,6 @@ import { HoudiniClient } from '$houdini'
 import type { ClientPlugin } from '$houdini'
 
 export default new HoudiniClient({
-    url: 'localhost:4000/graphql',
     // by default, send the hash and variables
     fetchParams({ variables, hash }) {
         return {
