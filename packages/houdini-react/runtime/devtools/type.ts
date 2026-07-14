@@ -1,5 +1,5 @@
 import type { DocumentArtifact, QueryResult } from 'houdini/runtime'
-import type { ClientHooks, ClientPluginContext } from 'houdini/runtime/documentStore'
+import type { ClientHooks } from 'houdini/runtime/documentStore'
 
 export type RequestStatus = 'pending' | 'success' | 'error'
 
@@ -18,7 +18,8 @@ export type RequestKind = Exclude<DocumentArtifact['kind'], 'HoudiniFragment'>
 type BaseRequest = {
 	id: string
 	kind: RequestKind
-	ctx: ClientPluginContext
+	name: string
+	variables: Record<string, any> | null
 	startedAt: number
 	events: RequestEvent[]
 }

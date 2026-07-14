@@ -23,6 +23,19 @@ export function HoudiniDevtools() {
 			: Math.round(window.innerHeight * DEFAULT_PANEL_HEIGHT_RATIO)
 	)
 
+	// pending durations are sampled at render time, so tick while the panel is open
+	// and something is still in flight
+	const hasPending = snapshot.requests.some((request) => request.status === 'pending')
+	const [, tick] = React.useReducer((count: number) => count + 1, 0)
+	React.useEffect(() => {
+		if (!open || !hasPending) {
+			return
+		}
+
+		const interval = window.setInterval(tick, 250)
+		return () => window.clearInterval(interval)
+	}, [open, hasPending])
+
 	const filteredRequests = React.useMemo(() => {
 		if (sourceFilter === 'all') {
 			return snapshot.requests
@@ -96,7 +109,7 @@ export function HoudiniDevtools() {
 								>
 									<div className="hdt-row-title">
 										<RequestDot request={request} />
-										<span className="hdt-name">{request.ctx.name}</span>
+										<span className="hdt-name">{request.name}</span>
 										<span className="hdt-row-kind">
 											{displayKind(request.kind)}
 										</span>
@@ -122,7 +135,7 @@ export function HoudiniDevtools() {
 								<>
 									<div className="hdt-detail-header">
 										<div className="hdt-heading-row">
-											<h3 className="hdt-heading">{selected.ctx.name}</h3>
+											<h3 className="hdt-heading">{selected.name}</h3>
 										</div>
 										<div className="hdt-summary">
 											<span className="hdt-summary-badge">
@@ -152,7 +165,7 @@ export function HoudiniDevtools() {
 									</div>
 
 									{detailTab === 'variables' ? (
-										<Section title="Variables" value={selected.ctx.variables} />
+										<Section title="Variables" value={selected.variables} />
 									) : null}
 									{detailTab === 'data' ? (
 										<Section

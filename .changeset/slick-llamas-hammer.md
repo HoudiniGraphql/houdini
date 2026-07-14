@@ -1,5 +1,5 @@
 ---
-"houdini-react": patch
+"houdini-react": minor
 ---
 
-adding opt-in devtool for houdini react inspecting client requests
+Add a devtools overlay for inspecting client-side requests, controlled by the `devtools` plugin config value (`'dev'`, `'always'`, or `'never'`).

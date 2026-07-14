@@ -1,6 +1,6 @@
 import type { ClientPlugin } from 'houdini/runtime/client'
 
-import devtools from './devtools/plugin.js'
+import devtools from './devtools/index.js'
 
 const plugin: () => ClientPlugin = () => () => {
 	return [

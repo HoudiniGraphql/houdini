@@ -1,14 +1,13 @@
 /// <reference path="../vite-env.d.ts" />
 
-import type { ConfigFile } from 'houdini'
-import type { ClientPlugin } from 'houdini/runtime/client'
 import type { DocumentArtifact } from 'houdini/runtime'
+import type { ClientPlugin } from 'houdini/runtime/client'
 import React from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 
 import { HoudiniDevtools } from './HoudiniDevtools'
-import styles from './styles.css?inline'
 import { addRequestEvent, createRequest, failRequest, succeedRequest } from './store'
+import styles from './styles.css?inline'
 import type { RequestKind } from './type'
 
 let root: Root | null = null
@@ -45,13 +44,16 @@ function scheduleMountOverlay() {
 		return
 	}
 
+	if (root && container?.isConnected) {
+		return
+	}
+
 	mountQueued = true
 
 	const mountAfterHydration = () => {
 		window.setTimeout(() => {
 			mountQueued = false
 			mountOverlay()
-			renderOverlay()
 		}, 100)
 	}
 
@@ -60,15 +62,6 @@ function scheduleMountOverlay() {
 	} else {
 		window.addEventListener('load', mountAfterHydration, { once: true })
 	}
-}
-
-function renderOverlay() {
-	if (!root || !container?.isConnected) {
-		scheduleMountOverlay()
-		return
-	}
-
-	root.render(React.createElement(HoudiniDevtools))
 }
 
 function isRequestKind(kind: DocumentArtifact['kind']): kind is RequestKind {
@@ -83,34 +76,6 @@ function normalizeError(error: unknown): Error {
 	return new Error(typeof error === 'string' ? error : JSON.stringify(error))
 }
 
-type DevtoolsMode = 'dev' | 'production' | 'never'
-
-type HoudiniReactConfig = { devtools?: DevtoolsMode }
-
-function reactConfig(config: ConfigFile): HoudiniReactConfig | undefined {
-	return (config.plugins as { 'houdini-react'?: HoudiniReactConfig } | undefined)?.[
-		'houdini-react'
-	]
-}
-
-function enabled(ctx: { config: ConfigFile } | null | undefined) {
-	if (!ctx) {
-		return false
-	}
-
-	const mode = reactConfig(ctx.config)?.devtools ?? 'dev'
-
-	if (mode === 'never') {
-		return false
-	}
-
-	if (mode === 'production') {
-		return (import.meta as any).env?.PROD === true
-	}
-
-	return (import.meta as any).env?.DEV !== false
-}
-
 const devToolPlugin: ClientPlugin = () => {
 	if (typeof window === 'undefined') {
 		return {}
@@ -118,7 +83,7 @@ const devToolPlugin: ClientPlugin = () => {
 
 	return {
 		start(ctx, { next }) {
-			if (!enabled(ctx) || !isRequestKind(ctx.artifact.kind)) {
+			if (!isRequestKind(ctx.artifact.kind)) {
 				next(ctx)
 				return
 			}
@@ -126,59 +91,36 @@ const devToolPlugin: ClientPlugin = () => {
 			scheduleMountOverlay()
 			createRequest(ctx, ctx.artifact.kind)
 			addRequestEvent(ctx, 'start')
-
-			renderOverlay()
 			next(ctx)
 		},
 		beforeNetwork(ctx, { next }) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'beforeNetwork')
-				renderOverlay()
-			}
+			addRequestEvent(ctx, 'beforeNetwork')
 			next(ctx)
 		},
 		network(ctx, { next }) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'network')
-				renderOverlay()
-			}
+			addRequestEvent(ctx, 'network')
 			next(ctx)
 		},
 		afterNetwork(ctx, { resolve }) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'afterNetwork')
-				renderOverlay()
-			}
+			addRequestEvent(ctx, 'afterNetwork')
 			resolve(ctx)
 		},
 		end(ctx, { value, resolve }) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'end')
-				if (value.errors?.length) {
-					failRequest(
-						ctx,
-						new Error(value.errors.map((error) => error.message).join('\n'))
-					)
-				} else {
-					succeedRequest(ctx, value)
-				}
-				renderOverlay()
+			addRequestEvent(ctx, 'end')
+			if (value.errors?.length) {
+				failRequest(ctx, new Error(value.errors.map((error) => error.message).join('\n')))
+			} else {
+				succeedRequest(ctx, value)
 			}
 			resolve(ctx)
 		},
 		catch(ctx, { error }) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'catch')
-				failRequest(ctx, normalizeError(error))
-				renderOverlay()
-			}
+			addRequestEvent(ctx, 'catch')
+			failRequest(ctx, normalizeError(error))
 			throw error
 		},
 		cleanup(ctx) {
-			if (enabled(ctx)) {
-				addRequestEvent(ctx, 'cleanup')
-				renderOverlay()
-			}
+			addRequestEvent(ctx, 'cleanup')
 		},
 	}
 }

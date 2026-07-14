@@ -9,11 +9,11 @@ export type HoudiniReactConfig = {
 	/**
 	 * Controls when the Houdini React devtools overlay is shown.
 	 *
-	 * - `dev`: show in development
-	 * - `production`: show in production
-	 * - `never`: never show
+	 * - `dev`: only during development (production builds drop the overlay entirely)
+	 * - `always`: in development and production
+	 * - `never`: never (the overlay is never bundled)
 	 *
 	 * @default 'dev'
 	 */
-	devtools?: 'dev' | 'production' | 'never'
+	devtools?: 'dev' | 'always' | 'never'
 }

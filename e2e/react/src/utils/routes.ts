@@ -1,6 +1,7 @@
 export const routes = {
 	api: '/_api',
 	hello: '/hello-world',
+	devtools: '/devtools',
 	use_query: '/use-query',
 	use_query_rerender: '/use-query-rerender',
 	use_query_reactivity: '/use-query-reactivity',

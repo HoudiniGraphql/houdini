@@ -82,10 +82,13 @@ export function getSnapshot() {
 }
 
 export function createRequest(ctx: ClientPluginContext, kind: RequestKind) {
+	// only keep what the panel renders (name + variables) instead of the whole plugin
+	// context so requests don't retain artifacts, stores, and session references
 	const request: DevToolRequest = {
 		id: nextRequestId(),
 		kind,
-		ctx,
+		name: ctx.name,
+		variables: ctx.variables ?? null,
 		status: 'pending',
 		startedAt: now(),
 		events: [],
@@ -104,6 +107,8 @@ export function createRequest(ctx: ClientPluginContext, kind: RequestKind) {
 export function addRequestEvent(ctx: ClientPluginContext, phase: RequestPhase) {
 	updateRequest(getRequestId(ctx), (request) => ({
 		...request,
+		// variables can be resolved later in the pipeline, so track the latest value
+		variables: ctx.variables ?? request.variables,
 		events: [
 			...request.events,
 			{
@@ -119,7 +124,8 @@ export function succeedRequest(ctx: ClientPluginContext, result: QueryResult) {
 	updateRequest(getRequestId(ctx), (request) => ({
 		id: request.id,
 		kind: request.kind,
-		ctx: request.ctx,
+		name: request.name,
+		variables: ctx.variables ?? request.variables,
 		status: 'success',
 		startedAt: request.startedAt,
 		finishedAt: now(),
@@ -132,7 +138,8 @@ export function failRequest(ctx: ClientPluginContext, error: Error) {
 	updateRequest(getRequestId(ctx), (request) => ({
 		id: request.id,
 		kind: request.kind,
-		ctx: request.ctx,
+		name: request.name,
+		variables: ctx.variables ?? request.variables,
 		status: 'error',
 		startedAt: request.startedAt,
 		finishedAt: now(),

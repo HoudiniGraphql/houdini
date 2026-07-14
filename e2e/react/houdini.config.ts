@@ -47,7 +47,7 @@ const config: ConfigFile = {
 
 	plugins: {
 		'houdini-react': {
-			devtools: 'dev',
+			devtools: 'always',
 		},
 		'./plugins/node-plugin.mjs': {},
 	},
