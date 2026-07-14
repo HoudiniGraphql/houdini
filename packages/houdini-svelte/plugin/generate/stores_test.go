@@ -195,7 +195,7 @@ export * from './client'
 
 						export type { TestFragment }
 
-						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -222,7 +222,7 @@ export * from './client'
 
 						export type { RefetchableUser }
 
-						export class RefetchableUserStore extends FragmentStoreRefetchable<RefetchableUser$data, { RefetchableUser: any }, RefetchableUser$input> {
+						export class RefetchableUserStore extends FragmentStoreRefetchable<RefetchableUser$data, { RefetchableUser: any }, RefetchableUser$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -249,7 +249,7 @@ export * from './client'
 						import artifact from '$houdini/artifacts/TestQuery.js'
 						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -280,7 +280,7 @@ export * from './client'
 						import artifact from '$houdini/artifacts/TestQuery.js'
 						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -311,7 +311,7 @@ export * from './client'
 						import artifact from '$houdini/artifacts/TestQuery.js'
 						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -342,7 +342,7 @@ export * from './client'
 						import artifact from '$houdini/artifacts/TestQuery.js'
 						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -381,7 +381,7 @@ export * from './client'
 							import artifact from '$houdini/artifacts/TestQuery.js'
 							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input> {
+							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input, typeof artifact> {
 							    constructor() {
 							        super({
 							            artifact,
@@ -420,7 +420,7 @@ export * from './client'
 							import artifact from '$houdini/artifacts/TestQuery.js'
 							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input> {
+							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input, typeof artifact> {
 							    constructor() {
 							        super({
 							            artifact,
@@ -455,7 +455,7 @@ export * from './client'
 							import artifact from '$houdini/artifacts/TestQuery.js'
 							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreOffset<TestQuery$result, TestQuery$input> {
+							export class TestQueryStore extends QueryStoreOffset<TestQuery$result, TestQuery$input, typeof artifact> {
 							    constructor() {
 							        super({
 							            artifact,
@@ -487,7 +487,7 @@ export * from './client'
 
 							export type { TestFragment }
 
-							export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+							export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input, typeof artifact> {
 							    constructor() {
 							        super({
 							            artifact,
@@ -521,7 +521,7 @@ export * from './client'
 
 						export type { TestFragment }
 
-						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -559,7 +559,7 @@ export * from './client'
 
 						export type { TestFragment }
 
-						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -594,7 +594,7 @@ export * from './client'
 
 						export type { TestFragment }
 
-						export class TestFragmentStore extends FragmentStoreOffset<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+						export class TestFragmentStore extends FragmentStoreOffset<TestFragment$data, { TestFragment: any }, TestFragment$input, typeof artifact> {
 						    constructor() {
 						        super({
 						            artifact,

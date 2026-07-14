@@ -2,6 +2,7 @@ import { extractPageInfo } from 'houdini/runtime'
 import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import type {
 	GraphQLObject,
+	QueryArtifact,
 	QueryResult,
 	CursorHandlers,
 	OffsetHandlers,
@@ -30,7 +31,8 @@ export type CursorStoreResult<
 export class QueryStoreCursor<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables | null | undefined,
-> extends QueryStore<_Data, _Input> {
+	_Artifact extends QueryArtifact = QueryArtifact,
+> extends QueryStore<_Data, _Input, _Artifact> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
@@ -130,7 +132,8 @@ export class QueryStoreCursor<
 export class QueryStoreOffset<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables | null | undefined,
-> extends QueryStore<_Data, _Input> {
+	_Artifact extends QueryArtifact = QueryArtifact,
+> extends QueryStore<_Data, _Input, _Artifact> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 

@@ -9,7 +9,6 @@ The central entity for defining your document's runtime logic.
 import { HoudiniClient } from '$houdini'
 
 export default new HoudiniClient({
-    url: "http://my.awesome.app.com",
     fetchParams({ session }) {
         return {
             headers: {
@@ -23,14 +22,14 @@ export default new HoudiniClient({
 Your application's instance of `HoudiniClient` defines virtually all of the behavior of
 your documents (`query`, `mutation`, `subscription`, etc). While this logic _is_ totally
 configurable, most people will never have to worry about those details. If your application
-only sends queries and mutations over http(s) then all you need is to provide a url for your
-API and optionally provide additional arguments to the fetch call as shown above.
+only sends queries and mutations over http(s) then all you need is to optionally provide
+additional arguments to the fetch call as shown above. Note that the client does not take
+your API's URL; that is set with the `url` value in `houdini.config.js` (see [Config](~/core/config)).
 
 ### Constructor Fields
 
 The `HoudiniClient` constructor takes the following arguments
 
-- `url` (required): the URL that your application will use to query the API
 - `fetchParams` (optional): a function that takes a [FetchParamsInput](#type-definitions) and returns additional parameters to `fetch` and other network calls made by the client.
 - `plugins` (optional): a list of [ClientPlugins](~/extending-houdini/client-plugins) that will be added to the Client's default list
 - `pipeline` (optional): a function that returns the full list of plugins that the client will use. This is only for very advanced use cases.
@@ -82,7 +81,6 @@ seen. If you want to turn on exceptions, you can specify the details in the `thr
 import { error } from '@sveltejs/kit'
 
 export default new HoudiniClient({
-    url: '...',
     throwOnError: {
         // can be any combination of
         // query, mutation, subscription, and all
@@ -113,7 +111,6 @@ Most of the time, you should add plugins to your client with the `plugins` argum
 
 ```typescript title="src/client.ts&typescriptToggle=true"
 new HoudiniClient({
-    url: '...',
     plugins: [plugin1, plugin2]
 })
 ```
@@ -166,7 +163,6 @@ policy behavior and support for `fetchParams`.
 import { queryPlugin, mutationPlug } from '$houdini/plugins'
 
 new HoudiniClient({
-    url: '...',
     pipeline: [queryPlugin, mutationPlugin, myCustomFetch]
 })
 ```

@@ -907,7 +907,9 @@ export type TestQuery = {
 export type TestQuery$result = {
 	readonly friends: ({} & (({
 		readonly firstName: string;
-		readonly id: string;
+		readonly " $fragments": {
+			A: {};
+		};
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1089,7 +1091,6 @@ export type Friends$result = {
 		readonly __typename: "Cat";
 	}) | ({
 		readonly name: string;
-		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
 		readonly " $fragments"?: {};
@@ -1926,8 +1927,12 @@ export type NestedQuery = {
 };
 
 export type NestedQuery$result = {
-	readonly node: {} & (({
+	readonly node: {
 		readonly id: string;
+		readonly " $fragments": {
+			NodeDetails: {};
+		};
+	} & (({
 		readonly " $fragments": {
 			UserThings: {};
 		};
@@ -1941,7 +1946,9 @@ export type NestedQuery$result = {
 export type NestedQuery$input = null | undefined;
 
 export type NestedQuery$unmasked = {
-	readonly node: {} & (({
+	readonly node: {
+		readonly id: string;
+	} & (({
 		readonly id: string;
 		readonly name: string;
 		readonly __typename: "User";
@@ -2100,7 +2107,9 @@ export type TestQuery$result = {
 export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
-	readonly node: {} & (({
+	readonly node: {
+		readonly id: string;
+	} & (({
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
@@ -2247,7 +2256,9 @@ export type TestQuery$result = {
 export type TestQuery$input = null | undefined;
 
 export type TestQuery$unmasked = {
-	readonly node: {} & (({
+	readonly node: {
+		readonly id: string;
+	} & (({
 		readonly field: string | null;
 		readonly id: string;
 		readonly __typename: "User";

@@ -29,7 +29,10 @@ import { BaseStore } from './base.js'
 export class QueryStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables | null | undefined,
-> extends BaseStore<_Data, _Input, QueryArtifact> {
+	// generated stores narrow this to their document's artifact type so a store
+	// can be matched back to its result/input types (e.g. by cache.read/write)
+	_Artifact extends QueryArtifact = QueryArtifact,
+> extends BaseStore<_Data, _Input, _Artifact> {
 	// whether the store requires variables for input
 	variables: boolean
 
@@ -42,7 +45,7 @@ export class QueryStore<
 	// the string identifying the store
 	protected storeName: string
 
-	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
+	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, _Artifact>) {
 		super({
 			artifact,
 		})

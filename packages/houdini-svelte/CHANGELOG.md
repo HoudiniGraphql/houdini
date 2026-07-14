@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.3
+
+### Patch Changes
+
+- [#1729](https://github.com/HoudiniGraphql/houdini/pull/1729) [`9a73d09`](https://github.com/HoudiniGraphql/houdini/commit/9a73d09c015c84cb2517727763f18aef2299e698) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `cache.read`/`cache.write` and record-level `read`/`write` resolving their types to a union of every document; documents are now matched by their artifact so `data` and `variables` are typed per document.
+
 ## 3.0.2
 
 ### Patch Changes
