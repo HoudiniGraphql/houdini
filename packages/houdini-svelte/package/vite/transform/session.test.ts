@@ -31,7 +31,9 @@ test('modifies root +layout.svelte with data prop', async function () {
 		    houdini__session__initialized = true;
 
 		    if (sessionChanged) {
-		        getCache().refreshAll(nextSession);
+		        getCache().refreshAll({
+		            session: nextSession
+		        });
 		    }
 		});
 	`)
@@ -80,7 +82,9 @@ test('modifies root +layout.svelte without data prop', async function () {
 		    houdini__session__initialized = true;
 
 		    if (sessionChanged) {
-		        getCache().refreshAll(nextSession);
+		        getCache().refreshAll({
+		            session: nextSession
+		        });
 		    }
 		});
 	`)

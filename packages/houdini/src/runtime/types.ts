@@ -313,6 +313,13 @@ export type SubscriptionSelection = Readonly<{
 	}
 }>
 
+export type CacheRefetchParams = {
+	policy?: CachePolicies
+	metadata?: App.Metadata
+	abortController?: AbortController
+	session?: App.Session | null
+}
+
 // the cache communicates with subscribers using tagged messages so that
 // it can push more than just new data (for example, asking the document
 // to refetch itself)
@@ -321,10 +328,7 @@ export type CacheMessage<_Data = any> =
 			kind: 'update'
 			data: _Data
 	  }
-	| {
-			kind: 'refetch'
-			session?: App.Session | null
-	  }
+	| ({ kind: 'refetch' } & CacheRefetchParams)
 
 export type SubscriptionSpec = Readonly<{
 	rootType: string

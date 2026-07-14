@@ -7,6 +7,7 @@ import { computeKey } from '../key.js'
 import { getFieldsForType } from '../selection.js'
 import { PendingValue } from '../types.js'
 import type {
+	CacheRefetchParams,
 	GraphQLObject,
 	GraphQLValue,
 	ListFilter,
@@ -203,8 +204,9 @@ export class Cache {
 	// boundary (a fragment spread) thanks to their masked parent subscriptions.
 	// passing several ids notifies each document at most once, even if it
 	// depends on more than one of them (eg a list returned by a mutation).
-	refresh(id: string | string[]) {
+	refresh(id: string | string[], params: CacheRefetchParams = {}) {
 		const ids = Array.isArray(id) ? id : [id]
+		const message = { kind: 'refetch' as const, ...params }
 
 		// a document can be subscribed to multiple fields, multiple records, or
 		// know a record by two ids (optimistic key) — only send one message per set
@@ -226,7 +228,7 @@ export class Cache {
 					}
 					if (!notified.has(spec.onMessage)) {
 						notified.add(spec.onMessage)
-						spec.onMessage({ kind: 'refetch' })
+						spec.onMessage(message)
 					}
 				}
 			}
@@ -238,9 +240,8 @@ export class Cache {
 	// SvelteKit session) and any query might resolve differently even if its
 	// cached records did not change. non-query artifacts are skipped because
 	// only queries can be refetched through this cache notification path.
-	refreshAll(session?: App.Session | null) {
-		const message: { kind: 'refetch'; session?: App.Session | null } =
-			session === undefined ? { kind: 'refetch' } : { kind: 'refetch', session }
+	refreshAll(params: CacheRefetchParams = {}) {
+		const message = { kind: 'refetch' as const, ...params }
 
 		for (const [spec] of this._internal_unstable.subscriptions.all({
 			includeMaskedParents: true,

@@ -31,7 +31,9 @@ test('modifies root +layout.svelte to import adapter', async function () {
 		    houdini__session__initialized = true;
 
 		    if (sessionChanged) {
-		        getCache().refreshAll(nextSession);
+		        getCache().refreshAll({
+		            session: nextSession
+		        });
 		    }
 		});
 	`)

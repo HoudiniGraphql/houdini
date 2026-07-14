@@ -111,7 +111,15 @@ export default async function kit_init(config: Config, page: SvelteTransformPage
 											AST.callExpression(get_cache, []),
 											AST.identifier('refreshAll')
 										),
-										[next_session]
+										[
+											AST.objectExpression([
+												AST.property(
+													'init',
+													AST.identifier('session'),
+													next_session
+												),
+											]),
+										]
 									)
 								),
 							])

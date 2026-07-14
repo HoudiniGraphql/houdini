@@ -16,6 +16,7 @@ export const query = (cache: Cache) =>
 		// record.refresh() use the current auth token, not the one from when the
 		// subscription was first created
 		let lastSession: App.Session | null | undefined = null
+		let lastMetadata: App.Metadata | null | undefined = null
 
 		// the function to call when a query is sent
 		return {
@@ -54,6 +55,7 @@ export const query = (cache: Cache) =>
 				// always keep the session current so that a later record.refresh() call
 				// uses the auth token from the most recent send(), not from subscription time
 				lastSession = ctx.session
+				lastMetadata = ctx.metadata
 
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
@@ -78,9 +80,10 @@ export const query = (cache: Cache) =>
 							// through the full pipeline so the document reloads from the API
 							if (message.kind === 'refetch') {
 								ctx.documentStore.send({
-									policy: CachePolicy.NetworkOnly,
+									policy: message.policy ?? CachePolicy.NetworkOnly,
+									metadata: message.metadata ?? lastMetadata,
+									abortController: message.abortController,
 									session: 'session' in message ? message.session : lastSession,
-									metadata: ctx.metadata,
 								})
 								return
 							}

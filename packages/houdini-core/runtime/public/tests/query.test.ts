@@ -1,6 +1,6 @@
 import { Cache } from '../../../../houdini/src/runtime/cache/index.js'
 import { createPluginHooks, DocumentStore, HoudiniClient } from 'houdini/runtime/client'
-import { ArtifactKind, DataSource } from 'houdini/runtime/types'
+import { ArtifactKind, CachePolicy, DataSource } from 'houdini/runtime/types'
 import { beforeEach, expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../../houdini/src/test/index.js'
@@ -12,7 +12,7 @@ beforeEach(async () => {
 	setMockConfig(config)
 })
 
-test('refreshAll with a new session refetches active queries with that session', async () => {
+test('refreshAll forwards fetch parameters to active queries', async () => {
 	const cache = new Cache()
 
 	const selection = {
@@ -76,10 +76,21 @@ test('refreshAll with a new session refetches active queries with that session',
 	await store.send({ session: { token: 'old' }, variables: {} })
 	fetchSpy.mockClear()
 
-	cache.refreshAll({ token: 'new' })
+	const abortController = new AbortController()
+	cache.refreshAll({
+		session: { token: 'new' },
+		policy: CachePolicy.NoCache,
+		metadata: { source: 'session-refresh' },
+		abortController,
+	})
 
 	await new Promise((r) => setTimeout(r, 0))
 
 	expect(fetchSpy).toHaveBeenCalledOnce()
-	expect(fetchSpy.mock.calls[0][0].session).toEqual({ token: 'new' })
+	expect(fetchSpy.mock.calls[0][0]).toMatchObject({
+		session: { token: 'new' },
+		policy: CachePolicy.NoCache,
+		metadata: { source: 'session-refresh' },
+		abortController,
+	})
 })
