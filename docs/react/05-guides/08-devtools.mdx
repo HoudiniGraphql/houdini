@@ -16,13 +16,16 @@ application (and ours never leak into it).
 
 ## Configuration
 
-The `devtools` value in the plugin config controls when the overlay is available:
+The overlay is enabled during development by default and dropped from production
+builds entirely, so there is nothing to configure for the usual workflow. If you want
+different behavior, the `devtools` value in the plugin config controls when the
+overlay is available:
 
 ```javascript title="houdini.config.js"
 export default {
     plugins: {
         'houdini-react': {
-            devtools: 'dev'
+            devtools: 'always'
         }
     }
 }
