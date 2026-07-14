@@ -120,6 +120,10 @@ const devToolPlugin: ClientPlugin = () => {
 			throw error
 		},
 		cleanup(ctx) {
+			// a store that never ran a request cleans up with a null context
+			if (!ctx) {
+				return
+			}
 			addRequestEvent(ctx, 'cleanup')
 		},
 	}
