@@ -15,7 +15,6 @@ In SvelteKit, use the `error` helper from `@sveltejs/kit` inside `throwOnError` 
 import { error } from '@sveltejs/kit'
 
 export default new HoudiniClient({
-    url: '...',
     throwOnError: {
         operations: ['all'],
         error: (errors, ctx) => error(500,

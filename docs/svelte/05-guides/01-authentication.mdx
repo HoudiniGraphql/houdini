@@ -28,7 +28,6 @@ Then, you can use the `session` parameter passed to your client's network functi
 import { HoudiniClient } from '$houdini'
 
 export default new HoudiniClient({
-    url: 'http://localhost:4000/graphql',
     fetchParams({ session }) {
         return {
             headers: {

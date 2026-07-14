@@ -348,6 +348,33 @@ export class InMemorySubscriptions {
 		)
 	}
 
+	all({ includeMaskedParents = false }: { includeMaskedParents?: boolean } = {}) {
+		const result: FieldSelection[] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
+
+		for (const fields of this.subscribers.values()) {
+			for (const fieldSub of fields.values()) {
+				for (const selection of fieldSub.selections) {
+					if (!notified.has(selection[0].onMessage)) {
+						notified.add(selection[0].onMessage)
+						result.push(selection)
+					}
+				}
+
+				if (includeMaskedParents) {
+					for (const selection of fieldSub.maskedParentSelections) {
+						if (!notified.has(selection[0].onMessage)) {
+							notified.add(selection[0].onMessage)
+							result.push(selection)
+						}
+					}
+				}
+			}
+		}
+
+		return result
+	}
+
 	remove(
 		id: string,
 		selection: SubscriptionSelection,

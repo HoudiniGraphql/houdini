@@ -51,6 +51,7 @@ You need a `houdini.config.js` file to configure your project. This file should 
 ```javascript title="houdini.config.js"
 /** @type {import('houdini').ConfigFile} */
 const config = {
+    "url": 'https://[YOUR_URL_HERE]/graphql',
     "plugins": {
         // add your plugins here
     }
@@ -68,9 +69,7 @@ You need a `/src/client.js` to be used by houdini. This file should be like:
 ```javascript title="client.js"
 import { HoudiniClient } from '$houdini';
 
-export default new HoudiniClient({
-    url: 'https://[YOUR_URL_HERE]/graphql'
-})
+export default new HoudiniClient()
 ```
 
 _More information about the client file can be found [here](~/core/client)._

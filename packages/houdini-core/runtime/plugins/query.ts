@@ -79,7 +79,7 @@ export const query = (cache: Cache) =>
 							if (message.kind === 'refetch') {
 								ctx.documentStore.send({
 									policy: CachePolicy.NetworkOnly,
-									session: lastSession,
+									session: 'session' in message ? message.session : lastSession,
 									metadata: ctx.metadata,
 								})
 								return
