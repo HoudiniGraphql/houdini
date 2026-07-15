@@ -177,12 +177,24 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 
 	db.Put(conn)
 
-	// insert the plugin metadata
+	// insert the plugin metadata. registration is an upsert: during a dev-server
+	// restart a replacement plugin process can race a row left by its predecessor,
+	// and dying on the conflict would leave the orchestrator dialing a port that
+	// nobody listens on. last writer wins; a superseded process exits on its own
+	// when the orchestrator never dials it (see ArmConnectionDeadline below).
 	err = db.ExecQuery(ctx,
 		`INSERT INTO plugins (
 			name, hooks, port, plugin_order, include_runtime, include_static_runtime, config_module, client_plugins
 		) VALUES
-			($name, $hooks, $port, $plugin_order, $include_runtime, $include_static_runtime, $config_module, $client_plugins)`,
+			($name, $hooks, $port, $plugin_order, $include_runtime, $include_static_runtime, $config_module, $client_plugins)
+		ON CONFLICT(name) DO UPDATE SET
+			hooks = excluded.hooks,
+			port = excluded.port,
+			plugin_order = excluded.plugin_order,
+			include_runtime = excluded.include_runtime,
+			include_static_runtime = excluded.include_static_runtime,
+			config_module = excluded.config_module,
+			client_plugins = excluded.client_plugins`,
 		map[string]any{
 			"name":                   cmp(pluginKey, plugin.Name()),
 			"hooks":                  string(hooksStr),

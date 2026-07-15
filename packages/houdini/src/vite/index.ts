@@ -5,7 +5,13 @@ import type { Db } from '../lib/db.js'
 import { pathToFileURL } from 'node:url'
 import type { PluginOption } from 'vite'
 
-import { get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import {
+	get_config,
+	type Adapter,
+	type CompilerProxy,
+	type ConfigFile,
+	type Config,
+} from '../lib/index.js'
 import { db_path } from '../router/conventions.js'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
@@ -20,6 +26,10 @@ export type VitePluginContext = PluginConfig & {
 	db: Db
 	db_file: string
 	config: Config
+	// the dev-server compiler, assigned in document_hmr's configureServer. Lives on the
+	// shared context (not module state) so a vite restart — which re-runs the plugin
+	// factory and creates a fresh context — can't leak one server's compiler into another.
+	compiler?: CompilerProxy
 }
 
 export default async function (opts?: PluginConfig): Promise<Array<PluginOption>> {

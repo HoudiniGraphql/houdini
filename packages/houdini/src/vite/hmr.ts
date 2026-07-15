@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import type { HmrContext, Plugin as VitePlugin } from 'vite'
 import { type CompilerProxy, codegen_setup, get_config, path, run_pipeline } from '../lib/index.js'
 import type { VitePluginContext } from './index.js'
+import { dispose_active_session, register_session } from './session.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -19,10 +20,13 @@ import type { VitePluginContext } from './index.js'
  * the dependency graph to ensure all related documents are properly regenerated.
  */
 
-export let compiler: CompilerProxy
-
 export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
+	// Scoped to the plugin instance, never module-level: on a vite restart the
+	// replacement server runs configureServer before the old server closes, so a
+	// module-level binding would let the old server's close handler shut down the
+	// replacement's compiler (and its database connection).
+	let compiler: CompilerProxy | undefined
 	let config: Awaited<ReturnType<typeof get_config>>
 	// Tracks files we re-wrote via writeFileSync so we can skip the resulting
 	// hotUpdate events. Uses timestamps instead of a Set because Vite 8 fires
@@ -112,8 +116,18 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 		async configureServer(server) {
 			config = await get_config()
 
-			// and a proxy to talk to the compiler
-			compiler = await codegen_setup(config, 'dev', ctx.db, ctx.db_file)
+			// if a previous session still owns the database (configResolved skips the
+			// handoff when the plugin context is reused), dispose it before spawning
+			// our own plugin processes
+			await dispose_active_session(ctx.db_file)
+
+			// and a proxy to talk to the compiler. capture it in a local so the
+			// teardown below always closes the compiler this server created, even if
+			// the instance-level reference has moved on to a replacement.
+			const ownedCompiler = await codegen_setup(config, 'dev', ctx.db, ctx.db_file)
+			compiler = ownedCompiler
+			// share it with the sibling schema plugins (they get the same ctx object)
+			ctx.compiler = ownedCompiler
 
 			generatedDir = path.join(
 				server.config.root,
@@ -123,14 +137,31 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				? server.config.root
 				: `${server.config.root}/`
 
-			// and make sure the compiler cleans up gracefully when the http server dies
+			// register the session so the replacement server can tear it down before
+			// recreating the database (a vite restart configures the new server while
+			// this one is still running)
+			const dispose_session = register_session(ctx.db_file, async () => {
+				// clear the live references only if they still point at this server's
+				// compiler so pending debounce work no-ops instead of hitting a closed db
+				if (compiler === ownedCompiler) {
+					compiler = undefined
+				}
+				if (ctx.compiler === ownedCompiler) {
+					ctx.compiler = undefined
+				}
+				await ownedCompiler.close()
+			})
+
+			// and make sure the compiler cleans up gracefully when the http server dies.
+			// the disposer runs at most once, so this is a no-op if a replacement
+			// session already performed the handoff.
 			server.httpServer?.once('close', () => {
-				compiler.close()
+				dispose_session()
 			})
 
 			// before we do anyting we neeed to make sure everything has run
 			try {
-				await compiler.run_pipeline({
+				await ownedCompiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})
@@ -239,9 +270,12 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				deletedFiles: string[],
 				task_id: string
 			) {
-				// hotUpdate can fire before configureServer completes during startup
-				if (!compiler) return
-				await compiler.pipeline_lock(async () => {
+				// hotUpdate can fire before configureServer completes during startup,
+				// or after the server closed (the close handler clears the reference).
+				// capture a local so the whole batch runs against one compiler instance.
+				const batchCompiler = compiler
+				if (!batchCompiler) return
+				await batchCompiler.pipeline_lock(async () => {
 					// Remove DB entries for deleted files first so extraction and cleanup
 					// see a consistent state for both deletions and updates in the same batch.
 					if (deletedFiles.length > 0) {
@@ -319,7 +353,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 								`)
 							})
 							try {
-								const results = await run_pipeline(compiler.trigger_hook, {
+								const results = await run_pipeline(batchCompiler.trigger_hook, {
 									after: 'AfterExtract',
 								})
 								const updated_modules = [
@@ -389,7 +423,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 					// trigger_hook flushes before Go runs and reloads after
 					try {
-						await compiler.trigger_hook('ExtractDocuments', {
+						await batchCompiler.trigger_hook('ExtractDocuments', {
 							payload: { filepaths },
 						})
 					} catch (err) {
@@ -429,7 +463,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					}
 
 					// trigger_hook handles flush before AfterExtract and reload after
-					await compiler.trigger_hook('AfterExtract', { task_id })
+					await batchCompiler.trigger_hook('AfterExtract', { task_id })
 
 					// walk the dependency graph and include transitive dependencies in the task
 					ctx.db.run(
@@ -475,7 +509,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					// BeforeValidate → Validate → AfterValidate → GenerateDocuments → GenerateRuntime
 					let results: Awaited<ReturnType<typeof run_pipeline>>
 					try {
-						results = await run_pipeline(compiler.trigger_hook, {
+						results = await run_pipeline(batchCompiler.trigger_hook, {
 							task_id,
 							after: 'AfterExtract',
 						})
