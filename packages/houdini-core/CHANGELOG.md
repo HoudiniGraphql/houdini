@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.6
+
+### Patch Changes
+
+- [#1723](https://github.com/HoudiniGraphql/houdini/pull/1723) [`dfae5a3`](https://github.com/HoudiniGraphql/houdini/commit/dfae5a34e3f4ed0ad5866e686cfcf38743900311) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Refresh active SvelteKit queries after `setSession` updates the Houdini session, ensuring refetched operations run with the latest session.
+
+- [#1732](https://github.com/HoudiniGraphql/houdini/pull/1732) [`ead2012`](https://github.com/HoudiniGraphql/houdini/commit/ead2012b894e6bb5a919bf80e179ce490c63f9bc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix HMR breaking after a vite server restart ("database is not open" or unreachable plugins until the dev server was manually restarted).
+
 ## 2.0.5
 
 ### Patch Changes
