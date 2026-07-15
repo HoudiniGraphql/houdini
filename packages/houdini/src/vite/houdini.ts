@@ -5,6 +5,7 @@ import type { VitePluginContext } from './index.js'
 import { codegen_setup, init_db } from '../lib/codegen.js'
 import * as fs from '../lib/fs.js'
 import type { CompilerProxy } from '../lib/index.js'
+import { dispose_active_session } from './session.js'
 
 export let compiler: CompilerProxy
 let alreadyBuilt = false
@@ -37,6 +38,11 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			// open the orchestration DB lazily (the plugin's default export no longer does this
 			// eagerly, so that the worker check above can run first)
 			if (!ctx.db) {
+				// a vite restart resolves the replacement server's config while the old
+				// server is still running. tear the previous session down first so its
+				// database connection and plugin processes are gone before init_db
+				// recreates the file they were holding.
+				await dispose_active_session(ctx.db_file)
 				const [db] = await init_db(ctx.config, false)
 				ctx.db = db
 			}

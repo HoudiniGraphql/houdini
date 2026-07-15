@@ -5,7 +5,6 @@ import type { ModuleNode, PluginOption } from 'vite'
 import { fs, get_config, run_pipeline } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import { sleep } from '../lib/sleep.js'
-import { compiler } from './hmr.js'
 import type { VitePluginContext } from './index.js'
 
 /*
@@ -19,7 +18,7 @@ import type { VitePluginContext } from './index.js'
 // can skip them — otherwise the startup write triggers a second pipeline run.
 const ownSchemaWrites = new Set<string>()
 
-export function refresh_on_schema(_ctx: VitePluginContext): PluginOption {
+export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
@@ -38,7 +37,10 @@ export function refresh_on_schema(_ctx: VitePluginContext): PluginOption {
 				return
 			}
 
-			// if the compiler hasn't started yet then there's nothing to do
+			// if the compiler hasn't started yet then there's nothing to do.
+			// ctx.compiler is assigned by document_hmr's configureServer and is scoped
+			// to the current server (a vite restart creates a fresh plugin context).
+			const compiler = ctx.compiler
 			if (!compiler) {
 				return
 			}
@@ -149,7 +151,7 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
-export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
+export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-watch-local-schema',
 
@@ -196,6 +198,7 @@ export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 
 			// Trigger the pipeline directly — no need to bounce through the file watcher.
 			// The Schema hook itself clears stale type_fields before re-inserting.
+			const compiler = ctx.compiler
 			if (!compiler) return
 			try {
 				await compiler.pipeline_lock(() =>
