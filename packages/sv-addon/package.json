@@ -1,0 +1,45 @@
+{
+    "name": "@houdinigraphql/sv",
+    "description": "sv add-on for @houdinigraphql/sv",
+    "version": "0.0.1",
+    "type": "module",
+    "license": "MIT",
+    "scripts": {
+        "demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
+        "demo-add": "pnpm build && sv add file:../ --cwd demo --no-git-check --no-install",
+        "demo-add:ci": "pnpm build && sv add file:../='is_remote_endpoint:no+local_schema:../path/to/schema.graphql' --cwd demo --no-git-check --no-download-check --no-install",
+        "build": "tsdown",
+        "prepublishOnly": "npm run build",
+        "test": "vitest run"
+    },
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "default": "./dist/index.mjs"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "peerDependencies": {
+        "sv": "^0.16.2"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.60.0",
+        "@sveltejs/sv-utils": "^0.3.0",
+        "@types/node": "^25.5.2",
+        "sv": "^0.16.2",
+        "tsdown": "^0.21.7",
+        "vitest": "^4.1.3"
+    },
+    "keywords": [
+        "sv-add",
+        "svelte",
+        "sveltekit",
+        "houdini",
+        "houdinigraphql",
+        "graphql"
+    ]
+}

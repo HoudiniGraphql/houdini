@@ -12,15 +12,15 @@ all of the necessary steps.
 ## Init Script
 
 Once you have a SvelteKit Project (either an existing one or by following [these instructions](https://kit.svelte.dev/docs/creating-a-project),
-you can run the following command to add Houdini to your project. Just follow questions and the tool will
-configure everything for you (setup url, get schema, prepare project files, etc).
+you can add Houdini with the Svelte CLI. Just follow questions and the tool will configure everything for you (setup url, get schema, prepare project files, etc).
 
 ```bash
-npx houdini@latest init
+npx sv add @houdinigraphql
 ```
 
 <Notice variant="info">
-  This will send a request to your API to download your schema definition. If you need headers to authenticate this request, you can pass them in with the `--headers` flag (abbreviated `-h`). For example, `npx houdini init -h Authorization="Bearer MyToken"`.
+  This will scaffold all the required files for Houdini to work with SvelteKit. When using a remote schema, don't forget to run `npx houdini pull-schema` to download your schema definition from your API.
+  If you need headers to authenticate this request, you can pass them in with the `--headers` flag (abbreviated `-h`). For example, `npx houdini init -h Authorization="Bearer MyToken"`.
 </Notice>
 
 And that's it! You should be all set with everything you need to work with Houdini.
@@ -76,7 +76,7 @@ _More information about the client file can be found [here](~/core/client)._
 
 **Step 4: gitignore**
 
-Optional: You can add `$houdini` to your `.gitignore` as it will be only generated content.
+When using a VCS, we recommend adding the `.houdini` directory to the list of ignored files, as it will only contain generated content
 
 ### SvelteKit
 
@@ -107,29 +107,50 @@ Then, we need to add houdini's plugin to your `vite.config.js`. Make sure that `
 
 ```javascript title="vite.config.js"
 import { sveltekit } from '@sveltejs/kit/vite'
+import { defineConfig } from '@sveltejs/kit/vite'
 import houdini from 'houdini/vite'
 
-/** @type {import('vite').UserConfig} */
-const config = {
-    plugins: [houdini(), sveltekit()]
-}
-
-export default config
+export default defineConfig({
+  plugins: [houdini(), sveltekit({ /* ... */ })]
+})
 ```
 
-Finally, update your `svelte.config.js` to support the `$houdini` alias:
+Finally, update the `sveltekit({ ... })` config in `vite.config.ts` to add support for the `$houdini` alias:
+```javascript title="vite.config.js"
+import { sveltekit } from '@sveltejs/kit/vite'
+import { defineConfig } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
 
-```javascript title="svelte.config.js"
-import path from 'path'
+export default defineConfig({
+  plugins: [
+    houdini(),
+    sveltekit({
+      // ... other options set for SvelteKit to work
 
-export default {
-    kit: {
-        alias: {
-            $houdini: path.resolve('.', '$houdini')
-        }
-    }
-}
+      alias: {
+        $houdini: '.houdini/'
+      }
+    })
+  ]
+})
 ```
+
+<Notice variant="info">
+  Older projects or projects set up with the Svelte CLI version &lt; 0.16 will have the sveltekit config in a separate `svelte.config.js` file.
+  In that case, add the same `alias` config object in the `kit` property of the config:
+
+  ```javascript title="svelte.config.js"
+  import path from 'path'
+  
+  export default {
+      kit: {
+          alias: {
+              $houdini: '.houdini/'
+          }
+      }
+  }
+  ```
+</Notice>
 
 ### Svelte
 
@@ -170,7 +191,7 @@ export default defineConfig({
 
     resolve: {
         alias: {
-            $houdini: './.houdini',
+            $houdini: '.houdini/',
         },
     },
 })
