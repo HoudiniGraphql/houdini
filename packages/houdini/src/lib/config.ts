@@ -148,9 +148,11 @@ export type ConfigFile = {
 	persistedQueriesPath?: string
 
 	/**
-	 * An object describing the plugins enabled for the project
+	 * An object describing the plugins enabled for the project. Known plugins get
+	 * their config checked against the types they register on HoudiniPluginConfig;
+	 * the string index allows locally-defined plugins referenced by path.
 	 */
-	plugins?: HoudiniPluginConfig
+	plugins?: HoudiniPluginConfig & Record<string, any>
 
 	/**
 	 * The relative path from your houdini config file pointing to your application.
@@ -518,7 +520,6 @@ export class Config {
 	}
 
 	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
-		// @ts-expect-error
 		return (this.config_file.plugins?.[name] as ConfigType) ?? {}
 	}
 }

@@ -1,4 +1,4 @@
-/// <references types="houdini-react">
+/// <reference types="houdini-react" />
 /** @type {import('houdini').ConfigFile} */
 const config = {'CONFIG_FILE'
 	plugins: {
