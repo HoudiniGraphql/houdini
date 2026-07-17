@@ -1,7 +1,7 @@
 {
     "name": "@houdinigraphql/sv",
     "description": "sv add-on for @houdinigraphql/sv",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "type": "module",
     "license": "MIT",
     "scripts": {
