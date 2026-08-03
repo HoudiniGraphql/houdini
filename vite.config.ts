@@ -19,7 +19,7 @@ export default defineConfig({
 			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
 			'./packages/houdini-react/package/**/*.test.{ts,js}',
 			'./packages/houdini-svelte/package/**/*.test.{ts,js}',
-			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
+			'./packages/houdini-core/runtime/**/*.test.{ts,js}',
 			'./site/**/*.test.{ts,js}',
 		],
 		projects: ['.', 'packages/sv-addon'],

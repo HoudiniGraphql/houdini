@@ -1,9 +1,10 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { testConfigFile } from '../../test'
-import { Cache } from '../cache/cache'
-import { CachePolicy, PendingValue } from '../lib'
-import { setMockConfig } from '../lib/config'
+import { Cache } from 'houdini/runtime/cache'
+import { CachePolicy, PendingValue } from 'houdini/runtime/types'
+import { testConfigFile } from 'houdini/test'
+
+import { setMockConfig } from '../config'
 import { cachePolicy } from './cache.js'
 import { createStore, fakeFetch } from './test.js'
 
@@ -424,8 +425,28 @@ test('NoCache', async () => {
 })
 
 test('loading states when fetching is true', async () => {
-	// create the store
-	const store = createStore()
+	// create the store with the same setFetching wiring that client.observe sets up:
+	// when the cache plugin flags a network request, the store's state gets the
+	// generated loading data
+	let storeRef: ReturnType<typeof createStore> | null = null
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				cache: new Cache({ ...config, disabled: false }),
+				setFetching: (fetching: boolean, data?: any) => {
+					storeRef?.update((state) => ({
+						...state,
+						fetching,
+						...(fetching && data ? { data } : {}),
+					}))
+				},
+			}),
+			fakeFetch({}),
+		],
+	})
+	storeRef = store
 
 	// listen for changes in the store state
 	const fn = vi.fn()

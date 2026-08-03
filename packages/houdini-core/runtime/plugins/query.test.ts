@@ -2,8 +2,9 @@ import { Cache } from 'houdini/runtime/cache'
 import { CachePolicy } from 'houdini/runtime/types'
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { testConfigFile } from '../../test'
-import { setMockConfig } from '../lib/config'
+import { testConfigFile } from 'houdini/test'
+
+import { setMockConfig } from '../config'
 import { query } from './query.js'
 import { createStore, fakeFetch } from './test.js'
 
@@ -32,7 +33,7 @@ test('refetch triggered by cache.refresh uses the most recent session, not the s
 		},
 	}
 
-	cache._internal_unstable.write({
+	cache.write({
 		selection,
 		data: { viewer: { id: '1', firstName: 'bob' } },
 	})
@@ -65,7 +66,7 @@ test('refetch triggered by cache.refresh uses the most recent session, not the s
 	fetchSpy.mockClear()
 
 	// trigger a refetch via the cache
-	cache._internal_unstable.refresh('User:1')
+	cache.refresh('User:1')
 
 	// give the async send a tick to run
 	await new Promise((r) => setTimeout(r, 0))

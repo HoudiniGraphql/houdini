@@ -116,7 +116,10 @@ const defaultFetch = (
 			body: JSON.stringify({ operationName: name, query: text, variables }),
 			...params,
 			headers: {
-				Accept: 'application/graphql+json, application/json',
+				// the GraphQL-over-HTTP spec requires clients to include
+				// application/graphql-response+json in the Accept header. application/json is
+				// included at a lower priority for legacy servers
+				Accept: 'application/graphql-response+json, application/json;q=0.9',
 				'Content-Type': 'application/json',
 				// a header a cross-origin <form>/simple request cannot set. The server
 				// requires it for CORS-simple POSTs to the graphql endpoint (uploads use
@@ -127,18 +130,50 @@ const defaultFetch = (
 			},
 		})
 
-		// Avoid parsing the response if it's not JSON, as that will throw a SyntaxError
-		if (
-			!result.ok &&
-			!result.headers.get('content-type')?.startsWith('application/json') &&
-			!result.headers.get('content-type')?.startsWith('application/graphql+json')
-		) {
+		// a response served with a GraphQL media type is a well-formed GraphQL response
+		// regardless of status code (the spec sends request errors like validation
+		// failures as 4xx with the details in the errors list) so it always gets parsed.
+		// anything else that isn't a 2xx is a transport-level failure we can't interpret.
+		// only look at the content-type on failures: SvelteKit's SSR fetch throws when a
+		// header outside filterSerializedResponseHeaders is read, so the happy path must
+		// not touch headers
+		if (!result.ok) {
+			const contentType = result.headers.get('content-type') ?? ''
+			const isGraphQLResponse =
+				contentType.startsWith('application/graphql-response+json') ||
+				contentType.startsWith('application/json') ||
+				// some servers still use the withdrawn pre-spec media type
+				contentType.startsWith('application/graphql+json')
+			if (!isGraphQLResponse) {
+				throw new Error(
+					`Failed to fetch: server returned invalid response with error ${result.status}: ${result.statusText}`
+				)
+			}
+		}
+
+		let payload
+		try {
+			payload = await result.json()
+		} catch {
+			throw new Error(
+				`Failed to fetch: server returned a malformed response with status ${result.status}: ${result.statusText}`
+			)
+		}
+
+		// a JSON error response from an intermediary (a rate limiter, a gateway) parses fine
+		// but isn't a GraphQL response. If an error response has neither a data nor an errors
+		// entry there is nothing for the pipeline to surface, so treat it as a transport failure
+		const isGraphQLPayload =
+			payload !== null &&
+			typeof payload === 'object' &&
+			('data' in payload || 'errors' in payload)
+		if (!result.ok && !isGraphQLPayload) {
 			throw new Error(
 				`Failed to fetch: server returned invalid response with error ${result.status}: ${result.statusText}`
 			)
 		}
 
-		return await result.json()
+		return payload
 	}
 }
 
