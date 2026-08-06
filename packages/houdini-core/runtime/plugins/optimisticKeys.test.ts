@@ -4,7 +4,7 @@ import { ArtifactKind, type QueryResult, type GraphQLObject } from 'houdini/runt
 import { testConfigFile } from 'houdini/test'
 import { beforeEach, expect, test } from 'vitest'
 
-import { setMockConfig } from '../lib/config'
+import { setMockConfig } from '../config'
 import { mutation } from './mutation.js'
 import { optimisticKeys } from './optimisticKeys.js'
 import { createStore, fakeFetch } from './test.js'

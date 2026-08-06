@@ -1,9 +1,13 @@
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { DocumentStore } from 'houdini/runtime/documentStore'
 import type { DocumentArtifact, GraphQLObject, QueryResult } from 'houdini/runtime/types'
+import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 import { vi } from 'vitest'
 
-import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
+import { createPluginHooks } from 'houdini/runtime/client'
+
+import { HoudiniClient, type HoudiniClientConstructorArgs } from '..'
+import { getCurrentConfig } from '../config'
 
 /**
  * Utilities for testing the cache plugin
@@ -17,15 +21,12 @@ export function createStore(
 	}
 
 	// instantiate the client
-	const client = new HoudiniClient({
-		url: 'URL',
-		...args,
-	})
+	const client = new HoudiniClient(args)
 
 	return new DocumentStore({
-		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
-		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
+		plugins: createPluginHooks(client.plugins),
 		client,
+		config: getCurrentConfig(),
 		artifact: args.artifact ?? {
 			stripVariables: [],
 			kind: ArtifactKind.Query,
