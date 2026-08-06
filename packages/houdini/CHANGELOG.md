@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.9
+
+### Patch Changes
+
+- [#1736](https://github.com/HoudiniGraphql/houdini/pull/1736) [`7b5cf3c`](https://github.com/HoudiniGraphql/houdini/commit/7b5cf3cc55bf58fd015a3fb21df88ceae910fb1e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - The built-in fetch plugin now follows the GraphQL-over-HTTP spec.
+
 ## 2.0.8
 
 ### Patch Changes
