@@ -1,0 +1,10 @@
+import { test } from '@playwright/test'
+import { routes } from '../../lib/utils/routes.js'
+import { expect_to_be, goto } from '../../lib/utils/testsHelper.js'
+
+test('union member with its own fragment and a shared interface fragment keeps its own fields', async ({
+	page,
+}) => {
+	await goto(page, routes.abstractTypeMap)
+	await expect_to_be(page, 'abstract-typemap:1:Bruce Willis')
+})
