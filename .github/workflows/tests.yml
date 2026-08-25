@@ -52,6 +52,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref }}
                   token: ${{ secrets.GITHUB_TOKEN }}
             - uses: actions/setup-node@v3
@@ -88,6 +89,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -119,6 +121,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -163,6 +166,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -198,6 +202,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -246,6 +251,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -279,6 +285,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
@@ -315,6 +322,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
                   ref: ${{ github.head_ref || github.sha }}
             - uses: actions/setup-node@v3
               with:
