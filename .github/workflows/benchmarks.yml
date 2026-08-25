@@ -70,7 +70,7 @@ jobs:
             - name: Checkout PR branch
               run: |
                   git stash --include-untracked
-                  git checkout ${{ github.head_ref }}
+                  git checkout ${{ github.event.pull_request.head.sha }}
 
             - name: Compare
               run: node perf/compare.js /tmp/benchmark.baseline.json /tmp/benchmark.current.json
