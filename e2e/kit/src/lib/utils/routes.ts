@@ -9,6 +9,7 @@ export const routes = {
 	subscriptions_happyPath: '/subscriptions/happyPath',
 	subscriptions_two_subscriptions: '/subscriptions/two',
 	abstractFragments: '/abstract-fragments',
+	abstractTypeMap: '/abstract-typemap',
 	abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
 	fragment_masking_partial: '/fragment-masking-partial',
 	conditional_fragment_spread: '/conditional-fragment-spread',

@@ -873,6 +873,12 @@ func stringifySelection(
 			// identify concrete types by looking for types that do have possible members
 			if concreteTypes, ok := docs.PossibleTypes[selection.FieldName]; ok {
 				for concreteType := range concreteTypes {
+					// a concrete type with its own inline fragment already has a complete
+					// entry in fields; the runtime checks typeMap before fields so mapping
+					// it to the abstract fragment would shadow its wider selection
+					if _, hasOwnFragment := typeMap[concreteType]; hasOwnFragment {
+						continue
+					}
 					if possibles, ok := docs.PossibleTypes[parentType]; ok {
 						if _, ok := possibles[concreteType]; ok {
 							typeMap[concreteType] = selection.FieldName

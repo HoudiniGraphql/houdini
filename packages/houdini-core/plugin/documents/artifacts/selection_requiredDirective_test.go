@@ -191,9 +191,7 @@ query TestQuery($id: ID!) {
                             },
                         },
 
-                        "typeMap": {
-                            "Ghost": "Legend",
-                        },
+                        "typeMap": {},
                     },
 
                     "fragments": {
