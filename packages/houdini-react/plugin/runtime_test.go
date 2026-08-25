@@ -122,6 +122,79 @@ func TestTransformRuntimeLoginURL(t *testing.T) {
 	})
 }
 
+// devtoolsIndexStub mirrors the static devtools/index.ts entry that ships with the
+// runtime: the 'dev' default that gates the overlay behind import.meta.env.DEV.
+const devtoolsIndexStub = "import plugin from './plugin.js'\n\n" +
+	"// @ts-ignore: vite provides import.meta.env\n" +
+	"export default import.meta.env.DEV ? plugin : null\n"
+
+// TestTransformRuntimeDevtools verifies that the devtools entry is generated from the
+// plugin's `devtools` config value: 'dev' (and no config at all) keeps the static
+// import.meta.env.DEV guard, 'always' exports the plugin unconditionally, and 'never'
+// exports null without importing the overlay.
+func TestTransformRuntimeDevtools(t *testing.T) {
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `type Query { id: ID }`,
+
+		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			config, _ := test.Extra["config"].(string)
+			if config == "" {
+				return
+			}
+			ctx := context.Background()
+			conn, err := p.DB.Take(ctx)
+			require.NoError(t, err)
+			defer p.DB.Put(conn)
+			stmt, err := conn.Prepare(
+				`INSERT INTO plugins (name, port, hooks, config) VALUES ('houdini-react', 0, '[]', $config)`,
+			)
+			require.NoError(t, err)
+			require.NoError(t, p.DB.ExecStatement(stmt, map[string]any{"config": config}))
+			stmt.Finalize()
+		},
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			got, err := p.TransformRuntime(context.Background(), "devtools/index.ts", devtoolsIndexStub)
+			require.NoError(t, err)
+			require.Equal(t, test.Extra["expected"].(string), got)
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "defaults to the dev guard when no plugin config exists",
+				Pass: true,
+				Extra: map[string]any{
+					"expected": devtoolsIndexStub,
+				},
+			},
+			{
+				Name: "keeps the dev guard for devtools: dev",
+				Pass: true,
+				Extra: map[string]any{
+					"config":   `{"devtools":"dev"}`,
+					"expected": devtoolsIndexStub,
+				},
+			},
+			{
+				Name: "exports the plugin unconditionally for devtools: always",
+				Pass: true,
+				Extra: map[string]any{
+					"config":   `{"devtools":"always"}`,
+					"expected": "import plugin from './plugin.js'\n\nexport default plugin\n",
+				},
+			},
+			{
+				Name: "exports null for devtools: never",
+				Pass: true,
+				Extra: map[string]any{
+					"config":   `{"devtools":"never"}`,
+					"expected": "export default null\n",
+				},
+			},
+		},
+	})
+}
+
 // indexStub mirrors the real core runtime index.ts: it has leading imports and
 // exports before the generic graphql() declaration, so tests verify that
 // overloads land immediately before the marker rather than at the file top.

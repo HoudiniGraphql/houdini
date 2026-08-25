@@ -280,13 +280,16 @@ export async function build({ outDir, packages, source, bundle = true, plugin, c
 
 // copy runtime files as raw .ts/.tsx files without compilation
 export async function copyRuntimeFiles({ outDir, source }) {
-	// find all .ts, .tsx, and .json files in the runtime directory, excluding test files
+	// find all .ts, .tsx, .css, and .json files in the runtime directory, excluding test files
 	// (tsconfig.json and similar config files need to be included for Go plugins that read from runtimeDir)
 	const files = (
 		await Promise.all([
 			glob(path.join(source, '**/*.ts*').replaceAll('\\', '/'), {
 				nodir: true,
 				ignore: ['**/*.test.*', '**/test.ts'],
+			}),
+			glob(path.join(source, '**/*.css').replaceAll('\\', '/'), {
+				nodir: true,
 			}),
 			glob(path.join(source, '**/*.json').replaceAll('\\', '/'), {
 				nodir: true,

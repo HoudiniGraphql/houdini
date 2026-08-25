@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -28,7 +29,21 @@ func (p *HoudiniReact) TransformRuntime(ctx context.Context, fp string, content 
 		}
 	}
 
-	switch fp {
+	switch filepath.ToSlash(fp) {
+	case "devtools/index.ts":
+		// the devtools entry is generated from the plugin config so that disabled modes
+		// never import the overlay and bundlers can drop it entirely
+		switch p.devtoolsMode(ctx) {
+		case "never":
+			return "export default null\n", nil
+		case "always":
+			return "import plugin from './plugin.js'\n\nexport default plugin\n", nil
+		default:
+			// 'dev': keep the import.meta.env.DEV guard from the static file so
+			// production builds tree-shake the overlay
+			return content, nil
+		}
+
 	case "client.ts":
 		projectConfig, err := p.DB.ProjectConfig(ctx)
 		if err != nil {
@@ -78,6 +93,27 @@ func (p *HoudiniReact) TransformRuntime(ctx context.Context, fp string, content 
 	}
 
 	return content, nil
+}
+
+// devtoolsMode reads the `devtools` value from the plugin's config in houdini.config,
+// defaulting to 'dev'. It queries the plugins table directly instead of going through
+// PluginConfig so a missing row (nothing configured) falls back cleanly.
+func (p *HoudiniReact) devtoolsMode(ctx context.Context) string {
+	var configJSON string
+	_ = p.DB.StepQuery(ctx, `SELECT config FROM plugins WHERE name = 'houdini-react'`, nil, func(q plugins.Row) {
+		configJSON = q.ColumnText(0)
+	})
+	if configJSON == "" {
+		return "dev"
+	}
+
+	var config struct {
+		Devtools string `json:"devtools"`
+	}
+	if err := json.Unmarshal([]byte(configJSON), &config); err != nil || config.Devtools == "" {
+		return "dev"
+	}
+	return config.Devtools
 }
 
 // UpdateIndexFiles injects typed graphql() overloads into the core runtime index.ts.

@@ -1,0 +1,43 @@
+---
+title: Devtools
+description: Inspecting Houdini's client-side requests with the devtools overlay
+---
+
+# Devtools
+
+Houdini ships with a devtools overlay that records every client-side request our
+application sends: queries, mutations, and subscriptions. It shows each document's
+lifecycle, its variables, the data it resolved with, whether it was served from the
+cache or the network, and any errors along the way. During development a small hat
+appears in the corner of the page; clicking it opens the panel.
+
+The overlay renders inside a shadow root, so its styles never leak into our
+application (and ours never leak into it).
+
+## Configuration
+
+The overlay is enabled during development by default and dropped from production
+builds entirely, so there is nothing to configure for the usual workflow. If you want
+different behavior, the `devtools` value in the plugin config controls when the
+overlay is available:
+
+```javascript title="houdini.config.js"
+export default {
+    plugins: {
+        'houdini-react': {
+            devtools: 'always'
+        }
+    }
+}
+```
+
+There are three modes:
+
+- `dev` (the default): the overlay is only available during development. Production
+  builds drop it entirely, so it adds nothing to the bundle we ship.
+- `always`: the overlay is available in development and in production. This is handy
+  for staging environments or debugging a deployed app.
+- `never`: the overlay is disabled and never bundled.
+
+Since the mode is resolved during code generation, changing it requires a fresh
+`generate` (the vite plugin takes care of this on the next dev server start or build).
