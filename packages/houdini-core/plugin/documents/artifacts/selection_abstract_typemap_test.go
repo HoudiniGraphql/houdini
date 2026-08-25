@@ -66,7 +66,187 @@ func TestAbstractTypeMapExcludesOwnFragments(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"Search": "const artifact = {\n    \"name\": \"Search\",\n    \"kind\": \"HoudiniQuery\",\n    \"hash\": \"7f8c1bbc2ab9c254d0cb1eca9818b24992857128f833667c3edac5c664da5911\",\n    \"raw\": `query Search {\n    search {\n        __typename\n        ... on ContentItem {\n            id\n            title\n            __typename\n        }\n        ... on Article {\n            author\n            wordCount\n            __typename\n            id\n        }\n        ... on Video {\n            durationSeconds\n            __typename\n            id\n        }\n    }\n}\n`,\n\n    \"rootType\": \"Query\",\n    \"stripVariables\": [] as Array<string>,\n\n    \"selection\": {\n        \"fields\": {\n            \"search\": {\n                \"type\": \"SearchResult\",\n                \"keyRaw\": \"search\",\n\n                \"selection\": {\n                    \"fields\": {\n                        \"__typename\": {\n                            \"type\": \"String\",\n                            \"keyRaw\": \"__typename\",\n                            \"visible\": true,\n                        },\n                    },\n                    \"abstractFields\": {\n                        \"fields\": {\n                            \"Article\": {\n                                \"__typename\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"__typename\",\n                                    \"visible\": true,\n                                },\n                                \"author\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"author\",\n                                    \"visible\": true,\n                                },\n                                \"id\": {\n                                    \"type\": \"ID\",\n                                    \"keyRaw\": \"id\",\n                                    \"visible\": true,\n                                },\n                                \"title\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"title\",\n                                    \"visible\": true,\n                                },\n                                \"wordCount\": {\n                                    \"type\": \"Int\",\n                                    \"keyRaw\": \"wordCount\",\n                                    \"visible\": true,\n                                },\n                            },\n                            \"ContentItem\": {\n                                \"__typename\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"__typename\",\n                                    \"visible\": true,\n                                },\n                                \"id\": {\n                                    \"type\": \"ID\",\n                                    \"keyRaw\": \"id\",\n                                    \"visible\": true,\n                                },\n                                \"title\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"title\",\n                                    \"visible\": true,\n                                },\n                            },\n                            \"Video\": {\n                                \"__typename\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"__typename\",\n                                    \"visible\": true,\n                                },\n                                \"durationSeconds\": {\n                                    \"type\": \"Int\",\n                                    \"keyRaw\": \"durationSeconds\",\n                                    \"visible\": true,\n                                },\n                                \"id\": {\n                                    \"type\": \"ID\",\n                                    \"keyRaw\": \"id\",\n                                    \"visible\": true,\n                                },\n                                \"title\": {\n                                    \"type\": \"String\",\n                                    \"keyRaw\": \"title\",\n                                    \"visible\": true,\n                                },\n                            },\n                        },\n\n                        \"typeMap\": {\n                            \"Podcast\": \"ContentItem\",\n                        },\n                    },\n                },\n\n                \"abstract\": true,\n                \"visible\": true,\n            },\n        },\n    },\n\n    \"pluginData\": {},\n    \"policy\": \"CacheOrNetwork\",\n    \"partial\": false\n} as const\n\nexport default artifact\n\nexport type Search = {\n\treadonly \"input\"?: Search$input;\n\treadonly \"result\": Search$result | undefined;\n};\n\nexport type Search$result = {\n\treadonly search: ({} & (({\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly author: string;\n\t\treadonly wordCount: number;\n\t\treadonly __typename: \"Article\";\n\t}) | ({\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly __typename: \"Podcast\";\n\t}) | ({\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly durationSeconds: number;\n\t\treadonly __typename: \"Video\";\n\t})))[];\n};\n\nexport type Search$input = null | undefined;\n\nexport type Search$unmasked = {\n\treadonly search: ({} & (({\n\t\treadonly author: string;\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly wordCount: number;\n\t\treadonly __typename: \"Article\";\n\t}) | ({\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly __typename: \"Podcast\";\n\t}) | ({\n\t\treadonly durationSeconds: number;\n\t\treadonly id: string;\n\t\treadonly title: string;\n\t\treadonly __typename: \"Video\";\n\t})))[];\n};\n\nexport type Search$artifact = typeof artifact\n\n\"HoudiniHash=7f8c1bbc2ab9c254d0cb1eca9818b24992857128f833667c3edac5c664da5911\"",
+					"Search": tests.Dedent(`const artifact = {
+    "name": "Search",
+    "kind": "HoudiniQuery",
+    "hash": "7f8c1bbc2ab9c254d0cb1eca9818b24992857128f833667c3edac5c664da5911",
+    "raw": ` + "`" + `query Search {
+    search {
+        __typename
+        ... on ContentItem {
+            id
+            title
+            __typename
+        }
+        ... on Article {
+            author
+            wordCount
+            __typename
+            id
+        }
+        ... on Video {
+            durationSeconds
+            __typename
+            id
+        }
+    }
+}
+` + "`" + `,
+
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "search": {
+                "type": "SearchResult",
+                "keyRaw": "search",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Article": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "author": {
+                                    "type": "String",
+                                    "keyRaw": "author",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "title": {
+                                    "type": "String",
+                                    "keyRaw": "title",
+                                    "visible": true,
+                                },
+                                "wordCount": {
+                                    "type": "Int",
+                                    "keyRaw": "wordCount",
+                                    "visible": true,
+                                },
+                            },
+                            "ContentItem": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "title": {
+                                    "type": "String",
+                                    "keyRaw": "title",
+                                    "visible": true,
+                                },
+                            },
+                            "Video": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "durationSeconds": {
+                                    "type": "Int",
+                                    "keyRaw": "durationSeconds",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "title": {
+                                    "type": "String",
+                                    "keyRaw": "title",
+                                    "visible": true,
+                                },
+                            },
+                        },
+
+                        "typeMap": {
+                            "Podcast": "ContentItem",
+                        },
+                    },
+                },
+
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type Search = {
+	readonly "input"?: Search$input;
+	readonly "result": Search$result | undefined;
+};
+
+export type Search$result = {
+	readonly search: ({} & (({
+		readonly id: string;
+		readonly title: string;
+		readonly author: string;
+		readonly wordCount: number;
+		readonly __typename: "Article";
+	}) | ({
+		readonly id: string;
+		readonly title: string;
+		readonly __typename: "Podcast";
+	}) | ({
+		readonly id: string;
+		readonly title: string;
+		readonly durationSeconds: number;
+		readonly __typename: "Video";
+	})))[];
+};
+
+export type Search$input = null | undefined;
+
+export type Search$unmasked = {
+	readonly search: ({} & (({
+		readonly author: string;
+		readonly id: string;
+		readonly title: string;
+		readonly wordCount: number;
+		readonly __typename: "Article";
+	}) | ({
+		readonly id: string;
+		readonly title: string;
+		readonly __typename: "Podcast";
+	}) | ({
+		readonly durationSeconds: number;
+		readonly id: string;
+		readonly title: string;
+		readonly __typename: "Video";
+	})))[];
+};
+
+export type Search$artifact = typeof artifact
+
+"HoudiniHash=7f8c1bbc2ab9c254d0cb1eca9818b24992857128f833667c3edac5c664da5911"`),
 				},
 			},
 		},
