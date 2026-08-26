@@ -52,6 +52,47 @@ test('sends a spec-compliant GraphQL-over-HTTP request', async () => {
 	})
 })
 
+test('sends the x-houdini-request CSRF marker on same-origin requests', async () => {
+	// the marker gates CORS-simple bodies (uploads) on the router's own endpoint
+	vi.stubGlobal('location', {
+		href: 'http://localhost:5173/',
+		origin: 'http://localhost:5173',
+	})
+	try {
+		for (const target of ['/_api', 'http://localhost:5173/_api']) {
+			const fetchMock = fakeResponse({ body: { data: { viewer: null } } })
+			const store = createStore({ pipeline: [fetchPlugin(target)] })
+			await store.send({ fetch: fetchMock })
+
+			const [, args] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+			expect(args.headers).toMatchObject({ 'x-houdini-request': 'true' })
+		}
+	} finally {
+		vi.unstubAllGlobals()
+	}
+})
+
+test('does not send the x-houdini-request marker to a cross-origin api', async () => {
+	// a custom header turns an otherwise-simple request into a preflighted one the
+	// remote api's CORS config has no reason to allow (#1738)
+	vi.stubGlobal('location', {
+		href: 'http://localhost:5173/',
+		origin: 'http://localhost:5173',
+	})
+	try {
+		const fetchMock = fakeResponse({ body: { data: { viewer: null } } })
+		const store = createStore({
+			pipeline: [fetchPlugin('https://api.example.com/graphql')],
+		})
+		await store.send({ fetch: fetchMock })
+
+		const [, args] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+		expect(args.headers).not.toHaveProperty('x-houdini-request')
+	} finally {
+		vi.unstubAllGlobals()
+	}
+})
+
 test('surfaces request errors sent as 4xx with the graphql-response media type', async () => {
 	// a spec-compliant server responds to a validation failure with a 422 and the
 	// details in the errors list
