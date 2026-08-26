@@ -123,9 +123,12 @@ const defaultFetch = (
 				'Content-Type': 'application/json',
 				// a header a cross-origin <form>/simple request cannot set. The server
 				// requires it for CORS-simple POSTs to the graphql endpoint (uploads use
-				// multipart, which bypasses preflight) so it can't be a CSRF channel. Must
-				// stay in sync with HOUDINI_REQUEST_HEADER in router/server.ts.
-				'x-houdini-request': 'true',
+				// multipart, which bypasses preflight) so it can't be a CSRF channel. Only
+				// sent same-origin: a remote api never reads it, and a custom header turns an
+				// otherwise-simple request into a preflighted one the api's CORS config has
+				// no reason to allow (#1738). Must stay in sync with HOUDINI_REQUEST_HEADER
+				// in router/server.ts.
+				...(isSameOrigin(url) ? { 'x-houdini-request': 'true' } : {}),
 				...params?.headers,
 			},
 		})
@@ -175,6 +178,18 @@ const defaultFetch = (
 
 		return payload
 	}
+}
+
+// the CSRF marker only matters on requests that reach Houdini's own server. A relative url
+// always targets it; an absolute one counts only in the browser when the origin matches.
+// Server-side there is no CORS and the endpoint never gates JSON bodies, so absolute urls
+// skip the header there.
+function isSameOrigin(url: string): boolean {
+	const location = globalThis.location
+	if (!location) {
+		return !/^https?:\/\//.test(url)
+	}
+	return new URL(url, location.href).origin === location.origin
 }
 
 /**

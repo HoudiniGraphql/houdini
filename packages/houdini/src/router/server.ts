@@ -555,6 +555,7 @@ export function _serverHandler<ComponentType = unknown>({
 		forwardHeaders.delete('host')
 		forwardHeaders.delete('content-length') // refers to the original stream; fetch recomputes it
 		forwardHeaders.delete(HOUDINI_OPERATION_HEADER) // our internal routing hint, not for the api
+		forwardHeaders.delete(HOUDINI_REQUEST_HEADER) // our internal CSRF marker, not for the api
 		let upstreamResponse: Response
 		try {
 			upstreamResponse = await fetch(resolveApiEndpoint(config_file), {
