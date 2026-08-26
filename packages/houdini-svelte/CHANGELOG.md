@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.5
+
+### Patch Changes
+
+- [#1741](https://github.com/HoudiniGraphql/houdini/pull/1741) [`2c6d991`](https://github.com/HoudiniGraphql/houdini/commit/2c6d9918a8a8f5a348f2e8ca608fcbd51bc7c142) Thanks [@yanneves](https://github.com/yanneves)! - Fix SvelteKit layout load function rewriting return statements in nested closures
+
 ## 3.0.4
 
 ### Patch Changes

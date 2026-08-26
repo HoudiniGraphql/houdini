@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.8
+
+### Patch Changes
+
+- [#1742](https://github.com/HoudiniGraphql/houdini/pull/1742) [`c7813f0`](https://github.com/HoudiniGraphql/houdini/commit/c7813f09de12dbdd766786bfe8ff053461fe684e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix union/interface members with their own inline fragment being read through a shared abstract fragment's narrower selection, which silently dropped their type-specific fields at cache-read time.
+
+- [#1745](https://github.com/HoudiniGraphql/houdini/pull/1745) [`7875a60`](https://github.com/HoudiniGraphql/houdini/commit/7875a607d89599dad7219abd81a5dc1b85c9b16e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Only send the `x-houdini-request` header on same-origin requests, so client-side requests to a remote API no longer fail CORS preflight.
+
 ## 2.0.7
 
 ### Patch Changes
