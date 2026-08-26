@@ -6,6 +6,7 @@ import type { SvelteTransformPage } from '../types.js'
 import { is_root_layout_script, is_root_layout_server } from './paths.js'
 
 const AST = recast.types.builders
+const { Function } = recast.types.namedTypes
 
 type ReturnStatement = recast.types.namedTypes.ReturnStatement
 type BlockStatement = recast.types.namedTypes.BlockStatement
@@ -76,6 +77,12 @@ function add_load_return(
 		// @ts-ignore
 		return walk(body, {
 			enter(node) {
+				if (node !== body && Function.check(node)) {
+					// don't descend into nested functions/closures, a `return` inside one of these belongs to that inner function, not to `load`, and must be left untouched (issue #1740)
+					this.skip()
+					return
+				}
+
 				if (node.type === 'ReturnStatement') {
 					// replace the return statement with a new one that includes the returned value
 					const returnedValue = (node as ReturnStatement).argument

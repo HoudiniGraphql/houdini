@@ -336,6 +336,39 @@ test('augments load function in root layout load', async function () {
 	`)
 })
 
+test('does not rewrite return statements inside nested closures', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.js',
+		`
+		export const load = async ({ data }) => {
+			const cookies = {
+				getAll() {
+					return data.cookies;
+				}
+			};
+
+			return { cookies };
+		};
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		export const load = async event => {
+		    let { data } = event;
+		    const cookies = {
+		        getAll() {
+		            return data.cookies;
+		        }
+		    };
+
+		    return {
+		        ...event.data,
+		        ...{ cookies }
+		    };
+		};
+	`)
+})
+
 test('call expression assignment for load function', async function () {
 	const result = await test_transform_js(
 		'src/routes/+layout.js',
