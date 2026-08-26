@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.3.0
+
+### Minor Changes
+
+- [#1670](https://github.com/HoudiniGraphql/houdini/pull/1670) [`7bbb739`](https://github.com/HoudiniGraphql/houdini/commit/7bbb739570b84e3ac581f0b0be35ebbf99c83c10) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Add a devtools overlay for inspecting client-side requests, controlled by the `devtools` plugin config value (`'dev'`, `'always'`, or `'never'`).
+
 ## 2.2.0
 
 ### Minor Changes

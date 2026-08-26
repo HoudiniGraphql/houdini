@@ -1,5 +1,15 @@
 # houdini
 
+## 2.0.10
+
+### Patch Changes
+
+- [#1742](https://github.com/HoudiniGraphql/houdini/pull/1742) [`c7813f0`](https://github.com/HoudiniGraphql/houdini/commit/c7813f09de12dbdd766786bfe8ff053461fe684e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix union/interface members with their own inline fragment being read through a shared abstract fragment's narrower selection, which silently dropped their type-specific fields at cache-read time.
+
+- [#1670](https://github.com/HoudiniGraphql/houdini/pull/1670) [`7bbb739`](https://github.com/HoudiniGraphql/houdini/commit/7bbb739570b84e3ac581f0b0be35ebbf99c83c10) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Allow locally-defined plugins referenced by path in the `plugins` config while keeping type checking for known plugin options.
+
+- [#1745](https://github.com/HoudiniGraphql/houdini/pull/1745) [`7875a60`](https://github.com/HoudiniGraphql/houdini/commit/7875a607d89599dad7219abd81a5dc1b85c9b16e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Only send the `x-houdini-request` header on same-origin requests, so client-side requests to a remote API no longer fail CORS preflight.
+
 ## 2.0.9
 
 ### Patch Changes
