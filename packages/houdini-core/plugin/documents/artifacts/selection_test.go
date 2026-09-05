@@ -2975,7 +2975,7 @@ export type AnimalsOverview$result = {
 };
 
 export type AnimalsOverview$input = {
-	id: string;
+	id?: string;
 };
 
 export type AnimalsOverview$unmasked = {
@@ -5113,6 +5113,20 @@ export type LoginForm$unmasked = {
 export type LoginForm$artifact = typeof artifact
 
 "HoudiniHash=7781e7aef13f15dc275ab44769bc456f5af795fc04864518008fbbb1e05fe4e7"`),
+				},
+			},
+			{
+				Name: "null literals in arguments and variable defaults",
+				Pass: true,
+				Input: []string{
+					`query NullLiteralQuery($name: String = null) {
+            users(stringValue: $name, intValue: null, filter: { name: null }) @list(name: "Null_Users") {
+              firstName
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"NullLiteralQuery": "const artifact = {\n    \"name\": \"NullLiteralQuery\",\n    \"kind\": \"HoudiniQuery\",\n    \"hash\": \"b168d64e381365250361866d0735e605dd687b515c90b497da2f60b02129fbe5\",\n\n    \"refetch\": {\n        \"path\": [\"users\"],\n        \"method\": \"offset\",\n        \"pageSize\": 0,\n        \"embedded\": false,\n        \"targetType\": \"Query\",\n        \"paginated\": false,\n        \"direction\": \"forward\",\n        \"mode\": \"Infinite\"\n    },\n\n    \"raw\": `query NullLiteralQuery($name: String = null) {\n    users(filter: {name: null}, intValue: null, stringValue: $name) {\n        firstName\n        __typename\n        id\n    }\n}\n`,\n\n    \"rootType\": \"Query\",\n    \"stripVariables\": [] as Array<string>,\n\n    \"selection\": {\n        \"fields\": {\n            \"users\": {\n                \"type\": \"User\",\n                \"keyRaw\": \"users(filter: {name: null}, intValue: null, stringValue: $name)\",\n\n                \"directives\": [{\n                    \"name\": \"list\",\n                    \"arguments\": {\n                        \"name\": {\n                            \"kind\": \"StringValue\",\n                            \"value\": \"Null_Users\"\n                        }\n                    }\n                }],\n\n                \"list\": {\n                    \"name\": \"Null_Users\",\n                    \"connection\": false,\n                    \"type\": \"User\"\n                },\n\n                \"selection\": {\n                    \"fields\": {\n                        \"__typename\": {\n                            \"type\": \"String\",\n                            \"keyRaw\": \"__typename\",\n                        },\n\n                        \"firstName\": {\n                            \"type\": \"String\",\n                            \"keyRaw\": \"firstName\",\n                            \"visible\": true,\n                        },\n\n                        \"id\": {\n                            \"type\": \"ID\",\n                            \"keyRaw\": \"id\",\n                        },\n                    },\n                },\n\n                \"filters\": {\n                    \"filter\": {\n                        \"kind\": \"Object\",\n                        \"value\": {\n                            \"name\": {\n                                \"kind\": \"Null\",\n                                \"value\": null\n                            }\n                        }\n                    },\n                    \"intValue\": {\n                        \"kind\": \"Null\",\n                        \"value\": null\n                    },\n                    \"stringValue\": {\n                        \"kind\": \"Variable\",\n                        \"value\": \"name\"\n                    },\n                },\n                \"visible\": true,\n            },\n        },\n    },\n\n    \"pluginData\": {},\n\n    \"input\": {\n        \"fields\": {\n            \"name\": \"String\",\n        },\n\n        \"types\": {},\n\n        \"defaults\": {\n            \"name\": null,\n        },\n\n        \"runtimeScalars\": {},\n    },\n\n    \"policy\": \"CacheOrNetwork\",\n    \"partial\": false\n} as const\n\nexport default artifact\n\nexport type NullLiteralQuery = {\n\treadonly \"input\": NullLiteralQuery$input;\n\treadonly \"result\": NullLiteralQuery$result | undefined;\n};\n\nexport type NullLiteralQuery$result = {\n\treadonly users: ({\n\t\treadonly firstName: string;\n\t})[];\n};\n\nexport type NullLiteralQuery$input = {\n\tname?: string | null;\n};\n\nexport type NullLiteralQuery$unmasked = {\n\treadonly users: ({\n\t\treadonly __typename: \"User\";\n\t\treadonly firstName: string;\n\t\treadonly id: string;\n\t})[];\n};\n\nexport type NullLiteralQuery$artifact = typeof artifact\n\n\"HoudiniHash=b168d64e381365250361866d0735e605dd687b515c90b497da2f60b02129fbe5\"",
 				},
 			},
 		},

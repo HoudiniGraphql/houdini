@@ -54,7 +54,10 @@ func TestRuntime_graphqlTag(t *testing.T) {
 			found, err := afero.ReadFile(plugin.Fs, targetPath)
 			require.NoError(t, err)
 
-			expected := `
+			// the injected imports land above the copied file's // @ts-nocheck pragma,
+			// so UpdateIndexFiles hoists it back to the very top
+			expected := `// @ts-nocheck
+
 import type { MyQueryStore } from '$houdini/plugins/houdini-svelte/stores/MyQuery'
 import type { YourQueryStore } from '$houdini/plugins/houdini-svelte/stores/YourQuery'
 

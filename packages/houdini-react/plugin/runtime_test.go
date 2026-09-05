@@ -36,7 +36,8 @@ func TestTransformRuntime(t *testing.T) {
 					// runtimeDir  = /project/.houdini/plugins/houdini-react/runtime
 					// clientPath  = /project/src/+client
 					// relPath     = ../../../../src/+client
-					"expected": "import client from '../../../../src/+client'\nexport default () => client\n",
+					// every runtime source file carries the // @ts-nocheck pragma
+					"expected": "// @ts-nocheck\nimport client from '../../../../src/+client'\nexport default () => client\n",
 				},
 			},
 			{
@@ -44,7 +45,7 @@ func TestTransformRuntime(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"input":    "export * from './hooks'\n",
-					"expected": "export * from './hooks'\n",
+					"expected": "// @ts-nocheck\nexport * from './hooks'\n",
 				},
 			},
 		},
@@ -94,7 +95,7 @@ func TestTransformRuntimeLoginURL(t *testing.T) {
 					"redirect": "https://worker.example/login",
 					"input":    "export * from './hooks'\n",
 					// .tsx files also receive the @refresh reset preamble
-					"expected": "// @refresh reset\nexport * from './hooks'\n\nexport { loginURL } from './login.js'\n",
+					"expected": "// @ts-nocheck\n// @refresh reset\nexport * from './hooks'\n\nexport { loginURL } from './login.js'\n",
 				},
 			},
 			{
@@ -103,7 +104,7 @@ func TestTransformRuntimeLoginURL(t *testing.T) {
 				Extra: map[string]any{
 					"providers": "github,google",
 					"input":     "export * from './hooks'\n",
-					"expected": "// @refresh reset\nexport * from './hooks'\n" +
+					"expected": "// @ts-nocheck\n// @refresh reset\nexport * from './hooks'\n" +
 						"\nimport { loginURL as _loginURL } from './login.js'\n" +
 						"export function loginURL(opts: { provider: 'github' | 'google'; redirectTo?: string }): string {\n" +
 						"\treturn _loginURL({ redirectTo: opts.redirectTo, params: { provider: opts.provider } })\n" +
@@ -115,7 +116,7 @@ func TestTransformRuntimeLoginURL(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"input":    "export * from './hooks'\n",
-					"expected": "// @refresh reset\nexport * from './hooks'\n",
+					"expected": "// @ts-nocheck\n// @refresh reset\nexport * from './hooks'\n",
 				},
 			},
 		},
@@ -164,7 +165,7 @@ func TestTransformRuntimeDevtools(t *testing.T) {
 				Name: "defaults to the dev guard when no plugin config exists",
 				Pass: true,
 				Extra: map[string]any{
-					"expected": devtoolsIndexStub,
+					"expected": "// @ts-nocheck\n" + devtoolsIndexStub,
 				},
 			},
 			{
@@ -172,7 +173,7 @@ func TestTransformRuntimeDevtools(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"config":   `{"devtools":"dev"}`,
-					"expected": devtoolsIndexStub,
+					"expected": "// @ts-nocheck\n" + devtoolsIndexStub,
 				},
 			},
 			{
@@ -180,7 +181,7 @@ func TestTransformRuntimeDevtools(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"config":   `{"devtools":"always"}`,
-					"expected": "import plugin from './plugin.js'\n\nexport default plugin\n",
+					"expected": "// @ts-nocheck\nimport plugin from './plugin.js'\n\nexport default plugin\n",
 				},
 			},
 			{
@@ -188,7 +189,7 @@ func TestTransformRuntimeDevtools(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"config":   `{"devtools":"never"}`,
-					"expected": "export default null\n",
+					"expected": "// @ts-nocheck\nexport default null\n",
 				},
 			},
 		},
@@ -253,7 +254,8 @@ func TestUpdateIndexFiles(t *testing.T) {
 				Extra: map[string]any{
 					// Overloads must land immediately before the generic function —
 					// the leading imports/exports in the stub must remain in place.
-					"expected": "\n" +
+					// The ts-nocheck pragma is hoisted above the injected imports.
+					"expected": "// @ts-nocheck\n\n" +
 						"import type { MyQuery$artifact } from '../artifacts/MyQuery'\n" +
 						"import type { YourQuery$artifact } from '../artifacts/YourQuery'\n" +
 						"\n" +
@@ -287,7 +289,7 @@ func TestUpdateIndexFiles(t *testing.T) {
 				Input: []string{`query MyQuery { id }`},
 				Extra: map[string]any{
 					"call_twice": true,
-					"expected": "\n" +
+					"expected": "// @ts-nocheck\n\n" +
 						"import type { MyQuery$artifact } from '../artifacts/MyQuery'\n" +
 						"\n" +
 						"import type { Cache } from 'houdini/runtime/cache'\n\n" +
@@ -384,7 +386,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useQuery.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useQuery<_A>(doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useQuery.ts": "import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
+						"useQuery.ts": "// @ts-nocheck\nimport type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
 							"\n" +
 							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
 							"export function useQuery(document: { artifact: MyQuery$artifact }, variables?: MyQuery$input, config?: UseQueryConfig): MyQuery$result\n" +
@@ -404,7 +406,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useMutation.ts": "import type { MutationArtifact } from 'houdini/runtime'\n\nexport function useMutation<_A>(doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useMutation.ts": "import type { MyMutation$result, MyMutation$artifact, MyMutation$input, MyMutation$optimistic } from '$houdini/artifacts/MyMutation'\n" +
+						"useMutation.ts": "// @ts-nocheck\nimport type { MyMutation$result, MyMutation$artifact, MyMutation$input, MyMutation$optimistic } from '$houdini/artifacts/MyMutation'\n" +
 							"\n" +
 							"import type { MutationArtifact } from 'houdini/runtime'\n\n" +
 							"export function useMutation(document: { artifact: MyMutation$artifact }): [MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>, boolean]\n" +
@@ -424,7 +426,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useFragment.ts": "import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\nexport function useFragment<_A>(ref: any, doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useFragment.ts": "import type { MyFragment$data, MyFragment$artifact } from '$houdini/artifacts/MyFragment'\n" +
+						"useFragment.ts": "// @ts-nocheck\nimport type { MyFragment$data, MyFragment$artifact } from '$houdini/artifacts/MyFragment'\n" +
 							"\n" +
 							"import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\n" +
 							"export function useFragment(reference: { readonly \" $fragments\": { MyFragment: any } }, document: { artifact: MyFragment$artifact }): MyFragment$data\n" +
@@ -445,7 +447,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useFragment.ts": "import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\nexport function useFragment<_A>(ref: any, doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useFragment.ts": "import type { MyPluralFragment$data, MyPluralFragment$artifact } from '$houdini/artifacts/MyPluralFragment'\n" +
+						"useFragment.ts": "// @ts-nocheck\nimport type { MyPluralFragment$data, MyPluralFragment$artifact } from '$houdini/artifacts/MyPluralFragment'\n" +
 							"\n" +
 							"import { fragmentKey } from 'houdini/runtime'\nimport type { FragmentArtifact } from 'houdini/runtime'\n\n" +
 							"export function useFragment(reference: ReadonlyArray<{ readonly \" $fragments\": { MyPluralFragment: any } }>, document: { artifact: MyPluralFragment$artifact }): MyPluralFragment$data[]\n" +
@@ -466,7 +468,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useFragmentHandle.ts": "import type { MyFragment$data, MyFragment$artifact, MyFragment$input } from '$houdini/artifacts/MyFragment'\n" +
+						"useFragmentHandle.ts": "// @ts-nocheck\nimport type { MyFragment$data, MyFragment$artifact, MyFragment$input } from '$houdini/artifacts/MyFragment'\n" +
 							"\n" +
 							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
 							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyFragment: any } }, document: { artifact: MyFragment$artifact }): DocumentHandle<QueryArtifact, MyFragment$data, GraphQLVariables>\n" +
@@ -487,7 +489,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useFragmentHandle.ts": "import type { MyPaginatedFragment$data, MyPaginatedFragment$artifact, MyPaginatedFragment$input } from '$houdini/artifacts/MyPaginatedFragment'\n" +
+						"useFragmentHandle.ts": "// @ts-nocheck\nimport type { MyPaginatedFragment$data, MyPaginatedFragment$artifact, MyPaginatedFragment$input } from '$houdini/artifacts/MyPaginatedFragment'\n" +
 							"import type { MyPaginatedFragment_Pagination_Query$artifact } from '$houdini/artifacts/MyPaginatedFragment_Pagination_Query'\n" +
 							"\n" +
 							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
@@ -518,7 +520,7 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useQuery.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useQuery<_A>(doc: any): any {}\n",
 					},
 					"expected": map[string]string{
-						"useQuery.ts": "import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
+						"useQuery.ts": "// @ts-nocheck\nimport type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
 							"\n" +
 							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
 							"export function useQuery(document: { artifact: MyQuery$artifact }, variables?: MyQuery$input, config?: UseQueryConfig): MyQuery$result\n" +
@@ -586,7 +588,7 @@ func TestAddGraphQLType(t *testing.T) {
 						},
 					},
 					// preamble (fragment imports) go BEFORE existing content, type appended at end
-					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
+					"expected": "// @ts-nocheck\nimport type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -608,7 +610,7 @@ func TestAddGraphQLType(t *testing.T) {
 						{"filepath": "src/components/Avatar.tsx", "type": "User", "field": "Avatar", "prop": "user", "fragment": "UserAvatar", "content": "fragment UserAvatar on User { avatar }"},
 					},
 					"call_twice": true,
-					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
+					"expected": "// @ts-nocheck\nimport type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -868,6 +870,7 @@ func TestGenerateRuntime(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -880,7 +883,7 @@ func TestGenerateRuntime(t *testing.T) {
 						export type RouteScalars = {
 						}
 					`) + "\n" + tsTypeManifest,
-					"expectedMock": "import React from 'react'\n" +
+					"expectedMock": "// @ts-nocheck\nimport React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"\ntype _MockValue<R, V> = R | ((vars: V) => R)\n\n" +
 						"export function createMock({ url, params = {}, search, data }: { url: string; params?: Record<string, string>; search?: Record<string, unknown>; data: Record<string, any> }): React.ComponentType<{}> {\n" +
@@ -909,7 +912,7 @@ func TestGenerateRuntime(t *testing.T) {
 					// runtimeDir  = /project/.houdini/plugins/houdini-react/runtime
 					// artifacts   = ../../../artifacts/<Name>
 					// component   = ../units/entries/<id>  (entry file, not source)
-					"expectedMock": "import React from 'react'\n" +
+					"expectedMock": "// @ts-nocheck\nimport React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { FinalQuery$unmasked, FinalQuery$input } from '$houdini/artifacts/FinalQuery'\n" +
@@ -927,6 +930,7 @@ func TestGenerateRuntime(t *testing.T) {
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -975,7 +979,7 @@ func TestGenerateRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
-					"expectedMock": "import React from 'react'\n" +
+					"expectedMock": "// @ts-nocheck\nimport React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { MyQuery$unmasked, MyQuery$input } from '$houdini/artifacts/MyQuery'\n" +
@@ -991,6 +995,7 @@ func TestGenerateRuntime(t *testing.T) {
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -1039,7 +1044,7 @@ func TestGenerateRuntime(t *testing.T) {
 					// $q and $tags are nullable, so they surface as search params (the list
 					// keeps its wrapper chain). $first is required, so it is omitted — a
 					// missing search param can never make the query fail.
-					"expectedMock": "import React from 'react'\n" +
+					"expectedMock": "// @ts-nocheck\nimport React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { SearchQuery$unmasked, SearchQuery$input } from '$houdini/artifacts/SearchQuery'\n" +
@@ -1055,6 +1060,7 @@ func TestGenerateRuntime(t *testing.T) {
 						"\treturn _createMock({ path: buildMockPath(args.url as string, (args as any).params ?? {}, (args as any).search), data: args.data as Record<string, any> })\n" +
 						"}\n",
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -1103,6 +1109,7 @@ func TestGenerateRuntime(t *testing.T) {
 						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
 					},
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -1142,6 +1149,7 @@ func TestGenerateRuntime(t *testing.T) {
 						"src/routes/+page.tsx":   "export const headers = () => ({ 'X-From': 'page' })\nexport default () => <div>hello</div>",
 					},
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {
@@ -1188,7 +1196,7 @@ func TestGenerateRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/+page.tsx": mockView([]string{"PageQuery"}),
 					},
-					"expectedMock": "import React from 'react'\n" +
+					"expectedMock": "// @ts-nocheck\nimport React from 'react'\n" +
 						"import { _createMock, buildMockPath } from './testing'\n" +
 						"import type { RouteHrefs, ParamsForRoute, SearchForRoute } from './routes'\n" +
 						"\nimport type { PageQuery$unmasked, PageQuery$input } from '$houdini/artifacts/PageQuery'\n" +
@@ -1218,6 +1226,7 @@ func TestGenerateRuntime(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"expected": tests.Dedent(`
+						// @ts-nocheck
 						import type { RouterManifest } from 'houdini/runtime'
 
 						export default {

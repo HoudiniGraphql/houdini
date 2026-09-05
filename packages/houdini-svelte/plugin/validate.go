@@ -9,6 +9,17 @@ import (
 )
 
 func (p *HoudiniSvelte) Validate(ctx context.Context) error {
+	// check the project structure for files the session relies on. these are
+	// warnings only: the session is silently dropped without them but the build
+	// is still valid
+	if warnings, err := p.sessionLayoutWarnings(ctx); err == nil && len(warnings) > 0 {
+		if logger, err := p.DB.Logger(ctx); err == nil {
+			for _, warning := range warnings {
+				logger.Warn("[houdini-svelte] warning: %s", warning)
+			}
+		}
+	}
+
 	forbiddenNames := []string{
 		"Query",
 		"Mutation",

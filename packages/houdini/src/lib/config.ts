@@ -143,7 +143,8 @@ export type ConfigFile = {
 	watchSchema?: WatchSchemaConfig | false | null
 
 	/**
-	 * Specifies the the persisted queries path and file. (default: `<rootDir>/persisted_queries.json`)
+	 * Specifies the path of the generated persisted queries file, resolved relative to the
+	 * project root. (default: `<runtimeDir>/queries.json`)
 	 */
 	persistedQueriesPath?: string
 

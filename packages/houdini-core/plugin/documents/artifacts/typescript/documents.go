@@ -24,6 +24,21 @@ type DocumentContext struct {
 	ScalarImports map[string]bool // full import statement → true
 }
 
+// isRuntimeScalarVariable returns true when the variable was declared with a
+// runtime scalar type. the runtimeScalars transform rewrites the variable's type
+// to its static equivalent and tags it with the runtime scalar directive, so the
+// directive is the only remaining marker by the time types are generated. the
+// value is resolved on the server (e.g. from the session), so the user never
+// provides it and the input field has to be optional
+func isRuntimeScalarVariable(variable *collected.OperationVariable) bool {
+	for _, directive := range variable.Directives {
+		if directive.Name == graphql.RuntimeScalarDirective {
+			return true
+		}
+	}
+	return false
+}
+
 // spreadDisablesMasking returns true when a fragment spread's fields should be
 // inlined into the surrounding type. @mask_disable and @mask_enable on the spread
 // take priority, otherwise we fall back to the project's defaultFragmentMasking
@@ -348,7 +363,8 @@ func generateFragmentTypes(
 				collectedDocs,
 			)
 			optional := ""
-			if !strings.HasSuffix(variable.TypeModifiers, "!") {
+			if !strings.HasSuffix(variable.TypeModifiers, "!") ||
+				isRuntimeScalarVariable(variable) {
 				optional = "?"
 			}
 			inputFields = append(
@@ -513,7 +529,8 @@ func generateOperationTypes(
 				collectedDocs,
 			)
 			optional := ""
-			if !strings.HasSuffix(variable.TypeModifiers, "!") {
+			if !strings.HasSuffix(variable.TypeModifiers, "!") ||
+				isRuntimeScalarVariable(variable) {
 				optional = "?"
 			}
 			inputFields = append(
@@ -1030,13 +1047,19 @@ func generateInterfaceUnionTypeWithLoading(
 					optional = "?"
 				}
 
+				// the response is keyed by the alias when one is present
+				childFieldName := fragmentChild.FieldName
+				if fragmentChild.Alias != nil {
+					childFieldName = *fragmentChild.Alias
+				}
+
 				fields = append(
 					fields,
 					fmt.Sprintf(
 						"%s%s%s%s: %s;",
 						fieldIndent,
 						readonlyPrefix,
-						fragmentChild.FieldName,
+						childFieldName,
 						optional,
 						fieldType,
 					),
@@ -1251,7 +1274,12 @@ func generateOptimisticType(
 			continue
 		}
 
+		// optimistic responses are keyed the same way as the server payload, so an
+		// aliased field uses its alias
 		fieldName := selection.FieldName
+		if selection.Alias != nil {
+			fieldName = *selection.Alias
+		}
 		readonlyPrefix := ""
 		if readonly {
 			readonlyPrefix = "readonly "
@@ -1268,9 +1296,16 @@ func generateOptimisticType(
 			}
 		}
 
+		// modifiers encode list wrapping and nullability (inner→outer) and apply to
+		// both nested objects and leaves
+		modifiers := ""
+		if selection.TypeModifiers != nil {
+			modifiers = *selection.TypeModifiers
+		}
+
 		if hasInlineFragments {
 			// Generate union type for interface/union fields
-			fieldType = generateInterfaceUnionType(
+			unionType := generateInterfaceUnionType(
 				ctx,
 				selection,
 				readonly,
@@ -1278,13 +1313,15 @@ func generateOptimisticType(
 				false,
 				indentLevel+1,
 			)
+			fieldType = ApplyTypeModifiers(unionType, modifiers, false)
 		} else if len(selection.Children) > 0 {
-			// Regular nested object type
+			// Regular nested object type. Apply the type modifiers so list-typed
+			// fields are arrays of the object shape, not a bare object.
 			childType, childErr := generateOptimisticType(ctx, selection.Children, readonly, indentLevel+1, selection.FieldType, collectedDocs)
 			if childErr != nil {
 				return "", childErr
 			}
-			fieldType = childType
+			fieldType = ApplyTypeModifiers(childType, modifiers, false)
 		} else {
 			// Leaf field - convert the GraphQL type to TypeScript.
 			// Special-case __typename on a concrete parent type: we know the exact string literal.
@@ -1301,19 +1338,14 @@ func generateOptimisticType(
 			fields = append(fields, comment)
 		}
 
-		// For optimistic types, all fields are optional
-		// If the field is nullable in the schema, preserve that nullability
-		if selection.TypeModifiers != nil && !strings.Contains(*selection.TypeModifiers, "!") {
-			// Field is nullable - add | null to the optimistic type
-			if len(selection.Children) > 0 {
-				// For object types, add | null after the object type
+		// For optimistic types, all fields are optional. Nullability (and list
+		// wrapping) is already handled by ApplyTypeModifiers above for object and
+		// union fields and by convertLeafType for leaves, but keep a safety net for
+		// nullable leaves whose conversion didn't include it.
+		if selection.TypeModifiers != nil && !strings.Contains(*selection.TypeModifiers, "!") &&
+			len(selection.Children) == 0 {
+			if !strings.Contains(fieldType, "| null") && !strings.Contains(fieldType, "| undefined") {
 				fieldType = fmt.Sprintf("%s | null", fieldType)
-			} else {
-				// For scalar types, nullability should already be included by convertToTypeScriptTypeSimple
-				// but ensure it's there for optimistic types
-				if !strings.Contains(fieldType, "| null") && !strings.Contains(fieldType, "| undefined") {
-					fieldType = fmt.Sprintf("%s | null", fieldType)
-				}
 			}
 		}
 		fields = append(
@@ -1406,7 +1438,12 @@ func generateLoadingStateType(
 			continue
 		}
 
+		// the response (and the loading placeholder) is keyed by the alias when one
+		// is present, matching the non-loading branch
 		fieldName := selection.FieldName
+		if selection.Alias != nil {
+			fieldName = *selection.Alias
+		}
 		readonlyPrefix := "readonly "
 
 		var fieldType string

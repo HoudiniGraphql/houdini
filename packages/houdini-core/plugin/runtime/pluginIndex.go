@@ -23,7 +23,7 @@ func GeneratePluginIndex(
 
 	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.ts")
 
-	content := `export * from "../runtime/plugins/index.js"`
+	content := TSNoCheckHeader + `export * from "../runtime/plugins/index.js"`
 
 	// make sure the direcotry exists
 	err = fs.MkdirAll(filepath.Dir(indexPath), 0o755)

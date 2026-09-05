@@ -355,6 +355,8 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 	switch value.Kind {
 	case "Enum":
 		return value.Raw
+	case "Null":
+		return "null"
 	case "Object":
 		var resultBuilder strings.Builder
 		resultBuilder.WriteRune('{')
@@ -399,6 +401,8 @@ func stringifyValue(value *collected.ArgumentValue, usedVariables map[string]boo
 		return "$" + value.Raw
 	case "Int", "Float", "Boolean":
 		return value.Raw
+	case "Null":
+		return "null"
 	case "Object":
 		var resultBuilder strings.Builder
 		resultBuilder.WriteRune('{')

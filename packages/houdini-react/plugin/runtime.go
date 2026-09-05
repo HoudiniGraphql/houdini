@@ -10,12 +10,24 @@ import (
 
 	"github.com/spf13/afero"
 
+	coreruntime "code.houdinigraphql.com/packages/houdini-core/plugin/runtime"
 	plugins "code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
 
 // TransformRuntime patches static runtime files as they are copied into the plugin directory.
 func (p *HoudiniReact) TransformRuntime(ctx context.Context, fp string, content string) (string, error) {
+	result, err := p.transformRuntimeContent(ctx, fp, content)
+	if err != nil {
+		return "", err
+	}
+
+	// every runtime source file gets the ts-nocheck pragma so the user's tsconfig
+	// strictness doesn't apply to generated code
+	return coreruntime.EnsureTSNoCheck(fp, result), nil
+}
+
+func (p *HoudiniReact) transformRuntimeContent(ctx context.Context, fp string, content string) (string, error) {
 	// Inject `// @refresh reset` into every JSX/TSX runtime file. These are
 	// framework internals the user never edits directly, so they should opt
 	// out of react-refresh's preamble injection (which causes "can't detect
@@ -190,7 +202,9 @@ func (p *HoudiniReact) UpdateIndexFiles(ctx context.Context) ([]string, error) {
 	newContent.WriteString(overloads.String())
 	newContent.WriteString(existingStr[insertPos:])
 
-	result := newContent.String()
+	// the imports were prepended above the copied file's // @ts-nocheck pragma,
+	// so hoist it back to the very top where typescript honors it
+	result := coreruntime.EnsureTSNoCheck(targetPath, newContent.String())
 	if result == existingStr {
 		return []string{}, nil
 	}
@@ -294,6 +308,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 
 	manifestPath := filepath.Join(runtimeDir, "manifest.ts")
+	content = coreruntime.EnsureTSNoCheck(manifestPath, content)
 
 	existing, _ := afero.ReadFile(p.Filesystem(), manifestPath)
 	if string(existing) != content {
@@ -312,6 +327,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 
 	mockPath := filepath.Join(runtimeDir, "mock.ts")
+	mockContent = coreruntime.EnsureTSNoCheck(mockPath, mockContent)
 	existingMock, _ := afero.ReadFile(p.Filesystem(), mockPath)
 	if string(existingMock) != mockContent {
 		if err := plugins.WriteFile(p.Filesystem(), mockPath, []byte(mockContent), 0644); err != nil {
@@ -642,10 +658,12 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 	}
 
 	// Legacy structure: preamble (fragment imports) first, then existing content, then type.
-	appended := preamble.String() +
-		existingStr +
-		"\nexport type GraphQL<_Document extends string> = " +
-		typeChain.String() + "never\n"
+	// The preamble lands above the copied file's // @ts-nocheck pragma, so hoist it back
+	// to the very top where typescript honors it.
+	appended := coreruntime.EnsureTSNoCheck(targetPath, preamble.String()+
+		existingStr+
+		"\nexport type GraphQL<_Document extends string> = "+
+		typeChain.String()+"never\n")
 
 	if err := plugins.WriteFile(p.Filesystem(), targetPath, []byte(appended), 0644); err != nil {
 		return nil, err
@@ -763,7 +781,11 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			before.WriteString(spec.passthrough + "\n")
 		}
 
-		result := top.String() + existingStr[:insertPos] + before.String() + existingStr[insertPos:]
+		// hoist the copied file's // @ts-nocheck pragma back above the injected imports
+		result := coreruntime.EnsureTSNoCheck(
+			fp,
+			top.String()+existingStr[:insertPos]+before.String()+existingStr[insertPos:],
+		)
 
 		if err := plugins.WriteFile(p.Filesystem(), fp, []byte(result), 0644); err != nil {
 			return nil, err
@@ -1205,6 +1227,12 @@ func (p *HoudiniReact) InjectComponentFieldArtifactTypes(ctx context.Context) ([
 			modified = reactImport + modified
 		}
 
+		// if the artifact carried a // @ts-nocheck pragma, the injected imports just
+		// pushed it below the top of the file — hoist it back so it stays effective
+		if strings.Contains(str, coreruntime.TSNoCheckHeader) {
+			modified = coreruntime.EnsureTSNoCheck(artPath, modified)
+		}
+
 		if err := plugins.WriteFile(p.Filesystem(), artPath, []byte(modified), 0644); err != nil {
 			return nil, err
 		}
@@ -1239,7 +1267,7 @@ func (p *HoudiniReact) GenerateComponentFieldTypes(ctx context.Context) ([]strin
 
 	// Write the augmentation file.
 	augPath := filepath.Join(runtimeDir, "componentFieldTypes.ts")
-	augContent := `import type * as React from 'react'
+	augContent := coreruntime.TSNoCheckHeader + `import type * as React from 'react'
 
 declare module 'houdini/runtime' {
 	interface CacheTypeDef {
@@ -1269,7 +1297,8 @@ declare module 'houdini/runtime' {
 	indexStr := string(indexBytes)
 	sideEffect := `import './componentFieldTypes'`
 	if !strings.Contains(indexStr, sideEffect) {
-		patched := sideEffect + "\n" + indexStr
+		// hoist the copied file's // @ts-nocheck pragma back above the injected import
+		patched := coreruntime.EnsureTSNoCheck(indexPath, sideEffect+"\n"+indexStr)
 		if err := plugins.WriteFile(p.Filesystem(), indexPath, []byte(patched), 0644); err != nil {
 			return nil, err
 		}

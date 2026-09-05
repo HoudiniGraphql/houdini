@@ -34,7 +34,7 @@ By default, your config file can contain the following values:
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
 - `url` (optional): the URL of the GraphQL API. It's public (it ships in the client bundle), so switch it per environment with a `VITE_`-prefixed variable, e.g. `import.meta.env.VITE_API_URL ?? 'http://localhost:4000/graphql'`. `watchSchema.url` defaults to this when omitted.
 - `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev server will automatically regenerate your runtime. When its `url` is omitted, the top-level `url` is used. For more information see [Schema Polling](#schema-polling).
-- `persistedQueriesPath` (optional, default: `<rootDir>/persisted_queries.json`): Configure the path of the persisted queries file.
+- `persistedQueriesPath` (optional, default: `<runtimeDir>/queries.json`): Configure the path of the generated persisted queries file (a JSON map of hash to query text), resolved relative to the project root. See [persisted queries](~/guides/trusted-documents).
 - `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create.
 - `definitionsPath` (optional, default: `"<rootDir>/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).

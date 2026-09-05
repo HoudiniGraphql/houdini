@@ -254,23 +254,23 @@ func runFullGeneration(
 	projectConfig.PersistedQueriesPath = testPersistentQueriesPath
 	p.DB.SetProjectConfig(projectConfig)
 
-	// Use the REAL generation function instead of manual steps
-	// First generate documents/artifacts to ensure hashing is done
+	// Use the REAL generation function instead of manual steps.
+	// GenerateDocuments is responsible for writing the persisted queries file: it's the
+	// step that populates documents.printed/hash, and in the real pipeline GenerateRuntime
+	// runs concurrently with it (so persisted queries can't be generated there).
 	_, err = p.GenerateDocuments(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return nil, err
 	}
 
-	// Then generate runtime which includes persistent queries
-	_, err = p.GenerateRuntime(context.Background())
-	if err != nil {
-		require.False(t, test.Pass, err.Error())
-		return nil, err
-	}
-
-	// Read the REAL persistent queries that got generated
+	// The persisted queries file must exist after GenerateDocuments alone, without
+	// running GenerateRuntime
 	fullPath := filepath.Join(projectConfig.ProjectRoot, testPersistentQueriesPath)
+	exists, err := afero.Exists(p.Fs, fullPath)
+	require.NoError(t, err)
+	require.True(t, exists, "persisted queries file should be written by GenerateDocuments")
+
 	content, err := afero.ReadFile(p.Fs, fullPath)
 	require.NoError(t, err)
 

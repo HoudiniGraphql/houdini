@@ -12,7 +12,61 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
+// TSNoCheckHeader is prepended to every runtime source file that houdini writes into the
+// project. The runtime is copied in as .ts source (in houdini 1 it shipped pre-built as
+// .js + .d.ts), so it inherits the user's tsconfig; the pragma keeps stricter app-level
+// options (noUncheckedIndexedAccess, etc.) from failing the build on generated code.
+const TSNoCheckHeader = "// @ts-nocheck\n"
+
+// EnsureTSNoCheck returns content with a // @ts-nocheck pragma as its very first line.
+// It only applies to typescript/javascript source files (.ts, .tsx, .js, .jsx, .mjs,
+// .cjs); declaration files (.d.ts) and non-source assets are returned untouched. If the
+// pragma already appears in the file (a patch step prepended imports above it, for
+// example) it is hoisted back to the top, since typescript only honors it before the
+// first statement.
+func EnsureTSNoCheck(path string, content string) string {
+	if strings.HasSuffix(path, ".d.ts") {
+		return content
+	}
+	switch fp.Ext(path) {
+	case ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs":
+	default:
+		return content
+	}
+
+	// drop any existing pragma lines so the one we add is always the first line
+	for strings.HasPrefix(content, TSNoCheckHeader) {
+		content = strings.TrimPrefix(content, TSNoCheckHeader)
+	}
+	for {
+		index := strings.Index(content, "\n"+TSNoCheckHeader)
+		if index == -1 {
+			break
+		}
+		content = content[:index+1] + content[index+1+len(TSNoCheckHeader):]
+	}
+
+	return TSNoCheckHeader + content
+}
+
 func TransformRuntime(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	config plugins.ProjectConfig,
+	filepath string,
+	content string,
+) (string, error) {
+	result, err := transformRuntimeContent(ctx, db, config, filepath, content)
+	if err != nil {
+		return "", err
+	}
+
+	// every runtime source file gets the ts-nocheck pragma so the user's tsconfig
+	// strictness doesn't apply to generated code
+	return EnsureTSNoCheck(filepath, result), nil
+}
+
+func transformRuntimeContent(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	config plugins.ProjectConfig,

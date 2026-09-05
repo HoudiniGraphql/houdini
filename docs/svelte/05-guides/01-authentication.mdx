@@ -18,9 +18,15 @@ export const handle: Handle = async ({ event, resolve }) => {
     setSession(event, { user })
 
     // pass the event onto the default handle
-    return await resolve(event)
+    return await resolve(event, {
+        // make sure Houdini can read the content-type header of responses
+        // fetched during a load (see the Server Hooks section of the setup guide)
+        filterSerializedResponseHeaders: (name) => name === 'content-type'
+    })
 }
 ```
+
+The `filterSerializedResponseHeaders` option isn't specific to authentication; every SvelteKit project needs it so Houdini can inspect failed responses. See [Server Hooks](~/setup/project-setup#server-hooks) for the details.
 
 Then, you can use the `session` parameter passed to your client's network function to access the information:
 
@@ -39,3 +45,28 @@ export default new HoudiniClient({
 ```
 
 Tip: If your API uses HTTP-Only cookies, don't forget to add `credentials: "include"` to `fetchParams`' return value
+
+## The Session Flows Through Your Root Layout
+
+`setSession` only stores the session on `event.locals`; on its own that value never leaves the server. To get it the rest of the way, Houdini injects a small amount of code into two files at build time:
+
+- `src/routes/+layout.server.js` (or `.ts`): Houdini wraps this file's `load` function (defining one if the file doesn't) so the session is copied from `event.locals` into the root layout's data. Every route inherits that data, which is how the generated loads read the session when they run on the server.
+- `src/routes/+layout.svelte`: Houdini adds code that reads the session out of the page data and stores it for client-side use, which is how queries, mutations, and subscriptions that run in the browser (client-side navigation, cache refreshes, and so on) send the current session.
+
+Houdini only transforms files that already exist in your project; it never creates them. If either file is missing, there is nothing for SvelteKit to run and the session is silently dropped: without `+layout.server.js` the session never reaches your loads, and without `+layout.svelte` requests made in the browser are sent without it.
+
+If your project doesn't have them, create both files. They don't need any content of their own:
+
+```javascript title="src/routes/+layout.server.js"
+// this file only needs to exist, Houdini adds the session logic at build time
+```
+
+```svelte title="src/routes/+layout.svelte"
+<script>
+	let { children } = $props()
+</script>
+
+{@render children()}
+```
+
+To help catch this, `houdini generate` prints a warning when your hooks file calls `setSession` but one of these files is missing.

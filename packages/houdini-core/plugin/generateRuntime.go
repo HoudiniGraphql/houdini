@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/runtime"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
@@ -40,15 +39,8 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 
 	generated := plugins.ThreadSafeSlice[string]{}
 
-	// generate the documents file
-	g.Go(func() error {
-		documentFiles, err := documents.GeneratePersistentQueries(ctx, p.DB, p.Fs)
-		if err != nil {
-			return err
-		}
-		generated.Append(documentFiles...)
-		return nil
-	})
+	// note: persisted queries are generated as part of GenerateDocuments (they depend on
+	// documents.printed/hash which are only populated there, and the two hooks run in parallel)
 
 	// generate definitions files (schema.graphql, documents.gql, enums)
 	g.Go(func() error {

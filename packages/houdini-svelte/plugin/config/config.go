@@ -26,6 +26,8 @@ type PluginConfig struct {
 	Framework    PluginFramework        `json:"framework"`
 	ClientPath   string                 `json:"client"`
 	CustomStores PluginConfigStorePaths `json:"customStores"`
+	// Static removes the session infrastructure from the application
+	Static bool `json:"static"`
 }
 
 type PluginConfigStorePaths struct {

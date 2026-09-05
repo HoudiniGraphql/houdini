@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	coreruntime "code.houdinigraphql.com/packages/houdini-core/plugin/runtime"
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin/generate"
 	"github.com/spf13/afero"
@@ -16,6 +17,21 @@ func (p *HoudiniSvelte) IncludeRuntime(ctx context.Context) (string, error) {
 }
 
 func (p *HoudiniSvelte) TransformRuntime(
+	ctx context.Context,
+	fp string,
+	content string,
+) (string, error) {
+	result, err := p.transformRuntimeContent(ctx, fp, content)
+	if err != nil {
+		return "", err
+	}
+
+	// every runtime source file gets the ts-nocheck pragma so the user's tsconfig
+	// strictness doesn't apply to generated code
+	return coreruntime.EnsureTSNoCheck(fp, result), nil
+}
+
+func (p *HoudiniSvelte) transformRuntimeContent(
 	ctx context.Context,
 	fp string,
 	content string,
@@ -202,7 +218,9 @@ func (p *HoudiniSvelte) UpdateIndexFiles(ctx context.Context) ([]string, error) 
 	// Add the original generic function
 	newContent.WriteString(existingStr[insertPos:])
 
-	newString := newContent.String()
+	// the imports were prepended above the copied file's // @ts-nocheck pragma,
+	// so hoist it back to the very top where typescript honors it
+	newString := coreruntime.EnsureTSNoCheck(targetPath, newContent.String())
 	if newString == existingStr {
 		// no changes
 		return []string{}, nil
@@ -212,7 +230,7 @@ func (p *HoudiniSvelte) UpdateIndexFiles(ctx context.Context) ([]string, error) 
 	err = afero.WriteFile(
 		p.Fs,
 		targetPath,
-		[]byte(newContent.String()),
+		[]byte(newString),
 		0644,
 	)
 	if err != nil {

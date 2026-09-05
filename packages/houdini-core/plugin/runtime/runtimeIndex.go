@@ -98,7 +98,7 @@ func GenerateRuntimeIndexFile(
 	}
 
 	// build up the indexContent of the file
-	indexContent := fmt.Sprintf(`export * from './runtime/client'
+	indexContent := TSNoCheckHeader + fmt.Sprintf(`export * from './runtime/client'
 export * from './runtime'
 export * from './%s'
 %s
