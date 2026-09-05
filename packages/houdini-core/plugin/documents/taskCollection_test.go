@@ -44,6 +44,7 @@ func TestTaskScopedCollectionIncludesOutOfTaskFragments(t *testing.T) {
 			require.NoError(t, p.AfterValidate(ctx))
 			_, err := p.GenerateDocuments(ctx)
 			require.NoError(t, err)
+			fullRunArtifact := readArtifact(t, p.Fs, "NestedQuery")
 
 			// simulate the HMR task: the sibling fragment's file was saved and the
 			// dependency walk pulled in the query's file. the parent/nested files stay out.
@@ -78,6 +79,9 @@ func TestTaskScopedCollectionIncludesOutOfTaskFragments(t *testing.T) {
 			require.NoError(t, err)
 
 			artifact := readArtifact(t, p.Fs, "NestedQuery")
+			// nothing about the query changed, so the incremental run must reproduce the
+			// full run's artifact byte for byte (flatten order is deterministic)
+			require.Equal(t, fullRunArtifact, artifact)
 			for _, expected := range []string{
 				// fields contributed by the out-of-task fragments
 				`"keyRaw": "name"`,
