@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	
-
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 )
@@ -68,39 +66,43 @@ func CollectDocuments(
 	docIDs := []int64{}
 
 	// the documents we care about are those that fall in the current task as well as
-	// any fragments that are referenced in a document that is in the current task
+	// every fragment that is referenced (transitively) by a document we've already decided
+	// to collect. the recursion matters: flattening a task document needs the definition of
+	// every fragment in its spread chain, not just the ones it references directly
 	documentSearch, err := conn.Prepare(`
-    SELECT documents.id,
-           documents.name,
-					 documents.internal,
-					 documents.visible,
-           true  AS current
-    FROM documents
-    JOIN raw_documents
-      ON documents.raw_document = raw_documents.id
-    WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
+    WITH RECURSIVE collected_docs AS (
+      SELECT documents.id,
+             documents.name,
+             documents.internal,
+             documents.visible,
+             true AS current
+      FROM documents
+      JOIN raw_documents
+        ON documents.raw_document = raw_documents.id
+      WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 
-    UNION ALL
+      UNION
 
-    SELECT DISTINCT documents.id,
-           documents.name,
-           false AS current,
-					 documents.internal,
-					 documents.visible
-    FROM documents AS current_task_docs
-      JOIN raw_documents AS current_task_raw
-        ON current_task_docs.raw_document = current_task_raw.id
-      JOIN selection_refs
-        ON selection_refs.document = current_task_docs.id
-      JOIN selections
-        ON selection_refs.child_id = selections.id
-        AND selections.kind = 'fragment'
-      JOIN documents
-        ON selections.field_name = documents.name
-      JOIN raw_documents AS doc_raw
-        ON documents.raw_document = doc_raw.id
-    WHERE (current_task_raw.current_task = $task_id OR $task_id IS NULL)
-      AND NOT (doc_raw.current_task = $task_id OR $task_id IS NULL)
+      SELECT referenced.id,
+             referenced.name,
+             referenced.internal,
+             referenced.visible,
+             false AS current
+      FROM collected_docs
+        JOIN selection_refs
+          ON selection_refs.document = collected_docs.id
+        JOIN selections
+          ON selection_refs.child_id = selections.id
+        LEFT JOIN component_fields
+          ON selections.type = component_fields.type_field
+        JOIN documents AS referenced
+          ON referenced.name = COALESCE(component_fields.fragment, selections.field_name)
+      WHERE selections.kind = 'fragment'
+         OR (selections.kind = 'field' AND component_fields.id IS NOT NULL)
+    )
+    SELECT id, name, internal, visible, MAX(current) AS current
+    FROM collected_docs
+    GROUP BY id, name, internal, visible
   `)
 	if err != nil {
 		return nil, err
@@ -933,7 +935,7 @@ func collectDoc(
 				errs.Append(plugins.WrapError(err))
 			}
 
-				// send the result over the channel
+			// send the result over the channel
 			resultCh <- collectResult{
 				Documents:     docs,
 				PossibleTypes: possibleTypes,
@@ -1410,7 +1412,6 @@ func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements,
 	}, nil
 }
 
-
 func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
@@ -1620,8 +1621,6 @@ func prepareArgumentValuesSearch(conn plugins.Conn, valueIDs []int64) (plugins.S
 	// we're done
 	return stmt, nil
 }
-
-
 
 type collectResult struct {
 	Documents     []*Document
