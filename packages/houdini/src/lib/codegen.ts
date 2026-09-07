@@ -67,6 +67,7 @@ import type { HookError } from './error.js'
 import { PluginHookError, format_hook_error } from './error.js'
 import * as fs from './fs.js'
 import { Logger } from './logger.js'
+import { is_node_script } from './plugins.js'
 import type { ProjectManifest } from './types.js'
 import { LogLevel } from './types.js'
 
@@ -478,7 +479,8 @@ export async function codegen_setup(
 			if (child.pid === undefined || child.exitCode !== null) continue
 			try {
 				if (process.platform === 'win32') {
-					child.kill()
+					// the plugin may be a grandchild of a node shim, so kill the whole tree
+					spawn('taskkill', ['/pid', child.pid.toString(), '/f', '/t'])
 				} else {
 					// websocket plugins own their process group, stdio plugins don't —
 					// same signaling as close() below
@@ -504,9 +506,7 @@ export async function codegen_setup(
 				let executable = plugin.executable
 				const args = ['--database', db_file]
 
-				// Run the plugin through a node shim if it's a javascript plugin
-				const jsExtensions = ['.js', '.mjs', '.cjs']
-				if (jsExtensions.includes(path.extname(plugin.executable))) {
+				if (is_node_script(plugin.executable)) {
 					executable = 'node'
 					args.unshift(plugin.executable)
 				} else if (path.extname(plugin.executable) === '.wasm') {

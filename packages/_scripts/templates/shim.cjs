@@ -175,7 +175,8 @@ function getBinaryPath() {
 	if (fs.existsSync(buildSiblingPath)) return buildSiblingPath;
 	attempted.push(buildSiblingPath);
 
-	const pnpmMatch = __dirname.match(/(.+\/node_modules\/)\.pnpm\/[^/]+\/node_modules\//);
+	// match both path separators: __dirname uses backslashes on Windows
+	const pnpmMatch = __dirname.match(/(.+[\\/]node_modules[\\/])\.pnpm[\\/][^\\/]+[\\/]node_modules[\\/]/);
 	if (pnpmMatch) {
 		const pnpmDir = path.join(pnpmMatch[1], '.pnpm');
 		try {

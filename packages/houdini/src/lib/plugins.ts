@@ -1,3 +1,4 @@
+import { closeSync, openSync, readSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 
@@ -87,6 +88,32 @@ export async function plugin_path(
 	return {
 		executable: native_bin,
 		directory: plugin_dir,
+	}
+}
+
+// Go plugins publish their `bin` as a small node script that locates and execs the real binary.
+// On unix the postinstall usually swaps that script for the binary itself, but on windows it
+// stays a script, and windows can't spawn a script directly (ENOENT). Codegen uses this to
+// know when an executable (a javascript plugin, or that script) has to be run through node.
+export function is_node_script(executable: string): boolean {
+	const ext = path.extname(executable)
+	if (['.js', '.mjs', '.cjs'].includes(ext)) {
+		return true
+	}
+	if (['.wasm', '.exe'].includes(ext)) {
+		return false
+	}
+	try {
+		const fd = openSync(executable, 'r')
+		try {
+			const header = Buffer.alloc(128)
+			const read = readSync(fd, header, 0, header.length, 0)
+			return /^#![^\n]*\bnode\b/.test(header.toString('utf8', 0, read))
+		} finally {
+			closeSync(fd)
+		}
+	} catch {
+		return false
 	}
 }
 

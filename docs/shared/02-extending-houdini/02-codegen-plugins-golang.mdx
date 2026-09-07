@@ -122,6 +122,8 @@ Each binary goes into its own package (`my-plugin-darwin-arm64`, `my-plugin-linu
 
 The root package's `bin` field points to a small Node.js shim rather than a binary directly. The shim's job is to find the right binary for the current platform and hand off execution to it via `execFileSync`. As a post-install optimization, the shim replaces itself with a hard link to the actual binary so subsequent invocations skip Node entirely.
 
+That optimization is skipped on Windows (the binary has to keep its `.exe` suffix), under Yarn, and whenever install scripts are disabled, so the shim can still be in place when codegen runs. Windows can't execute a script directly, so codegen checks whether a plugin's `bin` is a Node script and, if it is, runs it through Node.
+
 The shim also supports a `HOUDINI_PLATFORM` environment variable, which lets callers force a specific platform. This is useful in CI environments where the host architecture doesn't match the target.
 
 ## Static Runtimes
