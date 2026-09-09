@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	
-	
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -31,8 +29,11 @@ func GeneratePersistentQueries(
 		return nil, err
 	}
 
-	persistedQueriesPath := projectConfig.PersistedQueriesPath
-	outputPath := filepath.Join(projectConfig.ProjectRoot, persistedQueriesPath)
+	// resolve the configured path relative to the project root (absolute paths are used as-is)
+	outputPath := projectConfig.PersistedQueriesPath
+	if !filepath.IsAbs(outputPath) {
+		outputPath = filepath.Join(projectConfig.ProjectRoot, outputPath)
+	}
 
 	if !strings.HasSuffix(outputPath, ".json") {
 		return nil, &plugins.Error{
@@ -143,6 +144,12 @@ func GeneratePersistentQueries(
 	}
 
 	jsonData, err := json.MarshalIndent(queryMap, "", "    ")
+	if err != nil {
+		return nil, plugins.WrapError(err)
+	}
+
+	// make sure the target directory exists before writing
+	err = fs.MkdirAll(filepath.Dir(outputPath), 0755)
 	if err != nil {
 		return nil, plugins.WrapError(err)
 	}

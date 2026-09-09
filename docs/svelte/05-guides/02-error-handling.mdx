@@ -24,3 +24,5 @@ export default new HoudiniClient({
     }
 })
 ```
+
+If a failing query during server-side rendering surfaces SvelteKit's `Failed to get response header "content-type"` error instead of the real response details, add the `filterSerializedResponseHeaders` option to your `handle` hook; see [Server Hooks](~/setup/project-setup#server-hooks).

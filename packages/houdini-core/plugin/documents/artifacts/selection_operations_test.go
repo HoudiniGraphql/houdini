@@ -3369,9 +3369,9 @@ export type RefetchFriends$input = null | undefined;
 
 export type RefetchFriends$optimistic = {
 	readonly addFriend?: {
-		readonly friends?: {
+		readonly friends?: ({
 			readonly firstName?: string;
-		};
+		})[];
 	};
 };
 

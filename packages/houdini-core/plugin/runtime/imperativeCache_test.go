@@ -148,6 +148,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 			require.NoError(t, err)
 
 			expected := tests.Dedent(`
+				// @ts-nocheck
 				import type { Record } from "./public/record";
 				import type { TestQuery$result, TestQuery$input, TestQuery$artifact } from "../artifacts/TestQuery";
 				import type { TestQueryNoArgs$result, TestQueryNoArgs$input, TestQueryNoArgs$artifact } from "../artifacts/TestQueryNoArgs";

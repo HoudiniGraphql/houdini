@@ -8,13 +8,13 @@ import {
 	PIPELINE_HOOKS,
 	type PipelineHook,
 } from '../lib/index.js'
+import * as path from '../lib/path.js'
 import { get_config } from '../lib/project.js'
 import pull_schema from './pullSchema.js'
 
 export async function generate(
 	args: {
 		pullSchema: boolean
-		persistOutput?: string
 		output?: string
 		headers: string[]
 		log?: string
@@ -38,12 +38,17 @@ export async function generate(
 
 	// make sure we pull the schema if we specify
 	if (args.pullSchema) {
-		await pull_schema({ headers: args.headers, output: args.output })
+		await pull_schema({ headers: args.headers })
 	}
 
 	try {
 		// grab the config file
 		const config: Config | null = await get_config()
+
+		// -o/--output overrides the persisted queries path from the config file
+		if (args.output && config) {
+			config.config_file.persistedQueriesPath = path.resolve(args.output)
+		}
 
 		const [db, dbFilepath] = await init_db(config, args.preserveDatabase)
 

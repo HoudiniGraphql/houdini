@@ -54,6 +54,7 @@ func GenerateImperativeCacheTypeDefs(
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate cache type definitions: %w", err)
 	}
+	content = EnsureTSNoCheck(targetPath, content)
 
 	// Write the file
 	err = afero.WriteFile(fs, targetPath, []byte(content), 0644)

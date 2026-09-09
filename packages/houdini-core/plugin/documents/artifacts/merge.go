@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -34,9 +33,22 @@ func FlattenSelection(
 	)
 	for _, orig := range doc.Selections {
 		clone := orig.Clone(true)
-		fields.Add(clone, false, doc.Selections)
+		if err := fields.Add(clone, false, doc.Selections); err != nil {
+			return nil, fmt.Errorf("flattening %s: %w", name, err)
+		}
 	}
 	return fields.ToSelectionSet(), nil
+}
+
+// sortedKeys returns the keys of a set in a stable (alphabetical) order so walking
+// them produces the same result on every run
+func sortedKeys(set map[string]bool) []string {
+	keys := make([]string, 0, len(set))
+	for key := range set {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func newFieldCollection(
@@ -78,6 +90,13 @@ type fieldCollection struct {
 	Fields          map[string]*fieldCollectionField
 	InlineFragments map[string]*fieldCollectionField
 	FragmentSpreads map[string]*fieldCollectionField
+
+	// insertion order for each map above. map iteration order is randomized in Go, so
+	// without these the flattened output (and therefore the written artifact) would
+	// change from run to run even when nothing in the document did
+	fieldOrder          []string
+	inlineFragmentOrder []string
+	fragmentSpreadOrder []string
 }
 
 func (c *fieldCollection) Size() int {
@@ -182,6 +201,7 @@ func (c *fieldCollection) Add(
 				Visible:       !hidden,
 				Unconditional: unconditional,
 			}
+			c.fieldOrder = append(c.fieldOrder, *selection.Alias)
 		}
 
 		for _, subSel := range selection.Children {
@@ -197,13 +217,15 @@ func (c *fieldCollection) Add(
 
 			err := c.Fields[*selection.Alias].Selection.Add(subSel, hidden, mask)
 			if err != nil {
-				return nil
+				return err
 			}
 		}
 
 		// we also want to make sure that the field is present in any inline fragments we've seen
-		for _, frag := range c.InlineFragments {
-			frag.Selection.Add(c.Fields[*selection.Alias].Field, hidden, visibilityMask)
+		for _, name := range c.inlineFragmentOrder {
+			if err := c.InlineFragments[name].Selection.Add(c.Fields[*selection.Alias].Field, hidden, visibilityMask); err != nil {
+				return err
+			}
 		}
 
 		// we're done
@@ -213,7 +235,9 @@ func (c *fieldCollection) Add(
 		// if the inline fragment doesn't have a type condition then just add every field
 		if selection.FieldName == "" || selection.FieldName == c.ParentType {
 			for _, sel := range selection.Children {
-				c.Add(sel, hidden, visibilityMask)
+				if err := c.Add(sel, hidden, visibilityMask); err != nil {
+					return err
+				}
 			}
 			return nil
 		}
@@ -223,6 +247,9 @@ func (c *fieldCollection) Add(
 
 	case "fragment":
 		// add the fragment spread
+		if _, seen := c.FragmentSpreads[selection.FieldName]; !seen {
+			c.fragmentSpreadOrder = append(c.fragmentSpreadOrder, selection.FieldName)
+		}
 		c.FragmentSpreads[selection.FieldName] = &fieldCollectionField{
 			Field:   selection,
 			Visible: !hidden,
@@ -231,7 +258,9 @@ func (c *fieldCollection) Add(
 		// and most include the fragment's sub selection
 		definition, ok := c.CollectedDocuments.Selections[selection.FieldName]
 		if !ok {
-			return plugins.WrapError(errors.New("fragment not found"))
+			return plugins.WrapError(
+				fmt.Errorf("fragment not found in collected documents: %s", selection.FieldName),
+			)
 		}
 
 		// figure out if the fragment's fields are masked in this document. explicit
@@ -318,6 +347,7 @@ func (c *fieldCollection) WalkInlineFragment(
 				c.SortKeys,
 			),
 		}
+		c.inlineFragmentOrder = append(c.inlineFragmentOrder, selection.FieldName)
 	}
 
 	// add every child to the inline fragment
@@ -332,19 +362,26 @@ func (c *fieldCollection) WalkInlineFragment(
 					}
 				}
 			}
-			c.InlineFragments[selection.FieldName].Selection.Add(child, hidden, mask)
+			if err := c.InlineFragments[selection.FieldName].Selection.Add(child, hidden, mask); err != nil {
+				return err
+			}
 		case "fragment":
 			err := c.InlineFragments[selection.FieldName].Selection.Add(child, true, visibilityMask)
 			if err != nil {
 				return err
 			}
 
+			if _, seen := c.FragmentSpreads[selection.FieldName]; !seen {
+				c.fragmentSpreadOrder = append(c.fragmentSpreadOrder, selection.FieldName)
+			}
 			c.FragmentSpreads[selection.FieldName] = &fieldCollectionField{
 				Field: child,
 			}
 
 		case "inline_fragment":
-			c.WalkInlineFragment(child, hidden, visibilityMask)
+			if err := c.WalkInlineFragment(child, hidden, visibilityMask); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -355,7 +392,7 @@ func (c *fieldCollection) WalkInlineFragment(
 	if abstractTypes, ok := c.CollectedDocuments.Implementations[selection.FieldName]; ok {
 		// if we've seen the abstract type already then we need to add each of the abstract types
 		// selectiosn to the inline fragment for the concrete type
-		for abstractType := range abstractTypes {
+		for _, abstractType := range sortedKeys(abstractTypes) {
 			if frag, ok := c.InlineFragments[abstractType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range frag.Field.Children {
@@ -367,11 +404,13 @@ func (c *fieldCollection) WalkInlineFragment(
 					}
 					switch child.Kind {
 					case "field":
-						c.InlineFragments[selection.FieldName].Selection.Add(
+						if err := c.InlineFragments[selection.FieldName].Selection.Add(
 							child,
 							hidden,
 							mask,
-						)
+						); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -384,14 +423,14 @@ func (c *fieldCollection) WalkInlineFragment(
 
 	// or the field type could itself be an abstract type with concrete types we've already seen
 	if concreteTypes, ok := c.CollectedDocuments.PossibleTypes[selection.FieldName]; ok {
-		for concreteType := range concreteTypes {
+		for _, concreteType := range sortedKeys(concreteTypes) {
 			// we need to look for any inline fragments that have already been applied that point to abstract selections
 			// that the concrete type implements and if we find anything the we need to add a concrete selection even if
 			// one is not already present
 			if abstractTypes, ok := c.CollectedDocuments.Implementations[concreteType]; ok {
 				// if we have an inline fragment for the abstract type implemented by the concrete type we need to merge
 				// them into one
-				for abstractType := range abstractTypes {
+				for _, abstractType := range sortedKeys(abstractTypes) {
 					if abstractType == selection.FieldName {
 						continue
 					}
@@ -413,13 +452,16 @@ func (c *fieldCollection) WalkInlineFragment(
 									c.SortKeys,
 								),
 							}
+							c.inlineFragmentOrder = append(c.inlineFragmentOrder, concreteType)
 
 							// just add one field, we'll do the rest when we copy over the abstract selection into the concrete one
-							c.InlineFragments[concreteType].Selection.Add(
+							if err := c.InlineFragments[concreteType].Selection.Add(
 								frag.Field.Children[0],
 								!frag.Field.Children[0].Visible,
 								visibilityMask,
-							)
+							); err != nil {
+								return err
+							}
 						}
 					}
 				}
@@ -438,11 +480,13 @@ func (c *fieldCollection) WalkInlineFragment(
 					}
 					switch child.Kind {
 					case "field":
-						c.InlineFragments[concreteType].Selection.Add(
+						if err := c.InlineFragments[concreteType].Selection.Add(
 							child,
 							hidden,
 							mask,
-						)
+						); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -450,7 +494,8 @@ func (c *fieldCollection) WalkInlineFragment(
 	}
 
 	// also if there is a concrete selection already present we want to include that in the inline framgment
-	for _, field := range c.Fields {
+	for _, name := range c.fieldOrder {
+		field := c.Fields[name]
 		var mask []*collected.Selection
 		if visibilityMask != nil {
 			for _, field := range visibilityMask {
@@ -459,11 +504,13 @@ func (c *fieldCollection) WalkInlineFragment(
 				}
 			}
 		}
-		c.InlineFragments[selection.FieldName].Selection.Add(
+		if err := c.InlineFragments[selection.FieldName].Selection.Add(
 			field.Field,
 			hidden,
 			mask,
-		)
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -472,9 +519,11 @@ func (c *fieldCollection) WalkInlineFragment(
 func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
 	result := []*collected.Selection{}
 
-	// if we aren't supposed to sort the keys just add everything
+	// if we aren't supposed to sort the keys, emit everything in insertion order so
+	// the flattened output is stable across runs
 	if !c.SortKeys {
-		for _, f := range c.Fields {
+		for _, name := range c.fieldOrder {
+			f := c.Fields[name]
 			local := *f.Field.Clone(false)
 			field := &local
 			field.Directives = f.Directives
@@ -487,13 +536,15 @@ func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
 			result = append(result, field)
 		}
 
-		for _, f := range c.InlineFragments {
+		for _, name := range c.inlineFragmentOrder {
+			f := c.InlineFragments[name]
 			field := f.Field.Clone(false)
 			field.Children = f.Selection.ToSelectionSet()
 			result = append(result, field)
 		}
 
-		for _, f := range c.FragmentSpreads {
+		for _, name := range c.fragmentSpreadOrder {
+			f := c.FragmentSpreads[name]
 			field := f.Field.Clone(false)
 			if f.Visible {
 				field.Visible = true

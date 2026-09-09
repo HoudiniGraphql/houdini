@@ -36,7 +36,8 @@ func TestRuntimeIndexGeneration(t *testing.T) {
 			)
 			require.Nil(t, err)
 
-			require.Equal(t, `export * from './runtime/client'
+			require.Equal(t, `// @ts-nocheck
+export * from './runtime/client'
 export * from './runtime'
 export * from './graphql'
 

@@ -39,7 +39,7 @@ func TestPluginIndexGeneration(t *testing.T) {
 
 			require.Equal(
 				t,
-				`export * from "../runtime/plugins/index.js"`,
+				"// @ts-nocheck\n"+`export * from "../runtime/plugins/index.js"`,
 				string(indexContent),
 			)
 		},

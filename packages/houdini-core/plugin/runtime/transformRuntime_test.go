@@ -3,6 +3,7 @@ package runtime_test
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -49,8 +50,60 @@ func TestRuntimeTransform_configEndpoint(t *testing.T) {
 			require.Nil(t, err)
 			require.Contains(t, result, `apiURL: "/graphql"`)
 			require.Contains(t, result, "...projectConfig")
+			// every runtime source file carries the ts-nocheck pragma as its first line
+			require.True(t, strings.HasPrefix(result, "// @ts-nocheck\n"))
 		},
 	})
+}
+
+// generated runtime files land in the user's project as .ts source, so they get a
+// // @ts-nocheck first line to opt out of the app's tsconfig strictness. Only
+// executable ts/js sources get it — declarations and assets stay untouched.
+func TestEnsureTSNoCheck(t *testing.T) {
+	// plain source files get the pragma prepended
+	require.Equal(
+		t,
+		"// @ts-nocheck\nexport const foo = 1\n",
+		runtime.EnsureTSNoCheck("lib/constants.ts", "export const foo = 1\n"),
+	)
+	require.Equal(
+		t,
+		"// @ts-nocheck\nexport default () => null\n",
+		runtime.EnsureTSNoCheck("index.tsx", "export default () => null\n"),
+	)
+	require.Equal(
+		t,
+		"// @ts-nocheck\nmodule.exports = {}\n",
+		runtime.EnsureTSNoCheck("lib/config.js", "module.exports = {}\n"),
+	)
+
+	// declaration files and non-source assets are untouched
+	require.Equal(
+		t,
+		"export declare const foo: number\n",
+		runtime.EnsureTSNoCheck("types.d.ts", "export declare const foo: number\n"),
+	)
+	require.Equal(t, `{"foo": 1}`, runtime.EnsureTSNoCheck("package.json", `{"foo": 1}`))
+	require.Equal(
+		t,
+		"query Foo { id }",
+		runtime.EnsureTSNoCheck("documents.graphql", "query Foo { id }"),
+	)
+
+	// already-present pragmas are hoisted back to the top, not duplicated
+	require.Equal(
+		t,
+		"// @ts-nocheck\nimport foo from 'bar'\nexport const baz = 1\n",
+		runtime.EnsureTSNoCheck(
+			"index.ts",
+			"import foo from 'bar'\n// @ts-nocheck\nexport const baz = 1\n",
+		),
+	)
+	require.Equal(
+		t,
+		"// @ts-nocheck\nexport const foo = 1\n",
+		runtime.EnsureTSNoCheck("index.ts", "// @ts-nocheck\nexport const foo = 1\n"),
+	)
 }
 
 func TestRuntimeTransform_extraConfig(t *testing.T) {

@@ -1171,6 +1171,85 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "loading state uses field alias",
+				Input: []string{
+					`query LoadingAliasQuery { user(id: "1") @loading { id name: firstName @loading } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"LoadingAliasQuery": tests.Dedent(`
+						export type LoadingAliasQuery$result = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly id: string;
+								/**
+								 * The user's first name
+								 */
+								readonly name: string;
+							} | null;
+						} | {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								/**
+								 * The user's first name
+								 */
+								readonly name: LoadingType;
+							};
+						};
+					`),
+				},
+			},
+			{
+				Name: "runtime scalar variables are optional in the input type",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.RuntimeScalars = map[string]string{
+						"UserFromSession": "ID",
+					}
+				},
+				Input: []string{
+					`query SessionQuery($id: UserFromSession!) { user(id: $id) { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"SessionQuery": tests.Dedent(`
+						export type SessionQuery$input = {
+							id?: string;
+						};
+					`),
+				},
+			},
+			{
+				Name: "optimistic type wraps list fields in arrays",
+				Input: []string{
+					`mutation ListMutation {
+						doThing(id: "1", firstName: "test", list: []) {
+							friends {
+								firstName
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"ListMutation": tests.Dedent(`
+						export type ListMutation$optimistic = {
+							readonly doThing?: {
+								readonly friends?: ({
+									/**
+									 * The user's first name
+									 */
+									readonly firstName?: string;
+								} | null)[] | null;
+							} | null;
+						};
+					`),
+				},
+			},
+			{
 				Name: "fragment spreads",
 				Input: []string{
 					`fragment Foo on User { firstName }`,

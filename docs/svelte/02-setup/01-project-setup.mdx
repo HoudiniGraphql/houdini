@@ -152,6 +152,24 @@ export default defineConfig({
   ```
 </Notice>
 
+#### Server Hooks
+
+SvelteKit only lets a `load` function read the headers of a `fetch` response if they are listed in the `filterSerializedResponseHeaders` option of your `handle` hook; reading any other header throws an error during server-side rendering. When a query fails, Houdini reads the `content-type` header to tell a GraphQL error response apart from a transport failure, so add the option to your `src/hooks.server.js` (creating the file if you don't have one):
+
+```javascript title="src/hooks.server.js"
+export const handle = async ({ event, resolve }) => {
+	return await resolve(event, {
+		filterSerializedResponseHeaders: (name) => name === 'content-type'
+	})
+}
+```
+
+Without this, a query that fails during server-side rendering surfaces SvelteKit's `Failed to get response header "content-type"` error instead of the actual problem.
+
+#### Session Support
+
+If you plan to use [sessions](~/guides/authentication), your project also needs a root `src/routes/+layout.server.js` and `src/routes/+layout.svelte`. Houdini injects the code that passes your session from the server to the client into these files, so the session is silently dropped if they don't exist. See [the authentication guide](~/guides/authentication#the-session-flows-through-your-root-layout) for the full explanation.
+
 ### Svelte
 
 First, we need to add the dedicated houdini package for svelte:
