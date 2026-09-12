@@ -68,7 +68,7 @@ func Generate(
 	})
 
 	// generate the persisted queries file. this has to happen here (not in GenerateRuntime)
-	// because it reads documents.printed/hash which EnsureDocumentsPrinted populated above,
+	// because it reads documents.printed which EnsureDocumentsPrinted populated above,
 	// and GenerateRuntime runs in parallel with GenerateDocuments
 	group.Go(func() error {
 		files, err := GeneratePersistentQueries(ctx, db, fs)

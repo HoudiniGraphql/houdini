@@ -165,16 +165,7 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 			// For each hash in persistent queries, find corresponding artifact and compare hash
 			for hash, query := range result {
 				// Extract operation name from the query to match artifact filename
-				opNameRegex := regexp.MustCompile(`(?:query|mutation|subscription)\s+(\w+)`)
-				matches := opNameRegex.FindStringSubmatch(query)
-				require.True(
-					t,
-					len(matches) >= 2,
-					"Should be able to extract operation name from: %s",
-					query,
-				)
-
-				operationName := matches[1]
+				operationName := mustCapture(t, operationNameRegex, query, "operation name")
 				artifactPath := filepath.Join(artifactDir, operationName+".ts")
 
 				// Read the artifact file
@@ -185,17 +176,12 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 				artifactContent, err := afero.ReadFile(p.Fs, artifactPath)
 				require.NoError(t, err)
 
-				// Extract hash from artifact - it's in "hash": "value" format (64 hex chars for SHA256)
-				hashRegex := regexp.MustCompile(`"hash":\s*"([a-f0-9]{64})"`)
-				hashMatches := hashRegex.FindStringSubmatch(string(artifactContent))
-				require.True(
+				artifactHash := mustCapture(
 					t,
-					len(hashMatches) >= 2,
-					"Should be able to extract hash from artifact: %s",
-					artifactPath,
+					artifactHashRegex,
+					string(artifactContent),
+					"artifact hash",
 				)
-
-				artifactHash := hashMatches[1]
 
 				// Verify the hashes match
 				require.Equal(
@@ -205,6 +191,22 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 					"Hash mismatch between persistent queries (%s) and artifact (%s) for operation %s",
 					hash,
 					artifactHash,
+					operationName,
+				)
+
+				// the file has to be usable as-is by a server: the value stored under the hash
+				// the client sends is the exact document the artifact holds in `raw`
+				artifactRaw := mustCapture(
+					t,
+					artifactRawRegex,
+					string(artifactContent),
+					"artifact raw",
+				)
+				require.Equal(
+					t,
+					artifactRaw,
+					query,
+					"Persisted query text should match the artifact's raw for operation %s",
 					operationName,
 				)
 			}
@@ -218,8 +220,44 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 					`mutation ArtifactMutationTest { updateUser { id name } }`,
 				},
 			},
+			{
+				// a document that embeds a fragment definition is the case that used to drift:
+				// the artifact hashed the operation and its fragments together while the
+				// persisted file keyed the entry by the hash of the operation alone
+				Name: "Artifact hash consistency with fragments",
+				Pass: true,
+				Input: []string{
+					`
+					query ArtifactTest($id: ID!) {
+						user(id: $id) {
+							...ArtifactFragmentUserInfo
+						}
+					}
+
+					fragment ArtifactFragmentUserInfo on User {
+						name
+						email
+					}
+					`,
+				},
+			},
 		},
 	})
+}
+
+var (
+	operationNameRegex = regexp.MustCompile(`(?:query|mutation|subscription)\s+(\w+)`)
+	// a document hash is 64 hex characters of SHA256
+	artifactHashRegex = regexp.MustCompile(`"hash":\s*"([a-f0-9]{64})"`)
+	artifactRawRegex  = regexp.MustCompile("(?s)\"raw\": `(.*?)`,")
+)
+
+// mustCapture pulls the first capture group out of content, failing the test if the pattern
+// doesn't match
+func mustCapture(t *testing.T, pattern *regexp.Regexp, content string, what string) string {
+	matches := pattern.FindStringSubmatch(content)
+	require.Len(t, matches, 2, "Should be able to extract %s from: %s", what, content)
+	return matches[1]
 }
 
 func runFullGeneration(

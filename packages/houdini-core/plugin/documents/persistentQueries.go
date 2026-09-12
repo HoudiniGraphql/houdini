@@ -8,14 +8,12 @@ import (
 
 	"github.com/spf13/afero"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
 	"code.houdinigraphql.com/plugins"
 )
 
-type OperationDoc struct {
-	ID      string
+type operationDoc struct {
 	Name    string
-	Kind    string
-	Hash    string
 	Printed string
 }
 
@@ -44,39 +42,27 @@ func GeneratePersistentQueries(
 	queryMap := make(map[string]string)
 
 	// Get all operations (queries, mutations, subscriptions)
-	operations := make(map[string]*OperationDoc)
-	fragments := make(map[string]*OperationDoc)
+	operations := make(map[string]*operationDoc)
+	fragments := make(map[string]string)
 	err = db.StepQuery(ctx, `
-		SELECT d.id, d.name, d.kind, d.hash, d.printed
+		SELECT d.id, d.name, d.kind, d.printed
 		FROM documents d
-		WHERE  d.hash IS NOT NULL
-			AND d.hash != ''
-			AND d.printed IS NOT NULL
+		WHERE  d.printed IS NOT NULL
 			AND d.printed != ''
 	`, nil, func(stmt plugins.Row) {
 		id := stmt.ColumnText(0)
 		name := stmt.ColumnText(1)
 		kind := stmt.ColumnText(2)
-		hash := stmt.ColumnText(3)
-		printed := stmt.ColumnText(4)
+		printed := stmt.ColumnText(3)
 
 		if kind == "fragment" {
 			// named map for faster lookup
-			fragments[name] = &OperationDoc{
-				ID:      id,
-				Name:    name,
-				Kind:    kind,
-				Hash:    hash,
-				Printed: printed,
-			}
+			fragments[name] = printed
 			return
 		}
 
-		operations[id] = &OperationDoc{
-			ID:      id,
+		operations[id] = &operationDoc{
 			Name:    name,
-			Kind:    kind,
-			Hash:    hash,
 			Printed: printed,
 		}
 	})
@@ -111,9 +97,9 @@ func GeneratePersistentQueries(
 	}
 
 	// For each operation, BFS the fragment dependency graph to find the transitive set.
-	for _, op := range operations {
+	for id, op := range operations {
 		seen := make(map[string]bool)
-		queue := docToDirectFrags[op.ID]
+		queue := docToDirectFrags[id]
 		for len(queue) > 0 {
 			name := queue[0]
 			queue = queue[1:]
@@ -124,19 +110,18 @@ func GeneratePersistentQueries(
 			queue = append(queue, docToDirectFrags[name]...)
 		}
 
-		var fragmentDefinitions []string
+		printedByName := map[string]string{op.Name: op.Printed}
 		for name := range seen {
-			if frag := fragments[name]; frag != nil {
-				fragmentDefinitions = append(fragmentDefinitions, frag.Printed)
+			if printed, ok := fragments[name]; ok {
+				printedByName[name] = printed
 			}
 		}
 
-		completeGraphQL := op.Printed
-		if len(fragmentDefinitions) > 0 {
-			completeGraphQL += "\n\n" + strings.Join(fragmentDefinitions, "\n\n")
-		}
+		// the client sends the artifact's hash as the document id, so the entry has to be keyed
+		// by the hash of the whole document, operation and fragments together
+		document, hash := artifacts.PrintWireDocument(printedByName)
 
-		queryMap[op.Hash] = completeGraphQL
+		queryMap[hash] = document
 	}
 
 	if len(queryMap) == 0 {

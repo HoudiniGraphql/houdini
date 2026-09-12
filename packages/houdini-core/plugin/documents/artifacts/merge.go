@@ -40,9 +40,9 @@ func FlattenSelection(
 	return fields.ToSelectionSet(), nil
 }
 
-// sortedKeys returns the keys of a set in a stable (alphabetical) order so walking
+// sortedKeys returns the keys of a map in a stable (alphabetical) order so walking
 // them produces the same result on every run
-func sortedKeys(set map[string]bool) []string {
+func sortedKeys[V any](set map[string]V) []string {
 	keys := make([]string, 0, len(set))
 	for key := range set {
 		keys = append(keys, key)

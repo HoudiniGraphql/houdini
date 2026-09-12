@@ -439,3 +439,19 @@ func stringifyValue(value *collected.ArgumentValue, usedVariables map[string]boo
 func generateDocumentHash(content string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(content)))
 }
+
+// PrintWireDocument joins a document with the printed definitions of every fragment it
+// references (keyed by name) into the text that travels over the wire, plus the hash of that
+// text trimmed of its trailing newline. The artifact embeds the text as `raw` and the
+// persisted queries file stores it under the hash, so both have to come from here or they
+// drift apart.
+func PrintWireDocument(printedByName map[string]string) (document string, hash string) {
+	bodies := make([]string, 0, len(printedByName))
+	for _, name := range sortedKeys(printedByName) {
+		bodies = append(bodies, printedByName[name])
+	}
+
+	printed := strings.TrimSpace(strings.Join(bodies, "\n\n"))
+
+	return printed + "\n", generateDocumentHash(printed)
+}

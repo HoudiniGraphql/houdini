@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -482,7 +481,7 @@ const artifact = {
     "name": "%s",
     "kind": "%s",
     "hash": "%s",%s
-    "raw": `+"`"+printed+"\n`"+`,
+    "raw": `+"`%s`"+`,
 
     "rootType": "%s",
     "stripVariables": %s as Array<string>,
@@ -503,6 +502,7 @@ export default artifact
 		kind,
 		hash,
 		refetch,
+		printed,
 		doc.TypeCondition,
 		string(stripVariables),
 		selectionValues,
@@ -548,32 +548,25 @@ func getDocumentData(
 	query, err := conn.Prepare(fmt.Sprintf(`
     SELECT
       documents.printed,
-      documents.name,
-      documents.hash
+      documents.name
     FROM documents
     WHERE documents.name in (%s)
-    ORDER BY documents.name
   `, whereIn))
 	if err != nil {
 		return d, err
 	}
 	defer query.Finalize()
 
-	var printedBuilder strings.Builder
+	printedByName := map[string]string{}
 
 	err = db.StepStatement(ctx, query, func() {
-		printedBuilder.WriteString(query.GetText("printed"))
-		printedBuilder.WriteString("\n\n")
+		printedByName[query.GetText("name")] = query.GetText("printed")
 	})
 	if err != nil {
 		return d, err
 	}
 
-	// strip the trailing newlines
-	d.Printed = strings.TrimSpace(printedBuilder.String())
-
-	// compute hash based on the complete printed content (including dependencies)
-	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
+	d.Printed, d.Hash = PrintWireDocument(printedByName)
 
 	// get refetch data from collected document if available
 	if collectedDoc := docs.Selections[name]; collectedDoc != nil {
