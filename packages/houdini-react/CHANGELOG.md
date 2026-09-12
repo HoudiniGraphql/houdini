@@ -1,5 +1,13 @@
 # houdini-react
 
+## 2.3.1
+
+### Patch Changes
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Generated runtime files now start with `// @ts-nocheck` so strict app-level tsconfig options like `noUncheckedIndexedAccess` no longer fail the build on code you don't own.
+
+- [#1746](https://github.com/HoudiniGraphql/houdini/pull/1746) [`06ac62b`](https://github.com/HoudiniGraphql/houdini/commit/06ac62be04e620dca228b29b98263691e3ee6d4b) Thanks [@knd775](https://github.com/knd775)! - Fix codegen failing on Windows with `spawn ... ENOENT` when starting plugin binaries.
+
 ## 2.3.0
 
 ### Minor Changes
