@@ -1,5 +1,27 @@
 # houdini-core
 
+## 2.0.9
+
+### Patch Changes
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Make generated artifact field order deterministic so incremental rebuilds no longer rewrite (and hot-reload) artifacts whose content didn't actually change.
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix three issues in generated TypeScript types: loading states now use field aliases instead of schema names, runtime scalar variables are optional in the input type since their values are resolved automatically, and `$optimistic` types wrap list fields in arrays.
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix dev-server rebuilds dropping fragments from generated documents: saving a file that defines a fragment no longer strips nested fragment definitions and their fields from queries that reference them.
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix null literals in documents being serialized as the string "null" in generated artifacts (argument values, list filters, and variable defaults).
+
+- [#1749](https://github.com/HoudiniGraphql/houdini/pull/1749) [`3db8be0`](https://github.com/HoudiniGraphql/houdini/commit/3db8be0996eabf5a9dd26d454b3f6da901f58e8a) Thanks [@knd775](https://github.com/knd775)! - Fix generated artifacts being corrupted when a document contains a `%` inside a string literal.
+
+- [#1749](https://github.com/HoudiniGraphql/houdini/pull/1749) [`3db8be0`](https://github.com/HoudiniGraphql/houdini/commit/3db8be0996eabf5a9dd26d454b3f6da901f58e8a) Thanks [@knd775](https://github.com/knd775)! - Fix persisted query hashes for queries containing fragments.
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix the persisted queries file never being written: setting `persistedQueriesPath` in `houdini.config.js` or passing `-o`/`--output` to `houdini generate` now produces the hash-to-query map file as documented.
+
+- [#1747](https://github.com/HoudiniGraphql/houdini/pull/1747) [`0040273`](https://github.com/HoudiniGraphql/houdini/commit/00402734889890d2b022f40fdf2b8c9f2325c8e4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Generated runtime files now start with `// @ts-nocheck` so strict app-level tsconfig options like `noUncheckedIndexedAccess` no longer fail the build on code you don't own.
+
+- [#1746](https://github.com/HoudiniGraphql/houdini/pull/1746) [`06ac62b`](https://github.com/HoudiniGraphql/houdini/commit/06ac62be04e620dca228b29b98263691e3ee6d4b) Thanks [@knd775](https://github.com/knd775)! - Fix codegen failing on Windows with `spawn ... ENOENT` when starting plugin binaries.
+
 ## 2.0.8
 
 ### Patch Changes
