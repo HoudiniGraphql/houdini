@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	
-
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
@@ -57,7 +55,8 @@ func TransformVariables[PluginConfig any](
 			id,
 			type,
 			row,
-			column
+			column,
+			document
 		FROM document_variables WHERE type in (%s)
 	`, runtimeScalars[:len(runtimeScalars)-1]))
 	if err != nil {
@@ -125,6 +124,7 @@ func TransformVariables[PluginConfig any](
 		variableType := search.ColumnText(1)
 		row := search.ColumnInt(2)
 		column := search.ColumnInt(3)
+		documentID := search.ColumnInt(4)
 
 		// we need to update the type of the variable
 		err = db.ExecStatement(updateType, map[string]any{
@@ -151,9 +151,9 @@ func TransformVariables[PluginConfig any](
 		}
 		directiveID := conn.LastInsertRowID()
 
-		// we need to store a string with the mapped value
+		// we need to store a string with the mapped value on the variable's document
 		err = db.ExecStatement(insertStringArgumentValue, map[string]any{
-			"document": variablesID,
+			"document": documentID,
 			"value":    variableType,
 		})
 		if err != nil {
@@ -176,5 +176,7 @@ func TransformVariables[PluginConfig any](
 	}
 
 	// we're done (commit the transaction)
-	commit(nil)
+	if err := commit(nil); err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
 }
