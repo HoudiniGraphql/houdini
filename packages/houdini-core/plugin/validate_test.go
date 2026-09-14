@@ -1239,6 +1239,20 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "Multiple variables can use runtime scalar types",
+				Pass: true,
+				Input: []string{
+					`query Test($id: ViewerIDFromSession!, $other: ViewerIDFromSession!) {
+					a: node(id: $id) {
+						id
+					}
+					b: node(id: $other) {
+						id
+					}
+				}`,
+				},
+			},
+			{
 				Name: "No aliases for default keys",
 				Pass: false,
 				Input: []string{
