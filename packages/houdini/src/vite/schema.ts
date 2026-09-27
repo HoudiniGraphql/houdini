@@ -4,7 +4,6 @@ import * as graphql from 'graphql'
 import type { ModuleNode, PluginOption } from 'vite'
 import { fs, get_config, run_pipeline } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
-import { sleep } from '../lib/sleep.js'
 import type { VitePluginContext } from './index.js'
 
 /*
@@ -62,20 +61,28 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 	// we want to stop polling when the plugin closes
 	let go = true
+	let end_wait: (() => void) | undefined
+
+	// Settles when the interval elapses, or immediately once the plugin stops. An armed
+	// timer holds node's event loop open for the rest of the interval, up to the
+	// five-minute backoff, after vite has closed.
+	const wait = (duration: number) =>
+		new Promise<void>((resolve) => {
+			const timer = setTimeout(resolve, duration)
+			end_wait = () => {
+				clearTimeout(timer)
+				resolve()
+			}
+		})
 
 	return {
 		name: 'houdini-poll-remote-schema',
 
-		// Cleanup when the plugin is closed
+		// server.close() always closes the plugin container, so buildEnd stops the loop
+		// for a middlewareMode server too. It also fires at the end of a build.
 		buildEnd() {
 			go = false
-		},
-
-		// Also cleanup when dev server is configured (for dev mode)
-		configureServer(server) {
-			server.httpServer?.once('close', () => {
-				go = false
-			})
+			end_wait?.()
 		},
 
 		async buildStart() {
@@ -124,7 +131,7 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 				// if we're suposed to poll more than once then keep going
 				if (more) {
 					const wait_time = Math.min(interval! + interval! * error_count, max_interval)
-					await sleep(wait_time)
+					await wait(wait_time)
 
 					// Only continue polling if the plugin is still active
 					if (go) {
@@ -141,11 +148,18 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 				return
 			}
 
-			// wait one tick before polling again
-			await sleep(interval)
+			// The loop runs detached on purpose. Vite's plugin container awaits every
+			// in-flight buildStart before it runs buildEnd, so awaiting a loop that only
+			// ends at buildEnd would deadlock server.close().
+			void (async () => {
+				// wait one tick before polling again
+				await wait(interval)
 
-			// and then start polling
-			await pull(true)
+				// and then start polling
+				if (go) {
+					await pull(true)
+				}
+			})()
 		},
 	}
 }

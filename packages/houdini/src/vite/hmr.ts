@@ -152,12 +152,10 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				await ownedCompiler.close()
 			})
 
-			// and make sure the compiler cleans up gracefully when the http server dies.
-			// the disposer runs at most once, so this is a no-op if a replacement
-			// session already performed the handoff.
-			server.httpServer?.once('close', () => {
-				dispose_session()
-			})
+			// close_session owns every shutdown signal, so hand it the disposer instead of
+			// listening here. it runs at most once, so it no-ops if a replacement session
+			// already did the handoff.
+			ctx.teardowns.push(dispose_session)
 
 			// before we do anyting we neeed to make sure everything has run
 			try {

@@ -30,6 +30,10 @@ export type VitePluginContext = PluginConfig & {
 	// shared context (not module state) so a vite restart — which re-runs the plugin
 	// factory and creates a fresh context — can't leak one server's compiler into another.
 	compiler?: CompilerProxy
+	// shutdown work registered by the plugins sharing this context, drained by
+	// close_session. Scoped to the context for the same reason as `compiler`: a vite
+	// restart must not let one generation's shutdown reach the session that replaced it.
+	teardowns: Array<() => void | Promise<void>>
 }
 
 export default async function (opts?: PluginConfig): Promise<Array<PluginOption>> {
@@ -50,6 +54,7 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 		db_file,
 		// assigned in houdini()'s configResolved; never opened for worker builds
 		db: undefined as unknown as Db,
+		teardowns: [],
 		// pick up adapter from config file if not provided in opts
 		adapter: opts?.adapter ?? (config.config_file as any).adapter,
 	}
@@ -62,26 +67,80 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 		refresh_on_schema(ctx),
 		// each registered plugin could provide a vite portion
 		...(await load_vite_plugins(ctx)),
-		close_db(ctx),
+		close_session(ctx),
 	]
 }
 
-function close_db(ctx: VitePluginContext) {
-	return {
-		name: 'houdini-close-database',
-		configureServer(server) {
-			server.httpServer?.on('close', () => {
+/**
+ * Drains the shutdown work registered for a server, then closes the database.
+ *
+ * The signal comes from buildEnd rather than the http server's 'close' event because
+ * a middlewareMode server has no http server. Vitest closed its vite server and the
+ * plugin processes kept running with their sockets open, so node never exited.
+ * server.close() always closes the plugin container, and it closes the http server
+ * concurrently, so both signals can arrive for one shutdown. The latch below makes
+ * whichever loses a no-op.
+ */
+export function close_session(ctx: VitePluginContext): PluginOption {
+	type Session = {
+		teardowns: Array<() => void | Promise<void>>
+		draining?: Promise<void>
+	}
+
+	// Keyed by environment, never held on the plugin instance: a restart re-runs the
+	// config file for `vite dev`, but an embedder that passes plugin objects in an
+	// inline config hands the same objects (and the same ctx) to the replacement
+	// server. Vite builds fresh environments either way, so this is what keeps one
+	// server's shutdown from draining the session that replaced it.
+	const sessions = new WeakMap<object, Session>()
+
+	const drain = (session: Session) => {
+		session.draining ??= (async () => {
+			// registration order is plugin order, so the compiler goes before the
+			// database connection it writes through
+			for (const dispose of session.teardowns) {
 				try {
-					ctx.db.close()
-				} catch {}
-			})
+					await dispose()
+				} catch (err) {
+					// one plugin failing to clean up must not strand the rest, but a
+					// silent failure here reads as a successful shutdown
+					console.error('[houdini] error shutting down:', err)
+				}
+			}
+			// drop the closed compiler's child processes and sockets, which the session
+			// would otherwise pin for as long as it lives
+			session.teardowns.length = 0
+			// the compiler closes ctx.db too, but a session that died before registering
+			// never got that far
+			try {
+				ctx.db?.close()
+			} catch {}
+		})()
+		return session.draining
+	}
+
+	return {
+		name: 'houdini-close-session',
+
+		configureServer(server) {
+			// everything registered so far belongs to this server: every plugin that
+			// registers does it from a configureServer that runs before this one
+			const session: Session = { teardowns: ctx.teardowns.splice(0) }
+			for (const environment of Object.values(server.environments)) {
+				sessions.set(environment, session)
+			}
+			server.httpServer?.on('close', () => drain(session))
 		},
-		// Note: we intentionally do NOT close ctx.db in buildEnd for production
-		// builds. Vite does not always await async buildStart hooks, so
-		// codegen_setup / wait_for_plugin may still be polling ctx.db when
-		// buildEnd fires. Closing it here breaks that polling and causes a
-		// 10-second registration timeout. The process exits shortly after a
-		// production build, cleaning up the connection automatically.
+
+		// No session means a production build, which must not tear down here. Vite
+		// doesn't always await async buildStart hooks, so wait_for_plugin can still be
+		// polling ctx.db when buildEnd fires, and closing it out from under that poll
+		// ends in a 10-second registration timeout. The process exits shortly after a
+		// build anyway.
+		buildEnd(this: { environment?: object }) {
+			const session = this.environment && sessions.get(this.environment)
+			return session && drain(session)
+		},
 	} as PluginOption
 }
 
