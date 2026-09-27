@@ -310,7 +310,11 @@ func (db DatabasePool[PC]) Transaction(conn Conn) func(*error) {
 			db.db.Exec("ROLLBACK TO " + sp)
 			db.db.Exec("RELEASE " + sp)
 		} else {
-			db.db.Exec("RELEASE " + sp)
+			// releasing the outermost savepoint commits, so deferred FK
+			// violations surface here
+			if _, err := db.db.Exec("RELEASE " + sp); err != nil {
+				*errp = err
+			}
 		}
 	}
 }
