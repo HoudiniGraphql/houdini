@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.10
+
+### Patch Changes
+
+- [#1751](https://github.com/HoudiniGraphql/houdini/pull/1751) [`6932516`](https://github.com/HoudiniGraphql/houdini/commit/69325163e1ebec59ea7007dbb6d91006829c4cfc) Thanks [@knd775](https://github.com/knd775)! - Fix runtime scalar variables failing validation with "uses unknown type" during HMR, and intermittently on `houdini generate`.
+
 ## 2.0.9
 
 ### Patch Changes

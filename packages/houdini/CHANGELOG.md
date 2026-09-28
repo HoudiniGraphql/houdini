@@ -1,5 +1,15 @@
 # houdini
 
+## 2.0.12
+
+### Patch Changes
+
+- [#1750](https://github.com/HoudiniGraphql/houdini/pull/1750) [`63fc6ee`](https://github.com/HoudiniGraphql/houdini/commit/63fc6ee05b087d302f7455fde61c108715747d3e) Thanks [@knd775](https://github.com/knd775)! - Fix the dev server never starting when `watchSchema.interval` is set.
+
+- [#1751](https://github.com/HoudiniGraphql/houdini/pull/1751) [`6932516`](https://github.com/HoudiniGraphql/houdini/commit/69325163e1ebec59ea7007dbb6d91006829c4cfc) Thanks [@knd775](https://github.com/knd775)! - Fix runtime scalar variables failing validation with "uses unknown type" during HMR, and intermittently on `houdini generate`.
+
+- [#1750](https://github.com/HoudiniGraphql/houdini/pull/1750) [`63fc6ee`](https://github.com/HoudiniGraphql/houdini/commit/63fc6ee05b087d302f7455fde61c108715747d3e) Thanks [@knd775](https://github.com/knd775)! - Stop the codegen plugin processes when Vite closes the dev server.
+
 ## 2.0.11
 
 ### Patch Changes
