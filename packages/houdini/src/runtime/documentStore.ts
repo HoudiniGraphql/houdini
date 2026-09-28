@@ -144,6 +144,10 @@ export class DocumentStore<
 		silenceEcho = false,
 		abortController = new AbortController(),
 	}: SendParams = {}) {
+		// if we are matching on variables then we should use that for the controller key, otherwise
+		// just use an empty object
+		const dedupeKey = this.controllerKey(variables)
+
 		// if the document we are sending is meant to be deduped, then we need to look for an existing
 		// controller for the document
 		if (
@@ -151,10 +155,6 @@ export class DocumentStore<
 			this.artifact.dedupe &&
 			this.artifact.dedupe.match !== 'None'
 		) {
-			// if we are matching on variables then we should use that for the controller key, otherwise
-			// just use an empty object
-			const dedupeKey = this.controllerKey(variables)
-
 			// if there is already a live pending request
 			const existingRequest = inflightRequests[dedupeKey]
 			if (existingRequest && !existingRequest.controller.signal.aborted) {
@@ -241,7 +241,11 @@ export class DocumentStore<
 		try {
 			return await promise
 		} finally {
-			delete inflightRequests[this.controllerKey(variables)]
+			// another request may own this entry by now, and removing it would stop the
+			// next send from aborting that request
+			if (inflightRequests[dedupeKey]?.controller === abortController) {
+				delete inflightRequests[dedupeKey]
+			}
 		}
 	}
 
