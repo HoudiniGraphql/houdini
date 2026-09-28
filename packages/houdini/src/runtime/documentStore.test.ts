@@ -7,7 +7,7 @@ import { ArtifactKind } from '../lib/types.js'
 import { setMockConfig, getCurrentConfig } from './config.js'
 import type { ClientPlugin } from './documentStore.js'
 import { DocumentStore } from './documentStore.js'
-import { DataSource } from './types.js'
+import { DataSource, type QueryArtifact } from './types.js'
 
 beforeEach(() => {
 	setMockConfig({
@@ -1205,9 +1205,48 @@ test('plugins can kick off a brand new request through ctx.documentStore', async
 	)
 })
 
+// a cancel: 'first' replacement takes over the dedupe entry of the request it aborted,
+// so the aborted request settling must not untrack the replacement
+test('dedupe cancels the request that replaced an earlier cancelled one', async () => {
+	const requests: { signal: AbortSignal; finish: () => void }[] = []
+	const fakeFetch: ClientPlugin = () => ({
+		network(ctx, { resolve }) {
+			const finish = () =>
+				resolve(ctx, {
+					data: { id: ctx.variables?.id },
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Network,
+					variables: ctx.variables,
+				})
+			requests.push({ signal: ctx.abortController.signal, finish })
+			// settle aborted requests so their cleanup runs, like a real fetch rejecting
+			ctx.abortController.signal.addEventListener('abort', finish, { once: true })
+		},
+	})
+
+	const store = createStore([fakeFetch], undefined, { cancel: 'first', match: 'Operation' })
+
+	const first = store.send({ variables: { id: 1 } })
+	const second = store.send({ variables: { id: 2 } })
+	expect(requests[0].signal.aborted).toBe(true)
+	await first
+
+	const third = store.send({ variables: { id: 3 } })
+	expect(requests[1].signal.aborted).toBe(true)
+	await second
+
+	expect(requests[2].signal.aborted).toBe(false)
+	requests[2].finish()
+	await expect(third).resolves.toMatchObject({ data: { id: 3 } })
+})
+
 export function createStore(
 	plugins: ClientPlugin[],
-	fetching: boolean | undefined = undefined
+	fetching: boolean | undefined = undefined,
+	dedupe?: QueryArtifact['dedupe']
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
@@ -1235,6 +1274,7 @@ export function createStore(
 				runtimeScalars: {},
 			},
 			pluginData: {},
+			dedupe,
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: undefined,
