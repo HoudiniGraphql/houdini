@@ -213,3 +213,62 @@ test('throws on error responses that are not GraphQL media types', async () => {
 		})
 	).rejects.toThrow('Failed to fetch: server returned invalid response with error 503')
 })
+
+function sentOperations(fetchMock: ReturnType<typeof fakeResponse>) {
+	const [, args] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+	if (!(args.body instanceof FormData)) {
+		throw new Error('expected a multipart body')
+	}
+	return {
+		operations: JSON.parse(String(args.body.get('operations'))),
+		map: JSON.parse(String(args.body.get('map'))),
+	}
+}
+
+test('multipart uploads replace files with null in operations', async () => {
+	const fetchMock = fakeResponse({ body: { data: { viewer: null } } })
+	const store = createStore({ pipeline: [fetchPlugin()] })
+
+	const file = new File(['hello'], 'hello.txt')
+	await store.send({ fetch: fetchMock, variables: { id: '1', file, files: [file] } })
+
+	expect(sentOperations(fetchMock)).toEqual({
+		operations: {
+			operationName: 'TestArtifact',
+			query: 'RAW_TEXT',
+			variables: { id: '1', file: null, files: [null] },
+		},
+		map: { 1: ['variables.file', 'variables.files.0'] },
+	})
+})
+
+test('multipart uploads replace files with null in a custom body', async () => {
+	const fetchMock = fakeResponse({ body: { data: { viewer: null } } })
+	// a persisted-operations style plugin that builds its own body from the variables
+	const store = createStore({
+		pipeline: [
+			() => ({
+				beforeNetwork(ctx, { next, marshalVariables }) {
+					next({
+						...ctx,
+						fetchParams: {
+							body: JSON.stringify({
+								extensions: { persistedQuery: { sha256Hash: 'abc' } },
+								variables: marshalVariables(ctx),
+							}),
+						},
+					})
+				},
+			}),
+			fetchPlugin(),
+		],
+	})
+
+	const file = new File(['hello'], 'hello.txt')
+	await store.send({ fetch: fetchMock, variables: { id: '1', file } })
+
+	expect(sentOperations(fetchMock).operations).toEqual({
+		extensions: { persistedQuery: { sha256Hash: 'abc' } },
+		variables: { id: '1', file: null },
+	})
+})
