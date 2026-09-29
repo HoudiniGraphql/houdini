@@ -1,4 +1,4 @@
-import { getAuthUrl } from 'houdini/runtime'
+import { getAuthUrl, valueAtPath } from 'houdini/runtime'
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { RequestPayload, FetchContext } from 'houdini/runtime/types'
@@ -222,7 +222,7 @@ function handleMultipart(
 	args: RequestInit | undefined
 ): RequestInit | undefined {
 	// process any files that could be included
-	const { files } = extractFiles({
+	const { clone, files } = extractFiles({
 		variables: params.variables,
 	})
 
@@ -246,16 +246,17 @@ function handleMultipart(
 		// https://github.com/jaydenseric/graphql-multipart-request-spec
 		const form = new FormData()
 
-		// if we have a body, just use it.
-		if (args?.body) {
-			form.set('operations', args?.body as string)
+		// files in the provided body were serialized to {}, but the spec and strict servers
+		// require null at each file path
+		if (typeof args?.body === 'string') {
+			form.set('operations', nullFilePaths(args.body, files))
 		} else {
 			form.set(
 				'operations',
 				JSON.stringify({
 					operationName: params.name,
 					query: params.text,
-					variables: params.variables,
+					variables: clone.variables,
 				})
 			)
 		}
@@ -275,6 +276,31 @@ function handleMultipart(
 
 		return { ...req, headers, body: form as any }
 	}
+}
+
+// the file map's paths (e.g. variables.files.0) index straight into the parsed body.
+// A body that isn't JSON can't be patched, so it's sent as-is.
+function nullFilePaths(body: string, files: Map<unknown, string[]>): string {
+	let operations: unknown
+	try {
+		operations = JSON.parse(body)
+	} catch {
+		return body
+	}
+
+	for (const paths of files.values()) {
+		for (const path of paths) {
+			const keys = path.split('.')
+			const last = keys.pop()!
+			const target: unknown = valueAtPath(operations, keys)
+			// the container is an object or an array (for a file in a list)
+			if (typeof target === 'object' && target !== null && last in target) {
+				Reflect.set(target, last, null)
+			}
+		}
+	}
+
+	return JSON.stringify(operations)
 }
 
 /// This file contains a modified version of the functions found here: https://github.com/jaydenseric/extract-files/blob/master/extractFiles.mjs
