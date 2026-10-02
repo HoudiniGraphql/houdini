@@ -263,30 +263,21 @@ func GenerateSelectionDocument(
 		// the input type defs include a description for every input object
 		// that is used in the query so we can correctly marshal the scalar values
 		var typeDefsBuilder strings.Builder
+		// findUsedTypes walks Go maps, so its order changes between runs
 		usedTypes := findUsedTypes(docs, doc.Variables)
-
-		if sortKeys {
-			sort.Strings(usedTypes)
-		}
+		sort.Strings(usedTypes)
 		for _, inputType := range usedTypes {
 			var fieldsBuilder strings.Builder
 
-			// we might have to sort the keys in the input type
-			if sortKeys {
-				inputKeys := []string{}
-				for key := range docs.InputTypes[inputType] {
-					inputKeys = append(inputKeys, key)
-				}
-				sort.Strings(inputKeys)
-				for _, key := range inputKeys {
-					fmt.Fprintf(&fieldsBuilder, `
+			// input fields live in a Go map, so sort them for a stable artifact
+			inputKeys := []string{}
+			for key := range docs.InputTypes[inputType] {
+				inputKeys = append(inputKeys, key)
+			}
+			sort.Strings(inputKeys)
+			for _, key := range inputKeys {
+				fmt.Fprintf(&fieldsBuilder, `
                 "%s": "%s",`, key, docs.InputTypes[inputType][key])
-				}
-			} else {
-				for key, value := range docs.InputTypes[inputType] {
-					fmt.Fprintf(&fieldsBuilder, `
-                "%s": "%s",`, key, value)
-				}
 			}
 
 			fmt.Fprintf(&typeDefsBuilder, `
@@ -888,22 +879,16 @@ func stringifySelection(
 			}
 		}
 
+		// typeMap is a Go map, so sort it for a stable artifact
 		var typeMapBuilder strings.Builder
-		if !sortKeys {
-			for key, value := range typeMap {
-				fmt.Fprintf(&typeMapBuilder, `%s"%s": "%s",
-`, indent4, key, value)
-			}
-		} else {
-			keys := []string{}
-			for key := range typeMap {
-				keys = append(keys, key)
-			}
-			sort.Strings(keys)
-			for _, key := range keys {
-				fmt.Fprintf(&typeMapBuilder, `%s"%s": "%s",
+		keys := []string{}
+		for key := range typeMap {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			fmt.Fprintf(&typeMapBuilder, `%s"%s": "%s",
 `, indent4, key, typeMap[key])
-			}
 		}
 
 		typeMapStr := ""
