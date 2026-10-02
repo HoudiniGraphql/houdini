@@ -1,10 +1,18 @@
 import { path } from 'houdini'
-import type { VitePluginContext } from 'houdini/vite'
-import type { PluginOption } from 'vite'
+import { plugin_dir } from 'houdini/router/conventions'
+import { side_effect_free, type VitePluginContext } from 'houdini/vite'
+import type { Plugin, PluginOption } from 'vite'
 
 import transform_file from './transform/index.js'
 
 export default function (ctx: VitePluginContext): PluginOption {
+	return [
+		side_effect_free(path.join(plugin_dir(ctx.config, 'houdini-svelte'), 'stores')),
+		transform_documents(ctx),
+	]
+}
+
+function transform_documents(ctx: VitePluginContext): Plugin {
 	return {
 		name: 'houdini-svelte',
 		enforce: 'pre',

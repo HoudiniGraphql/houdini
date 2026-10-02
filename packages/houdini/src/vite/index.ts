@@ -16,6 +16,9 @@ import { db_path } from '../router/conventions.js'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
 import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema.js'
+import { side_effect_free } from './side-effects.js'
+
+export { side_effect_free }
 
 export type PluginConfig = {
 	configPath?: string
@@ -65,6 +68,7 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 		document_hmr(ctx),
 		poll_remote_schema(ctx),
 		refresh_on_schema(ctx),
+		side_effect_free(config.artifact_dir),
 		// each registered plugin could provide a vite portion
 		...(await load_vite_plugins(ctx)),
 		close_session(ctx),
