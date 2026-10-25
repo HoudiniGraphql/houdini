@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.7
+
+### Patch Changes
+
+- [#1755](https://github.com/HoudiniGraphql/houdini/pull/1755) [`d4a265d`](https://github.com/HoudiniGraphql/houdini/commit/d4a265df5ba773991446f49d90c23b06f0545062) Thanks [@knd775](https://github.com/knd775)! - Mark generated stores and artifacts as side-effect free so they code-split into the routes that use them.
+
 ## 3.0.6
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # houdini
 
+## 2.0.13
+
+### Patch Changes
+
+- [#1753](https://github.com/HoudiniGraphql/houdini/pull/1753) [`753372c`](https://github.com/HoudiniGraphql/houdini/commit/753372c41b45e7d765acafddd81673dd509edd47) Thanks [@knd775](https://github.com/knd775)! - Fix `@dedupe(cancelFirst: true)` not cancelling in-flight requests after the first cancellation.
+
+- [#1754](https://github.com/HoudiniGraphql/houdini/pull/1754) [`24ff042`](https://github.com/HoudiniGraphql/houdini/commit/24ff042f839bd231d6aa8c1fe0c305881bcab269) Thanks [@knd775](https://github.com/knd775)! - Send `null` in place of each file in multipart upload requests, as the GraphQL multipart request spec requires.
+
+- [#1755](https://github.com/HoudiniGraphql/houdini/pull/1755) [`d4a265d`](https://github.com/HoudiniGraphql/houdini/commit/d4a265df5ba773991446f49d90c23b06f0545062) Thanks [@knd775](https://github.com/knd775)! - Mark generated stores and artifacts as side-effect free so they code-split into the routes that use them.
+
+- [#1755](https://github.com/HoudiniGraphql/houdini/pull/1755) [`d4a265d`](https://github.com/HoudiniGraphql/houdini/commit/d4a265df5ba773991446f49d90c23b06f0545062) Thanks [@knd775](https://github.com/knd775)! - Sort input types, enum imports, and abstract type maps in generated artifacts so builds produce identical output and stable chunk hashes.
+
 ## 2.0.12
 
 ### Patch Changes
