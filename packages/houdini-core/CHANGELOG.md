@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.11
+
+### Patch Changes
+
+- [#1754](https://github.com/HoudiniGraphql/houdini/pull/1754) [`24ff042`](https://github.com/HoudiniGraphql/houdini/commit/24ff042f839bd231d6aa8c1fe0c305881bcab269) Thanks [@knd775](https://github.com/knd775)! - Send `null` in place of each file in multipart upload requests, as the GraphQL multipart request spec requires.
+
+- [#1755](https://github.com/HoudiniGraphql/houdini/pull/1755) [`d4a265d`](https://github.com/HoudiniGraphql/houdini/commit/d4a265df5ba773991446f49d90c23b06f0545062) Thanks [@knd775](https://github.com/knd775)! - Sort input types, enum imports, and abstract type maps in generated artifacts so builds produce identical output and stable chunk hashes.
+
 ## 2.0.10
 
 ### Patch Changes
