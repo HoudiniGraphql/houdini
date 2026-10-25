@@ -280,6 +280,7 @@ func generateDocumentTypeDef(
 		for enumType := range docCtx.EnumTypes {
 			enumTypes = append(enumTypes, enumType+"$options")
 		}
+		sort.Strings(enumTypes)
 		imports = append(
 			imports,
 			fmt.Sprintf(
@@ -293,6 +294,7 @@ func generateDocumentTypeDef(
 		for inputType := range docCtx.InputTypes {
 			inputTypes = append(inputTypes, inputType)
 		}
+		sort.Strings(inputTypes)
 		imports = append(
 			imports,
 			fmt.Sprintf(
